@@ -20,7 +20,7 @@ Slotitems = React.createClass
               path = require 'path'
               path.join(ROOT, 'assets', 'img', 'slotitem', "#{itemInfo.api_type[3] + 33}.png")
             }
-            alt={itemInfo.api_name} title={itemInfo.api_name} />
+          />
         </OverlayTrigger>
     }
     </div>
