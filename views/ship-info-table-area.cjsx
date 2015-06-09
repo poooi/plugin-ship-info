@@ -85,6 +85,23 @@ ShipInfoTableArea = React.createClass
           sakuteki: ship.api_sakuteki[0]
           slot: ship.api_slot
         rows.push row
+      when '/kcsapi/api_req_kousyou/destroyship'
+        rows = []
+        for ship in _ships
+          row =
+            id: ship.api_id
+            type: $shipTypes[$ships[ship.api_ship_id].api_stype].api_name
+            name: $ships[ship.api_ship_id].api_name
+            lv:  ship.api_lv
+            cond: ship.api_cond
+            karyoku: ship.api_karyoku[0]
+            raisou: ship.api_raisou[0]
+            taiku: ship.api_taiku[0]
+            soukou: ship.api_soukou[0]
+            lucky: ship.api_lucky[0]
+            sakuteki: ship.api_sakuteki[0]
+            slot: ship.api_slot
+          rows.push row
     @setState
       rows: rows
       show: true
