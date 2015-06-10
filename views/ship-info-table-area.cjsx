@@ -12,8 +12,7 @@ Slotitems = React.createClass
       {$slotitems, _slotitems} = window
       for itemId in @props.data
         continue if itemId == -1
-        idx = _.sortedIndex _slotitems, {api_id: itemId}, 'api_id'
-        item = _slotitems[idx]
+        item = _slotitems[itemId]
         itemInfo = $slotitems[item.api_slotitem_id]
         <OverlayTrigger placement='top' overlay={<Tooltip>{itemInfo.api_name}</Tooltip>}>
           <img key={itemId} src={
@@ -54,7 +53,7 @@ ShipInfoTableArea = React.createClass
     switch path
       when '/kcsapi/api_port/port'
         rows = []
-        for ship in _ships
+        for _shipId, ship of _ships
           row =
             id: ship.api_id
             type: $shipTypes[$ships[ship.api_ship_id].api_stype].api_name
@@ -87,7 +86,7 @@ ShipInfoTableArea = React.createClass
         rows.push row
       when '/kcsapi/api_req_kousyou/destroyship'
         rows = []
-        for ship in _ships
+        for _shipId, ship of _ships
           row =
             id: ship.api_id
             type: $shipTypes[$ships[ship.api_ship_id].api_stype].api_name
