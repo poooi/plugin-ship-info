@@ -5,6 +5,9 @@ body {
   margin-top: 15px;
   font-size: 13px;
 }
+.center {
+  text-align: center;
+}
 .form-group {
   margin-bottom: 0px;
 }
@@ -22,6 +25,41 @@ body {
 .filter-button {
   margin-top: 10px;
   margin-bottom: 10px;
+}
+.td-karyoku {
+  text-align: center;
+}
+.td-karyoku-max {
+  text-align: center;
+  background-color: rgba(245, 93, 93, 0.33);
+}
+.td-raisou {
+  text-align: center;
+}
+.td-raisou-max {
+  text-align: center;
+  background-color: rgba(162, 194, 230, 0.33);
+}
+.td-taiku {
+  text-align: center;
+}
+.td-taiku-max {
+  text-align: center;
+  background-color: rgba(255, 176, 77, 0.33);
+}
+.td-soukou {
+  text-align: center;
+}
+.td-soukou-max {
+  text-align: center;
+  background-color: rgba(255, 219, 79, 0.33);
+}
+.td-lucky {
+  text-align: center;
+}
+.td-lucky-max {
+  text-align: center;
+  background-color: rgba(125, 239, 94, 0.33);
 }
 #ship-info-settings .checkbox {
   margin-top: 1px;

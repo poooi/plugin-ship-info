@@ -23,6 +23,7 @@ module.exports =
   displayName: [<FontAwesome name='ship' key={0} />, ' 舰娘信息']
   author: 'Yunze'
   link: 'https://github.com/myzwillmake'
+  version: '1.1.0'
   description: '提供已有舰娘详细信息查看'
   handleClick: ->
     shipInfoWindow.show()

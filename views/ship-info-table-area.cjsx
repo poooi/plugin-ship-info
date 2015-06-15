@@ -31,14 +31,14 @@ ShipInfoTable = React.createClass
       <td>{@props.id}</td>
       <td>{@props.type}</td>
       <td>{@props.name}</td>
-      <td>{@props.lv}</td>
-      <td>{@props.cond}</td>
-      <td>{@props.karyoku}</td>
-      <td>{@props.raisou}</td>
-      <td>{@props.taiku}</td>
-      <td>{@props.soukou}</td>
-      <td>{@props.lucky}</td>
-      <td>{@props.sakuteki}</td>
+      <td className='center'>{@props.lv}</td>
+      <td className='center'>{@props.cond}</td>
+      <td className={if @props.karyoku[0] == @props.karyoku[1] then 'td-karyoku-max' else 'td-karyoku'}>{@props.karyoku[0]}</td>
+      <td className={if @props.raisou[0] == @props.raisou[1] then 'td-raisou-max' else 'td-raisou'}>{@props.raisou[0]}</td>
+      <td className={if @props.taiku[0] == @props.taiku[1] then 'td-taiku-max' else 'td-taiku'}>{@props.taiku[0]}</td>
+      <td className={if @props.soukou[0] == @props.soukou[1] then 'td-soukou-max' else 'td-soukou'}>{@props.soukou[0]}</td>
+      <td className={if @props.lucky[0] == @props.lucky[1] then 'td-lucky-max' else 'td-lucky'}>{@props.lucky[0]}</td>
+      <td className='center'>{@props.sakuteki}</td>
       <td><Slotitems data={@props.slot} /></td>
     </tr>
 
@@ -60,11 +60,11 @@ ShipInfoTableArea = React.createClass
             name: $ships[ship.api_ship_id].api_name
             lv:  ship.api_lv
             cond: ship.api_cond
-            karyoku: ship.api_karyoku[0]
-            raisou: ship.api_raisou[0]
-            taiku: ship.api_taiku[0]
-            soukou: ship.api_soukou[0]
-            lucky: ship.api_lucky[0]
+            karyoku: ship.api_karyoku
+            raisou: ship.api_raisou
+            taiku: ship.api_taiku
+            soukou: ship.api_soukou
+            lucky: ship.api_lucky
             sakuteki: ship.api_sakuteki[0]
             slot: ship.api_slot
           rows.push row
@@ -76,11 +76,11 @@ ShipInfoTableArea = React.createClass
           name: $ships[ship.api_ship_id].api_name
           lv:  ship.api_lv
           cond: ship.api_cond
-          karyoku: ship.api_karyoku[0]
-          raisou: ship.api_raisou[0]
-          taiku: ship.api_taiku[0]
-          soukou: ship.api_soukou[0]
-          lucky: ship.api_lucky[0]
+          karyoku: ship.api_karyoku
+          raisou: ship.api_raisou
+          taiku: ship.api_taiku
+          soukou: ship.api_soukou
+          lucky: ship.api_lucky
           sakuteki: ship.api_sakuteki[0]
           slot: ship.api_slot
         rows.push row
@@ -93,11 +93,11 @@ ShipInfoTableArea = React.createClass
             name: $ships[ship.api_ship_id].api_name
             lv:  ship.api_lv
             cond: ship.api_cond
-            karyoku: ship.api_karyoku[0]
-            raisou: ship.api_raisou[0]
-            taiku: ship.api_taiku[0]
-            soukou: ship.api_soukou[0]
-            lucky: ship.api_lucky[0]
+            karyoku: ship.api_karyoku
+            raisou: ship.api_raisou
+            taiku: ship.api_taiku
+            soukou: ship.api_soukou
+            lucky: ship.api_lucky
             sakuteki: ship.api_sakuteki[0]
             slot: ship.api_slot
           rows.push row
@@ -126,14 +126,14 @@ ShipInfoTableArea = React.createClass
                 <th>ID</th>
                 <th>舰种</th>
                 <th>舰名</th>
-                <th>等级</th>
-                <th>状态</th>
-                <th>火力</th>
-                <th>雷装</th>
-                <th>对空</th>
-                <th>装甲</th>
-                <th>幸运</th>
-                <th>索敌</th>
+                <th className='center'>等级</th>
+                <th className='center'>状态</th>
+                <th className='center'>火力</th>
+                <th className='center'>雷装</th>
+                <th className='center'>对空</th>
+                <th className='center'>装甲</th>
+                <th className='center'>幸运</th>
+                <th className='center'>索敌</th>
                 <th>装备</th>
               </tr>
             </thead>
