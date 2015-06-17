@@ -26,18 +26,74 @@ Slotitems = React.createClass
 
 ShipInfoTable = React.createClass
   render: ->
+    karyokuNow = @props.houg[0] + @props.kyouka[0]
+    karyokuMax = @props.karyoku[1]
+    raisouNow = @props.raig[0] + @props.kyouka[1]
+    raisouMax = @props.raisou[1]
+    taikuNow = @props.tyku[0] + @props.kyouka[2]
+    taikuMax = @props.taiku[1]
+    soukouNow = @props.souk[0] + @props.kyouka[3]
+    soukouMax = @props.soukou[1]
+    luckyNow = @props.luck[0] + @props.kyouka[4]
+    luckyMax = @props.lucky[1]
+
+    condColor = 'transparent'
+    karyokuClass = 'td-karyoku'
+    raisouClass = 'td-raisou'
+    taikuClass = 'td-taiku'
+    soukouClass = 'td-soukou'
+    luckyClass = 'td-lucky'
+
+    if karyokuNow == karyokuMax
+      karyokuClass = 'td-karyoku-max'
+    if raisouNow == raisouMax
+      raisouClass = 'td-raisou-max'
+    if taikuNow == taikuMax
+      taikuClass = 'td-taiku-max'
+    if soukouNow == soukouMax
+      soukouClass = 'td-soukou-max'
+    if luckyNow == luckyMax
+      luckyClass = 'td-lucky-max'
+
+    if @props.cond in [0..19]
+      condColor = 'rgba(255, 0, 0, 0.4)'
+    if @props.cond in [20..29]
+      condColor = 'rgba(255, 165, 0, 0.4)'
+    if @props.cond in [50..100]
+      condColor = 'rgba(255, 255, 0, 0.4)'
+
     <tr>
       <td>{@props.index}</td>
       <td>{@props.id}</td>
       <td>{@props.type}</td>
       <td>{@props.name}</td>
       <td className='center'>{@props.lv}</td>
-      <td className='center'>{@props.cond}</td>
-      <td className={if (@props.houg[0] + @props.kyouka[0]) == @props.karyoku[1] then 'td-karyoku-max' else 'td-karyoku'}>{@props.karyoku[0]}</td>
-      <td className={if (@props.raig[0] + @props.kyouka[1]) == @props.raisou[1] then 'td-raisou-max' else 'td-raisou'}>{@props.raisou[0]}</td>
-      <td className={if (@props.tyku[0] + @props.kyouka[2]) == @props.taiku[1] then 'td-taiku-max' else 'td-taiku'}>{@props.taiku[0]}</td>
-      <td className={if (@props.souk[0] + @props.kyouka[3]) == @props.soukou[1] then 'td-soukou-max' else 'td-soukou'}>{@props.soukou[0]}</td>
-      <td className={if (@props.luck[0] + @props.kyouka[4]) == @props.lucky[1] then 'td-lucky-max' else 'td-lucky'}>{@props.lucky[0]}</td>
+      <td className='center' style={{backgroundColor:condColor;}}>{@props.cond}</td>
+      <OverlayTrigger placement='top' overlay={<Tooltip>{'Now '+karyokuNow}<br />{'Max '+karyokuMax}</Tooltip>}>
+        <td className={karyokuClass}>
+          {@props.karyoku[0]}
+        </td>
+      </OverlayTrigger>
+      <OverlayTrigger placement='top' overlay={<Tooltip>{'Now '+raisouNow}<br />{'Max '+raisouMax}</Tooltip>}>
+        <td className={raisouClass}>
+          {@props.raisou[0]}
+        </td>
+      </OverlayTrigger>
+      <OverlayTrigger placement='top' overlay={<Tooltip>{'Now '+taikuNow}<br />{'Max '+taikuMax}</Tooltip>}>
+        <td className={taikuClass}>
+          {@props.taiku[0]}
+        </td>
+      </OverlayTrigger>
+      <OverlayTrigger placement='top' overlay={<Tooltip>{'Now '+soukouNow}<br />{'Max '+soukouMax}</Tooltip>}>
+        <td className={soukouClass}>
+          {@props.soukou[0]}
+        </td>
+      </OverlayTrigger>
+      <OverlayTrigger placement='top' overlay={<Tooltip>{'Now '+luckyNow}<br />{'Max '+luckyMax}</Tooltip>}>
+        <td className={luckyClass}>
+          {@props.lucky[0]}
+        </td>
+      </OverlayTrigger>
       <td className='center'>{@props.sakuteki}</td>
       <td><Slotitems data={@props.slot} /></td>
     </tr>
