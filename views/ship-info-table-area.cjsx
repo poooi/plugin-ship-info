@@ -225,7 +225,19 @@ ShipInfoTableArea = React.createClass
                 for row in @state.rows
                   showRows.push row if row.type in shipTypes
 
-                showRows = _.sortBy showRows, @props.sortName
+                switch @props.sortName
+                  when 'karyoku'
+                    showRows = _.sortBy showRows, (row) -> row.karyoku[0]
+                  when 'raisou'
+                    showRows = _.sortBy showRows, (row) -> row.raisou[0]
+                  when 'taiku'
+                    showRows = _.sortBy showRows, (row) -> row.taiku[0]
+                  when 'soukou'
+                    showRows = _.sortBy showRows, (row) -> row.soukou[0] 
+                  when 'lucky'
+                    showRows = _.sortBy showRows, (row) -> row.lucky[0]
+                  else
+                    showRows = _.sortBy showRows, @props.sortName
                 showRows.reverse() if @props.sortOrder
 
                 for row, index in showRows
