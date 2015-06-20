@@ -139,15 +139,15 @@ ShipInfoTableArea = React.createClass
           lv:  ship.api_lv
           cond: ship.api_cond
           karyoku: ship.api_karyoku
-          houg: ship.api_houg
+          houg: $ships[ship.api_ship_id].api_houg
           raisou: ship.api_raisou
-          raig: ship.api_raig
+          raig: $ships[ship.api_ship_id].api_raig
           taiku: ship.api_taiku
-          tyku: ship.api_tyku
+          tyku: $ships[ship.api_ship_id].api_tyku
           soukou: ship.api_soukou
-          souk: ship.api_souk
+          souk: $ships[ship.api_ship_id].api_souk
           lucky: ship.api_lucky
-          luck: ship.api_luck
+          luck: $ships[ship.api_ship_id].api_luck
           kyouka: ship.api_kyouka
           sakuteki: ship.api_sakuteki[0]
           slot: ship.api_slot
