@@ -107,7 +107,7 @@ ShipInfoTableArea = React.createClass
     {$shipTypes, $ships, _ships} = window
     {rows} = @state
     switch path
-      when '/kcsapi/api_port/port'
+      when '/kcsapi/api_port/port', '/kcsapi/api_req_kousyou/destroyship', '/kcsapi/api_req_kaisou/powerup', '/kcsapi/api_get_member/ship3'
         rows = []
         for _shipId, ship of _ships
           row =
@@ -152,29 +152,6 @@ ShipInfoTableArea = React.createClass
           sakuteki: ship.api_sakuteki[0]
           slot: ship.api_slot
         rows.push row
-      when '/kcsapi/api_req_kousyou/destroyship'
-        rows = []
-        for _shipId, ship of _ships
-          row =
-            id: ship.api_id
-            type: $shipTypes[$ships[ship.api_ship_id].api_stype].api_name
-            name: $ships[ship.api_ship_id].api_name
-            lv:  ship.api_lv
-            cond: ship.api_cond
-            karyoku: ship.api_karyoku
-            houg: ship.api_houg
-            raisou: ship.api_raisou
-            raig: ship.api_raig
-            taiku: ship.api_taiku
-            tyku: ship.api_tyku
-            soukou: ship.api_soukou
-            souk: ship.api_souk
-            lucky: ship.api_lucky
-            luck: ship.api_luck
-            kyouka: ship.api_kyouka
-            sakuteki: ship.api_sakuteki[0]
-            slot: ship.api_slot
-          rows.push row
     @setState
       rows: rows
       show: true
