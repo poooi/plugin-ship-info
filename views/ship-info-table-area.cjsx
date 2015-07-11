@@ -68,7 +68,7 @@ ShipInfoTable = React.createClass
       <td>{@props.type}</td>
       <td>{@props.name}</td>
       <td className='center'>{@props.lv}</td>
-      <td className='center' style={{backgroundColor:condColor;}}>{@props.cond}</td>
+      <td className='center' style={backgroundColor: condColor}>{@props.cond}</td>
       <OverlayTrigger placement='top' overlay={<Tooltip>{'Now '+karyokuNow}<br />{'Max '+karyokuMax}</Tooltip>}>
         <td className={karyokuClass}>
           {@props.karyoku[0]}
