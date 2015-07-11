@@ -55,11 +55,11 @@ ShipInfoTable = React.createClass
     if luckyNow == luckyMax
       luckyClass = 'td-lucky-max'
 
-    if @props.cond in [0..19]
+    if @props.cond >= 0 and @props.cond < 20
       condColor = 'rgba(255, 0, 0, 0.4)'
-    if @props.cond in [20..29]
+    else if @props.cond >= 20 and @props.cond < 30
       condColor = 'rgba(255, 165, 0, 0.4)'
-    if @props.cond in [50..100]
+    else if @props.cond >= 50 and @props.cond <= 100
       condColor = 'rgba(255, 255, 0, 0.4)'
 
     <tr>
@@ -210,7 +210,7 @@ ShipInfoTableArea = React.createClass
                   when 'taiku'
                     showRows = _.sortBy showRows, (row) -> row.taiku[0]
                   when 'soukou'
-                    showRows = _.sortBy showRows, (row) -> row.soukou[0] 
+                    showRows = _.sortBy showRows, (row) -> row.soukou[0]
                   when 'lucky'
                     showRows = _.sortBy showRows, (row) -> row.lucky[0]
                   else
