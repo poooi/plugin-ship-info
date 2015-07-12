@@ -25,6 +25,8 @@ Slotitems = React.createClass
     </div>
 
 ShipInfoTable = React.createClass
+  shouldComponentUpdate: (nextProps, nextState)->
+    nextProps.dataVersion isnt @props.dataVersion
   render: ->
     karyokuNow = @props.houg[0] + @props.kyouka[0]
     karyokuMax = @props.karyoku[1]
@@ -102,6 +104,7 @@ ShipInfoTableArea = React.createClass
   getInitialState: ->
     rows: []
     show: false
+    dataVersion: 0
   handleResponse: (e) ->
     {method, path, body, postBody} = e.detail
     {$shipTypes, $ships, _ships} = window
@@ -155,10 +158,12 @@ ShipInfoTableArea = React.createClass
     @setState
       rows: rows
       show: true
+      dataVersion: @state.dataVersion + 1
   componentDidMount: ->
     @setState
       rows: @state.rows
       show: true
+      dataVersion: @state.dataVersion + 1
     window.addEventListener 'game.response', @handleResponse
   componentWillUnmount: ->
     @setState
@@ -219,7 +224,7 @@ ShipInfoTableArea = React.createClass
 
                 for row, index in showRows
                   <ShipInfoTable
-                    key = {index}
+                    key = {row.id}
                     index = {index + 1}
                     id = {row.id}
                     type = {row.type}
@@ -239,6 +244,7 @@ ShipInfoTableArea = React.createClass
                     kyouka = {row.kyouka}
                     sakuteki = {row.sakuteki}
                     slot = {row.slot}
+                    dataVersion = {@state.dataVersion}
                   />
             }
             </tbody>
