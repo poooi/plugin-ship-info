@@ -109,8 +109,10 @@ ShipInfoTableArea = React.createClass
     {method, path, body, postBody} = e.detail
     {$shipTypes, $ships, _ships} = window
     {rows} = @state
+    rowsUpdateFlag = false
     switch path
       when '/kcsapi/api_port/port', '/kcsapi/api_req_kousyou/destroyship', '/kcsapi/api_req_kaisou/powerup', '/kcsapi/api_get_member/ship3'
+        rowsUpdateFlag = true
         rows = []
         for _shipId, ship of _ships
           row =
@@ -134,6 +136,7 @@ ShipInfoTableArea = React.createClass
             slot: ship.api_slot
           rows.push row
       when '/kcsapi/api_req_kousyou/getship'
+        rowsUpdateFlag = true
         ship = body.api_ship
         row =
           id: ship.api_id
@@ -155,10 +158,17 @@ ShipInfoTableArea = React.createClass
           sakuteki: ship.api_sakuteki[0]
           slot: ship.api_slot
         rows.push row
-    @setState
-      rows: rows
-      show: true
-      dataVersion: @state.dataVersion + 1
+    if rowsUpdateFlag
+      if @state.dataVersion > 12450
+        @setState
+          rows: rows
+          show: true
+          dataVersion: 1
+      else
+        @setState
+          rows: rows
+          show: true
+          dataVersion: @state.dataVersion + 1
   componentDidMount: ->
     @setState
       rows: @state.rows
