@@ -7,44 +7,47 @@ ShipInfoCheckboxArea = React.createClass
   getInitialState: ->
     checked: [false, true, true, true, true, true, true, true, true, false, true, true,
               true, true, true, true, true, true, true, true, true, true, true, true]
+    checkedAll: true
     order: 0
-    sortKey: 'id'
+    sortKey: 'lv'
   handleClickAscend: ->
-    @setState
-      order: 0
-    @props.sortRules(@state.sortKey, 0)
-  handleClickDescend: ->
     @setState
       order: 1
     @props.sortRules(@state.sortKey, 1)
+  handleClickDescend: ->
+    @setState
+      order: 0
+    @props.sortRules(@state.sortKey, 0)
   handleKeyChange: (e) ->
     @setState
       sortKey: e.target.value
     @props.sortRules(e.target.value, @state.order)
   handleClickCheckbox: (index) ->
     checkboxes = []
-    {checked} = @state
+    {checked, checkedAll} = @state
     checked[index] = !checked[index]
     for shipType, i in shipTypes
       checkboxes.push i if checked[i]
-    @setState {checked}
+    checkedAll = false
+    @setState {checked, checkedAll}
     @props.filterRules(checkboxes)
-  handleCilckCheckboxAllButton: ->
+  handleCilckCheckboxAll: ->
     checkboxes = []
-    {checked} = @state
-    for shipType, i in shipTypes
-      if i != 0 && i != 9
-        checked[i] = true
-        checkboxes.push i
-    @setState {checked}
-    @props.filterRules(checkboxes)
-  handleCilckCheckboxNoneButton: ->
-    checkboxes = []
-    {checked} = @state
-    for shipType, i in shipTypes
-      checked[i] = false
-    @setState {checked}
-    @props.filterRules(checkboxes)
+    {checked, checkedAll} = @state
+    if checkedAll
+      for shipType, i in shipTypes
+        checked[i] = false
+      checkedAll = false
+      @setState {checked, checkedAll}
+      @props.filterRules(checkboxes)
+    else
+      for shipType, i in shipTypes
+        if i != 0 && i != 9
+          checked[i] = true
+          checkboxes.push i
+          checkedAll = true
+      @setState {checked, checkedAll}
+      @props.filterRules(checkboxes)
   render: ->
     <div id='ship-info-settings'>
       <Divider text="排序设置" />
@@ -66,18 +69,23 @@ ShipInfoCheckboxArea = React.createClass
           </Input>
         </Col>
         <Col xs={2}>
-          <Button bsStyle={if @state.order == 0 then 'success' else 'default'} bsSize='small' onClick={@handleClickAscend} block>
+          <Button bsStyle={if @state.order == 0 then 'success' else 'default'} bsSize='small' onClick={@handleClickDescend} block>
             {if @state.order == 0 then '√ ' else ''} 降序
           </Button>
         </Col>
         <Col xs={2}>
-          <Button bsStyle={if @state.order == 1 then 'success' else 'default'} bsSize='small' onClick={@handleClickDescend} block>
+          <Button bsStyle={if @state.order == 1 then 'success' else 'default'} bsSize='small' onClick={@handleClickAscend} block>
             {if @state.order == 1 then '√ ' else ''} 升序
           </Button>
         </Col>
       </Grid>
       <Divider text="舰种过滤" />
       <Grid id='ship-info-filter'>
+        <Row>
+          <Col xs={2}>
+            <Input type='checkbox' label={"全部"} onChange={@handleCilckCheckboxAll} checked={@state.checkedAll} />
+          </Col>
+        </Row>
         <Row>
         {
           for shipType, index in shipTypes
@@ -86,14 +94,6 @@ ShipInfoCheckboxArea = React.createClass
               <Input type='checkbox' label={shipType} key={index} value={index} onChange={@handleClickCheckbox.bind(@, index)} checked={@state.checked[index]} />
             </Col>
         }
-        </Row>
-        <Row>
-          <Col xs={2}>
-            <Button className="filter-button" bsStyle='default' bsSize='small' onClick={@handleCilckCheckboxAllButton} block>全选</Button>
-          </Col>
-          <Col xs={2}>
-            <Button className="filter-button" bsStyle='default' bsSize='small' onClick={@handleCilckCheckboxNoneButton} block>全不选</Button>
-          </Col>
         </Row>
       </Grid>
     </div>
