@@ -51,7 +51,7 @@ ShipInfoCheckboxArea = React.createClass
       <Grid className='vertical-center'>
         <Col xs={2}>排序规则</Col>
         <Col xs={6}>
-          <Input id='sortbase' type='select' placeholder='id' onChange={@handleKeyChange}>
+          <Input id='sortbase' type='select' defaultValue='lv' onChange={@handleKeyChange}>
             <option value='id'>ID</option>
             <option value='type'>舰种</option>
             <option value='name'>舰名</option>
@@ -67,12 +67,12 @@ ShipInfoCheckboxArea = React.createClass
         </Col>
         <Col xs={2}>
           <Button bsStyle={if @state.order == 0 then 'success' else 'default'} bsSize='small' onClick={@handleClickAscend} block>
-            {if @state.order == 0 then '√ ' else ''} 升序
+            {if @state.order == 0 then '√ ' else ''} 降序
           </Button>
         </Col>
         <Col xs={2}>
           <Button bsStyle={if @state.order == 1 then 'success' else 'default'} bsSize='small' onClick={@handleClickDescend} block>
-            {if @state.order == 1 then '√ ' else ''} 降序
+            {if @state.order == 1 then '√ ' else ''} 升序
           </Button>
         </Col>
       </Grid>

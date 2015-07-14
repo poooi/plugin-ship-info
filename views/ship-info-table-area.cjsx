@@ -230,7 +230,7 @@ ShipInfoTableArea = React.createClass
                     showRows = _.sortBy showRows, (row) -> row.lucky[0]
                   else
                     showRows = _.sortBy showRows, @props.sortName
-                showRows.reverse() if @props.sortOrder
+                showRows.reverse() if !@props.sortOrder
 
                 for row, index in showRows
                   <ShipInfoTable
