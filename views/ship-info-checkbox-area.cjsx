@@ -48,6 +48,47 @@ ShipInfoCheckboxArea = React.createClass
           checkedAll = true
       @setState {checked, checkedAll}
       @props.filterRules(checkboxes)
+  handleClickFilterButton: (type) ->
+    checkboxes = []
+    {checked, checkedAll} = @state
+    checkedAll = false
+    for shipType, i in shipTypes
+      checked[i] = false
+    switch type
+      when 'DD'
+        checked[2] = true
+        checkboxes.push 2
+      when 'CL'
+        checked[3] = true
+        checked[4] = true
+        checkboxes.push 3
+        checkboxes.push 4
+      when 'CA'
+        checked[5] = true
+        checked[6] = true
+        checkboxes.push 5
+        checkboxes.push 6
+      when 'BB'
+        checked[8] = true
+        checked[10] = true
+        checked[12] = true
+        checkboxes.push 8
+        checkboxes.push 10
+        checkboxes.push 12
+      when 'CV'
+        checked[7] = true
+        checked[11] = true
+        checked[18] = true
+        checkboxes.push 7
+        checkboxes.push 11
+        checkboxes.push 18
+      when 'SS'
+        checked[13] = true
+        checked[14] = true
+        checkboxes.push 13
+        checkboxes.push 14
+    @setState {checked, checkedAll}
+    @props.filterRules(checkboxes)
   render: ->
     <div id='ship-info-settings'>
       <Divider text="排序设置" />
@@ -94,6 +135,26 @@ ShipInfoCheckboxArea = React.createClass
               <Input type='checkbox' label={shipType} key={index} value={index} onChange={@handleClickCheckbox.bind(@, index)} checked={@state.checked[index]} />
             </Col>
         }
+        </Row>
+        <Row>
+          <Col xs={2}>
+            <Button className="filter-button" bsStyle='default' bsSize='small' onClick={@handleClickFilterButton.bind(@, 'DD')} block>駆逐艦</Button>
+          </Col>
+          <Col xs={2}>
+            <Button className="filter-button" bsStyle='default' bsSize='small' onClick={@handleClickFilterButton.bind(@, 'CL')} block>軽巡·雷巡</Button>
+          </Col>
+          <Col xs={2}>
+            <Button className="filter-button" bsStyle='default' bsSize='small' onClick={@handleClickFilterButton.bind(@, 'CA')} block>重巡·航巡</Button>
+          </Col>
+          <Col xs={2}>
+            <Button className="filter-button" bsStyle='default' bsSize='small' onClick={@handleClickFilterButton.bind(@, 'BB')} block>戦艦</Button>
+          </Col>
+          <Col xs={2}>
+            <Button className="filter-button" bsStyle='default' bsSize='small' onClick={@handleClickFilterButton.bind(@, 'CV')} block>航空母艦</Button>
+          </Col>
+          <Col xs={2}>
+            <Button className="filter-button" bsStyle='default' bsSize='small' onClick={@handleClickFilterButton.bind(@, 'SS')} block>潜水艦</Button>
+          </Col>
         </Row>
       </Grid>
     </div>
