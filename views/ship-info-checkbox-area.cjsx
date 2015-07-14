@@ -10,6 +10,8 @@ ShipInfoCheckboxArea = React.createClass
     checkedAll: true
     order: 0
     sortKey: 'lv'
+    filterShow: true
+    sortShow: true
   handleClickAscend: ->
     @setState
       order: 1
@@ -89,10 +91,20 @@ ShipInfoCheckboxArea = React.createClass
         checkboxes.push 14
     @setState {checked, checkedAll}
     @props.filterRules(checkboxes)
+  handleSortShow: ->
+    {sortShow} = @state
+    sortShow = !sortShow
+    @setState {sortShow}
+  handleFilterShow: ->
+    {filterShow} = @state
+    filterShow = !filterShow
+    @setState {filterShow}
   render: ->
     <div id='ship-info-settings'>
-      <Divider text="排序设置" />
-      <Grid className='vertical-center'>
+      <div onClick={@handleSortShow}>
+        <Divider text="排序设置" icon={true} show={@state.sortShow}/>
+      </div>
+      <Grid className='vertical-center' style={if @state.sortShow then {display: 'block'} else {display: 'none'} }>
         <Col xs={2}>排序规则</Col>
         <Col xs={6}>
           <Input id='sortbase' type='select' defaultValue='lv' onChange={@handleKeyChange}>
@@ -120,8 +132,10 @@ ShipInfoCheckboxArea = React.createClass
           </Button>
         </Col>
       </Grid>
-      <Divider text="舰种过滤" />
-      <Grid id='ship-info-filter'>
+      <div onClick={@handleFilterShow}>
+        <Divider text="舰种过滤" icon={true} show={@state.filterShow} />
+      </div>
+      <Grid id='ship-info-filter' style={if @state.filterShow then {display: 'block'} else {display: 'none'} }>
         <Row>
           <Col xs={2}>
             <Input type='checkbox' label={"全部"} onChange={@handleCilckCheckboxAll} checked={@state.checkedAll} />

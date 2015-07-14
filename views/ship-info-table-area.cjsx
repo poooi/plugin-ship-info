@@ -182,7 +182,7 @@ ShipInfoTableArea = React.createClass
     window.removeEventListener 'game.response', @handleResponse
   render: ->
     <div id="ship-info-show">
-      <Divider text="舰娘信息" />
+      <Divider text="舰娘信息" icon={false}/>
       <Grid>
         <Col xs={12}>
           <Table striped condensed hover>
