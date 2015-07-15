@@ -15,7 +15,8 @@ initialShipInfoWindow = ->
   if process.env.DEBUG?
     window.shipInfoWindow.openDevTools
       detach: true
-initialShipInfoWindow()
+if config.get('plugin.ShipInfo.enable', true)
+  initialShipInfoWindow()
 
 module.exports =
   name: 'ShipInfo'
