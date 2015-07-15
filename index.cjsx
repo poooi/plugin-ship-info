@@ -21,7 +21,7 @@ if config.get('plugin.ShipInfo.enable', true)
 module.exports =
   name: 'ShipInfo'
   priority: 50
-  displayName: [<FontAwesome name='ship' key={0} />, ' 舰娘信息']
+  displayName: <span><FontAwesome name='ship' key={0} /> 舰娘信息</span>
   author: 'Yunze'
   link: 'https://github.com/myzwillmake'
   version: '1.1.0'
