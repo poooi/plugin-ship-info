@@ -26,18 +26,21 @@ Slotitems = React.createClass
 
 ShipInfoTable = React.createClass
   shouldComponentUpdate: (nextProps, nextState)->
-    nextProps.dataVersion isnt @props.dataVersion
+    if nextProps.dataVersion isnt @props.dataVersion
+      if not _.isEqual nextProps.shipInfo, @props.shipInfo
+        return true
+    false
   render: ->
-    karyokuNow = @props.houg[0] + @props.kyouka[0]
-    karyokuMax = @props.karyoku[1]
-    raisouNow = @props.raig[0] + @props.kyouka[1]
-    raisouMax = @props.raisou[1]
-    taikuNow = @props.tyku[0] + @props.kyouka[2]
-    taikuMax = @props.taiku[1]
-    soukouNow = @props.souk[0] + @props.kyouka[3]
-    soukouMax = @props.soukou[1]
-    luckyNow = @props.luck[0] + @props.kyouka[4]
-    luckyMax = @props.lucky[1]
+    karyokuNow = @props.shipInfo.houg[0] + @props.shipInfo.kyouka[0]
+    karyokuMax = @props.shipInfo.karyoku[1]
+    raisouNow = @props.shipInfo.raig[0] + @props.shipInfo.kyouka[1]
+    raisouMax = @props.shipInfo.raisou[1]
+    taikuNow = @props.shipInfo.tyku[0] + @props.shipInfo.kyouka[2]
+    taikuMax = @props.shipInfo.taiku[1]
+    soukouNow = @props.shipInfo.souk[0] + @props.shipInfo.kyouka[3]
+    soukouMax = @props.shipInfo.soukou[1]
+    luckyNow = @props.shipInfo.luck[0] + @props.shipInfo.kyouka[4]
+    luckyMax = @props.shipInfo.lucky[1]
 
     condColor = 'transparent'
     karyokuClass = 'td-karyoku'
@@ -57,47 +60,47 @@ ShipInfoTable = React.createClass
     if luckyNow == luckyMax
       luckyClass = 'td-lucky-max'
 
-    if @props.cond >= 0 and @props.cond < 20
+    if @props.shipInfo.cond >= 0 and @props.shipInfo.cond < 20
       condColor = 'rgba(255, 0, 0, 0.4)'
-    else if @props.cond >= 20 and @props.cond < 30
+    else if @props.shipInfo.cond >= 20 and @props.shipInfo.cond < 30
       condColor = 'rgba(255, 165, 0, 0.4)'
-    else if @props.cond >= 50 and @props.cond <= 100
+    else if @props.shipInfo.cond >= 50 and @props.shipInfo.cond <= 100
       condColor = 'rgba(255, 255, 0, 0.4)'
 
     <tr>
       <td>{@props.index}</td>
-      <td>{@props.id}</td>
-      <td>{@props.type}</td>
-      <td>{@props.name}</td>
-      <td className='center'>{@props.lv}</td>
-      <td className='center' style={backgroundColor: condColor}>{@props.cond}</td>
+      <td>{@props.shipInfo.id}</td>
+      <td>{@props.shipInfo.type}</td>
+      <td>{@props.shipInfo.name}</td>
+      <td className='center'>{@props.shipInfo.lv}</td>
+      <td className='center' style={backgroundColor: condColor}>{@props.shipInfo.cond}</td>
       <OverlayTrigger placement='top' overlay={<Tooltip>{'Now '+karyokuNow}<br />{'Max '+karyokuMax}</Tooltip>}>
         <td className={karyokuClass}>
-          {@props.karyoku[0]}
+          {@props.shipInfo.karyoku[0]}
         </td>
       </OverlayTrigger>
       <OverlayTrigger placement='top' overlay={<Tooltip>{'Now '+raisouNow}<br />{'Max '+raisouMax}</Tooltip>}>
         <td className={raisouClass}>
-          {@props.raisou[0]}
+          {@props.shipInfo.raisou[0]}
         </td>
       </OverlayTrigger>
       <OverlayTrigger placement='top' overlay={<Tooltip>{'Now '+taikuNow}<br />{'Max '+taikuMax}</Tooltip>}>
         <td className={taikuClass}>
-          {@props.taiku[0]}
+          {@props.shipInfo.taiku[0]}
         </td>
       </OverlayTrigger>
       <OverlayTrigger placement='top' overlay={<Tooltip>{'Now '+soukouNow}<br />{'Max '+soukouMax}</Tooltip>}>
         <td className={soukouClass}>
-          {@props.soukou[0]}
+          {@props.shipInfo.soukou[0]}
         </td>
       </OverlayTrigger>
       <OverlayTrigger placement='top' overlay={<Tooltip>{'Now '+luckyNow}<br />{'Max '+luckyMax}</Tooltip>}>
         <td className={luckyClass}>
-          {@props.lucky[0]}
+          {@props.shipInfo.lucky[0]}
         </td>
       </OverlayTrigger>
-      <td className='center'>{@props.sakuteki}</td>
-      <td><Slotitems data={@props.slot} /></td>
+      <td className='center'>{@props.shipInfo.sakuteki}</td>
+      <td><Slotitems data={@props.shipInfo.slot} /></td>
     </tr>
 
 ShipInfoTableArea = React.createClass
@@ -236,24 +239,7 @@ ShipInfoTableArea = React.createClass
                   <ShipInfoTable
                     key = {row.id}
                     index = {index + 1}
-                    id = {row.id}
-                    type = {row.type}
-                    name = {row.name}
-                    lv = {row.lv}
-                    cond = {row.cond}
-                    karyoku = {row.karyoku}
-                    houg = {row.houg}
-                    raisou = {row.raisou}
-                    raig = {row.raig}
-                    taiku = {row.taiku}
-                    tyku = {row.tyku}
-                    soukou = {row.soukou}
-                    souk = {row.souk}
-                    lucky = {row.lucky}
-                    luck = {row.luck}
-                    kyouka = {row.kyouka}
-                    sakuteki = {row.sakuteki}
-                    slot = {row.slot}
+                    shipInfo = {row}
                     dataVersion = {@state.dataVersion}
                   />
             }
