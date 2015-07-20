@@ -65,7 +65,6 @@ ShipInfoTable = React.createClass
       condColor = 'rgba(255, 255, 0, 0.4)'
 
     <tr>
-      <td>{@props.index}</td>
       <td>{@props.id}</td>
       <td>{@props.type}</td>
       <td>{@props.name}</td>
@@ -181,14 +180,58 @@ ShipInfoTableArea = React.createClass
       show: false
     window.removeEventListener 'game.response', @handleResponse
   render: ->
+    showRows = []
+    if @state.show
+      $shipTypes = window.$shipTypes
+
+      shipTypes = []
+      if $shipTypes?
+        for x in @props.shipTypeBoxes
+          shipTypes.push $shipTypes[x].api_name
+
+      showRows = []
+      for row in @state.rows
+        showRows.push row if row.type in shipTypes
+
+      switch @props.sortName
+        when 'karyoku'
+          showRows = _.sortBy showRows, (row) -> row.karyoku[0]
+        when 'raisou'
+          showRows = _.sortBy showRows, (row) -> row.raisou[0]
+        when 'taiku'
+          showRows = _.sortBy showRows, (row) -> row.taiku[0]
+        when 'soukou'
+          showRows = _.sortBy showRows, (row) -> row.soukou[0]
+        when 'lucky'
+          showRows = _.sortBy showRows, (row) -> row.lucky[0]
+        else
+          showRows = _.sortBy showRows, @props.sortName
+      showRows.reverse() if !@props.sortOrder
+
     <div id="ship-info-show">
       <Divider text="舰娘信息" icon={false}/>
       <Grid>
-        <Col xs={12}>
+        <Col xs={1} style={padding: '0 0 0 15px'}>
           <Table striped condensed hover>
             <thead>
               <tr>
                 <th>NO</th>
+              </tr>
+            </thead>
+            <tbody>
+              {
+                for row, index in showRows
+                  <tr key={index}>
+                    <td>{index+1}</td>
+                  </tr>
+              }
+            </tbody>
+          </Table>
+        </Col>
+        <Col xs={11} style={padding: '0 15px 0 0'}>
+          <Table striped condensed hover>
+            <thead>
+              <tr>
                 <th>ID</th>
                 <th>舰种</th>
                 <th>舰名</th>
@@ -206,36 +249,9 @@ ShipInfoTableArea = React.createClass
             <tbody>
             {
               if @state.show
-                $shipTypes = window.$shipTypes
-
-                shipTypes = []
-                if $shipTypes?
-                  for x in @props.shipTypeBoxes
-                    shipTypes.push $shipTypes[x].api_name
-
-                showRows = []
-                for row in @state.rows
-                  showRows.push row if row.type in shipTypes
-
-                switch @props.sortName
-                  when 'karyoku'
-                    showRows = _.sortBy showRows, (row) -> row.karyoku[0]
-                  when 'raisou'
-                    showRows = _.sortBy showRows, (row) -> row.raisou[0]
-                  when 'taiku'
-                    showRows = _.sortBy showRows, (row) -> row.taiku[0]
-                  when 'soukou'
-                    showRows = _.sortBy showRows, (row) -> row.soukou[0]
-                  when 'lucky'
-                    showRows = _.sortBy showRows, (row) -> row.lucky[0]
-                  else
-                    showRows = _.sortBy showRows, @props.sortName
-                showRows.reverse() if !@props.sortOrder
-
                 for row, index in showRows
                   <ShipInfoTable
                     key = {row.id}
-                    index = {index + 1}
                     id = {row.id}
                     type = {row.type}
                     name = {row.name}
