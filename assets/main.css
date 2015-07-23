@@ -87,8 +87,8 @@ body {
 #ship-info-show table tbody tr td {
   vertical-align: middle;
   line-height: 36px;
-  height: 36px;
-  padding: 1px 5px;
+  height: 38px;
+  padding: 0 5px;
 }
 #ship-info-show .col-xs-12 {
   padding-right: 5px;

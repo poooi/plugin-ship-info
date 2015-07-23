@@ -14,13 +14,11 @@ Slotitems = React.createClass
         continue if itemId == -1
         item = _slotitems[itemId]
         itemInfo = $slotitems[item.api_slotitem_id]
-        <OverlayTrigger key={itemId} placement='top' overlay={<Tooltip>{itemInfo.api_name}</Tooltip>}>
-          <img key={itemId} src={
-              path = require 'path'
-              path.join(ROOT, 'assets', 'img', 'slotitem', "#{itemInfo.api_type[3] + 33}.png")
-            }
-          />
-        </OverlayTrigger>
+        <img key={itemId} title={itemInfo.api_name} src={
+            path = require 'path'
+            path.join(ROOT, 'assets', 'img', 'slotitem', "#{itemInfo.api_type[3] + 33}.png")
+          }
+        />
     }
     </div>
 
@@ -33,14 +31,19 @@ ShipInfoTable = React.createClass
   render: ->
     karyokuNow = @props.shipInfo.houg[0] + @props.shipInfo.kyouka[0]
     karyokuMax = @props.shipInfo.karyoku[1]
+    karyoku = @props.shipInfo.karyoku[0]
     raisouNow = @props.shipInfo.raig[0] + @props.shipInfo.kyouka[1]
     raisouMax = @props.shipInfo.raisou[1]
+    raisou = @props.shipInfo.raisou[0]
     taikuNow = @props.shipInfo.tyku[0] + @props.shipInfo.kyouka[2]
     taikuMax = @props.shipInfo.taiku[1]
+    taiku = @props.shipInfo.taiku[0]
     soukouNow = @props.shipInfo.souk[0] + @props.shipInfo.kyouka[3]
     soukouMax = @props.shipInfo.soukou[1]
+    soukou = @props.shipInfo.soukou[0]
     luckyNow = @props.shipInfo.luck[0] + @props.shipInfo.kyouka[4]
     luckyMax = @props.shipInfo.lucky[1]
+    lucky = @props.shipInfo.lucky[0]
 
     condColor = 'transparent'
     karyokuClass = 'td-karyoku'
@@ -49,16 +52,32 @@ ShipInfoTable = React.createClass
     soukouClass = 'td-soukou'
     luckyClass = 'td-lucky'
 
+    karyokuInc = karyoku - karyokuNow
+    karyokuString = '+' + karyokuInc
+    raisouInc = raisou - raisouNow
+    raisouString = '+' + raisouInc
+    taikuInc = taiku - taikuNow
+    taikuString = '+' + taikuInc
+    soukouInc = soukou - soukouNow
+    soukouString = '+' + soukouInc
+    luckyInc = @props.shipInfo.kyouka[4]
+    luckyString = '+' + luckyInc
+
     if karyokuNow == karyokuMax
       karyokuClass = 'td-karyoku-max'
+      karyokuString = 'MAX'
     if raisouNow == raisouMax
       raisouClass = 'td-raisou-max'
+      raisouString = 'MAX'
     if taikuNow == taikuMax
       taikuClass = 'td-taiku-max'
+      taikuString = 'MAX'
     if soukouNow == soukouMax
       soukouClass = 'td-soukou-max'
+      soukouString = 'MAX'
     if luckyNow == luckyMax
       luckyClass = 'td-lucky-max'
+      luckyString = 'MAX'
 
     if @props.shipInfo.cond >= 0 and @props.shipInfo.cond < 20
       condColor = 'rgba(255, 0, 0, 0.4)'
@@ -73,31 +92,11 @@ ShipInfoTable = React.createClass
       <td>{@props.shipInfo.name}</td>
       <td className='center'>{@props.shipInfo.lv}</td>
       <td className='center' style={backgroundColor: condColor}>{@props.shipInfo.cond}</td>
-      <OverlayTrigger placement='top' overlay={<Tooltip>{'Now '+karyokuNow}<br />{'Max '+karyokuMax}</Tooltip>}>
-        <td className={karyokuClass}>
-          {@props.shipInfo.karyoku[0]}
-        </td>
-      </OverlayTrigger>
-      <OverlayTrigger placement='top' overlay={<Tooltip>{'Now '+raisouNow}<br />{'Max '+raisouMax}</Tooltip>}>
-        <td className={raisouClass}>
-          {@props.shipInfo.raisou[0]}
-        </td>
-      </OverlayTrigger>
-      <OverlayTrigger placement='top' overlay={<Tooltip>{'Now '+taikuNow}<br />{'Max '+taikuMax}</Tooltip>}>
-        <td className={taikuClass}>
-          {@props.shipInfo.taiku[0]}
-        </td>
-      </OverlayTrigger>
-      <OverlayTrigger placement='top' overlay={<Tooltip>{'Now '+soukouNow}<br />{'Max '+soukouMax}</Tooltip>}>
-        <td className={soukouClass}>
-          {@props.shipInfo.soukou[0]}
-        </td>
-      </OverlayTrigger>
-      <OverlayTrigger placement='top' overlay={<Tooltip>{'Now '+luckyNow}<br />{'Max '+luckyMax}</Tooltip>}>
-        <td className={luckyClass}>
-          {@props.shipInfo.lucky[0]}
-        </td>
-      </OverlayTrigger>
+      <td className={karyokuClass}>{karyoku + '/'}<span style={fontSize: '80%'}>{karyokuString}</span></td>
+      <td className={raisouClass}>{raisou + '/'}<span style={fontSize: '80%'}>{raisouString}</span></td>
+      <td className={taikuClass}>{taiku + '/'}<span style={fontSize: '80%'}>{taikuString}</span></td>
+      <td className={soukouClass}>{soukou + '/'}<span style={fontSize: '80%'}>{soukouString}</span></td>
+      <td className={luckyClass}>{lucky + '/'}<span style={fontSize: '80%'}>{luckyString}</span></td>
       <td className='center'>{@props.shipInfo.sakuteki}</td>
       <td><Slotitems data={@props.shipInfo.slot} /></td>
     </tr>

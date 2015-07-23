@@ -9,7 +9,7 @@ initialShipInfoWindow = ->
     #Use config
     x: config.get 'poi.window.x', 0
     y: config.get 'poi.window.y', 0
-    width: 820
+    width: 1020
     height: 650
   window.shipInfoWindow.loadUrl "file://#{__dirname}/index.html"
   if process.env.DEBUG?
