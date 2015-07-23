@@ -45,6 +45,8 @@ ShipInfoTable = React.createClass
     luckyMax = @props.shipInfo.lucky[1]
     lucky = @props.shipInfo.lucky[0]
 
+    locked = @props.shipInfo.locked
+
     condColor = 'transparent'
     karyokuClass = 'td-karyoku'
     raisouClass = 'td-raisou'
@@ -99,6 +101,7 @@ ShipInfoTable = React.createClass
       <td className={luckyClass}>{lucky + '/'}<span style={fontSize: '80%'}>{luckyString}</span></td>
       <td className='center'>{@props.shipInfo.sakuteki}</td>
       <td><Slotitems data={@props.shipInfo.slot} /></td>
+      <td>{if locked == 1 then <FontAwesome name='lock' /> else ' '}</td>
     </tr>
 
 ShipInfoTableArea = React.createClass
@@ -135,6 +138,7 @@ ShipInfoTableArea = React.createClass
             kyouka: ship.api_kyouka
             sakuteki: ship.api_sakuteki[0]
             slot: ship.api_slot
+            locked: ship.api_locked
           rows.push row
       when '/kcsapi/api_req_kousyou/getship'
         rowsUpdateFlag = true
@@ -158,6 +162,7 @@ ShipInfoTableArea = React.createClass
           kyouka: ship.api_kyouka
           sakuteki: ship.api_sakuteki[0]
           slot: ship.api_slot
+          locked: ship.api_locked
         rows.push row
     if rowsUpdateFlag
       if @state.dataVersion > 12450
@@ -246,6 +251,7 @@ ShipInfoTableArea = React.createClass
                 <th className='center'>幸运</th>
                 <th className='center'>索敌</th>
                 <th>装备</th>
+                <th>锁定</th>
               </tr>
             </thead>
             <tbody>
