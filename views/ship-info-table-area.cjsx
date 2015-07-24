@@ -54,13 +54,13 @@ ShipInfoTable = React.createClass
     soukouClass = 'td-soukou'
     luckyClass = 'td-lucky'
 
-    karyokuInc = karyoku - karyokuNow
+    karyokuInc = @props.shipInfo.kyouka[0]
     karyokuString = '+' + karyokuInc
-    raisouInc = raisou - raisouNow
+    raisouInc = @props.shipInfo.kyouka[1]
     raisouString = '+' + raisouInc
-    taikuInc = taiku - taikuNow
+    taikuInc = @props.shipInfo.kyouka[2]
     taikuString = '+' + taikuInc
-    soukouInc = soukou - soukouNow
+    soukouInc = @props.shipInfo.kyouka[3]
     soukouString = '+' + soukouInc
     luckyInc = @props.shipInfo.kyouka[4]
     luckyString = '+' + luckyInc
