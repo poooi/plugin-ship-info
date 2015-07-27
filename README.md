@@ -3,6 +3,9 @@ Show detailed information of all owned ships
 ### Usage
 Put the folder into /path/to/poi/resources/app/plugins
 ### Change Log
+
+#### V1.2.1
+Add more filters: level, expedition, lock
 #### V1.2.0
 Optimize the performance
 
