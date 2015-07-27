@@ -26,6 +26,11 @@ body {
   margin-top: 10px;
   margin-bottom: 10px;
 }
+.filter-span {
+  font-size: 120%;
+  margin-top: 10px;
+  text-align: center;
+}
 .td-karyoku {
   text-align: center;
 }

@@ -175,6 +175,76 @@ ShipInfoTableArea = React.createClass
           rows: rows
           show: true
           dataVersion: @state.dataVersion + 1
+  handleTypeFilter: (type, shipTypes)->
+    if type in shipTypes
+      true
+    else
+      false
+  handleLvFilter: (lv) ->
+    switch @props.lvRadio
+      when 0
+        true
+      when 1
+        if lv == 1 then true else false
+      when 2
+        if lv >= 2 then true else false
+  handleLockedFilter: (locked) ->
+    switch @props.lockedRadio
+      when 0
+        true
+      when 1
+        if locked == 1 then true else false
+      when 2
+        if locked == 0 then true else false
+  handleExpeditionFilter: (id, expeditionShips) ->
+    switch @props.expeditionRadio
+      when 0
+        true
+      when 1
+        if id in expeditionShips then true else false
+      when 2
+        if id in expeditionShips then false else true
+  handleShowRows: ->
+    #typeFilterPreprocess
+    $shipTypes = window.$shipTypes
+    shipTypes = []
+    if $shipTypes?
+      for x in @props.shipTypeBoxes
+        shipTypes.push $shipTypes[x].api_name
+    #expeditionFilterPreprocess
+    decks = window._decks
+    expeditionShips = []
+    if decks?
+      for deck in decks
+        if deck.api_mission[0] == 1
+          for shipId in deck.api_ship
+            continue if shipId == -1
+            expeditionShips.push shipId
+    #filter
+    showRows = []
+    for row in @state.rows
+      if @handleTypeFilter(row.type, shipTypes)
+        if @handleLvFilter(row.lv)
+          if @handleLockedFilter(row.locked)
+            if @handleExpeditionFilter(row.id, expeditionShips)
+              showRows.push row
+    #showRowsSort
+    switch @props.sortName
+      when 'karyoku'
+        showRows = _.sortBy showRows, (row) -> row.karyoku[0]
+      when 'raisou'
+        showRows = _.sortBy showRows, (row) -> row.raisou[0]
+      when 'taiku'
+        showRows = _.sortBy showRows, (row) -> row.taiku[0]
+      when 'soukou'
+        showRows = _.sortBy showRows, (row) -> row.soukou[0]
+      when 'lucky'
+        showRows = _.sortBy showRows, (row) -> row.lucky[0]
+      else
+        showRows = _.sortBy showRows, @props.sortName
+    showRows.reverse() if !@props.sortOrder
+    #return
+    showRows
   componentDidMount: ->
     @setState
       rows: @state.rows
@@ -189,32 +259,7 @@ ShipInfoTableArea = React.createClass
   render: ->
     showRows = []
     if @state.show
-      $shipTypes = window.$shipTypes
-
-      shipTypes = []
-      if $shipTypes?
-        for x in @props.shipTypeBoxes
-          shipTypes.push $shipTypes[x].api_name
-
-      showRows = []
-      for row in @state.rows
-        showRows.push row if row.type in shipTypes
-
-      switch @props.sortName
-        when 'karyoku'
-          showRows = _.sortBy showRows, (row) -> row.karyoku[0]
-        when 'raisou'
-          showRows = _.sortBy showRows, (row) -> row.raisou[0]
-        when 'taiku'
-          showRows = _.sortBy showRows, (row) -> row.taiku[0]
-        when 'soukou'
-          showRows = _.sortBy showRows, (row) -> row.soukou[0]
-        when 'lucky'
-          showRows = _.sortBy showRows, (row) -> row.lucky[0]
-        else
-          showRows = _.sortBy showRows, @props.sortName
-      showRows.reverse() if !@props.sortOrder
-
+      showRows = @handleShowRows()
     <div id="ship-info-show">
       <Divider text="舰娘信息" icon={false}/>
       <Grid>
