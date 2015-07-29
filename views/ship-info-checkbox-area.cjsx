@@ -49,6 +49,7 @@ ShipInfoCheckboxArea = React.createClass
               <option value='soukou'>装甲</option>
               <option value='lucky'>幸运</option>
               <option value='sakuteki'>索敌</option>
+              <option value='repairtime'>修理</option>
             </Input>
           </Col>
           <Col xs={2}>
