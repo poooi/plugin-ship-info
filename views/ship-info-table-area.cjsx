@@ -59,6 +59,8 @@ ShipInfoTable = React.createClass
     lucky = @props.shipInfo.lucky[0]
     lv = @props.shipInfo.lv
     afterlv = @props.shipInfo.afterlv
+    nowhp = @props.shipInfo.nowhp
+    maxhp = @props.shipInfo.maxhp
 
     locked = @props.shipInfo.locked
 
@@ -99,6 +101,15 @@ ShipInfoTable = React.createClass
       luckyClass = 'td-lucky-max'
       luckyString = 'MAX'
 
+    if nowhp < 0.25 * maxhp
+      repairColor = 'rgba(255, 0, 0, 0.4)'
+    else if nowhp < 0.5 * maxhp
+      repairColor = 'rgba(255, 65, 0, 0.4)'
+    else if nowhp < 0.75 * maxhp
+      repairColor = 'rgba(255, 255, 0, 0.4)'
+    else
+      repairColor = 'transparent'
+
     if @props.shipInfo.cond >= 0 and @props.shipInfo.cond < 20
       condColor = 'rgba(255, 0, 0, 0.4)'
     else if @props.shipInfo.cond >= 20 and @props.shipInfo.cond < 30
@@ -120,7 +131,7 @@ ShipInfoTable = React.createClass
       <td className={soukouClass}>{soukou + '/'}<span style={fontSize: '80%'}>{soukouString}</span></td>
       <td className={luckyClass}>{lucky + '/'}<span style={fontSize: '80%'}>{luckyString}</span></td>
       <td className='center'>{@props.shipInfo.sakuteki}</td>
-      <td className='center'>{@props.shipInfo.repairtime.toFixed(2)}</td>
+      <td className='center' style={backgroundColor: repairColor}>{@props.shipInfo.repairtime.toFixed(2)}</td>
       <td><Slotitems data={@props.shipInfo.slot} /></td>
       <td>{if locked == 1 then <FontAwesome name='lock' /> else ' '}</td>
     </tr>
