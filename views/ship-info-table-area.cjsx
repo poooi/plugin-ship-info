@@ -1,5 +1,5 @@
 {$, $$, _, React, ReactBootstrap, ROOT, path} = window
-{Panel, Table, Grid, Col, OverlayTrigger, Tooltip} = ReactBootstrap
+{Panel, Table, Grid, Col} = ReactBootstrap
 Divider = require './divider'
 
 resultPanelTitle =
@@ -24,7 +24,7 @@ Slotitems = React.createClass
         item = _slotitems[itemId]
         itemInfo = $slotitems[item.api_slotitem_id]
         if item.api_level > 0
-          name = itemInfo.api_name + ' ' + item.api_level + '★' 
+          name = itemInfo.api_name + ' ' + item.api_level + '★'
         else
           name = itemInfo.api_name
         <img key={itemId} title={name} src={
@@ -64,8 +64,6 @@ ShipInfoTable = React.createClass
 
     locked = @props.shipInfo.locked
 
-    lvColor = 'transparent'
-    condColor = 'transparent'
     karyokuClass = 'td-karyoku'
     raisouClass = 'td-raisou'
     taikuClass = 'td-taiku'
@@ -83,8 +81,6 @@ ShipInfoTable = React.createClass
     luckyToInc = luckyMax - luckyNow
     luckyString = '+' + luckyToInc
 
-    if lv >= afterlv
-      lvColor = 'rgba(255, 255, 0, 0.4)'
     if karyokuNow == karyokuMax
       karyokuClass = 'td-karyoku-max'
       karyokuString = 'MAX'
@@ -116,14 +112,19 @@ ShipInfoTable = React.createClass
       condColor = 'rgba(255, 165, 0, 0.4)'
     else if @props.shipInfo.cond >= 50 and @props.shipInfo.cond <= 100
       condColor = 'rgba(255, 255, 0, 0.4)'
+    else
+      condColor = 'transparent'
+
+    if lv >= afterlv
+      lvColor = 'rgba(255, 255, 0, 0.4)'
+    else
+      lvColor = 'transparent'
 
     <tr>
       <td>{@props.shipInfo.id}</td>
       <td>{@props.shipInfo.type}</td>
       <td>{@props.shipInfo.name}</td>
-      <OverlayTrigger placement='top' overlay={<Tooltip>{'Now ' + lv}<br />{'Tar ' + afterlv}</Tooltip>}>
-        <td className='center' style={backgroundColor: lvColor}>{@props.shipInfo.lv}</td>
-      </OverlayTrigger>
+      <td className='center' style={backgroundColor: lvColor}>{@props.shipInfo.lv}</td>
       <td className='center' style={backgroundColor: condColor}>{@props.shipInfo.cond}</td>
       <td className={karyokuClass}>{karyoku + '/'}<span style={fontSize: '80%'}>{karyokuString}</span></td>
       <td className={raisouClass}>{raisou + '/'}<span style={fontSize: '80%'}>{raisouString}</span></td>
