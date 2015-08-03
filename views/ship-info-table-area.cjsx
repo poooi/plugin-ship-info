@@ -58,16 +58,16 @@ ShipInfoTable = React.createClass
     soukouClass = 'td-soukou'
     luckyClass = 'td-lucky'
 
-    karyokuInc = @props.shipInfo.kyouka[0]
-    karyokuString = '+' + karyokuInc
-    raisouInc = @props.shipInfo.kyouka[1]
-    raisouString = '+' + raisouInc
-    taikuInc = @props.shipInfo.kyouka[2]
-    taikuString = '+' + taikuInc
-    soukouInc = @props.shipInfo.kyouka[3]
-    soukouString = '+' + soukouInc
-    luckyInc = @props.shipInfo.kyouka[4]
-    luckyString = '+' + luckyInc
+    karyokuToInc = karyokuMax - karyokuNow
+    karyokuString = '+' + karyokuToInc
+    raisouToInc = raisouMax - raisouNow
+    raisouString = '+' + raisouToInc
+    taikuToInc = taikuMax - taikuNow
+    taikuString = '+' + taikuToInc
+    soukouToInc = soukouMax - soukouNow
+    soukouString = '+' + soukouToInc
+    luckyToInc = luckyMax - luckyNow
+    luckyString = '+' + luckyToInc
 
     if karyokuNow == karyokuMax
       karyokuClass = 'td-karyoku-max'
