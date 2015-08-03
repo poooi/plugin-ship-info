@@ -1,4 +1,4 @@
-{$, $$, _, React, ReactBootstrap, ROOT, path} = window
+{$, $$, _, React, ReactBootstrap, ROOT, path, resolveTime} = window
 {Panel, Table, Grid, Col} = ReactBootstrap
 Divider = require './divider'
 
@@ -126,7 +126,7 @@ ShipInfoTable = React.createClass
       <td className={soukouClass}>{soukou + '/'}<span style={fontSize: '80%'}>{soukouString}</span></td>
       <td className={luckyClass}>{lucky + '/'}<span style={fontSize: '80%'}>{luckyString}</span></td>
       <td className='center'>{@props.shipInfo.sakuteki}</td>
-      <td className='center' style={backgroundColor: repairColor}>{@props.shipInfo.repairtime.toFixed(2)}</td>
+      <td className='center' style={backgroundColor: repairColor}>{resolveTime @props.shipInfo.repairtime}</td>
       <td><Slotitems data={@props.shipInfo.slot} /></td>
       <td>{if locked == 1 then <FontAwesome name='lock' /> else ' '}</td>
     </tr>
@@ -180,7 +180,7 @@ ShipInfoTableArea = React.createClass
              else
                _rT1 =(_shipLevel*5+Math.floor(Math.sqrt(_shipLevel-11)) * 10 + 50)*repairRate[_shipGirlTypeKey]
              _rTT = _rT1*row.losshp + 30
-             row.repairtime = _rTT / 3600.0
+             row.repairtime = parseInt _rTT
           rows.push row
       when '/kcsapi/api_req_kousyou/getship'
         rowsUpdateFlag = true
@@ -219,7 +219,7 @@ ShipInfoTableArea = React.createClass
            else
              _rT1 =(_shipLevel*5+Math.floor(Math.sqrt(_shipLevel-11)) * 10 + 50)*repairRate[_shipGirlTypeKey]
            _rTT = _rT1*row.losshp + 30
-           row.repairtime = _rTT / 3600.0
+           row.repairtime = parseInt _rTT
         rows.push row
     if rowsUpdateFlag
       if @state.dataVersion > 12450
