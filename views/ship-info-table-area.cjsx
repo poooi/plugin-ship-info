@@ -5,6 +5,15 @@ Divider = require './divider'
 resultPanelTitle =
   <h3>舰娘信息</h3>
 
+shipGirlType = [  '潜水艦',
+  '駆逐艦', '軽巡洋艦','重雷装巡洋艦', '練習巡洋艦','水上機母艦','潜水空母','揚陸艦',
+  '重巡洋艦', '航空巡洋艦','高速戦艦', '軽空母', '潜水母艦',
+  '戦艦', '航空戦艦', '正規空母','装甲空母', '工作艦',   ]
+repairRate = [  0.5,
+  1.0,1.0,1.0,1.0,1.0,1.0,1.0,
+  1.5,1.5,1.5,1.5,1.5,
+  2.0,2.0,2.0,2.0,2.0 ]
+
 Slotitems = React.createClass
   render: ->
     <div className="slotitem-container">
@@ -48,9 +57,14 @@ ShipInfoTable = React.createClass
     luckyNow = @props.shipInfo.luck[0] + @props.shipInfo.kyouka[4]
     luckyMax = @props.shipInfo.lucky[1]
     lucky = @props.shipInfo.lucky[0]
+    lv = @props.shipInfo.lv
+    afterlv = @props.shipInfo.afterlv
+    nowhp = @props.shipInfo.nowhp
+    maxhp = @props.shipInfo.maxhp
 
     locked = @props.shipInfo.locked
 
+    lvColor = 'transparent'
     condColor = 'transparent'
     karyokuClass = 'td-karyoku'
     raisouClass = 'td-raisou'
@@ -69,6 +83,8 @@ ShipInfoTable = React.createClass
     luckyToInc = luckyMax - luckyNow
     luckyString = '+' + luckyToInc
 
+    if lv >= afterlv
+      lvColor = 'rgba(255, 255, 0, 0.4)'
     if karyokuNow == karyokuMax
       karyokuClass = 'td-karyoku-max'
       karyokuString = 'MAX'
@@ -85,6 +101,15 @@ ShipInfoTable = React.createClass
       luckyClass = 'td-lucky-max'
       luckyString = 'MAX'
 
+    if nowhp < 0.25 * maxhp
+      repairColor = 'rgba(255, 0, 0, 0.4)'
+    else if nowhp < 0.5 * maxhp
+      repairColor = 'rgba(255, 65, 0, 0.4)'
+    else if nowhp < 0.75 * maxhp
+      repairColor = 'rgba(255, 255, 0, 0.4)'
+    else
+      repairColor = 'transparent'
+
     if @props.shipInfo.cond >= 0 and @props.shipInfo.cond < 20
       condColor = 'rgba(255, 0, 0, 0.4)'
     else if @props.shipInfo.cond >= 20 and @props.shipInfo.cond < 30
@@ -96,7 +121,9 @@ ShipInfoTable = React.createClass
       <td>{@props.shipInfo.id}</td>
       <td>{@props.shipInfo.type}</td>
       <td>{@props.shipInfo.name}</td>
-      <td className='center'>{@props.shipInfo.lv}</td>
+      <OverlayTrigger placement='top' overlay={<Tooltip>{'Now ' + lv}<br />{'Tar ' + afterlv}</Tooltip>}>
+        <td className='center' style={backgroundColor: lvColor}>{@props.shipInfo.lv}</td>
+      </OverlayTrigger>
       <td className='center' style={backgroundColor: condColor}>{@props.shipInfo.cond}</td>
       <td className={karyokuClass}>{karyoku + '/'}<span style={fontSize: '80%'}>{karyokuString}</span></td>
       <td className={raisouClass}>{raisou + '/'}<span style={fontSize: '80%'}>{raisouString}</span></td>
@@ -104,6 +131,7 @@ ShipInfoTable = React.createClass
       <td className={soukouClass}>{soukou + '/'}<span style={fontSize: '80%'}>{soukouString}</span></td>
       <td className={luckyClass}>{lucky + '/'}<span style={fontSize: '80%'}>{luckyString}</span></td>
       <td className='center'>{@props.shipInfo.sakuteki}</td>
+      <td className='center' style={backgroundColor: repairColor}>{@props.shipInfo.repairtime.toFixed(2)}</td>
       <td><Slotitems data={@props.shipInfo.slot} /></td>
       <td>{if locked == 1 then <FontAwesome name='lock' /> else ' '}</td>
     </tr>
@@ -128,6 +156,7 @@ ShipInfoTableArea = React.createClass
             type: $shipTypes[$ships[ship.api_ship_id].api_stype].api_name
             name: $ships[ship.api_ship_id].api_name
             lv:  ship.api_lv
+            afterlv: ship.api_afterlv
             cond: ship.api_cond
             karyoku: ship.api_karyoku
             houg: ship.api_houg
@@ -143,6 +172,21 @@ ShipInfoTableArea = React.createClass
             sakuteki: ship.api_sakuteki[0]
             slot: ship.api_slot
             locked: ship.api_locked
+            nowhp: ship.api_nowhp
+            maxhp: ship.api_maxhp
+            losshp: ship.api_maxhp - ship.api_nowhp
+            repairtime: 0
+          if row.losshp > 0
+             for x, i in shipGirlType
+               if x == row.type
+                 _shipGirlTypeKey = i
+             _shipLevel = row.lv
+             if _shipLevel < 12
+               _rT1 = _shipLevel*10*repairRate[_shipGirlTypeKey]
+             else
+               _rT1 =(_shipLevel*5+Math.floor(Math.sqrt(_shipLevel-11)) * 10 + 50)*repairRate[_shipGirlTypeKey]
+             _rTT = _rT1*row.losshp + 30
+             row.repairtime = _rTT / 3600.0
           rows.push row
       when '/kcsapi/api_req_kousyou/getship'
         rowsUpdateFlag = true
@@ -152,6 +196,7 @@ ShipInfoTableArea = React.createClass
           type: $shipTypes[$ships[ship.api_ship_id].api_stype].api_name
           name: $ships[ship.api_ship_id].api_name
           lv:  ship.api_lv
+          afterlv: ship.api_afterlv
           cond: ship.api_cond
           karyoku: ship.api_karyoku
           houg: $ships[ship.api_ship_id].api_houg
@@ -167,6 +212,21 @@ ShipInfoTableArea = React.createClass
           sakuteki: ship.api_sakuteki[0]
           slot: ship.api_slot
           locked: ship.api_locked
+          nowhp: ship.api_nowhp
+          maxhp: ship.api_maxhp
+          losshp: ship.api_maxhp - ship.api_nowhp
+          repairtime: 0
+        if row.losshp > 0
+           for x, i in shipGirlType
+             if x == row.type
+               _shipGirlTypeKey = i
+           _shipLevel = row.lv
+           if _shipLevel < 12
+             _rT1 = _shipLevel*10*repairRate[_shipGirlTypeKey]
+           else
+             _rT1 =(_shipLevel*5+Math.floor(Math.sqrt(_shipLevel-11)) * 10 + 50)*repairRate[_shipGirlTypeKey]
+           _rTT = _rT1*row.losshp + 30
+           row.repairtime = _rTT / 3600.0
         rows.push row
     if rowsUpdateFlag
       if @state.dataVersion > 12450
@@ -299,6 +359,7 @@ ShipInfoTableArea = React.createClass
                 <th className='center'>装甲</th>
                 <th className='center'>幸运</th>
                 <th className='center'>索敌</th>
+                <th className='center'>修理</th>
                 <th>装备</th>
                 <th>锁定</th>
               </tr>
