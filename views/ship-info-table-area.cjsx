@@ -5,15 +5,6 @@ Divider = require './divider'
 resultPanelTitle =
   <h3>舰娘信息</h3>
 
-shipGirlType = [  '潜水艦',
-  '駆逐艦', '軽巡洋艦','重雷装巡洋艦', '練習巡洋艦','水上機母艦','潜水空母','揚陸艦',
-  '重巡洋艦', '航空巡洋艦','高速戦艦', '軽空母', '潜水母艦',
-  '戦艦', '航空戦艦', '正規空母','装甲空母', '工作艦',   ]
-repairRate = [  0.5,
-  1.0,1.0,1.0,1.0,1.0,1.0,1.0,
-  1.5,1.5,1.5,1.5,1.5,
-  2.0,2.0,2.0,2.0,2.0 ]
-
 Slotitems = React.createClass
   render: ->
     <div className="slotitem-container">
@@ -169,18 +160,7 @@ ShipInfoTableArea = React.createClass
             nowhp: ship.api_nowhp
             maxhp: ship.api_maxhp
             losshp: ship.api_maxhp - ship.api_nowhp
-            repairtime: 0
-          if row.losshp > 0
-             for x, i in shipGirlType
-               if x == row.type
-                 _shipGirlTypeKey = i
-             _shipLevel = row.lv
-             if _shipLevel < 12
-               _rT1 = _shipLevel*10*repairRate[_shipGirlTypeKey]
-             else
-               _rT1 =(_shipLevel*5+Math.floor(Math.sqrt(_shipLevel-11)) * 10 + 50)*repairRate[_shipGirlTypeKey]
-             _rTT = _rT1*row.losshp + 30
-             row.repairtime = parseInt _rTT
+            repairtime: parseInt (ship.api_ndock_time / 1000.0)
           rows.push row
       when '/kcsapi/api_req_kousyou/getship'
         rowsUpdateFlag = true
@@ -208,18 +188,7 @@ ShipInfoTableArea = React.createClass
           nowhp: ship.api_nowhp
           maxhp: ship.api_maxhp
           losshp: ship.api_maxhp - ship.api_nowhp
-          repairtime: 0
-        if row.losshp > 0
-           for x, i in shipGirlType
-             if x == row.type
-               _shipGirlTypeKey = i
-           _shipLevel = row.lv
-           if _shipLevel < 12
-             _rT1 = _shipLevel*10*repairRate[_shipGirlTypeKey]
-           else
-             _rT1 =(_shipLevel*5+Math.floor(Math.sqrt(_shipLevel-11)) * 10 + 50)*repairRate[_shipGirlTypeKey]
-           _rTT = _rT1*row.losshp + 30
-           row.repairtime = parseInt _rTT
+          repairtime: parseInt (ship.api_ndock_time / 1000.0)
         rows.push row
     if rowsUpdateFlag
       if @state.dataVersion > 12450
