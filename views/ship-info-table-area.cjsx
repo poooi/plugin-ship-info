@@ -1,5 +1,5 @@
-{$, $$, _, React, ReactBootstrap, ROOT, path} = window
-{Panel, Table, Grid, Col, OverlayTrigger, Tooltip} = ReactBootstrap
+{$, $$, _, React, ReactBootstrap, ROOT, path, resolveTime} = window
+{Panel, Table, Grid, Col} = ReactBootstrap
 Divider = require './divider'
 
 resultPanelTitle =
@@ -15,7 +15,7 @@ Slotitems = React.createClass
         item = _slotitems[itemId]
         itemInfo = $slotitems[item.api_slotitem_id]
         if item.api_level > 0
-          name = itemInfo.api_name + ' ' + item.api_level + '★' 
+          name = itemInfo.api_name + ' ' + item.api_level + '★'
         else
           name = itemInfo.api_name
         <img key={itemId} title={name} src={
@@ -49,33 +49,28 @@ ShipInfoTable = React.createClass
     luckyMax = @props.shipInfo.lucky[1]
     lucky = @props.shipInfo.lucky[0]
     lv = @props.shipInfo.lv
-    afterlv = @props.shipInfo.afterlv
     nowhp = @props.shipInfo.nowhp
     maxhp = @props.shipInfo.maxhp
 
     locked = @props.shipInfo.locked
 
-    lvColor = 'transparent'
-    condColor = 'transparent'
     karyokuClass = 'td-karyoku'
     raisouClass = 'td-raisou'
     taikuClass = 'td-taiku'
     soukouClass = 'td-soukou'
     luckyClass = 'td-lucky'
 
-    karyokuInc = @props.shipInfo.kyouka[0]
-    karyokuString = '+' + karyokuInc
-    raisouInc = @props.shipInfo.kyouka[1]
-    raisouString = '+' + raisouInc
-    taikuInc = @props.shipInfo.kyouka[2]
-    taikuString = '+' + taikuInc
-    soukouInc = @props.shipInfo.kyouka[3]
-    soukouString = '+' + soukouInc
-    luckyInc = @props.shipInfo.kyouka[4]
-    luckyString = '+' + luckyInc
+    karyokuToInc = karyokuMax - karyokuNow
+    karyokuString = '+' + karyokuToInc
+    raisouToInc = raisouMax - raisouNow
+    raisouString = '+' + raisouToInc
+    taikuToInc = taikuMax - taikuNow
+    taikuString = '+' + taikuToInc
+    soukouToInc = soukouMax - soukouNow
+    soukouString = '+' + soukouToInc
+    luckyToInc = luckyMax - luckyNow
+    luckyString = '+' + luckyToInc
 
-    if lv >= afterlv
-      lvColor = 'rgba(255, 255, 0, 0.4)'
     if karyokuNow == karyokuMax
       karyokuClass = 'td-karyoku-max'
       karyokuString = 'MAX'
@@ -107,14 +102,14 @@ ShipInfoTable = React.createClass
       condColor = 'rgba(255, 165, 0, 0.4)'
     else if @props.shipInfo.cond >= 50 and @props.shipInfo.cond <= 100
       condColor = 'rgba(255, 255, 0, 0.4)'
+    else
+      condColor = 'transparent'
 
     <tr>
       <td>{@props.shipInfo.id}</td>
       <td>{@props.shipInfo.type}</td>
       <td>{@props.shipInfo.name}</td>
-      <OverlayTrigger placement='top' overlay={<Tooltip>{'Now ' + lv}<br />{'Tar ' + afterlv}</Tooltip>}>
-        <td className='center' style={backgroundColor: lvColor}>{@props.shipInfo.lv}</td>
-      </OverlayTrigger>
+      <td className='center'>{@props.shipInfo.lv}</td>
       <td className='center' style={backgroundColor: condColor}>{@props.shipInfo.cond}</td>
       <td className={karyokuClass}>{karyoku + '/'}<span style={fontSize: '80%'}>{karyokuString}</span></td>
       <td className={raisouClass}>{raisou + '/'}<span style={fontSize: '80%'}>{raisouString}</span></td>
@@ -122,7 +117,7 @@ ShipInfoTable = React.createClass
       <td className={soukouClass}>{soukou + '/'}<span style={fontSize: '80%'}>{soukouString}</span></td>
       <td className={luckyClass}>{lucky + '/'}<span style={fontSize: '80%'}>{luckyString}</span></td>
       <td className='center'>{@props.shipInfo.sakuteki}</td>
-      <td className='center' style={backgroundColor: repairColor}>{@props.shipInfo.repairtime.toFixed(2)}</td>
+      <td className='center' style={backgroundColor: repairColor}>{resolveTime @props.shipInfo.repairtime}</td>
       <td><Slotitems data={@props.shipInfo.slot} /></td>
       <td>{if locked == 1 then <FontAwesome name='lock' /> else ' '}</td>
     </tr>
@@ -147,7 +142,6 @@ ShipInfoTableArea = React.createClass
             type: $shipTypes[$ships[ship.api_ship_id].api_stype].api_name
             name: $ships[ship.api_ship_id].api_name
             lv:  ship.api_lv
-            afterlv: ship.api_afterlv
             cond: ship.api_cond
             karyoku: ship.api_karyoku
             houg: ship.api_houg
@@ -166,7 +160,7 @@ ShipInfoTableArea = React.createClass
             nowhp: ship.api_nowhp
             maxhp: ship.api_maxhp
             losshp: ship.api_maxhp - ship.api_nowhp
-            repairtime: ship.api_ndock_time / 3600000
+            repairtime: parseInt (ship.api_ndock_time / 1000.0)
           rows.push row
       when '/kcsapi/api_req_kousyou/getship'
         rowsUpdateFlag = true
@@ -176,7 +170,6 @@ ShipInfoTableArea = React.createClass
           type: $shipTypes[$ships[ship.api_ship_id].api_stype].api_name
           name: $ships[ship.api_ship_id].api_name
           lv:  ship.api_lv
-          afterlv: ship.api_afterlv
           cond: ship.api_cond
           karyoku: ship.api_karyoku
           houg: $ships[ship.api_ship_id].api_houg
@@ -195,7 +188,7 @@ ShipInfoTableArea = React.createClass
           nowhp: ship.api_nowhp
           maxhp: ship.api_maxhp
           losshp: ship.api_maxhp - ship.api_nowhp
-          repairtime: ship.api_ndock_time / 3600000
+          repairtime: parseInt (ship.api_ndock_time / 1000.0)
         rows.push row
     if rowsUpdateFlag
       if @state.dataVersion > 12450
