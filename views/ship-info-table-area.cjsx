@@ -1,9 +1,9 @@
-{$, $$, _, React, ReactBootstrap, ROOT, path, resolveTime} = window
+{$, $$, _, React, ReactBootstrap, ROOT, path, resolveTime, __} = window
 {Panel, Table, Grid, Col} = ReactBootstrap
 Divider = require './divider'
 
 resultPanelTitle =
-  <h3>舰娘信息</h3>
+  <h3>{__ 'Ship Girls Info'}</h3>
 
 Slotitems = React.createClass
   render: ->
@@ -287,7 +287,7 @@ ShipInfoTableArea = React.createClass
     if @state.show
       showRows = @handleShowRows()
     <div id="ship-info-show">
-      <Divider text="舰娘信息" icon={false}/>
+      <Divider text={__ 'Ship Girls Info'} icon={false}/>
       <Grid>
         <Col xs={1} style={padding: '0 0 0 15px'}>
           <Table striped condensed hover>
@@ -310,20 +310,20 @@ ShipInfoTableArea = React.createClass
           <Table striped condensed hover>
             <thead>
               <tr>
-                <th>ID</th>
-                <th>舰种</th>
-                <th>舰名</th>
-                <th className='center'>等级</th>
-                <th className='center'>状态</th>
-                <th className='center'>火力</th>
-                <th className='center'>雷装</th>
-                <th className='center'>对空</th>
-                <th className='center'>装甲</th>
-                <th className='center'>幸运</th>
-                <th className='center'>索敌</th>
-                <th className='center'>修理</th>
-                <th>装备</th>
-                <th>锁定</th>
+                <th>{__ 'ID'}</th>
+                <th>{__ 'Class'}</th>
+                <th>{__ 'Name'}</th>
+                <th className='center'>{__ 'Level'}</th>
+                <th className='center'>{__ 'Cond'}</th>
+                <th className='center'>{__ 'Firepower'}</th>
+                <th className='center'>{__ 'Torpedo'}</th>
+                <th className='center'>{__ 'AA'}</th>
+                <th className='center'>{__ 'Armor'}</th>
+                <th className='center'>{__ 'Luck'}</th>
+                <th className='center'>{__ 'LOS'}</th>
+                <th className='center'>{__ 'Repair'}</th>
+                <th>{__ 'Equipment'}</th>
+                <th>{__ 'Lock'}</th>
               </tr>
             </thead>
             <tbody>

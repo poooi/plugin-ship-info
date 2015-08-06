@@ -1,4 +1,4 @@
-{React, ReactBootstrap, jQuery} = window
+{React, ReactBootstrap, jQuery, __} = window
 {Button, Input, Col, Grid, Row} = ReactBootstrap
 Divider = require './divider'
 ShipInfoFilter = require './ship-info-filter'
@@ -31,41 +31,41 @@ ShipInfoCheckboxArea = React.createClass
   render: ->
     <div id='ship-info-settings'>
       <div onClick={@handleSortShow}>
-        <Divider text="排序设置" icon={true} show={@state.sortShow}/>
+        <Divider text={__ 'Sort Order Setting'} icon={true} show={@state.sortShow}/>
       </div>
       <div className='vertical-center' style={if @state.sortShow then {display: 'block'} else {display: 'none'} }>
         <Grid>
-          <Col xs={2}>排序规则</Col>
+          <Col xs={2}>{__ 'Sort By'}</Col>
           <Col xs={6}>
             <Input id='sortbase' type='select' defaultValue='lv' onChange={@handleKeyChange}>
-              <option value='id'>ID</option>
-              <option value='type'>舰种</option>
-              <option value='name'>舰名</option>
-              <option value='lv'>等级</option>
-              <option value='cond'>状态</option>
-              <option value='karyoku'>火力</option>
-              <option value='raisou'>雷装</option>
-              <option value='taiku'>对空</option>
-              <option value='soukou'>装甲</option>
-              <option value='lucky'>幸运</option>
-              <option value='sakuteki'>索敌</option>
-              <option value='repairtime'>修理</option>
+              <option value='id'>{__ 'ID'}</option>
+              <option value='type'>{__ 'Class'}</option>
+              <option value='name'>{__ 'Name'}</option>
+              <option value='lv'>{__ 'Level'}</option>
+              <option value='cond'>{__ 'Cond'}</option>
+              <option value='karyoku'>{__ 'Firepower'}</option>
+              <option value='raisou'>{__ 'Torpedo'}</option>
+              <option value='taiku'>{__ 'AA'}</option>
+              <option value='soukou'>{__ 'Armor'}</option>
+              <option value='lucky'>{__ 'Luck'}</option>
+              <option value='sakuteki'>{__ 'LOS'}</option>
+              <option value='repairtime'>{__ 'Repair'}</option>
             </Input>
           </Col>
           <Col xs={2}>
             <Button bsStyle={if @state.order == 0 then 'success' else 'default'} bsSize='small' onClick={@handleClickDescend} block>
-              {if @state.order == 0 then '√ ' else ''} 降序
+              {if @state.order == 0 then '√ ' else ''} {__ 'Descending'}
             </Button>
           </Col>
           <Col xs={2}>
             <Button bsStyle={if @state.order == 1 then 'success' else 'default'} bsSize='small' onClick={@handleClickAscend} block>
-              {if @state.order == 1 then '√ ' else ''} 升序
+              {if @state.order == 1 then '√ ' else ''} {__ 'Ascending'}
             </Button>
           </Col>
         </Grid>
       </div>
       <div onClick={@handleFilterShow}>
-        <Divider text="过滤设置" icon={true} show={@state.filterShow} />
+        <Divider text={__ 'Filter Setting'} icon={true} show={@state.filterShow} />
       </div>
       <div id='ship-info-filter' style={if @state.filterShow then {display: 'block'} else {display: 'none'} }>
         <ShipInfoFilter

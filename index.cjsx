@@ -3,6 +3,19 @@
 remote = require 'remote'
 windowManager = remote.require './lib/window'
 
+i18n = require './node_modules/i18n'
+path = require 'path-extra'
+{__} = i18n
+
+i18n.configure
+  locales: ['en_US', 'ja_JP', 'zh_CN']
+  defaultLocale: 'zh_CN'
+  directory: path.join(__dirname, 'i18n')
+  updateFiles: false
+  indent: '\t'
+  extension: '.json'
+i18n.setLocale(window.language)
+
 window.shipInfoWindow = null
 initialShipInfoWindow = ->
   window.shipInfoWindow = windowManager.createWindow
@@ -21,10 +34,10 @@ if config.get('plugin.ShipInfo.enable', true)
 module.exports =
   name: 'ShipInfo'
   priority: 50
-  displayName: <span><FontAwesome name='ship' key={0} /> 舰娘信息</span>
+  displayName: <span><FontAwesome name='ship' key={0} />{' ' + __('Ship Girls Info')}</span>
   author: 'Yunze'
   link: 'https://github.com/myzwillmake'
   version: '1.2.1'
-  description: '提供已有舰娘详细信息查看'
+  description: __ 'Show detailed information of all owned ship girls'
   handleClick: ->
     window.shipInfoWindow.show()

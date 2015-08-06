@@ -1,4 +1,4 @@
-{React, ReactBootstrap, jQuery} = window
+{React, ReactBootstrap, jQuery, __} = window
 {Grid, Row, Col, Input, Button} = ReactBootstrap
 shipTypes = ['', '海防艦', '駆逐艦', '軽巡洋艦', '重雷装巡洋艦', '重巡洋艦', '航空巡洋艦', '軽空母', '戦艦', '戦艦', '航空戦艦', '正規空母',
              '超弩級戦艦', '潜水艦', '潜水空母', '補給艦', '水上機母艦', '揚陸艦', '装甲空母', '工作艦', '潜水母艦', '練習巡洋艦']
@@ -79,7 +79,7 @@ TypeCheck = React.createClass
     <div>
       <Row>
         <Col xs={2}>
-          <Input type='checkbox' label={"全部"} onChange={@handleCilckCheckboxAll} checked={@state.checkedAll} />
+          <Input type='checkbox' label={__ 'All'} onChange={@handleCilckCheckboxAll} checked={@state.checkedAll} />
         </Col>
       </Row>
       <Row>
@@ -93,22 +93,22 @@ TypeCheck = React.createClass
       </Row>
       <Row>
         <Col xs={2}>
-          <Button className="filter-button" bsStyle='default' bsSize='small' onClick={@handleClickFilterButton.bind(@, 'DD')} block>駆逐艦</Button>
+          <Button className="filter-button" bsStyle='default' bsSize='small' onClick={@handleClickFilterButton.bind(@, 'DD')} block>{__ 'FilterDD'}</Button>
         </Col>
         <Col xs={2}>
-          <Button className="filter-button" bsStyle='default' bsSize='small' onClick={@handleClickFilterButton.bind(@, 'CL')} block>軽巡·雷巡</Button>
+          <Button className="filter-button" bsStyle='default' bsSize='small' onClick={@handleClickFilterButton.bind(@, 'CL')} block>{__ 'FilterCL'}</Button>
         </Col>
         <Col xs={2}>
-          <Button className="filter-button" bsStyle='default' bsSize='small' onClick={@handleClickFilterButton.bind(@, 'CA')} block>重巡·航巡</Button>
+          <Button className="filter-button" bsStyle='default' bsSize='small' onClick={@handleClickFilterButton.bind(@, 'CA')} block>{__ 'FilterCA'}</Button>
         </Col>
         <Col xs={2}>
-          <Button className="filter-button" bsStyle='default' bsSize='small' onClick={@handleClickFilterButton.bind(@, 'BB')} block>戦艦</Button>
+          <Button className="filter-button" bsStyle='default' bsSize='small' onClick={@handleClickFilterButton.bind(@, 'BB')} block>{__ 'FilterBB'}</Button>
         </Col>
         <Col xs={2}>
-          <Button className="filter-button" bsStyle='default' bsSize='small' onClick={@handleClickFilterButton.bind(@, 'CV')} block>航空母艦</Button>
+          <Button className="filter-button" bsStyle='default' bsSize='small' onClick={@handleClickFilterButton.bind(@, 'CV')} block>{__ 'FilterCV'}</Button>
         </Col>
         <Col xs={2}>
-          <Button className="filter-button" bsStyle='default' bsSize='small' onClick={@handleClickFilterButton.bind(@, 'SS')} block>潜水艦</Button>
+          <Button className="filter-button" bsStyle='default' bsSize='small' onClick={@handleClickFilterButton.bind(@, 'SS')} block>{__ 'FilterSS'}</Button>
         </Col>
       </Row>
     </div>
@@ -129,15 +129,15 @@ LvCheck = React.createClass
   render: ->
     <div>
       <Row>
-        <Col xs={2} className='filter-span'><span>等级过滤</span></Col>
+        <Col xs={2} className='filter-span'><span>{__ 'Level Setting'}</span></Col>
         <Col xs={2}>
-          <Input type='radio' label='全部' onChange={@handleCilckRadio.bind(@, 0)} checked={@state.checked[0]} />
+          <Input type='radio' label={__ 'All'} onChange={@handleCilckRadio.bind(@, 0)} checked={@state.checked[0]} />
         </Col>
         <Col xs={2}>
-          <Input type='radio' label='Lv.1' onChange={@handleCilckRadio.bind(@, 1)} checked={@state.checked[1]} />
+          <Input type='radio' label={__ 'Lv.1'} onChange={@handleCilckRadio.bind(@, 1)} checked={@state.checked[1]} />
         </Col>
         <Col xs={2}>
-          <Input type='radio' label='Lv.2及以上' onChange={@handleCilckRadio.bind(@, 2)} checked={@state.checked[2]} />
+          <Input type='radio' label={__ 'Above Lv.2'} onChange={@handleCilckRadio.bind(@, 2)} checked={@state.checked[2]} />
         </Col>
       </Row>
     </div>
@@ -158,15 +158,15 @@ LockedCheck = React.createClass
   render: ->
     <div>
       <Row>
-        <Col xs={2}  className='filter-span'><span>锁定过滤</span></Col>
+        <Col xs={2}  className='filter-span'><span>{__ 'Lock Setting'}</span></Col>
         <Col xs={2}>
-          <Input type='radio' label='全部' onChange={@handleCilckRadio.bind(@, 0)} checked={@state.checked[0]} />
+          <Input type='radio' label={__ 'All'} onChange={@handleCilckRadio.bind(@, 0)} checked={@state.checked[0]} />
         </Col>
         <Col xs={2}>
-          <Input type='radio' label='已锁定' onChange={@handleCilckRadio.bind(@, 1)} checked={@state.checked[1]} />
+          <Input type='radio' label={__ 'Locked'} onChange={@handleCilckRadio.bind(@, 1)} checked={@state.checked[1]} />
         </Col>
         <Col xs={2}>
-          <Input type='radio' label='未锁定' onChange={@handleCilckRadio.bind(@, 2)} checked={@state.checked[2]} />
+          <Input type='radio' label={__ 'Not Locked'} onChange={@handleCilckRadio.bind(@, 2)} checked={@state.checked[2]} />
         </Col>
       </Row>
     </div>
@@ -187,15 +187,15 @@ ExpeditionCheck = React.createClass
   render: ->
     <div>
       <Row>
-        <Col xs={2} className='filter-span'><span>远征过滤</span></Col>
+        <Col xs={2} className='filter-span'><span>{__ 'Expedition Setting'}</span></Col>
         <Col xs={2}>
-          <Input type='radio' label='全部' onChange={@handleCilckRadio.bind(@, 0)} checked={@state.checked[0]} />
+          <Input type='radio' label={__ 'All'} onChange={@handleCilckRadio.bind(@, 0)} checked={@state.checked[0]} />
         </Col>
         <Col xs={2}>
-          <Input type='radio' label='正在远征' onChange={@handleCilckRadio.bind(@, 1)} checked={@state.checked[1]} />
+          <Input type='radio' label={__ 'In Expedition'} onChange={@handleCilckRadio.bind(@, 1)} checked={@state.checked[1]} />
         </Col>
         <Col xs={2}>
-          <Input type='radio' label='未在远征' onChange={@handleCilckRadio.bind(@, 2)} checked={@state.checked[2]} />
+          <Input type='radio' label={__ 'Not In Expedition'}  onChange={@handleCilckRadio.bind(@, 2)} checked={@state.checked[2]} />
         </Col>
       </Row>
     </div>

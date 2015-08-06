@@ -1,9 +1,11 @@
 # Plugin-Ship-Info
-Show detailed information of all owned ships
+Show detailed information of all owned ship girls
 ### Usage
 Put the folder into /path/to/poi/resources/app/plugins
 ### Change Log
 
+#### V1.3.0
+Add i18n support
 #### V1.2.1
 Add more filters: level, expedition, lock
 #### V1.2.0

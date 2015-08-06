@@ -1,3 +1,17 @@
+i18n = require '../node_modules/i18n'
+path = require 'path-extra'
+
+i18n.configure
+  locales: ['en_US', 'ja_JP', 'zh_CN']
+  defaultLocale: 'ja_JP'
+  directory: path.join(__dirname, '..', 'i18n')
+  updateFiles: false
+  indent: '\t'
+  extension: '.json'
+
+i18n.setLocale(window.language)
+window.__ = i18n.__
+
 {React} = window
 
 ShipInfoTableArea = require './ship-info-table-area'
