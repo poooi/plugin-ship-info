@@ -37,7 +37,7 @@ module.exports =
   displayName: <span><FontAwesome name='ship' key={0} />{' ' + __('Ship Girls Info')}</span>
   author: 'Yunze'
   link: 'https://github.com/myzwillmake'
-  version: '1.2.1'
+  version: '1.3.0'
   description: __ 'Show detailed information of all owned ship girls'
   handleClick: ->
     window.shipInfoWindow.show()
