@@ -115,7 +115,7 @@ TypeCheck = React.createClass
 
 LvCheck = React.createClass
   getInitialState: ->
-    checked : [true, false, false]
+    checked : [false, false, true]
   handleCilckRadio: (index) ->
     {checked} = @state
     for tmp in [0..2]
@@ -144,7 +144,7 @@ LvCheck = React.createClass
 
 LockedCheck = React.createClass
   getInitialState: ->
-    checked : [true, false, false]
+    checked : [false, true, false]
   handleCilckRadio: (index) ->
     {checked} = @state
     for tmp in [0..2]
