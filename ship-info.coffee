@@ -5,7 +5,7 @@ i18n = require './node_modules/i18n'
 path = require 'path-extra'
 
 i18n.configure
-  locales: ['en_US', 'ja_JP', 'zh_CN']
+  locales: ['en_US', 'ja_JP', 'zh_CN', 'zh_TW']
   defaultLocale: 'zh_CN'
   directory: path.join(__dirname, 'i18n')
   updateFiles: false
