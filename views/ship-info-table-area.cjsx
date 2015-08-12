@@ -13,16 +13,17 @@ Slotitems = React.createClass
       for itemId in @props.data
         continue if itemId == -1
         item = _slotitems[itemId]
-        itemInfo = $slotitems[item.api_slotitem_id]
-        if item.api_level > 0
-          name = itemInfo.api_name + ' ' + item.api_level + '★'
-        else
-          name = itemInfo.api_name
-        <img key={itemId} title={name} src={
-            path = require 'path'
-            path.join(ROOT, 'assets', 'img', 'slotitem', "#{itemInfo.api_type[3] + 100}.png")
-          }
-        />
+        if item?
+          itemInfo = $slotitems[item.api_slotitem_id]
+          if item.api_level > 0
+            name = itemInfo.api_name + ' ' + item.api_level + '★'
+          else
+            name = itemInfo.api_name
+          <img key={itemId} title={name} src={
+              path = require 'path'
+              path.join(ROOT, 'assets', 'img', 'slotitem', "#{itemInfo.api_type[3] + 100}.png")
+            }
+          />
     }
     </div>
 
