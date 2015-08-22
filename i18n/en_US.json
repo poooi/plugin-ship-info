@@ -35,5 +35,8 @@
   "In Expedition": "In Expedition",
   "Not In Expedition": "Not In Expedition",
   "Equipment": "Equipment",
-  "Lock": "Lock"
+  "Lock": "Lock",
+  "Modernization Setting": "Modernization Setting",
+  "Modernization Completed": "Modernization Completed",
+  "Modernization Incompleted": "Modernization Incompleted"
 }

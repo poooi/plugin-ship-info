@@ -73,6 +73,7 @@ ShipInfoCheckboxArea = React.createClass
           lvFilterRules={@props.filterRules}
           lockedFilterRules={@props.filterRules}
           expeditionFilterRules={@props.filterRules}
+          modernizationFilterRules={@props.filterRules}
         />
       </div>
     </div>

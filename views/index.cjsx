@@ -12,6 +12,7 @@ ShipInfoArea = React.createClass
     lvRadio: 2
     lockedRadio: 1
     expeditionRadio: 0
+    modernizationRadio: 0
 
   sortRules: (name, order) ->
     @setState
@@ -32,6 +33,9 @@ ShipInfoArea = React.createClass
       when 'expedition'
         @setState
           expeditionRadio: val
+      when 'modernization'
+        @setState
+          modernizationRadio: val
 
   render: ->
     <div>
@@ -46,6 +50,7 @@ ShipInfoArea = React.createClass
         lvRadio={@state.lvRadio}
         lockedRadio={@state.lockedRadio}
         expeditionRadio={@state.expeditionRadio}
+        modernizationRadio={@state.modernizationRadio}
       />
     </div>
 
