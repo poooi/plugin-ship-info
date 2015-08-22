@@ -35,5 +35,8 @@
   "In Expedition": "正在遠征",
   "Not In Expedition": "未在遠征",
   "Equipment": "裝備",
-  "Lock": "鎖定"
+  "Lock": "鎖定",
+  "Modernization Setting": "改修過濾",
+  "Modernization Completed": "改修完成",
+  "Modernization Incompleted": "改修未滿"
 }
