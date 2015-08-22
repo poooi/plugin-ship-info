@@ -200,6 +200,35 @@ ExpeditionCheck = React.createClass
       </Row>
     </div>
 
+ModernizationCheck = React.createClass
+  getInitialState: ->
+    checked : [true, false, false]
+  handleCilckRadio: (index) ->
+    {checked} = @state
+    for tmp in [0..2]
+      if tmp==index
+        checked[tmp] = true
+      else
+        checked[tmp] = false
+    @props.filterRules('modernization', index)
+    @setState
+      checked: checked
+  render: ->
+    <div>
+      <Row>
+        <Col xs={2} className='filter-span'><span>{__ 'Modernization Setting'}</span></Col>
+        <Col xs={2}>
+          <Input type='radio' label={__ 'All'} onChange={@handleCilckRadio.bind(@, 0)} checked={@state.checked[0]} />
+        </Col>
+        <Col xs={2}>
+          <Input type='radio' label={__ 'Modernization Completed'} onChange={@handleCilckRadio.bind(@, 1)} checked={@state.checked[1]} />
+        </Col>
+        <Col xs={2}>
+          <Input type='radio' label={__ 'Modernization Incompleted'}  onChange={@handleCilckRadio.bind(@, 2)} checked={@state.checked[2]} />
+        </Col>
+      </Row>
+    </div>
+
 ShipInfoFilter = React.createClass
   render: ->
     <Grid>
@@ -207,6 +236,7 @@ ShipInfoFilter = React.createClass
       <LvCheck filterRules={@props.lvFilterRules} />
       <LockedCheck filterRules={@props.lockedFilterRules} />
       <ExpeditionCheck filterRules={@props.expeditionFilterRules} />
+      <ModernizationCheck filterRules={@props.modernizationFilterRules} />
     </Grid>
 
 module.exports = ShipInfoFilter
