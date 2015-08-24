@@ -8,8 +8,8 @@ path = require 'path-extra'
 {__} = i18n
 
 i18n.configure
-  locales: ['en_US', 'ja_JP', 'zh_CN', 'zh_TW']
-  defaultLocale: 'zh_CN'
+  locales: ['en-US', 'ja-JP', 'zh-CN', 'zh-TW']
+  defaultLocale: 'zh-CN'
   directory: path.join(__dirname, 'i18n')
   updateFiles: false
   indent: '\t'
