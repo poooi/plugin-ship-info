@@ -140,8 +140,10 @@ ShipInfoTableArea = React.createClass
         for _shipId, ship of _ships
           row =
             id: ship.api_id
+            type_id: $ships[ship.api_ship_id].api_stype
             type: $shipTypes[$ships[ship.api_ship_id].api_stype].api_name
             name: $ships[ship.api_ship_id].api_name
+            sortno: $ships[ship.api_ship_id].api_sortno
             lv:  ship.api_lv
             cond: ship.api_cond
             karyoku: ship.api_karyoku
@@ -168,8 +170,10 @@ ShipInfoTableArea = React.createClass
         ship = body.api_ship
         row =
           id: ship.api_id
+          type_id: $ships[ship.api_ship_id].api_stype
           type: $shipTypes[$ships[ship.api_ship_id].api_stype].api_name
           name: $ships[ship.api_ship_id].api_name
+          sortno: $ships[ship.api_ship_id].api_sortno
           lv:  ship.api_lv
           cond: ship.api_cond
           karyoku: ship.api_karyoku
@@ -288,6 +292,37 @@ ShipInfoTableArea = React.createClass
         showRows = _.sortBy showRows, (row) -> row.soukou[0]
       when 'lucky'
         showRows = _.sortBy showRows, (row) -> row.lucky[0]
+      when 'lv'
+        # Sort rule of level in game (descending):
+        # 1. level (descending)
+        # 2. sortno (ascending)
+        # 3. id (descending)
+        showRows.sort (a, b) ->
+          if a.lv != b.lv
+            return a.lv - b.lv
+          if a.sortno != b.sortno
+            return -(a.sortno - b.sortno)
+          if a.id != b.id
+            return a.id - b.id
+          else
+            return 0
+      when 'type'
+        # Sort rule of type in game (descending):
+        # 1. ship_type_id (descending)
+        # 2. sortno (ascending)
+        # 3. level (descending)
+        # 4. id (descending)
+        showRows.sort (a, b) ->
+          if a.type_id != b.type_id
+            return a.type_id - b.type_id
+          if a.sortno != b.sortno
+            return -(a.sortno - b.sortno)
+          if a.lv != b.lv
+            return a.lv - b.lv
+          if a.id != b.id
+            return a.id - b.id
+          else
+            return 0
       else
         showRows = _.sortBy showRows, @props.sortName
     showRows.reverse() if !@props.sortOrder
