@@ -293,6 +293,10 @@ ShipInfoTableArea = React.createClass
       when 'lucky'
         showRows = _.sortBy showRows, (row) -> row.lucky[0]
       when 'lv'
+        # Sort rule of level in game (descending):
+        # 1. level (descending)
+        # 2. sortno (ascending)
+        # 3. id (descending)
         showRows.sort (a, b) ->
           if a.lv != b.lv
             return a.lv - b.lv
@@ -303,6 +307,11 @@ ShipInfoTableArea = React.createClass
           else
             return 0
       when 'type'
+        # Sort rule of type in game (descending):
+        # 1. ship_type_id (descending)
+        # 2. sortno (ascending)
+        # 3. level (descending)
+        # 4. id (descending)
         showRows.sort (a, b) ->
           if a.type_id != b.type_id
             return a.type_id - b.type_id
