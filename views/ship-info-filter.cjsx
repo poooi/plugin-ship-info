@@ -1,4 +1,4 @@
-{React, ReactBootstrap, jQuery, __} = window
+{React, ReactBootstrap, jQuery, __, config} = window
 {Grid, Row, Col, Input, Button} = ReactBootstrap
 shipTypes = ['', '海防艦', '駆逐艦', '軽巡洋艦', '重雷装巡洋艦', '重巡洋艦', '航空巡洋艦', '軽空母', '戦艦', '戦艦', '航空戦艦', '正規空母',
              '超弩級戦艦', '潜水艦', '潜水空母', '補給艦', '水上機母艦', '揚陸艦', '装甲空母', '工作艦', '潜水母艦', '練習巡洋艦']
@@ -8,6 +8,14 @@ TypeCheck = React.createClass
     checked: [false, true, true, true, true, true, true, true, true, false, true, true,
               true, true, true, true, true, true, true, true, true, true, true, true]
     checkedAll: true
+  componentDidMount: ->
+    {checked} = @state
+    for shipType, i in shipTypes
+      checked[i] = false
+    for i in @props.shipTypeBoxes
+      checked[i] = true
+    checkedAll = config.get "plugin.ShipInfo.shipCheckedAll", true
+    @setState {checked, checkedAll}
   handleClickCheckbox: (index) ->
     checkboxes = []
     {checked, checkedAll} = @state
@@ -15,6 +23,7 @@ TypeCheck = React.createClass
     for shipType, i in shipTypes
       checkboxes.push i if checked[i]
     checkedAll = false
+    config.set "plugin.ShipInfo.shipCheckedAll", checkedAll
     @setState {checked, checkedAll}
     @props.filterRules('type', checkboxes)
   handleCilckCheckboxAll: ->
@@ -24,6 +33,7 @@ TypeCheck = React.createClass
       for shipType, i in shipTypes
         checked[i] = false
       checkedAll = false
+      config.set "plugin.ShipInfo.shipCheckedAll", checkedAll
       @setState {checked, checkedAll}
       @props.filterRules('type', checkboxes)
     else
@@ -32,6 +42,7 @@ TypeCheck = React.createClass
           checked[i] = true
           checkboxes.push i
           checkedAll = true
+      config.set "plugin.ShipInfo.shipCheckedAll", checkedAll
       @setState {checked, checkedAll}
       @props.filterRules('type', checkboxes)
   handleClickFilterButton: (type) ->
@@ -73,6 +84,7 @@ TypeCheck = React.createClass
         checked[14] = true
         checkboxes.push 13
         checkboxes.push 14
+    config.set "plugin.ShipInfo.shipCheckedAll", checkedAll
     @setState {checked, checkedAll}
     @props.filterRules('type', checkboxes)
   render: ->
@@ -117,27 +129,19 @@ LvCheck = React.createClass
   getInitialState: ->
     checked : [false, false, true]
   handleCilckRadio: (index) ->
-    {checked} = @state
-    for tmp in [0..2]
-      if tmp==index
-        checked[tmp] = true
-      else
-        checked[tmp] = false
     @props.filterRules('lv', index)
-    @setState
-      checked: checked
   render: ->
     <div>
       <Row>
         <Col xs={2} className='filter-span'><span>{__ 'Level Setting'}</span></Col>
         <Col xs={2}>
-          <Input type='radio' label={__ 'All'} onChange={@handleCilckRadio.bind(@, 0)} checked={@state.checked[0]} />
+          <Input type='radio' label={__ 'All'} onChange={@handleCilckRadio.bind(@, 0)} checked={(@props.keyRadio == 0)} />
         </Col>
         <Col xs={2}>
-          <Input type='radio' label={__ 'Lv.1'} onChange={@handleCilckRadio.bind(@, 1)} checked={@state.checked[1]} />
+          <Input type='radio' label={__ 'Lv.1'} onChange={@handleCilckRadio.bind(@, 1)} checked={(@props.keyRadio == 1)} />
         </Col>
         <Col xs={2}>
-          <Input type='radio' label={__ 'Above Lv.2'} onChange={@handleCilckRadio.bind(@, 2)} checked={@state.checked[2]} />
+          <Input type='radio' label={__ 'Above Lv.2'} onChange={@handleCilckRadio.bind(@, 2)} checked={(@props.keyRadio == 2)} />
         </Col>
       </Row>
     </div>
@@ -146,27 +150,19 @@ LockedCheck = React.createClass
   getInitialState: ->
     checked : [false, true, false]
   handleCilckRadio: (index) ->
-    {checked} = @state
-    for tmp in [0..2]
-      if tmp==index
-        checked[tmp] = true
-      else
-        checked[tmp] = false
     @props.filterRules('locked', index)
-    @setState
-      checked: checked
   render: ->
     <div>
       <Row>
         <Col xs={2}  className='filter-span'><span>{__ 'Lock Setting'}</span></Col>
         <Col xs={2}>
-          <Input type='radio' label={__ 'All'} onChange={@handleCilckRadio.bind(@, 0)} checked={@state.checked[0]} />
+          <Input type='radio' label={__ 'All'} onChange={@handleCilckRadio.bind(@, 0)} checked={(@props.keyRadio == 0)} />
         </Col>
         <Col xs={2}>
-          <Input type='radio' label={__ 'Locked'} onChange={@handleCilckRadio.bind(@, 1)} checked={@state.checked[1]} />
+          <Input type='radio' label={__ 'Locked'} onChange={@handleCilckRadio.bind(@, 1)} checked={(@props.keyRadio == 1)} />
         </Col>
         <Col xs={2}>
-          <Input type='radio' label={__ 'Not Locked'} onChange={@handleCilckRadio.bind(@, 2)} checked={@state.checked[2]} />
+          <Input type='radio' label={__ 'Not Locked'} onChange={@handleCilckRadio.bind(@, 2)} checked={(@props.keyRadio == 2)} />
         </Col>
       </Row>
     </div>
@@ -175,27 +171,19 @@ ExpeditionCheck = React.createClass
   getInitialState: ->
     checked : [true, false, false]
   handleCilckRadio: (index) ->
-    {checked} = @state
-    for tmp in [0..2]
-      if tmp==index
-        checked[tmp] = true
-      else
-        checked[tmp] = false
     @props.filterRules('expedition', index)
-    @setState
-      checked: checked
   render: ->
     <div>
       <Row>
         <Col xs={2} className='filter-span'><span>{__ 'Expedition Setting'}</span></Col>
         <Col xs={2}>
-          <Input type='radio' label={__ 'All'} onChange={@handleCilckRadio.bind(@, 0)} checked={@state.checked[0]} />
+          <Input type='radio' label={__ 'All'} onChange={@handleCilckRadio.bind(@, 0)} checked={(@props.keyRadio == 0)} />
         </Col>
         <Col xs={2}>
-          <Input type='radio' label={__ 'In Expedition'} onChange={@handleCilckRadio.bind(@, 1)} checked={@state.checked[1]} />
+          <Input type='radio' label={__ 'In Expedition'} onChange={@handleCilckRadio.bind(@, 1)} checked={(@props.keyRadio == 1)} />
         </Col>
         <Col xs={2}>
-          <Input type='radio' label={__ 'Not In Expedition'}  onChange={@handleCilckRadio.bind(@, 2)} checked={@state.checked[2]} />
+          <Input type='radio' label={__ 'Not In Expedition'}  onChange={@handleCilckRadio.bind(@, 2)} checked={(@props.keyRadio == 2)} />
         </Col>
       </Row>
     </div>
@@ -204,27 +192,19 @@ ModernizationCheck = React.createClass
   getInitialState: ->
     checked : [true, false, false]
   handleCilckRadio: (index) ->
-    {checked} = @state
-    for tmp in [0..2]
-      if tmp==index
-        checked[tmp] = true
-      else
-        checked[tmp] = false
     @props.filterRules('modernization', index)
-    @setState
-      checked: checked
   render: ->
     <div>
       <Row>
         <Col xs={2} className='filter-span'><span>{__ 'Modernization Setting'}</span></Col>
         <Col xs={2}>
-          <Input type='radio' label={__ 'All'} onChange={@handleCilckRadio.bind(@, 0)} checked={@state.checked[0]} />
+          <Input type='radio' label={__ 'All'} onChange={@handleCilckRadio.bind(@, 0)} checked={(@props.keyRadio == 0)} />
         </Col>
         <Col xs={2}>
-          <Input type='radio' label={__ 'Modernization Completed'} onChange={@handleCilckRadio.bind(@, 1)} checked={@state.checked[1]} />
+          <Input type='radio' label={__ 'Modernization Completed'} onChange={@handleCilckRadio.bind(@, 1)} checked={(@props.keyRadio == 1)} />
         </Col>
         <Col xs={2}>
-          <Input type='radio' label={__ 'Modernization Incompleted'}  onChange={@handleCilckRadio.bind(@, 2)} checked={@state.checked[2]} />
+          <Input type='radio' label={__ 'Modernization Incompleted'}  onChange={@handleCilckRadio.bind(@, 2)} checked={(@props.keyRadio == 2)} />
         </Col>
       </Row>
     </div>
@@ -232,11 +212,11 @@ ModernizationCheck = React.createClass
 ShipInfoFilter = React.createClass
   render: ->
     <Grid>
-      <TypeCheck filterRules={@props.typeFilterRules} />
-      <LvCheck filterRules={@props.lvFilterRules} />
-      <LockedCheck filterRules={@props.lockedFilterRules} />
-      <ExpeditionCheck filterRules={@props.expeditionFilterRules} />
-      <ModernizationCheck filterRules={@props.modernizationFilterRules} />
+      <TypeCheck shipTypeBoxes={@props.shipTypeBoxes} filterRules={@props.typeFilterRules} />
+      <LvCheck keyRadio={@props.lvRadio} filterRules={@props.lvFilterRules} />
+      <LockedCheck keyRadio={@props.lockedRadio} filterRules={@props.lockedFilterRules} />
+      <ExpeditionCheck keyRadio={@props.expeditionRadio} filterRules={@props.expeditionFilterRules} />
+      <ModernizationCheck keyRadio={@props.modernizationRadio} filterRules={@props.modernizationFilterRules} />
     </Grid>
 
 module.exports = ShipInfoFilter
