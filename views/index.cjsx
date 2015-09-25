@@ -1,4 +1,4 @@
-{React} = window
+{React, config} = window
 
 ShipInfoTableArea = require './ship-info-table-area'
 ShipInfoCheckboxArea = require './ship-info-checkbox-area'
@@ -7,14 +7,31 @@ ShipInfoArea = React.createClass
   getInitialState: ->
     sortName: "lv"
     sortOrder: 0
-    shipTypeBoxes: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
+    shipTypeBoxes: [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13,
                     14, 15, 16, 17, 18, 19, 20, 21]
     lvRadio: 2
     lockedRadio: 1
     expeditionRadio: 0
     modernizationRadio: 0
-
+  componentWillMount: ->
+    sortName = config.get "plugin.ShipInfo.sortName", @state.sortName
+    sortOrder = config.get "plugin.ShipInfo.sortOrder", @state.sortOrder
+    shipTypeBoxes = JSON.parse config.get "plugin.ShipInfo.shipTypeBoxes", JSON.stringify @state.shipTypeBoxes
+    lvRadio = config.get "plugin.ShipInfo.lvRadio", @state.lvRadio
+    lockedRadio = config.get "plugin.ShipInfo.lockedRadio", @state.lockedRadio
+    expeditionRadio = config.get "plugin.ShipInfo.expeditionRadio", @state.expeditionRadio
+    modernizationRadio = config.get "plugin.ShipInfo.modernizationRadio", @state.modernizationRadio
+    @setState
+      sortName: sortName
+      sortOrder: sortOrder
+      shipTypeBoxes: shipTypeBoxes
+      lvRadio: lvRadio
+      lockedRadio: lockedRadio
+      expeditionRadio: expeditionRadio
+      modernizationRadio: modernizationRadio
   sortRules: (name, order) ->
+    config.set "plugin.ShipInfo.sortName", name
+    config.set "plugin.ShipInfo.sortOrder", order
     @setState
       sortName: name
       sortOrder: order
@@ -22,18 +39,23 @@ ShipInfoArea = React.createClass
   filterRules: (filterType, val) ->
     switch filterType
       when 'type'
+        config.set "plugin.ShipInfo.shipTypeBoxes", JSON.stringify val
         @setState
           shipTypeBoxes: val
       when 'lv'
+        config.set "plugin.ShipInfo.lvRadio", val
         @setState
           lvRadio: val
       when 'locked'
+        config.set "plugin.ShipInfo.lvRadio", val
         @setState
           lockedRadio: val
       when 'expedition'
+        config.set "plugin.ShipInfo.expeditionRadio", val
         @setState
           expeditionRadio: val
       when 'modernization'
+        config.set "plugin.ShipInfo.modernizationRadio", val
         @setState
           modernizationRadio: val
 
@@ -42,6 +64,13 @@ ShipInfoArea = React.createClass
       <ShipInfoCheckboxArea
         sortRules={@sortRules}
         filterRules={@filterRules}
+        sortKey={@state.sortName}
+        order={@state.sortOrder}
+        shipTypeBoxes={@state.shipTypeBoxes}
+        lvRadio={@state.lvRadio}
+        lockedRadio={@state.lockedRadio}
+        expeditionRadio={@state.expeditionRadio}
+        modernizationRadio={@state.modernizationRadio}
       />
       <ShipInfoTableArea
         sortName={@state.sortName}

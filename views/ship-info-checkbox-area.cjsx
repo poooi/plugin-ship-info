@@ -4,22 +4,14 @@ Divider = require './divider'
 ShipInfoFilter = require './ship-info-filter'
 ShipInfoCheckboxArea = React.createClass
   getInitialState: ->
-    order: 0
-    sortKey: 'lv'
     filterShow: false
     sortShow: true
   handleClickAscend: ->
-    @setState
-      order: 1
-    @props.sortRules(@state.sortKey, 1)
+    @props.sortRules(@props.sortKey, 1)
   handleClickDescend: ->
-    @setState
-      order: 0
-    @props.sortRules(@state.sortKey, 0)
+    @props.sortRules(@props.sortKey, 0)
   handleKeyChange: (e) ->
-    @setState
-      sortKey: e.target.value
-    @props.sortRules(e.target.value, @state.order)
+    @props.sortRules(e.target.value, @props.order)
   handleSortShow: ->
     {sortShow} = @state
     sortShow = !sortShow
@@ -37,7 +29,7 @@ ShipInfoCheckboxArea = React.createClass
         <Grid>
           <Col xs={2}>{__ 'Sort By'}</Col>
           <Col xs={6}>
-            <Input id='sortbase' type='select' defaultValue='lv' onChange={@handleKeyChange}>
+            <Input id='sortbase' type='select' defaultValue={@props.sortKey} onChange={@handleKeyChange}>
               <option value='id'>{__ 'ID'}</option>
               <option value='type'>{__ 'Class'}</option>
               <option value='name'>{__ 'Name'}</option>
@@ -53,13 +45,13 @@ ShipInfoCheckboxArea = React.createClass
             </Input>
           </Col>
           <Col xs={2}>
-            <Button bsStyle={if @state.order == 0 then 'success' else 'default'} bsSize='small' onClick={@handleClickDescend} block>
-              {if @state.order == 0 then '√ ' else ''} {__ 'Descending'}
+            <Button bsStyle={if @props.order == 0 then 'success' else 'default'} bsSize='small' onClick={@handleClickDescend} block>
+              {if @props.order == 0 then '√ ' else ''} {__ 'Descending'}
             </Button>
           </Col>
           <Col xs={2}>
-            <Button bsStyle={if @state.order == 1 then 'success' else 'default'} bsSize='small' onClick={@handleClickAscend} block>
-              {if @state.order == 1 then '√ ' else ''} {__ 'Ascending'}
+            <Button bsStyle={if @props.order == 1 then 'success' else 'default'} bsSize='small' onClick={@handleClickAscend} block>
+              {if @props.order == 1 then '√ ' else ''} {__ 'Ascending'}
             </Button>
           </Col>
         </Grid>
@@ -69,6 +61,11 @@ ShipInfoCheckboxArea = React.createClass
       </div>
       <div id='ship-info-filter' style={if @state.filterShow then {display: 'block'} else {display: 'none'} }>
         <ShipInfoFilter
+          shipTypeBoxes={@props.shipTypeBoxes}
+          lvRadio={@props.lvRadio}
+          lockedRadio={@props.lockedRadio}
+          expeditionRadio={@props.expeditionRadio}
+          modernizationRadio={@props.modernizationRadio}
           typeFilterRules={@props.filterRules}
           lvFilterRules={@props.filterRules}
           lockedFilterRules={@props.filterRules}
