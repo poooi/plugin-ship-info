@@ -18,12 +18,13 @@ i18n.setLocale(window.language)
 
 window.shipInfoWindow = null
 initialShipInfoWindow = ->
+  pos = config.get 'plugin.ShipInfo.pos', [0, 0]
   window.shipInfoWindow = windowManager.createWindow
-    #Use config
-    x: config.get 'poi.window.x', 0
-    y: config.get 'poi.window.y', 0
+    x: pos[0]
+    y: pos[1]
     width: 1020
     height: 650
+  window.shipInfoWindow.on 'move', -> config.set 'plugin.ShipInfo.pos', window.shipInfoWindow.getPosition()
   window.shipInfoWindow.loadUrl "file://#{__dirname}/index.html"
   if process.env.DEBUG?
     window.shipInfoWindow.openDevTools
