@@ -282,6 +282,8 @@ ShipInfoTableArea = React.createClass
         showRows.push row
     #showRowsSort
     switch @props.sortName
+      when 'name'
+        showRows = showRows.sort( (a, b) -> a.name.localeCompare(b.name, "ja-JP") )
       when 'karyoku'
         showRows = _.sortBy showRows, (row) -> row.karyoku[0]
       when 'raisou'
