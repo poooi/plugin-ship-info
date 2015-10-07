@@ -143,6 +143,7 @@ ShipInfoTableArea = React.createClass
             type_id: $ships[ship.api_ship_id].api_stype
             type: $shipTypes[$ships[ship.api_ship_id].api_stype].api_name
             name: $ships[ship.api_ship_id].api_name
+            yomi: $ships[ship.api_ship_id].api_yomi
             sortno: $ships[ship.api_ship_id].api_sortno
             lv:  ship.api_lv
             cond: ship.api_cond
@@ -173,6 +174,7 @@ ShipInfoTableArea = React.createClass
           type_id: $ships[ship.api_ship_id].api_stype
           type: $shipTypes[$ships[ship.api_ship_id].api_stype].api_name
           name: $ships[ship.api_ship_id].api_name
+          yomi: $ships[ship.api_ship_id].api_yomi
           sortno: $ships[ship.api_ship_id].api_sortno
           lv:  ship.api_lv
           cond: ship.api_cond
@@ -283,7 +285,7 @@ ShipInfoTableArea = React.createClass
     #showRowsSort
     switch @props.sortName
       when 'name'
-        showRows = showRows.sort( (a, b) -> a.name.localeCompare(b.name, "ja-JP") )
+        showRows = showRows.sort( (a, b) -> a.yomi.localeCompare(b.yomi, "ja-JP") )
       when 'karyoku'
         showRows = _.sortBy showRows, (row) -> row.karyoku[0]
       when 'raisou'
