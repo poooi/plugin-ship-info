@@ -2,6 +2,10 @@
 {Panel, Table, Grid, Col} = ReactBootstrap
 Divider = require './divider'
 
+nameCollator = new Intl.Collator("ja-JP");
+nameCollator.nameCompare = (a, b) ->
+  nameCollator.compare(a.yomi, b.yomi)
+
 resultPanelTitle =
   <h3>{__ 'Ship Girls Info'}</h3>
 
@@ -143,6 +147,7 @@ ShipInfoTableArea = React.createClass
             type_id: $ships[ship.api_ship_id].api_stype
             type: $shipTypes[$ships[ship.api_ship_id].api_stype].api_name
             name: $ships[ship.api_ship_id].api_name
+            yomi: $ships[ship.api_ship_id].api_yomi
             sortno: $ships[ship.api_ship_id].api_sortno
             lv:  ship.api_lv
             cond: ship.api_cond
@@ -173,6 +178,7 @@ ShipInfoTableArea = React.createClass
           type_id: $ships[ship.api_ship_id].api_stype
           type: $shipTypes[$ships[ship.api_ship_id].api_stype].api_name
           name: $ships[ship.api_ship_id].api_name
+          yomi: $ships[ship.api_ship_id].api_yomi
           sortno: $ships[ship.api_ship_id].api_sortno
           lv:  ship.api_lv
           cond: ship.api_cond
@@ -282,6 +288,8 @@ ShipInfoTableArea = React.createClass
         showRows.push row
     #showRowsSort
     switch @props.sortName
+      when 'name'
+        showRows = showRows.sort nameCollator.nameCompare
       when 'karyoku'
         showRows = _.sortBy showRows, (row) -> row.karyoku[0]
       when 'raisou'
