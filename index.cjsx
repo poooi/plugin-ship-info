@@ -18,13 +18,13 @@ i18n.setLocale(window.language)
 
 window.shipInfoWindow = null
 initialShipInfoWindow = ->
-  pos = config.get 'plugin.ShipInfo.pos', [0, 0]
   window.shipInfoWindow = windowManager.createWindow
-    x: pos[0]
-    y: pos[1]
-    width: 1020
-    height: 650
-  window.shipInfoWindow.on 'move', -> config.set 'plugin.ShipInfo.pos', window.shipInfoWindow.getPosition()
+    x: config.get 'plugin.ShipInfo.bounds.x', 0
+    y: config.get 'plugin.ShipInfo.bounds.x', 0
+    width: config.get 'plugin.ShipInfo.bounds.width', 1020
+    height: config.get 'plugin.ShipInfo.bounds.height', 650
+  window.shipInfoWindow.on 'blur', ->
+    config.set 'plugin.ShipInfo.bounds', window.shipInfoWindow.getBounds()
   window.shipInfoWindow.loadUrl "file://#{__dirname}/index.html"
   if process.env.DEBUG?
     window.shipInfoWindow.openDevTools
