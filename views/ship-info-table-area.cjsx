@@ -2,9 +2,16 @@
 {Panel, Table, Grid, Col} = ReactBootstrap
 Divider = require './divider'
 
-nameCollator = new Intl.Collator("ja-JP");
-nameCollator.nameCompare = (a, b) ->
-  nameCollator.compare(a.yomi, b.yomi)
+collator = new Intl.Collator()
+jpCollator = new Intl.Collator("ja-JP")
+nameCompare = (a, b) ->
+  if a.yomi == b.yomi
+    if a.lv == b.lv
+      collator.compare(a.id, b.id)
+    else
+      collator.compare(a.lv, b.lv)
+  else
+    jpCollator.compare(a.yomi, b.yomi)
 
 resultPanelTitle =
   <h3>{__ 'Ship Girls Info'}</h3>
@@ -289,7 +296,7 @@ ShipInfoTableArea = React.createClass
     #showRowsSort
     switch @props.sortName
       when 'name'
-        showRows = showRows.sort nameCollator.nameCompare
+        showRows = showRows.sort nameCompare
       when 'karyoku'
         showRows = _.sortBy showRows, (row) -> row.karyoku[0]
       when 'raisou'
