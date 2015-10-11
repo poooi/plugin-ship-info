@@ -17,14 +17,23 @@ i18n.configure
 i18n.setLocale(window.language)
 
 window.shipInfoWindow = null
+handleWindowMoveResize = ->
+  b1 = window.shipInfoWindow.getBounds()
+  # console.log "Moved to: #{JSON.stringify(b1)}"
+  setTimeout((->
+    b2 = window.shipInfoWindow.getBounds()
+    if JSON.stringify(b2) == JSON.stringify(b1)
+      config.set 'plugin.ShipInfo.bounds', b2
+      # console.log "   Saved:  #{JSON.stringify(b2)}"
+  ), 5000)
 initialShipInfoWindow = ->
   window.shipInfoWindow = windowManager.createWindow
     x: config.get 'plugin.ShipInfo.bounds.x', 0
     y: config.get 'plugin.ShipInfo.bounds.x', 0
     width: config.get 'plugin.ShipInfo.bounds.width', 1020
     height: config.get 'plugin.ShipInfo.bounds.height', 650
-  window.shipInfoWindow.on 'blur', ->
-    config.set 'plugin.ShipInfo.bounds', window.shipInfoWindow.getBounds()
+  window.shipInfoWindow.on 'move', handleWindowMoveResize
+  window.shipInfoWindow.on 'resize', handleWindowMoveResize
   window.shipInfoWindow.loadUrl "file://#{__dirname}/index.html"
   if process.env.DEBUG?
     window.shipInfoWindow.openDevTools
