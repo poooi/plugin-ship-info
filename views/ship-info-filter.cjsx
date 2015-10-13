@@ -91,20 +91,22 @@ TypeCheck = React.createClass
     <div>
       {
         if !@props.buttonsOnly
-          <Row>
-            <Col xs={2}>
-              <Input type='checkbox' label={__ 'All'} onChange={@handleCilckCheckboxAll} checked={@state.checkedAll} />
-            </Col>
-          </Row>
-          <Row>
-          {
-            for shipType, index in shipTypes
-              continue if index < 1 or shipType == shipTypes[index - 1]
-              <Col key={index} xs={2}>
-                <Input type='checkbox' label={shipType} key={index} value={index} onChange={@handleClickCheckbox.bind(@, index)} checked={@state.checked[index]} />
+          <div>
+            <Row>
+              <Col xs={2}>
+                <Input type='checkbox' label={__ 'All'} onChange={@handleCilckCheckboxAll} checked={@state.checkedAll} />
               </Col>
-          }
-          </Row>
+            </Row>
+            <Row>
+            {
+              for shipType, index in shipTypes
+                continue if index < 1 or shipType == shipTypes[index - 1]
+                <Col key={index} xs={2}>
+                  <Input type='checkbox' label={shipType} key={index} value={index} onChange={@handleClickCheckbox.bind(@, index)} checked={@state.checked[index]} />
+                </Col>
+            }
+            </Row>
+          </div>
       }
       <Row>
         <Col xs={2}>
