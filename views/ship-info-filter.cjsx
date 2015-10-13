@@ -89,20 +89,23 @@ TypeCheck = React.createClass
     @props.filterRules('type', checkboxes)
   render: ->
     <div>
-      <Row>
-        <Col xs={2}>
-          <Input type='checkbox' label={__ 'All'} onChange={@handleCilckCheckboxAll} checked={@state.checkedAll} />
-        </Col>
-      </Row>
-      <Row>
       {
-        for shipType, index in shipTypes
-          continue if index < 1 or shipType == shipTypes[index - 1]
-          <Col key={index} xs={2}>
-            <Input type='checkbox' label={shipType} key={index} value={index} onChange={@handleClickCheckbox.bind(@, index)} checked={@state.checked[index]} />
-          </Col>
+        if !@props.buttonsOnly
+          <Row>
+            <Col xs={2}>
+              <Input type='checkbox' label={__ 'All'} onChange={@handleCilckCheckboxAll} checked={@state.checkedAll} />
+            </Col>
+          </Row>
+          <Row>
+          {
+            for shipType, index in shipTypes
+              continue if index < 1 or shipType == shipTypes[index - 1]
+              <Col key={index} xs={2}>
+                <Input type='checkbox' label={shipType} key={index} value={index} onChange={@handleClickCheckbox.bind(@, index)} checked={@state.checked[index]} />
+              </Col>
+          }
+          </Row>
       }
-      </Row>
       <Row>
         <Col xs={2}>
           <Button className="filter-button" bsStyle='default' bsSize='small' onClick={@handleClickFilterButton.bind(@, 'DD')} block>{__ 'FilterDD'}</Button>
@@ -212,11 +215,16 @@ ModernizationCheck = React.createClass
 ShipInfoFilter = React.createClass
   render: ->
     <Grid>
-      <TypeCheck shipTypeBoxes={@props.shipTypeBoxes} filterRules={@props.typeFilterRules} />
-      <LvCheck keyRadio={@props.lvRadio} filterRules={@props.lvFilterRules} />
-      <LockedCheck keyRadio={@props.lockedRadio} filterRules={@props.lockedFilterRules} />
-      <ExpeditionCheck keyRadio={@props.expeditionRadio} filterRules={@props.expeditionFilterRules} />
-      <ModernizationCheck keyRadio={@props.modernizationRadio} filterRules={@props.modernizationFilterRules} />
+      <TypeCheck shipTypeBoxes={@props.shipTypeBoxes} filterRules={@props.typeFilterRules} buttonsOnly={!@props.showDetails} />
+      {
+        if @props.showDetails
+          <div>
+            <LvCheck keyRadio={@props.lvRadio} filterRules={@props.lvFilterRules} />
+            <LockedCheck keyRadio={@props.lockedRadio} filterRules={@props.lockedFilterRules} />
+            <ExpeditionCheck keyRadio={@props.expeditionRadio} filterRules={@props.expeditionFilterRules} />
+            <ModernizationCheck keyRadio={@props.modernizationRadio} filterRules={@props.modernizationFilterRules} />
+          </div>
+      }
     </Grid>
 
 module.exports = ShipInfoFilter
