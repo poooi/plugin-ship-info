@@ -5,7 +5,7 @@ ShipInfoFilter = require './ship-info-filter'
 ShipInfoCheckboxArea = React.createClass
   getInitialState: ->
     filterShow: false
-    sortShow: true
+    sortShow: false
   handleClickAscend: ->
     @props.sortRules(@props.sortKey, 1)
   handleClickDescend: ->
@@ -27,7 +27,7 @@ ShipInfoCheckboxArea = React.createClass
       </div>
       <div className='vertical-center' style={if @state.sortShow then {display: 'block'} else {display: 'none'} }>
         <Grid>
-          <Col xs={2}>{__ 'Sort By'}</Col>
+          <Col xs={2} className='filter-span'>{__ 'Sort By'}</Col>
           <Col xs={6}>
             <Input id='sortbase' type='select' defaultValue={@props.sortKey} onChange={@handleKeyChange}>
               <option value='id'>{__ 'ID'}</option>
@@ -59,8 +59,9 @@ ShipInfoCheckboxArea = React.createClass
       <div onClick={@handleFilterShow}>
         <Divider text={__ 'Filter Setting'} icon={true} show={@state.filterShow} />
       </div>
-      <div id='ship-info-filter' style={if @state.filterShow then {display: 'block'} else {display: 'none'} }>
+      <div id='ship-info-filter' style={display: 'block'}>
         <ShipInfoFilter
+          showDetails={@state.filterShow}
           shipTypeBoxes={@props.shipTypeBoxes}
           lvRadio={@props.lvRadio}
           lockedRadio={@props.lockedRadio}
