@@ -188,7 +188,7 @@ ExpeditionCheck = React.createClass
           <Input type='radio' label={__ 'In Expedition'} onChange={@handleCilckRadio.bind(@, 1)} checked={(@props.keyRadio == 1)} />
         </Col>
         <Col xs={2}>
-          <Input type='radio' label={__ 'Not In Expedition'}  onChange={@handleCilckRadio.bind(@, 2)} checked={(@props.keyRadio == 2)} />
+          <Input type='radio' label={__ 'Not In Expedition'} onChange={@handleCilckRadio.bind(@, 2)} checked={(@props.keyRadio == 2)} />
         </Col>
       </Row>
     </div>
@@ -209,11 +209,31 @@ ModernizationCheck = React.createClass
           <Input type='radio' label={__ 'Modernization Completed'} onChange={@handleCilckRadio.bind(@, 1)} checked={(@props.keyRadio == 1)} />
         </Col>
         <Col xs={2}>
-          <Input type='radio' label={__ 'Modernization Incompleted'}  onChange={@handleCilckRadio.bind(@, 2)} checked={(@props.keyRadio == 2)} />
+          <Input type='radio' label={__ 'Modernization Incompleted'} onChange={@handleCilckRadio.bind(@, 2)} checked={(@props.keyRadio == 2)} />
         </Col>
       </Row>
     </div>
 
+RemodelCheck = React.createClass
+  getInitialState: ->
+    checked : [true, false, false]
+  handleCilckRadio: (index) ->
+    @props.filterRules('remodel', index)
+  render: ->
+    <div>
+      <Row>
+        <Col xs={2} className='filter-span'><span>{__ 'Remodel Setting'}</span></Col>
+        <Col xs={2}>
+          <Input type='radio' label={__ 'All'} onChange={@handleCilckRadio.bind(@, 0)} checked={(@props.keyRadio == 0)} />
+        </Col>
+        <Col xs={2}>
+          <Input type='radio' label={__ 'Not Remodelable'} onChange={@handleCilckRadio.bind(@, 1)} checked={(@props.keyRadio == 1)} />
+        </Col>
+        <Col xs={2}>
+          <Input type='radio' label={__ 'Remodelable'} onChange={@handleCilckRadio.bind(@, 2)} checked={(@props.keyRadio == 2)} />
+        </Col>
+      </Row>
+    </div>
 ShipInfoFilter = React.createClass
   render: ->
     <Grid>
@@ -225,6 +245,7 @@ ShipInfoFilter = React.createClass
             <LockedCheck keyRadio={@props.lockedRadio} filterRules={@props.lockedFilterRules} />
             <ExpeditionCheck keyRadio={@props.expeditionRadio} filterRules={@props.expeditionFilterRules} />
             <ModernizationCheck keyRadio={@props.modernizationRadio} filterRules={@props.modernizationFilterRules} />
+            <RemodelCheck keyRadio={@props.remodelRadio} filterRules={@props.remodelFilterRules} />
           </div>
       }
     </Grid>

@@ -176,6 +176,7 @@ ShipInfoTableArea = React.createClass
             maxhp: ship.api_maxhp
             losshp: ship.api_maxhp - ship.api_nowhp
             repairtime: parseInt (ship.api_ndock_time / 1000.0)
+            after: ship.api_aftershipid 
           rows.push row
       when '/kcsapi/api_req_kousyou/getship'
         rowsUpdateFlag = true
@@ -207,6 +208,7 @@ ShipInfoTableArea = React.createClass
           maxhp: ship.api_maxhp
           losshp: ship.api_maxhp - ship.api_nowhp
           repairtime: parseInt (ship.api_ndock_time / 1000.0)
+          after: ship.api_aftershipid 
         rows.push row
     if rowsUpdateFlag
       if @state.dataVersion > 12450
@@ -268,6 +270,15 @@ ShipInfoTableArea = React.createClass
         isCompleted
       when 2
         not isCompleted
+  handleRemodelFilter: (ship)->
+    remodelable = ship.after isnt "0"
+    switch @props.remodelRadio
+      when 0
+        true
+      when 1
+        not remodelable
+      when 2
+        remodelable    
   handleShowRows: ->
     #typeFilterPreprocess
     $shipTypes = window.$shipTypes
@@ -291,7 +302,8 @@ ShipInfoTableArea = React.createClass
          @handleLvFilter(row.lv) and
          @handleLockedFilter(row.locked) and
          @handleExpeditionFilter(row.id, expeditionShips) and
-         @handleModernizationFilter(row)
+         @handleModernizationFilter(row) and
+         @handleRemodelFilter(row)
         showRows.push row
     #showRowsSort
     switch @props.sortName
