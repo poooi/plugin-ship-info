@@ -38,5 +38,8 @@
   "Lock": "ロック",
   "Modernization Setting": "近代化改修",
   "Modernization Completed": "改修完了",
-  "Modernization Incompleted": "改修未完"
+  "Modernization Incompleted": "改修未完",
+  "Remodel Setting": "改造",
+  "Not Remodelable": "改造完了",
+  "Remodelable": "改造未完"
 }
