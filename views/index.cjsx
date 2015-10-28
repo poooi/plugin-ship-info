@@ -13,6 +13,7 @@ ShipInfoArea = React.createClass
     lockedRadio: 1
     expeditionRadio: 0
     modernizationRadio: 0
+    remodelRadio: 0
   componentWillMount: ->
     sortName = config.get "plugin.ShipInfo.sortName", @state.sortName
     sortOrder = config.get "plugin.ShipInfo.sortOrder", @state.sortOrder
@@ -21,6 +22,7 @@ ShipInfoArea = React.createClass
     lockedRadio = config.get "plugin.ShipInfo.lockedRadio", @state.lockedRadio
     expeditionRadio = config.get "plugin.ShipInfo.expeditionRadio", @state.expeditionRadio
     modernizationRadio = config.get "plugin.ShipInfo.modernizationRadio", @state.modernizationRadio
+    remodelRadio = config.get "plugin.ShipInfo.remodelRadio", @state.remodelRadio
     @setState
       sortName: sortName
       sortOrder: sortOrder
@@ -29,6 +31,7 @@ ShipInfoArea = React.createClass
       lockedRadio: lockedRadio
       expeditionRadio: expeditionRadio
       modernizationRadio: modernizationRadio
+      remodelRadio: remodelRadio
   sortRules: (name, order) ->
     config.set "plugin.ShipInfo.sortName", name
     config.set "plugin.ShipInfo.sortOrder", order
@@ -58,7 +61,10 @@ ShipInfoArea = React.createClass
         config.set "plugin.ShipInfo.modernizationRadio", val
         @setState
           modernizationRadio: val
-
+      when 'remodel'
+        config.set "plugin.ShipInfo.remodelRadio", val
+        @setState
+          remodelRadio: val
   render: ->
     <div>
       <ShipInfoCheckboxArea
@@ -71,6 +77,7 @@ ShipInfoArea = React.createClass
         lockedRadio={@state.lockedRadio}
         expeditionRadio={@state.expeditionRadio}
         modernizationRadio={@state.modernizationRadio}
+        remodelRadio={@state.remodelRadio}
       />
       <ShipInfoTableArea
         sortName={@state.sortName}
@@ -80,6 +87,7 @@ ShipInfoArea = React.createClass
         lockedRadio={@state.lockedRadio}
         expeditionRadio={@state.expeditionRadio}
         modernizationRadio={@state.modernizationRadio}
+        remodelRadio={@state.remodelRadio}
       />
     </div>
 
