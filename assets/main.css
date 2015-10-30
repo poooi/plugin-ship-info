@@ -66,6 +66,14 @@ body {
   text-align: center;
   background-color: rgba(125, 239, 94, 0.33);
 }
+clickable {
+  -webkit-filter: none;
+  transition: 0.2s;
+}
+.clickable:hover {
+  -webkit-filter: drop-shadow(0px 0px 8px #2196F3);
+  transition: 0.2s;
+}
 #ship-info-settings .checkbox {
   margin-top: 1px;
   margin-bottom: 1px;

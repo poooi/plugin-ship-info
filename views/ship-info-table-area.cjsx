@@ -176,7 +176,7 @@ ShipInfoTableArea = React.createClass
             maxhp: ship.api_maxhp
             losshp: ship.api_maxhp - ship.api_nowhp
             repairtime: parseInt (ship.api_ndock_time / 1000.0)
-            after: ship.api_aftershipid 
+            after: ship.api_aftershipid
           rows.push row
       when '/kcsapi/api_req_kousyou/getship'
         rowsUpdateFlag = true
@@ -208,7 +208,7 @@ ShipInfoTableArea = React.createClass
           maxhp: ship.api_maxhp
           losshp: ship.api_maxhp - ship.api_nowhp
           repairtime: parseInt (ship.api_ndock_time / 1000.0)
-          after: ship.api_aftershipid 
+          after: ship.api_aftershipid
         rows.push row
     if rowsUpdateFlag
       if @state.dataVersion > 12450
@@ -278,7 +278,7 @@ ShipInfoTableArea = React.createClass
       when 1
         not remodelable
       when 2
-        remodelable    
+        remodelable
   handleShowRows: ->
     #typeFilterPreprocess
     $shipTypes = window.$shipTypes
@@ -355,6 +355,14 @@ ShipInfoTableArea = React.createClass
     showRows.reverse() if !@props.sortOrder
     #return
     showRows
+  handleClickTitle: (title) ->
+    event = new CustomEvent 'title.click',
+      bubbles: true
+      cancelable: false
+      detail:
+        title: title
+    window.dispatchEvent event
+    event.preventDefault()
   componentDidMount: ->
     @setState
       rows: @state.rows
@@ -394,18 +402,18 @@ ShipInfoTableArea = React.createClass
           <Table striped condensed hover>
             <thead>
               <tr>
-                <th>{__ 'ID'}</th>
-                <th>{__ 'Class'}</th>
-                <th>{__ 'Name'}</th>
-                <th className='center'>{__ 'Level'}</th>
-                <th className='center'>{__ 'Cond'}</th>
-                <th className='center'>{__ 'Firepower'}</th>
-                <th className='center'>{__ 'Torpedo'}</th>
-                <th className='center'>{__ 'AA'}</th>
-                <th className='center'>{__ 'Armor'}</th>
-                <th className='center'>{__ 'Luck'}</th>
-                <th className='center'>{__ 'LOS'}</th>
-                <th className='center'>{__ 'Repair'}</th>
+                <th className='clickable' onClick={@handleClickTitle.bind @, 'id'}>{__ 'ID'}</th>
+                <th className='clickable' onClick={@handleClickTitle.bind @, 'type'}>{__ 'Class'}</th>
+                <th className='clickable' onClick={@handleClickTitle.bind @, 'name'}>{__ 'Name'}</th>
+                <th className='center clickable' onClick={@handleClickTitle.bind @, 'lv'}>{__ 'Level'}</th>
+                <th className='center clickable' onClick={@handleClickTitle.bind @, 'cond'}>{__ 'Cond'}</th>
+                <th className='center clickable' onClick={@handleClickTitle.bind @, 'karyoku'}>{__ 'Firepower'}</th>
+                <th className='center clickable' onClick={@handleClickTitle.bind @, 'raisou'}>{__ 'Torpedo'}</th>
+                <th className='center clickable' onClick={@handleClickTitle.bind @, 'taiku'}>{__ 'AA'}</th>
+                <th className='center clickable' onClick={@handleClickTitle.bind @, 'soukou'}>{__ 'Armor'}</th>
+                <th className='center clickable' onClick={@handleClickTitle.bind @, 'lucky'}>{__ 'Luck'}</th>
+                <th className='center clickable' onClick={@handleClickTitle.bind @, 'sakuteki'}>{__ 'LOS'}</th>
+                <th className='center clickable' onClick={@handleClickTitle.bind @, 'repairtime'}>{__ 'Repair'}</th>
                 <th>{__ 'Equipment'}</th>
                 <th>{__ 'Lock'}</th>
               </tr>
