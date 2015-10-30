@@ -360,7 +360,7 @@ ShipInfoTableArea = React.createClass
       order = if title is 'id' || title is 'type' || title is 'name' then 1 else 0
       @props.sortRules(title, order)
     else
-      @props.sortRules(@props.sortKey, (@props.sortOrder + 1) % 2)
+      @props.sortRules(@props.sortName, (@props.sortOrder + 1) % 2)
   componentDidMount: ->
     @setState
       rows: @state.rows
