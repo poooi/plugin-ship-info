@@ -32,10 +32,7 @@ ShipInfoArea = React.createClass
       expeditionRadio: expeditionRadio
       modernizationRadio: modernizationRadio
       remodelRadio: remodelRadio
-  componentDidMount: ->
-    window.addEventListener 'title.click', @handleClickTitle
-  componentWillUnmount: ->
-    window.removeEventListener 'title.click', @handleClickTitle
+
   sortRules: (name, order) ->
     config.set "plugin.ShipInfo.sortName", name
     config.set "plugin.ShipInfo.sortOrder", order
@@ -69,16 +66,6 @@ ShipInfoArea = React.createClass
         config.set "plugin.ShipInfo.remodelRadio", val
         @setState
           remodelRadio: val
-  handleClickTitle: (e) ->
-    if @state.sortName isnt e.detail.title
-      order = if e.detail.title is 'id' || e.detail.title is 'type' || e.detail.title is 'name' then 1 else 0
-      @setState
-        sortName: e.detail.title
-        sortOrder: order
-    else
-      @setState
-        sortOrder: (@state.sortOrder + 1) % 2
-    e.preventDefault()
   render: ->
     <div>
       <ShipInfoCheckboxArea
@@ -94,6 +81,7 @@ ShipInfoArea = React.createClass
         remodelRadio={@state.remodelRadio}
       />
       <ShipInfoTableArea
+        sortRules={@sortRules}
         sortName={@state.sortName}
         sortOrder={@state.sortOrder}
         shipTypeBoxes={@state.shipTypeBoxes}

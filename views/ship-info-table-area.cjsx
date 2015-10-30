@@ -356,13 +356,11 @@ ShipInfoTableArea = React.createClass
     #return
     showRows
   handleClickTitle: (title) ->
-    event = new CustomEvent 'title.click',
-      bubbles: true
-      cancelable: false
-      detail:
-        title: title
-    window.dispatchEvent event
-    event.preventDefault()
+    if @props.sortName isnt title
+      order = if title is 'id' || title is 'type' || title is 'name' then 1 else 0
+      @props.sortRules(title, order)
+    else
+      @props.sortRules(@props.sortKey, (@props.sortOrder + 1) % 2)
   componentDidMount: ->
     @setState
       rows: @state.rows
