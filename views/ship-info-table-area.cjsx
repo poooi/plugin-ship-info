@@ -99,11 +99,11 @@ ShipInfoTable = React.createClass
       luckyClass = 'td-lucky-max'
       luckyString = 'MAX'
 
-    if nowhp < 0.25 * maxhp
+    if nowhp * 4 <= maxhp
       repairColor = 'rgba(255, 0, 0, 0.4)'
-    else if nowhp < 0.5 * maxhp
+    else if nowhp * 2 <= maxhp
       repairColor = 'rgba(255, 65, 0, 0.4)'
-    else if nowhp < 0.75 * maxhp
+    else if nowhp * 4 <= maxhp * 3
       repairColor = 'rgba(255, 255, 0, 0.4)'
     else
       repairColor = 'transparent'
