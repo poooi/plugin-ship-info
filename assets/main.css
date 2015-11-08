@@ -106,6 +106,13 @@ clickable {
 #ship-info-show .col-xs-12 {
   padding-right: 5px;
 }
+.slotitem-onslot {
+  display: none;
+  /*
+    help wanted
+  */
+}
+
 ::-webkit-scrollbar {
   width: 10px;
 }
