@@ -17,12 +17,17 @@ resultPanelTitle =
   <h3>{__ 'Ship Girls Info'}</h3>
 
 Slotitems = React.createClass
+  getBackgroundStyle: ->
+    if window.isDarkTheme
+      backgroundColor: 'rgba(33, 33, 33, 0.7)'
+    else
+      backgroundColor: 'rgba(256, 256, 256, 0.7)'
   render: ->
     <div className="slotitem-container">
     {
       {$slotitems, _slotitems} = window
-      for itemId in @props.data
-        continue if itemId == -1
+      for itemId in @props.slot.concat @props.exslot
+        continue if itemId <= 0
         item = _slotitems[itemId]
         if item?
           itemInfo = $slotitems[item.api_slotitem_id]
@@ -30,11 +35,17 @@ Slotitems = React.createClass
             name = itemInfo.api_name + ' ' + item.api_level + '★'
           else
             name = itemInfo.api_name
-          <img key={itemId} title={name} src={
-              path = require 'path'
-              path.join(ROOT, 'assets', 'img', 'slotitem', "#{itemInfo.api_type[3] + 100}.png")
+          <span>
+            <img key={itemId} title={name} src={
+                path = require 'path'
+                path.join(ROOT, 'assets', 'img', 'slotitem', "#{itemInfo.api_type[3] + 100}.png")
+              }
+            />
+            {
+              if itemId is @props.exslot
+                <span className='slotitem-onslot' style={@getBackgroundStyle()}>+</span>
             }
-          />
+          </span>
     }
     </div>
 
@@ -130,7 +141,7 @@ ShipInfoTable = React.createClass
       <td className={luckyClass}>{lucky + '/'}<span style={fontSize: '80%'}>{luckyString}</span></td>
       <td className='center'>{@props.shipInfo.sakuteki}</td>
       <td className='center' style={backgroundColor: repairColor}>{resolveTime @props.shipInfo.repairtime}</td>
-      <td><Slotitems data={@props.shipInfo.slot} /></td>
+      <td><Slotitems slot={@props.shipInfo.slot} exslot={@props.shipInfo.exslot} /></td>
       <td>{if locked == 1 then <FontAwesome name='lock' /> else ' '}</td>
     </tr>
 
@@ -171,6 +182,7 @@ ShipInfoTableArea = React.createClass
             kyouka: ship.api_kyouka
             sakuteki: ship.api_sakuteki[0]
             slot: ship.api_slot
+            exslot: ship.api_slot_ex
             locked: ship.api_locked
             nowhp: ship.api_nowhp
             maxhp: ship.api_maxhp
@@ -203,6 +215,7 @@ ShipInfoTableArea = React.createClass
           kyouka: ship.api_kyouka
           sakuteki: ship.api_sakuteki[0]
           slot: ship.api_slot
+          exslot: ship.api.slot_ex
           locked: ship.api_locked
           nowhp: ship.api_nowhp
           maxhp: ship.api_maxhp
