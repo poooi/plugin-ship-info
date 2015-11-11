@@ -26,7 +26,8 @@ handleWindowMoveResize = ->
       config.set 'plugin.ShipInfo.bounds', b2
       # console.log "   Saved:  #{JSON.stringify(b2)}"
   ), 5000)
-initialShipInfoWindow = ->
+getShipInfoWindow = ->
+  return window.shipInfoWindow if window.shipInfoWindow?
   window.shipInfoWindow = windowManager.createWindow
     x: config.get 'plugin.ShipInfo.bounds.x', 0
     y: config.get 'plugin.ShipInfo.bounds.x', 0
@@ -38,8 +39,9 @@ initialShipInfoWindow = ->
   if process.env.DEBUG?
     window.shipInfoWindow.openDevTools
       detach: true
-if config.get('plugin.ShipInfo.enable', true)
-  initialShipInfoWindow()
+  window.shipInfoWindow
+if config.get('plugin.ShipInfo.enable', true) && !config.get('plugin.ShipInfo.lazy', false)
+  getShipInfoWindow()
 
 module.exports =
   name: 'ShipInfo'
@@ -50,4 +52,4 @@ module.exports =
   version: '1.3.0'
   description: __ 'Show detailed information of all owned ship girls'
   handleClick: ->
-    window.shipInfoWindow.show()
+    getShipInfoWindow().show()
