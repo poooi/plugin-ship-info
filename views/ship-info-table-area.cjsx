@@ -35,8 +35,8 @@ Slotitems = React.createClass
             name = itemInfo.api_name + ' ' + item.api_level + '★'
           else
             name = itemInfo.api_name
-          <span>
-            <img key={itemId} title={name} src={
+          <span key={itemId}>
+            <img title={name} src={
                 path = require 'path'
                 path.join(ROOT, 'assets', 'img', 'slotitem', "#{itemInfo.api_type[3] + 100}.png")
               }
