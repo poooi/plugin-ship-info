@@ -26,6 +26,10 @@ body {
   margin-top: 10px;
   margin-bottom: 10px;
 }
+.filter-button-all {
+  margin-top: 10px;
+  margin-bottom: 0px;
+}
 .filter-span {
   font-size: 120%;
   margin-top: 10px;
@@ -78,7 +82,8 @@ clickable {
   margin-top: 1px;
   margin-bottom: 1px;
 }
-#ship-info-settings #ship-info-filter .col-xs-2 {
+#ship-info-settings #ship-info-filter .col-xs-2,
+#ship-info-settings #ship-info-filter .col-xs-12 {
   padding-left: 1px;
   padding-right: 1px;
 }

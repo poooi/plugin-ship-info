@@ -41,7 +41,7 @@ TypeCheck = React.createClass
         if i != 0 && i != 9
           checked[i] = true
           checkboxes.push i
-          checkedAll = true
+      checkedAll = true
       config.set "plugin.ShipInfo.shipCheckedAll", checkedAll
       @setState {checked, checkedAll}
       @props.filterRules('type', checkboxes)
@@ -52,6 +52,12 @@ TypeCheck = React.createClass
     for shipType, i in shipTypes
       checked[i] = false
     switch type
+      when 'ALL'
+        for shipType, i in shipTypes
+          if i != 0 && i != 9
+            checked[i] = true
+            checkboxes.push i
+        checkedAll = true
       when 'DD'
         checked[2] = true
         checkboxes.push 2
@@ -90,7 +96,13 @@ TypeCheck = React.createClass
   render: ->
     <div>
       {
-        if !@props.buttonsOnly
+        if @props.buttonsOnly
+          <Row>
+            <Col xs={12}>
+              <Button className="filter-button-all" bsStyle='default' bsSize='small' onClick={@handleClickFilterButton.bind(@, 'ALL')} block>{__ 'All'}</Button>
+            </Col>
+          </Row>
+        else
           <div>
             <Row>
               <Col xs={2}>
