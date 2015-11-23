@@ -51,8 +51,6 @@ Slotitems = React.createClass
 
 ShipInfoTable = React.createClass
   shouldComponentUpdate: (nextProps, nextState)->
-    if nextProps.num isnt @props.num
-      return true
     if nextProps.dataVersion isnt @props.dataVersion
       if not _.isEqual nextProps.shipInfo, @props.shipInfo
         return true
@@ -131,7 +129,7 @@ ShipInfoTable = React.createClass
       condColor = 'transparent'
 
     <tr>
-      <td>{@props.num}</td>
+      <td></td>
       <td>{@props.shipInfo.id}</td>
       <td>{@props.shipInfo.type}</td>
       <td>{@props.shipInfo.name}</td>
@@ -421,7 +419,6 @@ ShipInfoTableArea = React.createClass
               for row, index in showRows
                 <ShipInfoTable
                   key = {row.id}
-                  num = {index + 1}
                   shipInfo = {row}
                   dataVersion = {@state.dataVersion}
                 />

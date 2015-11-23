@@ -112,6 +112,14 @@ clickable {
 #ship-info-show .ship-info-table {
   padding: 0px 15px;
 }
+#ship-info-show .ship-info-table tbody {
+  counter-reset: rowNumber;
+}
+#ship-info-show .ship-info-table table > tbody > tr > td:first-child::before {
+  counter-increment: rowNumber;
+  content: counter(rowNumber);
+  min-width: 1em;
+}
 .slotitem-onslot {
   display: none;
   /*
