@@ -181,7 +181,7 @@ ShipInfoTableArea = React.createClass
             luck: ship.api_luck
             kyouka: ship.api_kyouka
             sakuteki: ship.api_sakuteki[0]
-            slot: ship.api_slot
+            slot: _.clone ship.api_slot
             exslot: ship.api_slot_ex
             locked: ship.api_locked
             nowhp: ship.api_nowhp
