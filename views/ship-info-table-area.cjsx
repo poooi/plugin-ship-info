@@ -129,6 +129,7 @@ ShipInfoTable = React.createClass
       condColor = 'transparent'
 
     <tr>
+      <td>{@props.num}</td>
       <td>{@props.shipInfo.id}</td>
       <td>{@props.shipInfo.type}</td>
       <td>{@props.shipInfo.name}</td>
@@ -391,57 +392,40 @@ ShipInfoTableArea = React.createClass
       showRows = @handleShowRows()
     <div id="ship-info-show">
       <Divider text={__ 'Ship Girls Info'} icon={false}/>
-      <Grid>
-        <Col xs={1} style={padding: '0 0 0 15px'}>
-          <Table striped condensed hover>
-            <thead>
-              <tr>
-                <th>NO</th>
-              </tr>
-            </thead>
-            <tbody>
-              {
-                for row, index in showRows
-                  <tr key={index}>
-                    <td>{index+1}</td>
-                  </tr>
-              }
-            </tbody>
-          </Table>
-        </Col>
-        <Col xs={11} style={padding: '0 15px 0 0'}>
-          <Table striped condensed hover>
-            <thead>
-              <tr>
-                <th className='clickable' onClick={@handleClickTitle.bind @, 'id'}>{__ 'ID'}</th>
-                <th className='clickable' onClick={@handleClickTitle.bind @, 'type'}>{__ 'Class'}</th>
-                <th className='clickable' onClick={@handleClickTitle.bind @, 'name'}>{__ 'Name'}</th>
-                <th className='center clickable' onClick={@handleClickTitle.bind @, 'lv'}>{__ 'Level'}</th>
-                <th className='center clickable' onClick={@handleClickTitle.bind @, 'cond'}>{__ 'Cond'}</th>
-                <th className='center clickable' onClick={@handleClickTitle.bind @, 'karyoku'}>{__ 'Firepower'}</th>
-                <th className='center clickable' onClick={@handleClickTitle.bind @, 'raisou'}>{__ 'Torpedo'}</th>
-                <th className='center clickable' onClick={@handleClickTitle.bind @, 'taiku'}>{__ 'AA'}</th>
-                <th className='center clickable' onClick={@handleClickTitle.bind @, 'soukou'}>{__ 'Armor'}</th>
-                <th className='center clickable' onClick={@handleClickTitle.bind @, 'lucky'}>{__ 'Luck'}</th>
-                <th className='center clickable' onClick={@handleClickTitle.bind @, 'sakuteki'}>{__ 'LOS'}</th>
-                <th className='center clickable' onClick={@handleClickTitle.bind @, 'repairtime'}>{__ 'Repair'}</th>
-                <th>{__ 'Equipment'}</th>
-                <th>{__ 'Lock'}</th>
-              </tr>
-            </thead>
-            <tbody>
-            {
-              if @state.show
-                for row, index in showRows
-                  <ShipInfoTable
-                    key = {row.id}
-                    shipInfo = {row}
-                    dataVersion = {@state.dataVersion}
-                  />
-            }
-            </tbody>
-          </Table>
-        </Col>
-      </Grid>
+      <div className="ship-info-table">
+        <Table striped condensed hover>
+          <thead>
+            <tr>
+              <th>No.</th>
+              <th className='clickable' onClick={@handleClickTitle.bind @, 'id'}>{__ 'ID'}</th>
+              <th className='clickable' onClick={@handleClickTitle.bind @, 'type'}>{__ 'Class'}</th>
+              <th className='clickable' onClick={@handleClickTitle.bind @, 'name'}>{__ 'Name'}</th>
+              <th className='center clickable' onClick={@handleClickTitle.bind @, 'lv'}>{__ 'Level'}</th>
+              <th className='center clickable' onClick={@handleClickTitle.bind @, 'cond'}>{__ 'Cond'}</th>
+              <th className='center clickable' onClick={@handleClickTitle.bind @, 'karyoku'}>{__ 'Firepower'}</th>
+              <th className='center clickable' onClick={@handleClickTitle.bind @, 'raisou'}>{__ 'Torpedo'}</th>
+              <th className='center clickable' onClick={@handleClickTitle.bind @, 'taiku'}>{__ 'AA'}</th>
+              <th className='center clickable' onClick={@handleClickTitle.bind @, 'soukou'}>{__ 'Armor'}</th>
+              <th className='center clickable' onClick={@handleClickTitle.bind @, 'lucky'}>{__ 'Luck'}</th>
+              <th className='center clickable' onClick={@handleClickTitle.bind @, 'sakuteki'}>{__ 'LOS'}</th>
+              <th className='center clickable' onClick={@handleClickTitle.bind @, 'repairtime'}>{__ 'Repair'}</th>
+              <th>{__ 'Equipment'}</th>
+              <th>{__ 'Lock'}</th>
+            </tr>
+          </thead>
+          <tbody>
+          {
+            if @state.show
+              for row, index in showRows
+                <ShipInfoTable
+                  key = {row.id}
+                  num = {index + 1}
+                  shipInfo = {row}
+                  dataVersion = {@state.dataVersion}
+                />
+          }
+          </tbody>
+        </Table>
+      </div>
     </div>
 module.exports = ShipInfoTableArea
