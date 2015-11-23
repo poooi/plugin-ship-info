@@ -75,6 +75,7 @@ clickable {
   transition: 0.2s;
 }
 .clickable:hover {
+  cursor: pointer;
   -webkit-filter: drop-shadow(0px 0px 8px #2196F3);
   transition: 0.2s;
 }
