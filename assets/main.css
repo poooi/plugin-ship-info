@@ -108,8 +108,8 @@ clickable {
   height: 38px;
   padding: 0 5px;
 }
-#ship-info-show .col-xs-12 {
-  padding-right: 5px;
+#ship-info-show .ship-info-table {
+  padding: 0px 15px;
 }
 .slotitem-onslot {
   display: none;
