@@ -51,6 +51,8 @@ Slotitems = React.createClass
 
 ShipInfoTable = React.createClass
   shouldComponentUpdate: (nextProps, nextState)->
+    if nextProps.num isnt @props.num
+      return true
     if nextProps.dataVersion isnt @props.dataVersion
       if not _.isEqual nextProps.shipInfo, @props.shipInfo
         return true
