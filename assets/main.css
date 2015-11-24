@@ -75,6 +75,7 @@ clickable {
   transition: 0.2s;
 }
 .clickable:hover {
+  cursor: pointer;
   -webkit-filter: drop-shadow(0px 0px 8px #2196F3);
   transition: 0.2s;
 }
@@ -108,8 +109,16 @@ clickable {
   height: 38px;
   padding: 0 5px;
 }
-#ship-info-show .col-xs-12 {
-  padding-right: 5px;
+#ship-info-show .ship-info-table {
+  padding: 0px 15px;
+}
+#ship-info-show .ship-info-table tbody {
+  counter-reset: rowNumber;
+}
+#ship-info-show .ship-info-table table > tbody > tr > td:first-child::before {
+  counter-increment: rowNumber;
+  content: counter(rowNumber);
+  min-width: 1em;
 }
 .slotitem-onslot {
   display: none;
