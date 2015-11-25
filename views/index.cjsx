@@ -1,5 +1,7 @@
 {React, config} = window
 
+$('#font-awesome')?.setAttribute 'href', "#{ROOT}/components/font-awesome/css/font-awesome.min.css"
+
 ShipInfoTableArea = require './ship-info-table-area'
 ShipInfoCheckboxArea = require './ship-info-checkbox-area'
 
