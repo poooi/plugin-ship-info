@@ -1,7 +1,7 @@
 {
   "name": "poi-plugin-ship-info",
   "version": "1.5.0",
-  "description": "Show detailed information of all owned ship girls ### Usage Put the folder into /path/to/poi/resources/app/plugins ### Change Log",
+  "description": "Show detailed information of all owned ship girls",
   "main": "index.cjsx",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
