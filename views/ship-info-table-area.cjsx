@@ -1,6 +1,7 @@
-{$, $$, _, React, ReactBootstrap, ROOT, path, resolveTime, __} = window
+{$, $$, _, React, ReactBootstrap, ROOT, resolveTime, __} = window
 {Panel, Table, Grid, Col} = ReactBootstrap
 Divider = require './divider'
+Path = require 'path'
 
 collator = new Intl.Collator()
 jpCollator = new Intl.Collator("ja-JP")
@@ -37,8 +38,7 @@ Slotitems = React.createClass
             name = itemInfo.api_name
           <span key={itemId}>
             <img title={name} src={
-                path = require 'path'
-                path.join(ROOT, 'assets', 'img', 'slotitem', "#{itemInfo.api_type[3] + 100}.png")
+                Path.join(ROOT, 'assets', 'img', 'slotitem', "#{itemInfo.api_type[3] + 100}.png")
               }
             />
             {
