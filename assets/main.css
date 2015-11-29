@@ -125,7 +125,7 @@ clickable {
   content: url(http://kcwiki.misaka.cn/commons/f/f4/Autumn2015TransportTag.png);
 }
 #ship-info-show .ship-info-table table td.event-tag-2::after {
-  content: url(http://kcwiki.misaka.cn/commons/f/f4/Autumn2015DispatchTag.png);
+  content: url(http://kcwiki.misaka.cn/commons/9/9e/Autumn2015DispatchTag.png);
 }
 #ship-info-show .ship-info-table table td[class^="event-tag-"]::after,
 #ship-info-show .ship-info-table table td[class*=" event-tag-"]::after {
