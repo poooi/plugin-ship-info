@@ -132,7 +132,7 @@ ShipInfoTable = React.createClass
       <td></td>
       <td>{@props.shipInfo.id}</td>
       <td>{@props.shipInfo.type}</td>
-      <td>{@props.shipInfo.name}</td>
+      <td className={"event-tag-#{@props.shipInfo.eventTag}"}>{@props.shipInfo.name}</td>
       <td className='center'>{@props.shipInfo.lv}</td>
       <td className='center' style={backgroundColor: condColor}>{@props.shipInfo.cond}</td>
       <td className={karyokuClass}>{karyoku + '/'}<span style={fontSize: '80%'}>{karyokuString}</span></td>
@@ -190,6 +190,7 @@ ShipInfoTableArea = React.createClass
             losshp: ship.api_maxhp - ship.api_nowhp
             repairtime: parseInt (ship.api_ndock_time / 1000.0)
             after: ship.api_aftershipid
+            eventTag: ship.api_sally_area
           rows.push row
       when '/kcsapi/api_req_kousyou/getship'
         rowsUpdateFlag = true
@@ -223,6 +224,7 @@ ShipInfoTableArea = React.createClass
           losshp: ship.api_maxhp - ship.api_nowhp
           repairtime: parseInt (ship.api_ndock_time / 1000.0)
           after: ship.api_aftershipid
+          eventTag: ship.api_sally_area
         rows.push row
     if rowsUpdateFlag
       if @state.dataVersion > 12450
