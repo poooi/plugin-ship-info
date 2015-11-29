@@ -33,7 +33,7 @@ Slotitems = React.createClass
         if item?
           itemInfo = $slotitems[item.api_slotitem_id]
           if item.api_level > 0
-            name = itemInfo.api_name + ' ' + item.api_level + '★'
+            name = itemInfo.api_name + ' ★' + item.api_level
           else
             name = itemInfo.api_name
           <span key={itemId}>
