@@ -26,19 +26,19 @@ Slotitems = React.createClass
   render: ->
     <div className="slotitem-container">
     {
-      {$slotitems, _slotitems} = window
+      {_slotitems} = window
       for itemId in @props.slot.concat @props.exslot
         continue if itemId <= 0
         item = _slotitems[itemId]
         if item?
-          itemInfo = $slotitems[item.api_slotitem_id]
-          if item.api_level > 0
-            name = itemInfo.api_name + ' ★' + item.api_level
-          else
-            name = itemInfo.api_name
+          name = item.api_name
+          if item.api_alv? and item.api_alv > 0 and item.api_alv <= 7
+            name += '  ' + ['|', '||', '|||', '\\', '\\\\', '\\\\\\', '》'][item.api_alv - 1]
+          else if item.api_level > 0
+            name += ' ★' + item.api_level
           <span key={itemId}>
             <img title={name} src={
-                Path.join(ROOT, 'assets', 'img', 'slotitem', "#{itemInfo.api_type[3] + 100}.png")
+                Path.join(ROOT, 'assets', 'img', 'slotitem', "#{item.api_type[3] + 100}.png")
               }
             />
             {
