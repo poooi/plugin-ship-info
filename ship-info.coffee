@@ -12,7 +12,6 @@ i18n.configure
   indent: '\t'
   extension: '.json'
 
-window.language = config.get 'poi.language', navigator.language
 i18n.setLocale(window.language)
 window.__ = i18n.__
 
