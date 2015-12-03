@@ -27,25 +27,26 @@ Slotitems = React.createClass
     <div className="slotitem-container">
     {
       {$slotitems, _slotitems} = window
-      for itemId in @props.slot.concat @props.exslot
+      for itemId, i in @props.slot.concat @props.exslot
         continue if itemId <= 0
         item = _slotitems[itemId]
-        if item?
-          itemInfo = $slotitems[item.api_slotitem_id]
-          if item.api_level > 0
-            name = itemInfo.api_name + ' ' + item.api_level + '★'
-          else
-            name = itemInfo.api_name
-          <span key={itemId}>
-            <img title={name} src={
-                Path.join(ROOT, 'assets', 'img', 'slotitem', "#{itemInfo.api_type[3] + 100}.png")
+        <span key={itemId} >
+          <OverlayTrigger placement='top' overlay={
+            <Tooltip id="item-#{itemId}">
+              {item.api_name}
+              {if item.api_level > 0 then <strong style={color: '#45A9A5'}>★+{item.api_level}</strong> else ''}
+              {
+                if item.api_alv? and 1 <= item.api_alv <= 7
+                  <img className='alv-img' src={Path.join(ROOT, 'assets', 'img', 'airplane', "alv#{item.api_alv}.png")} />
+                else ''
               }
-            />
-            {
-              if itemId is @props.exslot
-                <span className='slotitem-onslot' style={@getBackgroundStyle()}>+</span>
-            }
-          </span>
+            </Tooltip>
+          }>
+            <span>
+              <img key={itemId} src={Path.join(ROOT, 'assets', 'img', 'slotitem', "#{item.api_type[3] + 100}.png")} />
+            </span>
+          </OverlayTrigger>
+        </span>
     }
     </div>
 

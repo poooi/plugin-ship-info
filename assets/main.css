@@ -154,3 +154,8 @@ clickable {
   padding: 3px 3px;
   display: inline-block;
 }
+
+.alv-img{
+  height: 14px;
+  margin-bottom: 2px;
+}
