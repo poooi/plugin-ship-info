@@ -1,5 +1,5 @@
 {$, $$, _, React, ReactBootstrap, ROOT, resolveTime, __} = window
-{Panel, Table, Grid, Col} = ReactBootstrap
+{Panel, Table, Grid, Col, OverlayTrigger, Tooltip, Label} = ReactBootstrap
 Divider = require './divider'
 Path = require 'path'
 
@@ -48,6 +48,24 @@ Slotitems = React.createClass
           </span>
     }
     </div>
+
+
+SallyArea = React.createClass
+  render: ->
+    if @props.label is 0
+      <Label bsStyle="default" style={opacity: 0}></Label>
+    else if @props.label is 1
+      <OverlayTrigger placement="top" overlay={<Tooltip id="sally-area-1">{__ 'Ship tag: %s', 'E1, E2, E3'}</Tooltip>}>
+        <Label bsStyle="success"><FontAwesome key={0} name='tag' /></Label>
+      </OverlayTrigger>
+    else if @props.label is 2
+      <OverlayTrigger placement="top" overlay={<Tooltip id="sally-area-2">{__ 'Ship tag: %s', 'E4'}</Tooltip>}>
+        <Label bsStyle="warning"><FontAwesome key={0} name='tag' /></Label>
+      </OverlayTrigger>
+    else
+      <OverlayTrigger placement="top" overlay={<Tooltip id="sally-area-3">{__ 'Ship tag: %s', '?'}</Tooltip>}>
+        <Label bsStyle="Info"><FontAwesome key={0} name='tag' /></Label>
+      </OverlayTrigger>
 
 ShipInfoTable = React.createClass
   shouldComponentUpdate: (nextProps, nextState)->
@@ -132,7 +150,11 @@ ShipInfoTable = React.createClass
       <td></td>
       <td>{@props.shipInfo.id}</td>
       <td>{@props.shipInfo.type}</td>
-      <td>{@props.shipInfo.name}</td>
+      <td>{@props.shipInfo.name}
+        <div className="status-label">
+          <SallyArea label={@props.shipInfo.sallyArea} />
+        </div>
+      </td>
       <td className='center'>{@props.shipInfo.lv}</td>
       <td className='center' style={backgroundColor: condColor}>{@props.shipInfo.cond}</td>
       <td className={karyokuClass}>{karyoku + '/'}<span style={fontSize: '80%'}>{karyokuString}</span></td>
@@ -190,6 +212,7 @@ ShipInfoTableArea = React.createClass
             losshp: ship.api_maxhp - ship.api_nowhp
             repairtime: parseInt (ship.api_ndock_time / 1000.0)
             after: ship.api_aftershipid
+            sallyArea: ship.api_sally_area
           rows.push row
       when '/kcsapi/api_req_kousyou/getship'
         rowsUpdateFlag = true
@@ -223,6 +246,7 @@ ShipInfoTableArea = React.createClass
           losshp: ship.api_maxhp - ship.api_nowhp
           repairtime: parseInt (ship.api_ndock_time / 1000.0)
           after: ship.api_aftershipid
+          sallyArea: ship.api_sally_area
         rows.push row
     if rowsUpdateFlag
       if @state.dataVersion > 12450

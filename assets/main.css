@@ -137,3 +137,20 @@ clickable {
   -webkit-border-radius: 1px;
   background-color: #3d3d3d;
 }
+
+#ship-info-show .ship-info-table .status-label {
+  display: inline-block;
+  z-index: 100;
+  position: relative;
+  margin-left: 5px;
+  margin-bottom: 3px;
+  text-align: center;
+  vertical-align: bottom;
+  width: 18px;
+}
+
+#ship-info-show .ship-info-table .status-label .label{
+  width: 18px;
+  padding: 3px 3px;
+  display: inline-block;
+}
