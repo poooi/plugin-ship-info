@@ -54,18 +54,18 @@ Slotitems = React.createClass
 SallyArea = React.createClass
   render: ->
     if @props.label is 0
-      <Label bsStyle="default" style={opacity: 0}></Label>
+      <span className="status-label text-default" style={opacity: 0}></span>
     else if @props.label is 1
       <OverlayTrigger placement="top" overlay={<Tooltip id="sally-area-1">{__ 'Ship tag: %s', 'E1, E2, E3'}</Tooltip>}>
-        <Label bsStyle="success"><FontAwesome key={0} name='tag' /></Label>
+        <span className="status-label text-success"><FontAwesome key={0} name='tag' /></span>
       </OverlayTrigger>
     else if @props.label is 2
       <OverlayTrigger placement="top" overlay={<Tooltip id="sally-area-2">{__ 'Ship tag: %s', 'E4'}</Tooltip>}>
-        <Label bsStyle="warning"><FontAwesome key={0} name='tag' /></Label>
+        <span className="status-label text-warning"><FontAwesome key={0} name='tag' /></span>
       </OverlayTrigger>
     else
       <OverlayTrigger placement="top" overlay={<Tooltip id="sally-area-3">{__ 'Ship tag: %s', '?'}</Tooltip>}>
-        <Label bsStyle="Info"><FontAwesome key={0} name='tag' /></Label>
+        <span className="status-label text-info"><FontAwesome key={0} name='tag' /></span>
       </OverlayTrigger>
 
 ShipInfoTable = React.createClass
@@ -151,10 +151,8 @@ ShipInfoTable = React.createClass
       <td></td>
       <td>{@props.shipInfo.id}</td>
       <td>{@props.shipInfo.type}</td>
-      <td>{@props.shipInfo.name}
-        <div className="status-label">
-          <SallyArea label={@props.shipInfo.sallyArea} />
-        </div>
+      <td className="ship-name">{@props.shipInfo.name}
+        <SallyArea label={@props.shipInfo.sallyArea} />
       </td>
       <td className='center'>{@props.shipInfo.lv}</td>
       <td className='center' style={backgroundColor: condColor}>{@props.shipInfo.cond}</td>
