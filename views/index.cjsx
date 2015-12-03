@@ -1,4 +1,4 @@
-{React, config} = window
+{React, ReactDOM, config} = window
 
 $('#font-awesome')?.setAttribute 'href', "#{ROOT}/components/font-awesome/css/font-awesome.min.css"
 
@@ -95,4 +95,4 @@ ShipInfoArea = React.createClass
       />
     </div>
 
-React.render <ShipInfoArea />, $('ship-info')
+ReactDOM.render <ShipInfoArea />, $('ship-info')
