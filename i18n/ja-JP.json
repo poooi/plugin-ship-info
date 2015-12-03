@@ -41,5 +41,6 @@
   "Modernization Incompleted": "改修未完",
   "Remodel Setting": "改造",
   "Not Remodelable": "改造完了",
-  "Remodelable": "改造未完"
+  "Remodelable": "改造未完",
+  "Ship tag: %s": "出擊限定: %s"  
 }
