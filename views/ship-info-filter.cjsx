@@ -64,8 +64,10 @@ TypeCheck = React.createClass
       when 'CL'
         checked[3] = true
         checked[4] = true
+        checked[21] = true
         checkboxes.push 3
         checkboxes.push 4
+        checkboxes.push 21
       when 'CA'
         checked[5] = true
         checked[6] = true
