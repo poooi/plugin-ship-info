@@ -4,6 +4,14 @@ Show detailed information of all owned ship girls
 Put the folder into /path/to/poi/resources/app/plugins
 ### Change Log
 
+###1.6.0
+Add Sally area tag of Event Map
+
+Add slotitem's alv
+
+Put Training Cruiser in CL Button
+
+Hide repair time when it's zero
 
 #### V1.5.0
 Add "All" button to filter buttons

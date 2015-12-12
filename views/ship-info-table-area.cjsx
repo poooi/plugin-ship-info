@@ -53,7 +53,7 @@ Slotitems = React.createClass
 
 SallyArea = React.createClass
   render: ->
-    if @props.label is 0
+    if !@props.label? or @props.label is 0
       <span className="status-label text-default" style={opacity: 0}></span>
     else if @props.label is 1
       <OverlayTrigger placement="top" overlay={<Tooltip id="sally-area-1">{__ 'Ship tag: %s', 'E1, E2, E3'}</Tooltip>}>
