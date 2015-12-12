@@ -1,10 +1,9 @@
 # Plugin-Ship-Info
 Show detailed information of all owned ship girls
-### Usage
-Put the folder into /path/to/poi/resources/app/plugins
+
 ### Change Log
 
-###1.6.0
+#### V1.6.0
 Add Sally area tag of Event Map
 
 Add slotitem's alv
