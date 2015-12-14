@@ -34,7 +34,7 @@ initialShipInfoWindow = ->
     height: config.get 'plugin.ShipInfo.bounds.height', 650
   window.shipInfoWindow.on 'move', handleWindowMoveResize
   window.shipInfoWindow.on 'resize', handleWindowMoveResize
-  window.shipInfoWindow.loadUrl "file://#{__dirname}/index.html"
+  window.shipInfoWindow.loadURL "file://#{__dirname}/index.html"
   if process.env.DEBUG?
     window.shipInfoWindow.openDevTools
       detach: true
