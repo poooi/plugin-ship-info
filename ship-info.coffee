@@ -4,15 +4,26 @@ require "#{ROOT}/views/env"
 i18n = require 'i18n'
 path = require 'path-extra'
 
-i18n.configure
+window.i18n = {}
+window.i18n.main = new(require 'i18n-2')
   locales: ['en-US', 'ja-JP', 'zh-CN', 'zh-TW']
   defaultLocale: 'zh-CN'
   directory: path.join(__dirname, 'i18n')
   updateFiles: false
   indent: '\t'
   extension: '.json'
+window.i18n.main.setLocale(window.language)
+console.log 'barfoo'
+window.__ = window.i18n.main.__.bind(window.i18n.main)
+console.log 'barfoo'
+window.i18n.resources = {}
+window.i18n.resources.__ = (str) -> return str
+window.i18n.resources.translate = (locale, str) -> return str
+window.i18n.resources.setLocale = (str) -> return
 
-i18n.setLocale(window.language)
-window.__ = i18n.__
+try
+  require 'poi-plugin-translator'
+catch error
+  console.log error
 
 require './views'

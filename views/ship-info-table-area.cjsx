@@ -33,7 +33,7 @@ Slotitems = React.createClass
         <span key={itemId} >
           <OverlayTrigger placement='top' overlay={
             <Tooltip id="item-#{itemId}">
-              {item.api_name}
+              {window.i18n.resources.__ item.api_name}
               {if item.api_level > 0 then <strong style={color: '#45A9A5'}>★+{item.api_level}</strong> else ''}
               {
                 if item.api_alv? and 1 <= item.api_alv <= 7
@@ -150,8 +150,8 @@ ShipInfoTable = React.createClass
     <tr>
       <td></td>
       <td>{@props.shipInfo.id}</td>
-      <td>{@props.shipInfo.type}</td>
-      <td className="ship-name">{@props.shipInfo.name}
+      <td>{window.i18n.resources.__ @props.shipInfo.type}</td>
+      <td className="ship-name">{window.i18n.resources.__ @props.shipInfo.name}
         <SallyArea label={@props.shipInfo.sallyArea} />
       </td>
       <td className='center'>{@props.shipInfo.lv}</td>
