@@ -17,6 +17,5 @@
   },
   "homepage": "https://github.com/poooi/plugin-ship-info#readme",
   "dependencies": {
-    "i18n": "^0.5.0"
   }
 }

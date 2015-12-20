@@ -5,9 +5,8 @@ windowManager = remote.require './lib/window'
 
 i18n = require './node_modules/i18n'
 path = require 'path-extra'
-{__} = i18n
 
-i18n.configure
+i18n = new(require 'i18n-2')
   locales: ['en-US', 'ja-JP', 'zh-CN', 'zh-TW']
   defaultLocale: 'zh-CN'
   directory: path.join(__dirname, 'i18n')
@@ -15,6 +14,7 @@ i18n.configure
   indent: '\t'
   extension: '.json'
 i18n.setLocale(window.language)
+__ = i18n.__.bind(i18n)
 
 window.shipInfoWindow = null
 handleWindowMoveResize = ->
