@@ -35,7 +35,7 @@ initialShipInfoWindow = ->
   window.shipInfoWindow.on 'move', handleWindowMoveResize
   window.shipInfoWindow.on 'resize', handleWindowMoveResize
   window.shipInfoWindow.loadURL "file://#{__dirname}/index.html"
-  if process.env.DEBUG?
+  if process.env.DEBUG_PLUGIN is 'ship-info'
     window.shipInfoWindow.openDevTools
       detach: true
 if config.get('plugin.ShipInfo.enable', true)
