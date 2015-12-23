@@ -3,18 +3,18 @@
 remote = require 'remote'
 windowManager = remote.require './lib/window'
 
-i18n = require './node_modules/i18n'
+
 path = require 'path-extra'
 
 i18n = new(require 'i18n-2')
-  locales: ['en-US', 'ja-JP', 'zh-CN', 'zh-TW']
-  defaultLocale: 'zh-CN'
-  directory: path.join(__dirname, 'i18n')
-  updateFiles: false
-  indent: '\t'
+  locales: ['en-US', 'ja-JP', 'zh-CN', 'zh-TW'],
+  defaultLocale: 'zh-CN',
+  directory: path.join(__dirname, 'i18n'),
+  devMode: false,
   extension: '.json'
 i18n.setLocale(window.language)
 __ = i18n.__.bind(i18n)
+
 
 window.shipInfoWindow = null
 handleWindowMoveResize = ->
@@ -47,7 +47,7 @@ module.exports =
   displayName: <span><FontAwesome name='ship' key={0} />{' ' + __('Ship Girls Info')}</span>
   author: 'Yunze'
   link: 'https://github.com/myzwillmake'
-  version: '1.6.0'
+  version: '1.6.1beta'
   description: __ 'Show detailed information of all owned ship girls'
   handleClick: ->
     window.shipInfoWindow.show()
