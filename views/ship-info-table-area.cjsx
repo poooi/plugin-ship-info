@@ -93,6 +93,8 @@ ShipInfoTable = React.createClass
     lv = @props.shipInfo.lv
     nowhp = @props.shipInfo.nowhp
     maxhp = @props.shipInfo.maxhp
+    losshp = @props.shipInfo.losshp
+    repairtime = @props.shipInfo.repairtime
 
     locked = @props.shipInfo.locked
 
@@ -162,7 +164,15 @@ ShipInfoTable = React.createClass
       <td className={soukouClass}>{soukou + '/'}<span style={fontSize: '80%'}>{soukouString}</span></td>
       <td className={luckyClass}>{lucky + '/'}<span style={fontSize: '80%'}>{luckyString}</span></td>
       <td className='center'>{@props.shipInfo.sakuteki}</td>
-      <td className='center' style={backgroundColor: repairColor}>{if @props.shipInfo.repairtime then resolveTime @props.shipInfo.repairtime}</td>
+      <td className='center' style={backgroundColor: repairColor}>
+        {
+          if repairtime
+            <OverlayTrigger placement="top" overlay={<Tooltip id="repairtime1hp">{"1HP:" + resolveTime (repairtime / losshp) }</Tooltip>}>
+              <span>{resolveTime @props.shipInfo.repairtime}</span>
+            </OverlayTrigger>
+
+        }
+      </td>
       <td><Slotitems slot={@props.shipInfo.slot} exslot={@props.shipInfo.exslot} /></td>
       <td>{if locked == 1 then <FontAwesome name='lock' /> else ' '}</td>
     </tr>
