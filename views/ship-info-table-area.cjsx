@@ -167,7 +167,7 @@ ShipInfoTable = React.createClass
       <td className='center' style={backgroundColor: repairColor}>
         {
           if repairtime
-            <OverlayTrigger placement="top" overlay={<Tooltip id="repairtime1hp">{"1HP:" + resolveTime (repairtime / losshp) }</Tooltip>}>
+            <OverlayTrigger placement="top" overlay={<Tooltip id="repairtime1hp">{ "1HP : #{resolveTime (repairtime / losshp)}" }</Tooltip>}>
               <span>{resolveTime @props.shipInfo.repairtime}</span>
             </OverlayTrigger>
 
