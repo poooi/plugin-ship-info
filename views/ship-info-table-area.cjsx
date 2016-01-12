@@ -30,6 +30,7 @@ Slotitems = React.createClass
       for itemId, i in @props.slot.concat @props.exslot
         continue if itemId <= 0
         item = _slotitems[itemId]
+        continue if not item? # We could not get the latest _slotItems when receiving '/port'
         <span key={itemId} >
           <OverlayTrigger placement='top' overlay={
             <Tooltip id="item-#{itemId}">
@@ -188,7 +189,11 @@ ShipInfoTableArea = React.createClass
     {rows} = @state
     rowsUpdateFlag = false
     switch path
-      when '/kcsapi/api_port/port', '/kcsapi/api_req_kousyou/destroyship', '/kcsapi/api_req_kaisou/powerup', '/kcsapi/api_get_member/ship3'
+      when '/kcsapi/api_port/port', \
+      '/kcsapi/api_req_kousyou/destroyship', \
+      '/kcsapi/api_req_kaisou/powerup', \
+      '/kcsapi/api_get_member/ship3', \
+      '/kcsapi/api_get_member/unsetslot'
         rowsUpdateFlag = true
         rows = []
         for _shipId, ship of _ships
@@ -247,7 +252,7 @@ ShipInfoTableArea = React.createClass
           luck: $ships[ship.api_ship_id].api_luck
           kyouka: ship.api_kyouka
           sakuteki: ship.api_sakuteki[0]
-          slot: ship.api_slot
+          slot: _.clone ship.api_slot
           exslot: ship.api_slot_ex
           locked: ship.api_locked
           nowhp: ship.api_nowhp
