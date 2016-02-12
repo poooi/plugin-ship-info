@@ -2,6 +2,7 @@
 {Panel, Table, Grid, Col, OverlayTrigger, Tooltip, Label} = ReactBootstrap
 Divider = require './divider'
 Path = require 'path'
+{SlotitemIcon} = require "#{ROOT}/views/components/etc/icon"
 
 collator = new Intl.Collator()
 jpCollator = new Intl.Collator("ja-JP")
@@ -27,27 +28,28 @@ Slotitems = React.createClass
     <div className="slotitem-container">
     {
       {$slotitems, _slotitems} = window
-      for itemId, i in @props.slot.concat @props.exslot
-        continue if itemId <= 0
-        item = _slotitems[itemId]
-        continue if not item? # We could not get the latest _slotItems when receiving '/port'
-        <span key={itemId} >
-          <OverlayTrigger placement='top' overlay={
-            <Tooltip id="item-#{itemId}">
-              {window.i18n.resources.__ item.api_name}
-              {if item.api_level > 0 then <strong style={color: '#45A9A5'}>★+{item.api_level}</strong> else ''}
-              {
-                if item.api_alv? and 1 <= item.api_alv <= 7
-                  <img className='alv-img' src={Path.join(ROOT, 'assets', 'img', 'airplane', "alv#{item.api_alv}.png")} />
-                else ''
-              }
-            </Tooltip>
-          }>
-            <span>
-              <img key={itemId} src={Path.join(ROOT, 'assets', 'img', 'slotitem', "#{item.api_type[3] + 100}.png")} />
-            </span>
-          </OverlayTrigger>
-        </span>
+      if _slotitems? && $slotitems?
+        for itemId, i in @props.slot.concat @props.exslot
+          continue if itemId <= 0
+          item = _slotitems[itemId]
+          continue if not item? # We could not get the latest _slotItems when receiving '/port'
+          <span key={itemId} >
+            <OverlayTrigger placement='top' overlay={
+              <Tooltip id="item-#{itemId}">
+                {window.i18n.resources.__ item.api_name}
+                {if item.api_level > 0 then <strong style={color: '#45A9A5'}>★+{item.api_level}</strong> else ''}
+                {
+                  if item.api_alv? and 1 <= item.api_alv <= 7
+                    <img className='alv-img' src={Path.join(ROOT, 'assets', 'img', 'airplane', "alv#{item.api_alv}.png")} />
+                  else ''
+                }
+              </Tooltip>
+            }>
+              <span>
+                <SlotitemIcon slotitemId={item.api_type[3]}/>
+              </span>
+            </OverlayTrigger>
+          </span>
     }
     </div>
 

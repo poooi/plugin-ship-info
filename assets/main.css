@@ -139,7 +139,6 @@ clickable {
 }
 
 #ship-info-show .ship-info-table .ship-name {
-  display: flex;
   justify-content: space-between;
   align-items: center;
 }
@@ -152,4 +151,10 @@ clickable {
 .alv-img{
   height: 14px;
   margin-bottom: 2px;
+}
+
+img.svg {
+  width: 26px;
+  height: 23px;
+  margin: 5px 3px 4px 3px;
 }
