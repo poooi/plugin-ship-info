@@ -2,6 +2,19 @@
 
 $('#font-awesome')?.setAttribute 'href', "#{ROOT}/components/font-awesome/css/font-awesome.min.css"
 
+window.shipInfoWindow = remote.getCurrentWindow()
+handleWindowMoveResize = ->
+  b1 = window.shipInfoWindow.getBounds()
+  # console.log "Moved to: #{JSON.stringify(b1)}"
+  setTimeout((->
+    b2 = window.shipInfoWindow.getBounds()
+    if JSON.stringify(b2) == JSON.stringify(b1)
+      config.set 'plugin.ShipInfo.bounds', b2
+      # console.log "   Saved:  #{JSON.stringify(b2)}"
+  ), 5000)
+window.shipInfoWindow.on 'move', handleWindowMoveResize
+window.shipInfoWindow.on 'resize', handleWindowMoveResize
+
 ShipInfoTableArea = require './ship-info-table-area'
 ShipInfoCheckboxArea = require './ship-info-checkbox-area'
 
