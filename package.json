@@ -10,12 +10,21 @@
     "type": "git",
     "url": "git+https://github.com/poooi/plugin-ship-info.git"
   },
-  "author": "Yunze",
+  "author": {
+    "name": "Yunze",
+    "link": "https://github.com/myzwillmake"
+  },
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/poooi/plugin-ship-info/issues"
   },
   "homepage": "https://github.com/poooi/plugin-ship-info#readme",
   "dependencies": {
+  },
+  "poiPlugin": {
+    "title": "Ship Girls Info",
+    "description": "Show detailed information of all owned ship girls",
+    "icon": "fa/ship",
+    "priority": 50
   }
 }
