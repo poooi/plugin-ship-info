@@ -1,6 +1,6 @@
 {React, ReactDOM, config} = window
 
-$('#font-awesome')?.setAttribute 'href', "#{ROOT}/components/font-awesome/css/font-awesome.min.css"
+$('#font-awesome')?.setAttribute 'href', require.resolve('font-awesome/css/font-awesome.css')
 
 window.shipInfoWindow = remote.getCurrentWindow()
 handleWindowMoveResize = ->

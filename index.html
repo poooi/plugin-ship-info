@@ -6,10 +6,13 @@
   <link rel="stylesheet" id="bootstrap-css" href="">
   <link rel="stylesheet" id="font-awesome" href="">
   <link rel="stylesheet" href="./assets/main.css">
-  <script src="./env-loader.js"></script>
-  <script type="text/coffeescript" src="./ship-info.coffee"></script>
 </head>
 <body>
 	<ship-info />
+    <script>
+      require("./env-loader.js");
+      require('coffee-script/register');
+      require("./ship-info");
+    </script>
 </body>
 </html>
