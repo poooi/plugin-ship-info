@@ -56,18 +56,15 @@ Slotitems = React.createClass
 
 SallyArea = React.createClass
   render: ->
-    if !@props.label? or @props.label is 0
+    {label, sallyTags} = @props
+    if !label? or label is 0
       <span className="status-label text-default" style={opacity: 0}></span>
-    else if @props.label is 1
-      <OverlayTrigger placement="top" overlay={<Tooltip id="sally-area-1">{__ 'Ship tag: %s', 'E1, E2, E3'}</Tooltip>}>
+    else if label < sallyTags.length - 1
+      <OverlayTrigger placement="top" overlay={<Tooltip id="sally-area-#{label}">{__ 'Ship tag: %s', sallyArea[label]}</Tooltip>}>
         <span className="status-label text-success"><FontAwesome key={0} name='tag' /></span>
       </OverlayTrigger>
-    else if @props.label is 2
-      <OverlayTrigger placement="top" overlay={<Tooltip id="sally-area-2">{__ 'Ship tag: %s', 'E4'}</Tooltip>}>
-        <span className="status-label text-warning"><FontAwesome key={0} name='tag' /></span>
-      </OverlayTrigger>
     else
-      <OverlayTrigger placement="top" overlay={<Tooltip id="sally-area-3">{__ 'Ship tag: %s', '?'}</Tooltip>}>
+      <OverlayTrigger placement="top" overlay={<Tooltip id="sally-area-#{label}">{__ 'Ship tag: %s', sallyArea[sallyTags.length - 1]}</Tooltip>}>
         <span className="status-label text-info"><FontAwesome key={0} name='tag' /></span>
       </OverlayTrigger>
 
@@ -333,6 +330,10 @@ ShipInfoTableArea = React.createClass
         not remodelable
       when 2
         remodelable
+
+  handleSallyAreaFilter: (sallyArea)->
+    @props.sallyAreaBoxes[sallyArea]
+     
   handleShowRows: ->
     #typeFilterPreprocess
     $shipTypes = window.$shipTypes
@@ -357,7 +358,8 @@ ShipInfoTableArea = React.createClass
          @handleLockedFilter(row.locked) and
          @handleExpeditionFilter(row.id, expeditionShips) and
          @handleModernizationFilter(row) and
-         @handleRemodelFilter(row)
+         @handleRemodelFilter(row) and 
+         @handleSallyAreaFilter(row.sallyArea)
         showRows.push row
     #showRowsSort
     switch @props.sortName

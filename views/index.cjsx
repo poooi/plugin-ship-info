@@ -18,6 +18,8 @@ window.shipInfoWindow.on 'resize', handleWindowMoveResize
 ShipInfoTableArea = require './ship-info-table-area'
 ShipInfoCheckboxArea = require './ship-info-checkbox-area'
 
+sallyTags = require "../assets/sallyTags.json"
+
 ShipInfoArea = React.createClass
   getInitialState: ->
     sortName: "lv"
@@ -29,6 +31,7 @@ ShipInfoArea = React.createClass
     expeditionRadio: 0
     modernizationRadio: 0
     remodelRadio: 0
+    sallyAreaBoxes: sallyTags.map -> true
   componentWillMount: ->
     sortName = config.get "plugin.ShipInfo.sortName", @state.sortName
     sortOrder = config.get "plugin.ShipInfo.sortOrder", @state.sortOrder
@@ -38,6 +41,7 @@ ShipInfoArea = React.createClass
     expeditionRadio = config.get "plugin.ShipInfo.expeditionRadio", @state.expeditionRadio
     modernizationRadio = config.get "plugin.ShipInfo.modernizationRadio", @state.modernizationRadio
     remodelRadio = config.get "plugin.ShipInfo.remodelRadio", @state.remodelRadio
+    sallyAreaBoxes = JSON.parse config.get "plugin.ShipInfo.sallyAreaBoxes", @state.sallyAreaBoxes
     @setState
       sortName: sortName
       sortOrder: sortOrder
@@ -47,6 +51,7 @@ ShipInfoArea = React.createClass
       expeditionRadio: expeditionRadio
       modernizationRadio: modernizationRadio
       remodelRadio: remodelRadio
+      sallyAreaBoxes: sallyAreaBoxes
 
   sortRules: (name, order) ->
     config.set "plugin.ShipInfo.sortName", name
@@ -81,6 +86,10 @@ ShipInfoArea = React.createClass
         config.set "plugin.ShipInfo.remodelRadio", val
         @setState
           remodelRadio: val
+      when 'sallyArea'
+        config.set "plugin.ShipInfo.sallyAreaBoxes", JSON.stringify val
+        @setState
+          sallyAreaBoxes: val
   render: ->
     <div>
       <ShipInfoCheckboxArea
@@ -94,6 +103,8 @@ ShipInfoArea = React.createClass
         expeditionRadio={@state.expeditionRadio}
         modernizationRadio={@state.modernizationRadio}
         remodelRadio={@state.remodelRadio}
+        sallyTags={sallyTags}
+        sallyAreaBoxes={@state.sallyAreaBoxes}
       />
       <ShipInfoTableArea
         sortRules={@sortRules}
@@ -105,6 +116,8 @@ ShipInfoArea = React.createClass
         expeditionRadio={@state.expeditionRadio}
         modernizationRadio={@state.modernizationRadio}
         remodelRadio={@state.remodelRadio}
+        sallyTags={sallyTags}        
+        sallyAreaBoxes={@state.sallyAreaBoxes}
       />
     </div>
 

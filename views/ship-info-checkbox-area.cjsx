@@ -68,12 +68,15 @@ ShipInfoCheckboxArea = React.createClass
           expeditionRadio={@props.expeditionRadio}
           modernizationRadio={@props.modernizationRadio}
           remodelRadio={@props.remodelRadio}
+          sallyTags={@props.sallyTags}
+          sallyAreaBoxes={@props.sallyAreaBoxes}
           typeFilterRules={@props.filterRules}
           lvFilterRules={@props.filterRules}
           lockedFilterRules={@props.filterRules}
           expeditionFilterRules={@props.filterRules}
           modernizationFilterRules={@props.filterRules}
           remodelFilterRules={@props.filterRules}
+          sallyAreaFilterRules={@props.filterRules}
         />
       </div>
     </div>

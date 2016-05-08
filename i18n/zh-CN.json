@@ -42,5 +42,7 @@
   "Remodel Setting": "改造过滤",
   "Not Remodelable": "改造完成",
   "Remodelable": "仍能改造",
-  "Ship tag: %s": "出击限定: %s"
+  "Ship tag: %s": "出击限定: %s",
+  "Sally Area Setting": "出击限定",
+  "No Sally Area": "未出击"
 }
