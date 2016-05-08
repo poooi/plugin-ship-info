@@ -19,6 +19,16 @@ ShipInfoTableArea = require './ship-info-table-area'
 ShipInfoCheckboxArea = require './ship-info-checkbox-area'
 
 sallyTags = require "../assets/sallyTags.json"
+tagStyles = [
+  'default',
+  'success',
+  'warning',
+  'primary',
+  'info',
+  'warning'
+]
+
+
 
 ShipInfoArea = React.createClass
   getInitialState: ->
@@ -105,6 +115,7 @@ ShipInfoArea = React.createClass
         remodelRadio={@state.remodelRadio}
         sallyTags={sallyTags}
         sallyAreaBoxes={@state.sallyAreaBoxes}
+        tagStyles={tagStyles}
       />
       <ShipInfoTableArea
         sortRules={@sortRules}
@@ -118,6 +129,7 @@ ShipInfoArea = React.createClass
         remodelRadio={@state.remodelRadio}
         sallyTags={sallyTags}        
         sallyAreaBoxes={@state.sallyAreaBoxes}
+        tagStyles={tagStyles}
       />
     </div>
 

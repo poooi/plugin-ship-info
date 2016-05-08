@@ -56,16 +56,16 @@ Slotitems = React.createClass
 
 SallyArea = React.createClass
   render: ->
-    {label, sallyTags} = @props
+    {label, sallyTags, tagStyles} = @props
     if !label? or label is 0
-      <span className="status-label text-default" style={opacity: 0}></span>
+      <Label className="status-label text-default" style={opacity: 0}></Label>
     else if label < sallyTags.length - 1
-      <OverlayTrigger placement="top" overlay={<Tooltip id="sally-area-#{label}">{__ 'Ship tag: %s', sallyArea[label]}</Tooltip>}>
-        <span className="status-label text-success"><FontAwesome key={0} name='tag' /></span>
+      <OverlayTrigger placement="top" overlay={<Tooltip id="sally-area-#{label}">{__ 'Ship tag: %s', sallyTags[label]}</Tooltip>}>
+        <Label bsStyle={tagStyles[label]}><FontAwesome name='tag' /></Label>
       </OverlayTrigger>
     else
-      <OverlayTrigger placement="top" overlay={<Tooltip id="sally-area-#{label}">{__ 'Ship tag: %s', sallyArea[sallyTags.length - 1]}</Tooltip>}>
-        <span className="status-label text-info"><FontAwesome key={0} name='tag' /></span>
+      <OverlayTrigger placement="top" overlay={<Tooltip id="sally-area-#{label}">{__ 'Ship tag: %s', sallyTags[sallyTags.length - 1]}</Tooltip>}>
+        <Label bsStyle={tagStyles[tagStyles.length - 1]}><FontAwesome name='tag' /></Label>
       </OverlayTrigger>
 
 ShipInfoTable = React.createClass
@@ -154,7 +154,7 @@ ShipInfoTable = React.createClass
       <td>{@props.shipInfo.id}</td>
       <td>{window.i18n.resources.__ @props.shipInfo.type}</td>
       <td className="ship-name">{window.i18n.resources.__ @props.shipInfo.name}
-        <SallyArea label={@props.shipInfo.sallyArea} />
+        <SallyArea label={@props.shipInfo.sallyArea} tagStyles={@props.tagStyles} sallyTags={@props.sallyTags}/>
       </td>
       <td className='center'>{@props.shipInfo.lv}</td>
       <td className='center' style={backgroundColor: condColor}>{@props.shipInfo.cond}</td>
@@ -463,6 +463,8 @@ ShipInfoTableArea = React.createClass
                   key = {row.id}
                   shipInfo = {row}
                   dataVersion = {@state.dataVersion}
+                  tagStyles={@props.tagStyles}
+                  sallyTags={@props.sallyTags}
                 />
           }
           </tbody>

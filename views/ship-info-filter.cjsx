@@ -1,5 +1,5 @@
 {React, ReactBootstrap, jQuery, __, config} = window
-{Grid, Row, Col, Input, Button, ButtonGroup} = ReactBootstrap
+{Grid, Row, Col, Input, Button, ButtonGroup, Label} = ReactBootstrap
 shipTypes = ['', '海防艦', '駆逐艦', '軽巡洋艦', '重雷装巡洋艦', '重巡洋艦', '航空巡洋艦', '軽空母', '戦艦', '戦艦', '航空戦艦', '正規空母',
              '超弩級戦艦', '潜水艦', '潜水空母', '補給艦', '水上機母艦', '揚陸艦', '装甲空母', '工作艦', '潜水母艦', '練習巡洋艦']
 
@@ -271,26 +271,18 @@ SallyAreaCheck = React.createClass
     <div>
       <Row>
         <Col xs={2} className='filter-span'><span>{__ 'Sally Area Setting'}</span></Col>
-
       </Row>
       <Row>
         <Col xs={2}>
-          <Button className='filter-button'  onClick={@handleCilckBox.bind(@, -1)} bsStyle={if @state.checkedAll then 'success' else 'default'} bsSize='small' block>
-            {__ 'All'}
-          </Button>
+          <Input type='checkbox' label={__ 'All'} onChange={@handleCilckBox.bind(@, -1)} checked={@state.checkedAll} />
         </Col>
-        <Col xs={10}>
-          <ButtonGroup justified>
-            {
-              for tag, idx in @props.sallyTags
-                continue if idx is @props.sallyTags.length - 1
-                <Button key={idx} className='filter-button' onClick={@handleCilckBox.bind(@, idx)} bsStyle={if @state.checked[idx] then 'success' else 'default'} 
-                        bsSize='small' style={width: (100/(@props.sallyTags.length - 1))+"%"} >
-                  {__ tag}
-                </Button>              
+          {
+            for tag, idx in @props.sallyTags
+              continue if idx is @props.sallyTags.length - 1
+              <Col xs={2} key={idx}>
+                <Input type='checkbox' label={__ tag} onChange={@handleCilckBox.bind(@, idx)} checked={@state.checked[idx]} />                
+              </Col>
             }
-          </ButtonGroup>  
-         </Col>
       </Row>
     </div>
 
@@ -306,7 +298,8 @@ ShipInfoFilter = React.createClass
             <ExpeditionCheck keyRadio={@props.expeditionRadio} filterRules={@props.expeditionFilterRules} />
             <ModernizationCheck keyRadio={@props.modernizationRadio} filterRules={@props.modernizationFilterRules} />
             <RemodelCheck keyRadio={@props.remodelRadio} filterRules={@props.remodelFilterRules} />
-            <SallyAreaCheck sallyTags={@props.sallyTags} filterRules={@props.sallyAreaFilterRules} sallyAreaBoxes={@props.sallyAreaBoxes} />
+            <SallyAreaCheck sallyTags={@props.sallyTags} tagStyles={@props.tagStyles}
+                            filterRules={@props.sallyAreaFilterRules} sallyAreaBoxes={@props.sallyAreaBoxes} />
           </div>
       }
     </Grid>

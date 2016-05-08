@@ -77,6 +77,7 @@ ShipInfoCheckboxArea = React.createClass
           modernizationFilterRules={@props.filterRules}
           remodelFilterRules={@props.filterRules}
           sallyAreaFilterRules={@props.filterRules}
+          tagStyles={@props.tagStyles}
         />
       </div>
     </div>
