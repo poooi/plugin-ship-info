@@ -115,19 +115,19 @@ ShipInfoTable = React.createClass
     luckyToInc = luckyMax - luckyNow
     luckyString = '+' + luckyToInc
 
-    if karyokuNow == karyokuMax
+    if karyokuNow >= karyokuMax
       karyokuClass = 'td-karyoku-max'
       karyokuString = 'MAX'
-    if raisouNow == raisouMax
+    if raisouNow >= raisouMax
       raisouClass = 'td-raisou-max'
       raisouString = 'MAX'
-    if taikuNow == taikuMax
+    if taikuNow >= taikuMax
       taikuClass = 'td-taiku-max'
       taikuString = 'MAX'
-    if soukouNow == soukouMax
+    if soukouNow >= soukouMax
       soukouClass = 'td-soukou-max'
       soukouString = 'MAX'
-    if luckyNow == luckyMax
+    if luckyNow >= luckyMax
       luckyClass = 'td-lucky-max'
       luckyString = 'MAX'
 
