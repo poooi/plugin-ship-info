@@ -29,7 +29,7 @@ ShipInfoCheckboxArea = React.createClass
         <Grid>
           <Col xs={2} className='filter-span'>{__ 'Sort By'}</Col>
           <Col xs={6}>
-            <Input id='sortbase' type='select' defaultValue={@props.sortKey} value={@props.sortKey} onChange={@handleKeyChange}>
+            <Input id='sortbase' type='select' value={@props.sortKey} onChange={@handleKeyChange}>
               <option value='id'>{__ 'ID'}</option>
               <option value='type'>{__ 'Class'}</option>
               <option value='name'>{__ 'Name'}</option>

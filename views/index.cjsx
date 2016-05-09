@@ -18,7 +18,7 @@ window.shipInfoWindow.on 'resize', handleWindowMoveResize
 ShipInfoTableArea = require './ship-info-table-area'
 ShipInfoCheckboxArea = require './ship-info-checkbox-area'
 
-sallyTags = require "../assets/sallyTags.json"
+sallyTags = require "../assets/SallyTags.json"
 tagStyles = [
   'default',
   'success',
@@ -51,7 +51,7 @@ ShipInfoArea = React.createClass
     expeditionRadio = config.get "plugin.ShipInfo.expeditionRadio", @state.expeditionRadio
     modernizationRadio = config.get "plugin.ShipInfo.modernizationRadio", @state.modernizationRadio
     remodelRadio = config.get "plugin.ShipInfo.remodelRadio", @state.remodelRadio
-    sallyAreaBoxes = JSON.parse config.get "plugin.ShipInfo.sallyAreaBoxes", @state.sallyAreaBoxes
+    sallyAreaBoxes = JSON.parse config.get "plugin.ShipInfo.sallyAreaBoxes", JSON.stringify @state.sallyAreaBoxes
     @setState
       sortName: sortName
       sortOrder: sortOrder
