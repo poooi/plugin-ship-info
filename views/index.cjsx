@@ -18,7 +18,7 @@ window.shipInfoWindow.on 'resize', handleWindowMoveResize
 ShipInfoTableArea = require './ship-info-table-area'
 ShipInfoCheckboxArea = require './ship-info-checkbox-area'
 
-sallyTags = require "../assets/sallyTags.json"
+sallyTags = require "../assets/SallyTags.json"
 tagStyles = [
   'default',
   'success',
