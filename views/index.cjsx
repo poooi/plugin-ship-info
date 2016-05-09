@@ -28,40 +28,17 @@ tagStyles = [
   'warning'
 ]
 
-
-
 ShipInfoArea = React.createClass
   getInitialState: ->
-    sortName: "lv"
-    sortOrder: 0
-    shipTypeBoxes: [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13,
-                    14, 15, 16, 17, 18, 19, 20, 21]
-    lvRadio: 2
-    lockedRadio: 1
-    expeditionRadio: 0
-    modernizationRadio: 0
-    remodelRadio: 0
-    sallyAreaBoxes: sallyTags.map -> true
-  componentWillMount: ->
-    sortName = config.get "plugin.ShipInfo.sortName", @state.sortName
-    sortOrder = config.get "plugin.ShipInfo.sortOrder", @state.sortOrder
-    shipTypeBoxes = JSON.parse config.get "plugin.ShipInfo.shipTypeBoxes", JSON.stringify @state.shipTypeBoxes
-    lvRadio = config.get "plugin.ShipInfo.lvRadio", @state.lvRadio
-    lockedRadio = config.get "plugin.ShipInfo.lockedRadio", @state.lockedRadio
-    expeditionRadio = config.get "plugin.ShipInfo.expeditionRadio", @state.expeditionRadio
-    modernizationRadio = config.get "plugin.ShipInfo.modernizationRadio", @state.modernizationRadio
-    remodelRadio = config.get "plugin.ShipInfo.remodelRadio", @state.remodelRadio
-    sallyAreaBoxes = JSON.parse config.get "plugin.ShipInfo.sallyAreaBoxes", JSON.stringify @state.sallyAreaBoxes
-    @setState
-      sortName: sortName
-      sortOrder: sortOrder
-      shipTypeBoxes: shipTypeBoxes
-      lvRadio: lvRadio
-      lockedRadio: lockedRadio
-      expeditionRadio: expeditionRadio
-      modernizationRadio: modernizationRadio
-      remodelRadio: remodelRadio
-      sallyAreaBoxes: sallyAreaBoxes
+    sortName: config.get "plugin.ShipInfo.sortName", "lv"
+    sortOrder: config.get "plugin.ShipInfo.sortOrder", 0
+    shipTypeBoxes: JSON.parse config.get("plugin.ShipInfo.shipTypeBoxes") || JSON.stringify [1..21]
+    lvRadio: config.get "plugin.ShipInfo.lvRadio", 2
+    lockedRadio: config.get "plugin.ShipInfo.lockedRadio", 1
+    expeditionRadio: config.get "plugin.ShipInfo.expeditionRadio", 0
+    modernizationRadio: config.get "plugin.ShipInfo.modernizationRadio", 0
+    remodelRadio: config.get "plugin.ShipInfo.remodelRadio", 0
+    sallyAreaBoxes: JSON.parse config.get("plugin.ShipInfo.sallyAreaBoxes") || JSON.stringify sallyTags.map -> true
 
   sortRules: (name, order) ->
     config.set "plugin.ShipInfo.sortName", name
@@ -127,7 +104,7 @@ ShipInfoArea = React.createClass
         expeditionRadio={@state.expeditionRadio}
         modernizationRadio={@state.modernizationRadio}
         remodelRadio={@state.remodelRadio}
-        sallyTags={sallyTags}        
+        sallyTags={sallyTags}
         sallyAreaBoxes={@state.sallyAreaBoxes}
         tagStyles={tagStyles}
       />
