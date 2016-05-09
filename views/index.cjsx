@@ -51,7 +51,7 @@ ShipInfoArea = React.createClass
     expeditionRadio = config.get "plugin.ShipInfo.expeditionRadio", @state.expeditionRadio
     modernizationRadio = config.get "plugin.ShipInfo.modernizationRadio", @state.modernizationRadio
     remodelRadio = config.get "plugin.ShipInfo.remodelRadio", @state.remodelRadio
-    sallyAreaBoxes = JSON.parse config.get "plugin.ShipInfo.sallyAreaBoxes", JSON.stringify @state.sallyAreaBoxe
+    sallyAreaBoxes = JSON.parse config.get "plugin.ShipInfo.sallyAreaBoxes", JSON.stringify @state.sallyAreaBoxes
     @setState
       sortName: sortName
       sortOrder: sortOrder
