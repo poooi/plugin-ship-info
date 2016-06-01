@@ -332,8 +332,7 @@ ShipInfoTableArea = React.createClass
         remodelable
 
   handleSallyAreaFilter: (sallyArea)->
-    @props.sallyAreaBoxes[sallyArea]
-     
+    if sallyArea? then @props.sallyAreaBoxes[sallyArea] else true
   handleShowRows: ->
     #typeFilterPreprocess
     $shipTypes = window.$shipTypes
