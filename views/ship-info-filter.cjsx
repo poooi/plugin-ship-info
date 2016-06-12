@@ -268,21 +268,21 @@ SallyAreaCheck = React.createClass
       checked: checked
   
   render: ->
+    xs = Math.floor(12 / (1 + @props.sallyTags.length))
     <div>
       <Row>
         <Col xs={2} className='filter-span'><span>{__ 'Sally Area Setting'}</span></Col>
-      </Row>
-      <Row>
-        <Col xs={2}>
-          <Input type='checkbox' label={__ 'All'} onChange={@handleCilckBox.bind(@, -1)} checked={@state.checkedAll} />
-        </Col>
+        <Col xs={10}>
+          <Col xs={xs}>
+            <Input type='checkbox' label={__ 'All'} onChange={@handleCilckBox.bind(@, -1)} checked={@state.checkedAll} />
+          </Col>
           {
             for tag, idx in @props.sallyTags
-              continue if idx is @props.sallyTags.length - 1
-              <Col xs={2} key={idx}>
+              <Col xs={xs} key={idx}>
                 <Input type='checkbox' label={__ tag} onChange={@handleCilckBox.bind(@, idx)} checked={@state.checked[idx]} />                
               </Col>
-            }
+          }
+        </Col>
       </Row>
     </div>
 

@@ -84,6 +84,7 @@ clickable {
   margin-bottom: 1px;
 }
 #ship-info-settings #ship-info-filter .col-xs-2,
+#ship-info-settings #ship-info-filter .col-xs-10,
 #ship-info-settings #ship-info-filter .col-xs-12 {
   padding-left: 1px;
   padding-right: 1px;
