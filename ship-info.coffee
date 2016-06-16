@@ -5,7 +5,7 @@ path = require 'path-extra'
 
 window.i18n = {}
 window.i18n.main = new(require 'i18n-2')
-  locales: ['en-US', 'ja-JP', 'zh-CN', 'zh-TW'],
+  locales: ['ko-KR', 'en-US', 'ja-JP', 'zh-CN', 'zh-TW'],
   defaultLocale: 'zh-CN',
   directory: path.join(__dirname, 'i18n'),
   devMode: false,
