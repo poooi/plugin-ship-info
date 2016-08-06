@@ -163,6 +163,8 @@ ShipInfoTable = React.createClass
       <td className={taikuClass}>{taiku + '/'}<span style={fontSize: '80%'}>{taikuString}</span></td>
       <td className={soukouClass}>{soukou + '/'}<span style={fontSize: '80%'}>{soukouString}</span></td>
       <td className={luckyClass}>{lucky + '/'}<span style={fontSize: '80%'}>{luckyString}</span></td>
+      <td className='center'>{@props.shipInfo.kaihi}</td>
+      <td className='center'>{@props.shipInfo.taisen}</td>
       <td className='center'>{@props.shipInfo.sakuteki}</td>
       <td className='center' style={backgroundColor: repairColor}>
         {
@@ -216,6 +218,8 @@ ShipInfoTableArea = React.createClass
             lucky: ship.api_lucky
             luck: ship.api_luck
             kyouka: ship.api_kyouka
+            kaihi: ship.api_kaihi[0]
+            taisen: ship.api_taisen[0]
             sakuteki: ship.api_sakuteki[0]
             slot: _.clone ship.api_slot
             exslot: ship.api_slot_ex
@@ -250,6 +254,8 @@ ShipInfoTableArea = React.createClass
           lucky: ship.api_lucky
           luck: $ships[ship.api_ship_id].api_luck
           kyouka: ship.api_kyouka
+          kaihi: ship.api_kaihi[0]
+          taisen: ship.api_taisen[0]
           sakuteki: ship.api_sakuteki[0]
           slot: _.clone ship.api_slot
           exslot: ship.api_slot_ex
@@ -448,6 +454,8 @@ ShipInfoTableArea = React.createClass
               <th className='center clickable' onClick={@handleClickTitle.bind @, 'taiku'}>{__ 'AA'}</th>
               <th className='center clickable' onClick={@handleClickTitle.bind @, 'soukou'}>{__ 'Armor'}</th>
               <th className='center clickable' onClick={@handleClickTitle.bind @, 'lucky'}>{__ 'Luck'}</th>
+              <th className='center clickable' onClick={@handleClickTitle.bind @, 'kaihi'}>{__ 'Evasion'}</th>
+              <th className='center clickable' onClick={@handleClickTitle.bind @, 'taisen'}>{__ 'ASW'}</th>
               <th className='center clickable' onClick={@handleClickTitle.bind @, 'sakuteki'}>{__ 'LOS'}</th>
               <th className='center clickable' onClick={@handleClickTitle.bind @, 'repairtime'}>{__ 'Repair'}</th>
               <th>{__ 'Equipment'}</th>

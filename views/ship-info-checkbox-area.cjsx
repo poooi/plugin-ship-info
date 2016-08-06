@@ -40,6 +40,8 @@ ShipInfoCheckboxArea = React.createClass
               <option value='taiku'>{__ 'AA'}</option>
               <option value='soukou'>{__ 'Armor'}</option>
               <option value='lucky'>{__ 'Luck'}</option>
+              <option value='kaihi'>{__ 'Evasion'}</option>
+              <option value='taisen'>{__ 'ASW'}</option>
               <option value='sakuteki'>{__ 'LOS'}</option>
               <option value='repairtime'>{__ 'Repair'}</option>
             </Input>
