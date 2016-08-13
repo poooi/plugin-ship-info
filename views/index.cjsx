@@ -21,9 +21,8 @@ ShipInfoCheckboxArea = require './ship-info-checkbox-area'
 sallyTags = require "../assets/SallyTags.json"
 tagStyles = [
   'default',
-  'success',
-  'warning',
   'primary',
+  'success',
   'info',
   'warning'
 ]
