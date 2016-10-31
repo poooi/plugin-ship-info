@@ -22,4 +22,6 @@ try
 catch error
   console.log error
 
+document.title = __ 'Ship Girls Info'
+
 require './views'
