@@ -1,13 +1,18 @@
-window.remote = require('electron').remote;
+window.remote = require('electron').remote
 
-window.ROOT = remote.getGlobal('ROOT');
+const remote = window.remote
 
-window.APPDATA_PATH = remote.getGlobal('APPDATA_PATH');
+window.ROOT = remote.getGlobal('ROOT')
 
-window.POI_VERSION = remote.getGlobal('POI_VERSION');
+window.APPDATA_PATH = remote.getGlobal('APPDATA_PATH')
 
-window.SERVER_HOSTNAME = remote.getGlobal('SERVER_HOSTNAME');
+window.POI_VERSION = remote.getGlobal('POI_VERSION')
 
-window.MODULE_PATH = remote.getGlobal('MODULE_PATH');
+window.SERVER_HOSTNAME = remote.getGlobal('SERVER_HOSTNAME')
 
-require('module').globalPaths.push(MODULE_PATH);
+window.MODULE_PATH = remote.getGlobal('MODULE_PATH')
+
+const  MODULE_PATH = window.MODULE_PATH
+
+require('module').globalPaths.push(MODULE_PATH)
+

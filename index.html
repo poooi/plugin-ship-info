@@ -10,9 +10,16 @@
 <body>
 	<ship-info />
     <script>
-      require("./env-loader.js");
+
+      require('babel-register')(require('./.babelrc'));
+
       require('coffee-script/register');
+
+      require("./env-loader.es");
+
       require("./ship-info");
+
+      require("./test-data");
     </script>
 </body>
 </html>

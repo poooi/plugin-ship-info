@@ -1,0 +1,9 @@
+{
+    "exclude": [
+        "node_module",
+        "bower_components",
+        "json_packages",
+        "tmp",
+        "temp"
+    ]
+}

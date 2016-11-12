@@ -2,7 +2,7 @@
 {Panel, Table, Grid, Col, OverlayTrigger, Tooltip, Label} = ReactBootstrap
 Divider = require './divider'
 Path = require 'path'
-{SlotitemIcon} = require "#{ROOT}/views/components/etc/icon"
+# {SlotitemIcon} = require "#{ROOT}/views/components/etc/icon"
 
 collator = new Intl.Collator()
 jpCollator = new Intl.Collator("ja-JP")
@@ -46,7 +46,7 @@ Slotitems = React.createClass
               </Tooltip>
             }>
               <span>
-                <SlotitemIcon slotitemId={item.api_type[3]}/>
+                # <SlotitemIcon slotitemId={item.api_type[3]}/>
               </span>
             </OverlayTrigger>
           </span>
@@ -208,15 +208,15 @@ ShipInfoTableArea = React.createClass
             lv:  ship.api_lv
             cond: ship.api_cond
             karyoku: ship.api_karyoku
-            houg: ship.api_houg
+            houg: $ships[ship.api_ship_id].api_houg
             raisou: ship.api_raisou
-            raig: ship.api_raig
+            raig:  $ships[ship.api_ship_id].api_raig
             taiku: ship.api_taiku
-            tyku: ship.api_tyku
+            tyku:  $ships[ship.api_ship_id].api_tyku
             soukou: ship.api_soukou
-            souk: ship.api_souk
+            souk:  $ships[ship.api_ship_id].api_souk
             lucky: ship.api_lucky
-            luck: ship.api_luck
+            luck:  $ships[ship.api_ship_id].api_luck
             kyouka: ship.api_kyouka
             kaihi: ship.api_kaihi[0]
             taisen: ship.api_taisen[0]
@@ -363,7 +363,7 @@ ShipInfoTableArea = React.createClass
          @handleLockedFilter(row.locked) and
          @handleExpeditionFilter(row.id, expeditionShips) and
          @handleModernizationFilter(row) and
-         @handleRemodelFilter(row) and 
+         @handleRemodelFilter(row) and
          @handleSallyAreaFilter(row.sallyArea)
         showRows.push row
     #showRowsSort

@@ -1,15 +1,16 @@
 require 'coffee-react/register'
-require "#{ROOT}/views/env"
+#require "#{ROOT}/views/env"
 
 path = require 'path-extra'
 
 window.i18n = {}
 window.i18n.main = new(require 'i18n-2')
-  locales: ['ko-KR', 'en-US', 'ja-JP', 'zh-CN', 'zh-TW'],
-  defaultLocale: 'zh-CN',
+  locales: ['zh-CN', 'ko-KR', 'en-US', 'ja-JP', 'zh-CN', 'zh-TW'],
   directory: path.join(__dirname, 'i18n'),
   devMode: false,
   extension: '.json'
+
+
 window.i18n.main.setLocale(window.language)
 window.__ = window.i18n.main.__.bind(window.i18n.main)
 window.i18n.resources = {}
