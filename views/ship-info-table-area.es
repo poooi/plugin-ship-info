@@ -4,13 +4,38 @@ import Divider from './divider'
 import Path from 'path'
 //import {SlotitemIcon} from "#{ROOT}/views/components/etc/icon"
 
-const collator = new Intl.Collator()
-const jpCollator = new Intl.Collator("ja-JP")
+import ShipDataGenerator from './ship-data'
 
-const nameCompare = function(a, b){
-  return  jpCollator.compare(a.yomi, b.yomi)
-    || collator.compare(a.lv, b.lv)
-    || collator.compare(a.id, b.id)
+const nameCompare = function(){
+  const collator = new Intl.Collator()
+  const jpCollator = new Intl.Collator("ja-JP")
+  return function(a, b){
+    return jpCollator.compare(a.yomi, b.yomi)
+        || collator.compare(a.lv, b.lv)
+        || collator.compare(a.id, b.id)
+  }
+}()
+
+const lvCompare = function(a,b) {
+  // Sort rule of level in game (descending):
+  // 1. level (descending)
+  // 2. sortno (ascending)
+  // 3. id (descending)
+  return a.lv - b.lv
+      || -(a.sortno - b.sortno)
+      || a.id - b.id
+}
+
+const typeCompare = function(a,b){
+  // Sort rule of type in game (descending):
+  // 1. ship_type_id (descending)
+  // 2. sortno (ascending)
+  // 3. level (descending)
+  // 4. id (descending)
+  return a.type_id - b.type_id
+      || -(a.sortno - b.sortno)
+      || a.lv - b.lv
+      || a.id - b.id
 }
 
 const Slotitems = React.createClass({
@@ -45,7 +70,7 @@ const Slotitems = React.createClass({
             }>
               <span>
                 {
-                  ""//<SlotitemIcon slotitemId={item.api_type[3]}/>
+                  null//<SlotitemIcon slotitemId={item.api_type[3]}/>
                 }
               </span>
             </OverlayTrigger>
@@ -92,110 +117,60 @@ const ShipInfoTable = React.createClass({
     return false
   },
   render: function(){
-    const karyokuNow = this.props.shipInfo.houg[0] + this.props.shipInfo.kyouka[0]
-    const karyokuMax = this.props.shipInfo.karyoku[1]
-    const karyoku = this.props.shipInfo.karyoku[0]
-    const raisouNow = this.props.shipInfo.raig[0] + this.props.shipInfo.kyouka[1]
-    const raisouMax = this.props.shipInfo.raisou[1]
-    const raisou = this.props.shipInfo.raisou[0]
-    const taikuNow = this.props.shipInfo.tyku[0] + this.props.shipInfo.kyouka[2]
-    const taikuMax = this.props.shipInfo.taiku[1]
-    const taiku = this.props.shipInfo.taiku[0]
-    const soukouNow = this.props.shipInfo.souk[0] + this.props.shipInfo.kyouka[3]
-    const soukouMax = this.props.shipInfo.soukou[1]
-    const soukou = this.props.shipInfo.soukou[0]
-    const luckyNow = this.props.shipInfo.luck[0] + this.props.shipInfo.kyouka[4]
-    const luckyMax = this.props.shipInfo.lucky[1]
-    const lucky = this.props.shipInfo.lucky[0]
-    const nowhp = this.props.shipInfo.nowhp
-    const maxhp = this.props.shipInfo.maxhp
-    const repairtime = this.props.shipInfo.repairtime
+    const ship = this.props.shipInfo
 
-    const locked = this.props.shipInfo.locked
+    const karyokuClass = ship.karyoku_togo > 0 ? 'td-karyoku' : 'td-karyoku-max'
+    const raisouClass = ship.raisou_togo > 0 ? 'td-raisou' : 'td-raisou-max'
+    const taikuClass = ship.taiku_togo > 0 ? 'td-taiku' : 'td-taiku-max'
+    const soukouClass = ship.soukou_togo > 0 ? 'td-soukou' : 'td-soukou-max'
+    const luckyClass = ship.lucky_togo > 0 ? 'td-lucky' : 'td-lucky-max'
 
-    let karyokuClass = 'td-karyoku'
-    let raisouClass = 'td-raisou'
-    let taikuClass = 'td-taiku'
-    let soukouClass = 'td-soukou'
-    let luckyClass = 'td-lucky'
+    const karyokuString = ship.karyoku_togo > 0 ? '+' + ship.karyoku_togo : "MAX"
+    const raisouString = ship.raisou_togo > 0 ? '+' + ship.raisou_togo : "MAX"
+    const taikuString = ship.taiku_togo > 0 ? '+' + ship.taiku_togo : "MAX"
+    const soukouString = ship.soukou_togo > 0 ? '+' + ship.soukou_togo : "MAX"
+    const luckyString = ship.lucky_togo > 0 ? '+' + ship.lucky_togo : "MAX"
 
-    const karyokuToInc = karyokuMax - karyokuNow
-    let karyokuString = '+' + karyokuToInc
-    const raisouToInc = raisouMax - raisouNow
-    let raisouString = '+' + raisouToInc
-    const taikuToInc = taikuMax - taikuNow
-    let taikuString = '+' + taikuToInc
-    const soukouToInc = soukouMax - soukouNow
-    let soukouString = '+' + soukouToInc
-    const luckyToInc = luckyMax - luckyNow
-    let luckyString = '+' + luckyToInc
+    let repairColor = (ship.nowhp * 4 <= ship.maxhp) ? 'rgba(255, 0, 0, 0.4)'
+                      : (ship.nowhp * 2 <= ship.maxhp) ? 'rgba(255, 65, 0, 0.4)'
+                        : (ship.nowhp * 4 <= ship.maxhp * 3) ? 'rgba(255, 255, 0, 0.4)'
+                          : 'transparent'
 
-    if (karyokuNow >= karyokuMax)
-      karyokuClass = 'td-karyoku-max'
-    karyokuString = 'MAX'
-    if (raisouNow >= raisouMax)
-      raisouClass = 'td-raisou-max'
-    raisouString = 'MAX'
-    if (taikuNow >= taikuMax)
-      taikuClass = 'td-taiku-max'
-    taikuString = 'MAX'
-    if (soukouNow >= soukouMax)
-      soukouClass = 'td-soukou-max'
-    soukouString = 'MAX'
-    if (luckyNow >= luckyMax)
-      luckyClass = 'td-lucky-max'
-    luckyString = 'MAX'
+    let condColor = this.props.shipInfo.cond < 20 ? 'rgba(255, 0, 0, 0.4)'
+                    : this.props.shipInfo.cond < 30 ? 'rgba(255, 165, 0, 0.4)'
+                      : this.props.shipInfo.cond >= 50 ? 'rgba(255, 255, 0, 0.4)'
+                        : 'transparent'
+    return (
+      <tr>
+        <td></td>
+        <td>{ship.id}</td>
+        <td>{window.i18n.resources.__(ship.type)}</td>
+        <td className="ship-name">{window.i18n.resources.__(ship.name)}
+          <SallyArea label={this.props.shipInfo.sallyArea} tagStyles={this.props.tagStyles} sallyTags={this.props.sallyTags}/>
+        </td>
+        <td className='center'>{ship.lv}</td>
+        <td className='center' style={{backgroundColor: condColor}}>{ship.cond}</td>
+        <td className={karyokuClass}>{ship.karyoku + '/'}<span style={{fontSize: '80%'}}>{karyokuString}</span></td>
+        <td className={raisouClass}>{ship.raisou + '/'}<span style={{fontSize: '80%'}}>{raisouString}</span></td>
+        <td className={taikuClass}>{ship.taiku + '/'}<span style={{fontSize: '80%'}}>{taikuString}</span></td>
+        <td className={soukouClass}>{ship.soukou + '/'}<span style={{fontSize: '80%'}}>{soukouString}</span></td>
+        <td className={luckyClass}>{ship.lucky + '/'}<span style={{fontSize: '80%'}}>{luckyString}</span></td>
+        <td className='center'>{ship.kaihi}</td>
+        <td className='center'>{ship.taisen}</td>
+        <td className='center'>{ship.sakuteki}</td>
+        <td className='center' style={{backgroundColor: repairColor}}>
+          {
+            ship.repairtime > 0 ?
+              <OverlayTrigger placement="top" overlay={<Tooltip id="repairtime1hp">{ "1HP : #{resolveTime (repairtime / losshp)}" }</Tooltip>}>
+                <span>{resolveTime(ship.repairtime)}</span>
+              </OverlayTrigger>
+              : null
 
-    let repairColor 
-    if (nowhp * 4 <= maxhp)
-      repairColor = 'rgba(255, 0, 0, 0.4)'
-    else if (nowhp * 2 <= maxhp)
-      repairColor = 'rgba(255, 65, 0, 0.4)'
-    else if (nowhp * 4 <= maxhp * 3)
-      repairColor = 'rgba(255, 255, 0, 0.4)'
-    else
-      repairColor = 'transparent'
-
-    let condColor
-    if (this.props.shipInfo.cond >= 0 && this.props.shipInfo.cond < 20)
-      condColor = 'rgba(255, 0, 0, 0.4)'
-    else if (this.props.shipInfo.cond >= 20 && this.props.shipInfo.cond < 30)
-      condColor = 'rgba(255, 165, 0, 0.4)'
-    else if (this.props.shipInfo.cond >= 50 && this.props.shipInfo.cond <= 100)
-      condColor = 'rgba(255, 255, 0, 0.4)'
-    else
-      condColor = 'transparent'
-
-    return (<tr>
-      <td></td>
-      <td>{this.props.shipInfo.id}</td>
-      <td>{window.i18n.resources.__(this.props.shipInfo.type)}</td>
-      <td className="ship-name">{window.i18n.resources.__(this.props.shipInfo.name)}
-        <SallyArea label={this.props.shipInfo.sallyArea} tagStyles={this.props.tagStyles} sallyTags={this.props.sallyTags}/>
-      </td>
-      <td className='center'>{this.props.shipInfo.lv}</td>
-      <td className='center' style={{backgroundColor: condColor}}>{this.props.shipInfo.cond}</td>
-      <td className={karyokuClass}>{karyoku + '/'}<span style={{fontSize: '80%'}}>{karyokuString}</span></td>
-      <td className={raisouClass}>{raisou + '/'}<span style={{fontSize: '80%'}}>{raisouString}</span></td>
-      <td className={taikuClass}>{taiku + '/'}<span style={{fontSize: '80%'}}>{taikuString}</span></td>
-      <td className={soukouClass}>{soukou + '/'}<span style={{fontSize: '80%'}}>{soukouString}</span></td>
-      <td className={luckyClass}>{lucky + '/'}<span style={{fontSize: '80%'}}>{luckyString}</span></td>
-      <td className='center'>{this.props.shipInfo.kaihi}</td>
-      <td className='center'>{this.props.shipInfo.taisen}</td>
-      <td className='center'>{this.props.shipInfo.sakuteki}</td>
-      <td className='center' style={{backgroundColor: repairColor}}>
-        {
-          repairtime > 0 ?
-            <OverlayTrigger placement="top" overlay={<Tooltip id="repairtime1hp">{ "1HP : #{resolveTime (repairtime / losshp)}" }</Tooltip>}>
-              <span>{resolveTime(this.props.shipInfo.repairtime)}</span>
-            </OverlayTrigger>
-            : null 
-
-        }
-      </td>
-      <td><Slotitems slot={this.props.shipInfo.slot} exslot={this.props.shipInfo.exslot} /></td>
-      <td>{locked == 1 ? <FontAwesome name='lock' /> : ' '}</td>
-    </tr>
+          }
+        </td>
+        <td><Slotitems slot={ship.slot} exslot={ship.exslot} /></td>
+        <td>{ship.locked == 1 ? <FontAwesome name='lock' /> : ' '}</td>
+      </tr>
     )
   },
 })
@@ -210,94 +185,31 @@ const ShipInfoTableArea = React.createClass({
   },
   handleResponse: function(e){
     const {path, body} = e.detail
-    const {$shipTypes, $ships, _ships} = window
+    const {_ships} = window
     let {rows} = this.state
     let rowsUpdateFlag = false
+    const DataGenerator = new ShipDataGenerator(window.$ships,window.$shipTypes)
     switch (path){
-    case '/kcsapi/api_port/port',
-       '/kcsapi/api_req_kousyou/destroyship',
-       '/kcsapi/api_req_kaisou/powerup',
-       '/kcsapi/api_get_member/ship3',
-      '/kcsapi/api_get_member/unsetslot':{
+      case '/kcsapi/api_port/port':
+      case '/kcsapi/api_req_kousyou/destroyship':
+      case '/kcsapi/api_req_kaisou/powerup':
+      case '/kcsapi/api_get_member/ship3':
+      case '/kcsapi/api_get_member/unsetslot':{
         rowsUpdateFlag = true
         rows = []
         for (const ship of _ships){
-          const row ={
-            id: ship.api_id,
-            type_id: $ships[ship.api_ship_id].api_stype,
-            type: $shipTypes[$ships[ship.api_ship_id].api_stype].api_name,
-            name: $ships[ship.api_ship_id].api_name,
-            yomi: $ships[ship.api_ship_id].api_yomi,
-            sortno: $ships[ship.api_ship_id].api_sortno,
-            lv:  ship.api_lv,
-            cond: ship.api_cond,
-            karyoku: ship.api_karyoku,
-            houg: $ships[ship.api_ship_id].api_houg,
-            raisou: ship.api_raisou,
-            raig:  $ships[ship.api_ship_id].api_raig,
-            taiku: ship.api_taiku,
-            tyku:  $ships[ship.api_ship_id].api_tyku,
-            soukou: ship.api_soukou,
-            souk:  $ships[ship.api_ship_id].api_souk,
-            lucky: ship.api_lucky,
-            luck:  $ships[ship.api_ship_id].api_luck,
-            kyouka: ship.api_kyouka,
-            kaihi: ship.api_kaihi[0],
-            taisen: ship.api_taisen[0],
-            sakuteki: ship.api_sakuteki[0],
-            slot: _.clone(ship.api_slot),
-            exslot: ship.api_slot_ex,
-            locked: ship.api_locked,
-            nowhp: ship.api_nowhp,
-            maxhp: ship.api_maxhp,
-            losshp: ship.api_maxhp - ship.api_nowhp,
-            repairtime: parseInt (ship.api_ndock_time / 1000.0),
-            after: ship.api_aftershipid,
-            sallyArea: ship.api_sally_area,
-          }
-          rows.push(row)
+          if (typeof ship === "undefined")
+            continue
+          rows.push(DataGenerator.getData(ship))
         }
         break
       }
-    case '/kcsapi/api_req_kousyou/getship':{
-      rowsUpdateFlag = true
-      const ship = body.api_ship
-      const row ={
-        id: ship.api_id,
-        type_id: $ships[ship.api_ship_id].api_stype,
-        type: $shipTypes[$ships[ship.api_ship_id].api_stype].api_name,
-        name: $ships[ship.api_ship_id].api_name,
-        yomi: $ships[ship.api_ship_id].api_yomi,
-        sortno: $ships[ship.api_ship_id].api_sortno,
-        lv:  ship.api_lv,
-        cond: ship.api_cond,
-        karyoku: ship.api_karyoku,
-        houg: $ships[ship.api_ship_id].api_houg,
-        raisou: ship.api_raisou,
-        raig:  $ships[ship.api_ship_id].api_raig,
-        taiku: ship.api_taiku,
-        tyku:  $ships[ship.api_ship_id].api_tyku,
-        soukou: ship.api_soukou,
-        souk:  $ships[ship.api_ship_id].api_souk,
-        lucky: ship.api_lucky,
-        luck:  $ships[ship.api_ship_id].api_luck,
-        kyouka: ship.api_kyouka,
-        kaihi: ship.api_kaihi[0],
-        taisen: ship.api_taisen[0],
-        sakuteki: ship.api_sakuteki[0],
-        slot: _.clone(ship.api_slot),
-        exslot: ship.api_slot_ex,
-        locked: ship.api_locked,
-        nowhp: ship.api_nowhp,
-        maxhp: ship.api_maxhp,
-        losshp: ship.api_maxhp - ship.api_nowhp,
-        repairtime: parseInt (ship.api_ndock_time / 1000.0),
-        after: ship.api_aftershipid,
-        sallyArea: ship.api_sally_area,
+      case '/kcsapi/api_req_kousyou/getship':{
+        rowsUpdateFlag = true
+        const ship = body.api_ship
+        rows.push(DataGenerator.getData(ship))
+        break
       }
-      rows.push(row)
-      break
-    }
     }
     if (rowsUpdateFlag)
       if (this.state.dataVersion > 12450)
@@ -314,16 +226,16 @@ const ShipInfoTableArea = React.createClass({
         })
   },
   handleTypeFilter: function(type, shipTypes){
-    return shipTypes.indexof(type) !== -1
+    return shipTypes.indexOf(type) !== -1
   },
   handleLvFilter: function(lv){
     switch (this.props.lvRadio){
     case 0:
       return true
     case 1:
-      return lv == 1 
+      return lv == 1
     case 2:
-      return  lv >= 2 
+      return  lv >= 2
     }
   },
   handleLockedFilter: function(locked) {
@@ -341,24 +253,17 @@ const ShipInfoTableArea = React.createClass({
     case 0:
       return true
     case 1:
-      return expeditionShips.indexof(id) !== -1
+      return expeditionShips.indexOf(id) !== -1
     case 2:
-      return expeditionShips.indexof(id) === -1
+      return expeditionShips.indexOf(id) === -1
     }
   },
   handleModernizationFilter: function(ship){
-    const karyokuNow = ship.houg[0] + ship.kyouka[0]
-    const karyokuMax = ship.karyoku[1]
-    const raisouNow = ship.raig[0] + ship.kyouka[1]
-    const raisouMax = ship.raisou[1]
-    const taikuNow = ship.tyku[0] + ship.kyouka[2]
-    const taikuMax = ship.taiku[1]
-    const soukouNow = ship.souk[0] + ship.kyouka[3]
-    const soukouMax = ship.soukou[1]
-    const isCompleted = karyokuNow >= karyokuMax 
-                    && raisouNow >= raisouMax 
-                    && taikuNow >= taikuMax 
-                    && soukouNow >= soukouMax
+    const isCompleted = ship.karyoku_togo <= 0
+                    && ship.raisou_togo <= 0
+                    && ship.taiku_togo <= 0
+                    && ship.soukou_togo <= 0
+
     switch (this.props.modernizationRadio){
     case 0:
       return true
@@ -369,7 +274,7 @@ const ShipInfoTableArea = React.createClass({
     }
   },
   handleRemodelFilter: function(ship){
-    const remodelable = ship.after !== "0"
+    const remodelable = ship.after != "0"
     switch (this.props.remodelRadio){
     case 0:
       return true
@@ -378,7 +283,7 @@ const ShipInfoTableArea = React.createClass({
     case 2:
       return remodelable
     }
-  }, 
+  },
   handleSallyAreaFilter: function(sallyArea){
     return (typeof sallyArea !== "undefined" && sallyArea !== null) ? this.props.sallyAreaBoxes[sallyArea] : true
   },
@@ -410,65 +315,20 @@ const ShipInfoTableArea = React.createClass({
          this.handleModernizationFilter(row) &&
          this.handleRemodelFilter(row) &&
          this.handleSallyAreaFilter(row.sallyArea))
-
-        showRows.push(row)
+         showRows.push(row)
     //showRowsSort
     switch (this.props.sortName){
-    case 'name':
-      showRows = showRows.sort(nameCompare)
-      break
-    case 'karyoku':
-      showRows = _.sortBy(showRows, (row) => row.karyoku[0])
-      break
-    case 'raisou':
-      showRows = _.sortBy(showRows, (row) => row.raisou[0])
-      break
-    case 'taiku':
-      showRows = _.sortBy(showRows, (row) => row.taiku[0])
-      break
-    case 'soukou':
-      showRows = _.sortBy(showRows, (row) => row.soukou[0])
-      break
-    case 'lucky':
-      showRows = _.sortBy(showRows, (row) => row.lucky[0])
-      break
-    case 'lv':
-        // Sort rule of level in game (descending):
-        // 1. level (descending)
-        // 2. sortno (ascending)
-        // 3. id (descending)
-      showRows.sort ((a, b) =>{
-        if (a.lv != b.lv)
-          return a.lv - b.lv
-        if (a.sortno != b.sortno)
-          return -(a.sortno - b.sortno)
-        if (a.id != b.id)
-          return a.id - b.id
-        else
-          return 0
-      })
-      break
-    case 'type':
-        // Sort rule of type in game (descending):
-        // 1. ship_type_id (descending)
-        // 2. sortno (ascending)
-        // 3. level (descending)
-        // 4. id (descending)
-      showRows.sort ((a, b) =>{
-        if (a.type_id != b.type_id)
-          return a.type_id - b.type_id
-        if (a.sortno != b.sortno)
-          return -(a.sortno - b.sortno)
-        if (a.lv != b.lv)
-          return a.lv - b.lv
-        if (a.id != b.id)
-          return a.id - b.id
-        else
-          return 0
-      })
-      break
-    default:
-      showRows = _.sortBy (showRows, this.props.sortName)
+      case 'name':
+        showRows = showRows.sort(nameCompare)
+        break
+      case 'lv':
+        showRows = showRows.sort(lvCompare)
+        break
+      case 'type':
+        showRows = showRows.sort(typeCompare)
+        break
+      default:
+        showRows = _.sortBy (showRows, this.props.sortName)
     }
     if (!this.props.sortOrder)
       showRows.reverse()
