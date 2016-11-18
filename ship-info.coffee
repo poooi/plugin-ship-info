@@ -24,4 +24,10 @@ catch error
 
 document.title = __ 'Ship Girls Info'
 
+FontAwesome = if require('react-fontawesome')?.default? then require('react-fontawesome').default else require('react-fontawesome')
+
+window.FontAwesome = FontAwesome
+
+
 require './views'
+
