@@ -23,6 +23,7 @@ tagStyles = [
   'default',
   'primary',
   'success',
+  'warning'
   'info',
   'warning'
 ]
