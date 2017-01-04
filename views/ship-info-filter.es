@@ -122,7 +122,7 @@ class TypeCheck extends Component {
             <div>
               <Row>
                 <Col xs={2}>
-                  <Input type='checkbox' label={__('All')} onChange={this.handleCilckCheckboxAll} checked={this.state.checkedAll} />
+                  <Input type='checkbox' label={__('All')} onChange={this.handleClickCheckboxAll} checked={this.state.checkedAll} />
                 </Col>
               </Row>
               <Row>
