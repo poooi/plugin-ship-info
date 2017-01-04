@@ -19,12 +19,17 @@
     "url": "https://github.com/poooi/plugin-ship-info/issues"
   },
   "homepage": "https://github.com/poooi/plugin-ship-info#readme",
-  "dependencies": {
-  },
+  "dependencies": {},
   "poiPlugin": {
     "title": "Ship Girls Info",
     "description": "Show detailed information of all owned ship girls",
     "icon": "fa/ship",
     "priority": 50
+  },
+  "devDependencies": {
+    "babel-eslint": "^7.1.1",
+    "eslint": "^3.12.2",
+    "eslint-plugin-import": "^2.2.0",
+    "eslint-plugin-react": "^6.8.0"
   }
 }
