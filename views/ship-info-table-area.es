@@ -364,7 +364,7 @@ const ShipInfoTableArea = connect(
   handleShowRows = () => {
     const $shipTypes = getStore('const.$shipTypes') || {}
     const shipTypes = this.props.shipTypeBoxes.map( key => $shipTypes[key].api_name )
-    console.log(shipTypes)
+    // console.log(shipTypes)
 
     const decks = getStore('info.fleets') || []
     const expeditionShips = decks.reduce((ships, fleet) => {

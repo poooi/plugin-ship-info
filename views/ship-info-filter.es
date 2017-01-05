@@ -1,5 +1,6 @@
-import React, {Component} from 'react'
-import {Grid, Row, Col, Input, Button, ButtonGroup, Label} from 'react-bootstrap'
+import React, { Component } from 'react'
+import { Grid, Row, Col, Input, Button, ButtonGroup, Label } from 'react-bootstrap'
+import { connect } from 'react-redux'
 
 const __ = window.__
 
@@ -17,6 +18,81 @@ const typeMap = {
   'CV': [7, 11, 18],
   'SS': [13, 14],
 }
+
+const lvOptions = {
+  [0]: 'All',
+  [1]: 'Lv.1',
+  [2]: 'Above Lv.2',
+}
+
+const lockedOptions = {
+  [0]: 'All',
+  [1]: 'Locked',
+  [2]: 'Not Locked',
+}
+
+const expeditionOptions = {
+  [0]: 'All',
+  [1]: 'In Expedition',
+  [2]: 'Not In Expedition',  
+}
+
+const modernizationOptions = {
+  [0]: 'All',
+  [1]: 'Modernization Completed',
+  [2]: 'Modernization Incompleted',
+}
+
+const remodelOptions = {
+  [0]: 'All',
+  [1]: 'Not Remodelable',
+  [2]: 'Remodelable',
+}
+
+// single option check
+// props: 
+//  configKey@String, key for identify the component
+//  label@String, displayed label
+//  options@Array[Object{key@Number, label@String}], possible strings
+//  default@Number, default option, optional
+const RadioCheck = connect(
+  (state, props) => ({
+    currentRadio: config.get(`plugin.ShipInfo.${props.configKey}`, props.default || 0),
+  })
+)(class RadioCheck extends Component{
+
+  shouldComponentUpdate = (nextProps, nextState) => {
+    return this.props.currentRadio != nextProps.currentRadio
+  }
+
+  handleClickRadio = (index) => () => {
+    config.set (`plugin.ShipInfo.${this.props.configKey}`, index)
+  }
+
+  render() {
+    const {label, options, currentRadio} = this.props
+    console.log(label, options, currentRadio)
+    return(
+      <div>
+        <Row>
+          <Col xs={2} className='filter-span'><span>{__(label)}</span></Col>
+          {
+            Object.keys(options).map(key => 
+              <Col xs={2} key={key}>
+                <Input 
+                  type='radio' 
+                  label={__(options[key])} 
+                  onChange={this.handleClickRadio(parseInt(key))} 
+                  checked={(key == currentRadio)} 
+                />
+              </Col>
+            )
+          }
+        </Row>
+      </div>
+    )
+  }
+})
 
 class TypeCheck extends Component {
   constructor(props) {
@@ -389,11 +465,36 @@ export default class ShipInfoFilter extends Component {
         {
           showDetails &&
             <div>
-              <LvCheck keyRadio={this.props.lvRadio} filterRules={this.props.lvFilterRules} />
-              <LockedCheck keyRadio={this.props.lockedRadio} filterRules={this.props.lockedFilterRules} />
-              <ExpeditionCheck keyRadio={this.props.expeditionRadio} filterRules={this.props.expeditionFilterRules} />
-              <ModernizationCheck keyRadio={this.props.modernizationRadio} filterRules={this.props.modernizationFilterRules} />
-              <RemodelCheck keyRadio={this.props.remodelRadio} filterRules={this.props.remodelFilterRules} />
+              <RadioCheck 
+                configKey='lvRadio'
+                label='Level Setting'
+                options={lvOptions}
+                default={2}
+              />
+              <RadioCheck 
+                configKey='lockedRadio'
+                label='Lock Setting'
+                options={lockedOptions}
+                default={1}
+              />
+              <RadioCheck 
+                configKey='expeditionRadio'
+                label='Expedition Setting'
+                options={expeditionOptions}
+                default={0}
+              />
+              <RadioCheck 
+                configKey='modernizationRadio'
+                label='Modernization Setting'
+                options={modernizationOptions}
+                default={0}
+              />
+              <RadioCheck 
+                configKey='remodelRadio'
+                label='Remodel Setting'
+                options={remodelOptions}
+                default={0}
+              />
               <SallyAreaCheck sallyTags={this.props.sallyTags} tagStyles={this.props.tagStyles}
                 filterRules={this.props.sallyAreaFilterRules} sallyAreaBoxes={this.props.sallyAreaBoxes} 
               />
