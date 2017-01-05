@@ -152,24 +152,24 @@ class ShipInfoTable extends Component {
     let luckyString = '+' + luckyToInc
 
     if (karyokuNow >= karyokuMax) {
-      let karyokuClass = 'td-karyoku-max'
-      let karyokuString = 'MAX'
+      karyokuClass = 'td-karyoku-max'
+      karyokuString = 'MAX'
     }
     if (raisouNow >= raisouMax) {
-      let raisouClass = 'td-raisou-max'
-      let raisouString = 'MAX'
+      raisouClass = 'td-raisou-max'
+      raisouString = 'MAX'
     }
     if (taikuNow >= taikuMax) {
-      let taikuClass = 'td-taiku-max'
-      let taikuString = 'MAX'
+      taikuClass = 'td-taiku-max'
+      taikuString = 'MAX'
     }
     if (soukouNow >= soukouMax) {
-      let soukouClass = 'td-soukou-max'
-      let soukouString = 'MAX'
+      soukouClass = 'td-soukou-max'
+      soukouString = 'MAX'
     }
     if (luckyNow >= luckyMax) {
-      let luckyClass = 'td-lucky-max'
-      let luckyString = 'MAX'
+      luckyClass = 'td-lucky-max'
+      luckyString = 'MAX'
     }
 
     let repairColor
