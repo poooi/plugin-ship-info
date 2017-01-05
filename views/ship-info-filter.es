@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import { Grid, Row, Col, Input, Button, ButtonGroup, Label } from 'react-bootstrap'
 import { connect } from 'react-redux'
-import { get, isEqual } from 'lodash'
+import { get, isEqual, difference } from 'lodash'
 
 const __ = window.__
 
@@ -11,13 +11,20 @@ const shipTypes = ['', '海防艦', '駆逐艦', '軽巡洋艦',
   '潜水空母', '補給艦', '水上機母艦', '揚陸艦', '装甲空母', 
   '工作艦', '潜水母艦', '練習巡洋艦']
 
+// ship types dated 20170106, beginning with id=1
+// const shipTypes = ["海防艦", "駆逐艦", "軽巡洋艦", "重雷装巡洋艦", 
+// "重巡洋艦", "航空巡洋艦", "軽空母", "戦艦", "戦艦", "航空戦艦", "正規空母", 
+// "超弩級戦艦", "潜水艦", "潜水空母", "補給艦", "水上機母艦", "揚陸艦", "装甲空母", 
+// "工作艦", "潜水母艦", "練習巡洋艦", "補給艦"]
+// attention, typeMap uses api_id
 const typeMap = {
-  'DD': [2],
-  'CL': [3, 4, 21],
-  'CA': [5, 6],
-  'BB': [8, 10, 12],
-  'CV': [7, 11, 18],
-  'SS': [13, 14],
+  DD: [2],
+  CL: [3, 4, 21],
+  CA: [5, 6],
+  BB: [8, 10, 12],
+  CV: [7, 11, 18],
+  SS: [13, 14],
+  others: [1, 9, 15, 16, 17, 19, 20, 22],
 }
 
 const lvOptions = {
@@ -95,7 +102,32 @@ const RadioCheck = connect(
   }
 })
 
-class TypeCheck extends Component {
+// new ship type check is based on preset ship type collections as in typeMap
+// to ensure a downgrade compatibility, another cofig key is used
+const TypeCheck = connect(
+  (state, props) => {
+    const $shipTypes = get(state, 'const.$shipTypes', {})
+    const shipTypeIds = Object.keys($shipTypes).map(key => $shipTypes[key].api_id)
+    let othersId = shipTypeIds.slice()
+    Object.keys(typeMap).forEach(type => 
+      othersId = difference(othersId, typeMap[type])
+    )
+    const types = {
+      ...typeMap,
+      others: othersId,
+    }
+    const defaultBoxes = shipTypeIds.slice()
+
+    const boxes = JSON.parse(config.get("plugin.ShipInfo.shipTypeChecked", JSON.stringify(defaultBoxes)))
+    const checkedAll = isEqual(boxes, defaultBoxes)
+
+    return({
+      types,
+      boxes,
+      checkedAll,
+    })
+  }
+)(class TypeCheck extends Component {
   constructor(props) {
     super(props)
     const {shipTypeBoxes} = props
@@ -186,6 +218,7 @@ class TypeCheck extends Component {
 
   render(){
     const {buttonsOnly} = this.props
+    console.log(this.props.types)
     return(
       <div>
         {
@@ -238,7 +271,7 @@ class TypeCheck extends Component {
     )
 
   }
-}
+})
 
 const SallyAreaCheck = connect(
   (state, props) => {
