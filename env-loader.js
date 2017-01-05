@@ -11,3 +11,4 @@ window.SERVER_HOSTNAME = remote.getGlobal('SERVER_HOSTNAME');
 window.MODULE_PATH = remote.getGlobal('MODULE_PATH');
 
 require('module').globalPaths.push(MODULE_PATH);
+require('module').globalPaths.push(window.ROOT)
