@@ -95,7 +95,7 @@ const TypeCheck = connect(
     const {checked, checkedAll} = this.props
     const xs = Math.floor(24 / (1 + shipTypeMap.length))
     return(
-      <div>
+      <div className='filter-type'>
         <Row>
           <Col xs={2} className='filter-span'><span>{__('Ship Type Setting')}</span></Col>
           <Col xs={10}>
