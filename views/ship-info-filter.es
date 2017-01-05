@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import { Grid, Row, Col, Input, Button, ButtonGroup, Label } from 'react-bootstrap'
 import { connect } from 'react-redux'
-import { get } from 'lodash'
+import { get, isEqual } from 'lodash'
 
 const __ = window.__
 
@@ -258,6 +258,11 @@ const SallyAreaCheck = connect(
   }
 )(class SallyAreaCheck extends Component {
 
+  shouldComponentUpdate = (nextProps, nextState) => {
+    return nextProps.mapname.length != this.props.mapname.length ||
+      !isEqual(nextProps.checked, this.props.checked)
+  }
+
   handleClickBox = (index) => () => {
     let checked = this.props.checked.slice()
     let {checkedAll} = this.props
@@ -276,7 +281,7 @@ const SallyAreaCheck = connect(
   render(){
     const {mapname, color, checked, checkedAll} = this.props
     const xs = Math.floor(12 / (1 + mapname.length))
-    // console.log(mapname, color, checked, checkedAll)
+    console.log(mapname, color, checked, checkedAll)
     return(
       <div>
         <Row>
