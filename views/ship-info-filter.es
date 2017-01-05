@@ -63,18 +63,6 @@ const RadioCheck = connect(
 // to ensure a downgrade compatibility, another cofig key is used
 const TypeCheck = connect(
   (state, props) => {
-    // const $shipTypes = get(state, 'const.$shipTypes', {})
-    // const shipTypeIds = Object.keys($shipTypes).map(key => $shipTypes[key].api_id)
-    // let othersId = shipTypeIds.slice()
-    // Object.keys(typeMap).forEach(type => 
-    //   othersId = difference(othersId, typeMap[type])
-    // )
-    // const types = {
-    //   ...typeMap,
-    //   others: othersId,
-    // }
-    // const defaultBoxes = shipTypeIds.slice()
-
     const defaultChecked = shipTypeMap.slice().fill(true)
 
     let checked = config.get("plugin.ShipInfo.shipTypeChecked", defaultChecked)
@@ -87,19 +75,6 @@ const TypeCheck = connect(
     })
   }
 )(class TypeCheck extends Component {
-  constructor(props) {
-    super(props)
-    const {shipTypeBoxes} = props
-    const checked = shipTypes.slice().fill(false)
-    shipTypeBoxes.map((v, i) => checked[v] = true)
-
-    const checkedAll = config.get("plugin.ShipInfo.shipCheckedAll", true)
-
-    this.state = {
-      checked,
-      checkedAll,
-    }
-  }
 
   handleClickBox = (index) => () => {
     let checked = this.props.checked.slice()
@@ -116,129 +91,34 @@ const TypeCheck = connect(
     config.set ("plugin.ShipInfo.shipTypeChecked", checked)
   }
 
-  handleClickCheckbox = (index) => () => {
-    const checkboxes = []
-    const checked = this.state.checked.slice()
-    const checkedAll = false
-
-    checked[index] = !checked[index]
-    shipTypes.map((type, i) => {if(checked[i]) checkboxes.push[i]} )
-
-    config.set("plugin.ShipInfo.shipCheckedAll", checkedAll)
-    this.setState({
-      checked,
-      checkedAll,
-    })
-    this.props.filterRules('type', checkboxes)
-  }
-
-  handleClickCheckboxAll = () => {
-    const checkboxes = []
-    let checked = this.state.checked.slice()
-    let {checkedAll} = this.state
-
-    if(checkedAll) {
-      checked = shipTypes.slice().fill(false)
-      checkedAll = false
-    } else {
-      shipTypes.map((type, i) => {
-        if(i != 0 && i != 9) {
-          checked[i] = true
-          checkboxes.push(i)
-        }
-      })
-      checkedAll = true
-    }
-
-    config.set("plugin.ShipInfo.shipCheckedAll", checkedAll)
-    this.setState({
-      checked,
-      checkedAll,
-    })
-    this.props.filterRules('type', checkboxes)
-  }
-
-  handleClickFilterButton = (type) => () => {
-    const checkboxes = []
-    const checked = shipTypes.slice().fill(false)
-    let checkedAll = false
-    let types = []
-
-    switch(type) {
-    case 'ALL':
-      shipTypes.map((type, i) => {
-        if(i != 0 && i != 9) {
-          checked[i] = true
-          checkboxes.push(i)
-        }
-      })
-      checkedAll = true
-      break
-    default:
-      types = typeMap[type] || []
-      types.map(v => {
-        checked[v] = true
-        checkboxes.push(v)
-      })
-    }
-
-    config.set("plugin.ShipInfo.shipCheckedAll", checkedAll)
-    this.setState({
-      checked,
-      checkedAll,
-    })
-    this.props.filterRules('type', checkboxes)
-  }
-
   render(){
-    const {buttonsOnly} = this.props
-    console.log(this.props.types)
+    const {checked, checkedAll} = this.props
+    const xs = Math.floor(24 / (1 + shipTypeMap.length))
     return(
       <div>
-        {
-          buttonsOnly ?
-            <Row>
-              <Col xs={12}>
-                <Button className="filter-button-all" bsStyle='default' bsSize='small' onClick={this.handleClickFilterButton('ALL')} block>{__ ('All')}</Button>
-              </Col>
-            </Row>
-          :
-            <div>
-              <Row>
-                <Col xs={2}>
-                  <Input type='checkbox' label={__('All')} onChange={this.handleClickCheckboxAll} checked={this.state.checkedAll} />
-                </Col>
-              </Row>
-              <Row>
-                {
-                  shipTypes.map((shipType, index) => {
-                    index >= 1 && shipType != shipTypes[index - 1] &&
-                    <Col key={index} xs={2}>
-                      <Input type='checkbox' label={shipType} key={index} value={index} onChange={this.handleClickCheckbox(index)} checked={this.state.checked[index]} />
-                    </Col>
-                  })
-                }
-              </Row>
-            </div>
-        }
         <Row>
-          <Col xs={2}>
-            <Button className="filter-button" bsStyle='default' bsSize='small' onClick={this.handleClickFilterButton('DD')} block>{__ ('FilterDD')}</Button>
-          </Col>
-          <Col xs={2}>
-            <Button className="filter-button" bsStyle='default' bsSize='small' onClick={this.handleClickFilterButton('CL')} block>{__ ('FilterCL')}</Button>
-          </Col>
-          <Col xs={2}>
-            <Button className="filter-button" bsStyle='default' bsSize='small' onClick={this.handleClickFilterButton('CA')} block>{__('FilterCA')}</Button>
-          </Col>
-          <Col xs={2}>
-            <Button className="filter-button" bsStyle='default' bsSize='small' onClick={this.handleClickFilterButton('BB')} block>{__('FilterBB')}</Button>
-          </Col>
-          <Col xs={2}>
-            <Button className="filter-button" bsStyle='default' bsSize='small' onClick={this.handleClickFilterButton('CV')} block>{__('FilterCV')}</Button>
-          </Col>
-          <Col xs={2}>
-            <Button className="filter-button" bsStyle='default' bsSize='small' onClick={this.handleClickFilterButton('SS')} block>{__('FilterSS')}</Button>
+          <Col xs={2} className='filter-span'><span>{__('Ship Type Setting')}</span></Col>
+          <Col xs={10}>
+            <Col xs={xs} className='filter-span'>
+              <Input type='checkbox' 
+                label={__ ('All')} 
+                onChange={this.handleClickBox(-1)} 
+                checked={checkedAll}
+              />
+            </Col>
+            <Col xs={12-xs}>
+            {
+              shipTypeMap.map((type, idx) =>
+                <Col xs={xs} key={idx}>
+                  <Input type='checkbox' 
+                    label={__(`Filter${type.name}`)} 
+                    onChange={this.handleClickBox(idx)} 
+                    checked={checked[idx]} 
+                  />                
+                </Col>
+              )
+            }
+            </Col>
           </Col>
         </Row>
       </div>
@@ -326,7 +206,7 @@ export default class ShipInfoFilter extends Component {
     const {showDetails} = this.props
     return(
       <Grid>
-        <TypeCheck shipTypeBoxes={this.props.shipTypeBoxes} filterRules={this.props.typeFilterRules} buttonsOnly={!this.props.showDetails} />
+        <TypeCheck />
         {
           showDetails &&
             <div>
