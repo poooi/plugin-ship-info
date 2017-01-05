@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import { Grid, Row, Col, Input, Button, ButtonGroup, Label } from 'react-bootstrap'
 import { connect } from 'react-redux'
+import { get } from 'lodash'
 
 const __ = window.__
 
@@ -239,169 +240,11 @@ class TypeCheck extends Component {
   }
 }
 
-// TODO: merge all raido checkbox into one component to avoid code duplication
+const SallyAreaCheck = connect(
+  (state, props) => ({
 
-class LvCheck extends Component {
-  constructor(){
-    super()
-    this.state = {
-      checked : [false, false, true],
-    }
-  }
-
-  handleClickRadio = (index) => () => {
-    this.props.filterRules('lv', index)
-  }
-
-  render() {
-    return(
-      <div>
-        <Row>
-          <Col xs={2} className='filter-span'><span>{__ ('Level Setting')}</span></Col>
-          <Col xs={2}>
-            <Input type='radio' label={__('All')} onChange={this.handleClickRadio(0)} checked={(this.props.keyRadio == 0)} />
-          </Col>
-          <Col xs={2}>
-            <Input type='radio' label={__('Lv.1')} onChange={this.handleClickRadio(1)} checked={(this.props.keyRadio == 1)} />
-          </Col>
-          <Col xs={2}>
-            <Input type='radio' label={__('Above Lv.2')} onChange={this.handleClickRadio(2)} checked={(this.props.keyRadio == 2)} />
-          </Col>
-        </Row>
-      </div>
-    )
-  }
-}
-
-class LockedCheck extends Component {
-  constructor(){
-    super()
-    this.state = {
-      checked : [false, true, false],
-    }
-  }
-
-  handleClickRadio = (index) => () => {
-    this.props.filterRules('locked', index)
-  }
-
-  render(){
-    return(
-      <div>
-        <Row>
-          <Col xs={2}  className='filter-span'><span>{__('Lock Setting')}</span></Col>
-          <Col xs={2}>
-            <Input type='radio' label={__('All')} onChange={this.handleClickRadio(0)} checked={(this.props.keyRadio == 0)} />
-          </Col>
-          <Col xs={2}>
-            <Input type='radio' label={__('Locked')} onChange={this.handleClickRadio(1)} checked={(this.props.keyRadio == 1)} />
-          </Col>
-          <Col xs={2}>
-            <Input type='radio' label={__('Not Locked')} onChange={this.handleClickRadio(2)} checked={(this.props.keyRadio == 2)} />
-          </Col>
-        </Row>
-      </div>
-    )
-  }
-}
-
-class ExpeditionCheck extends Component {
-  constructor(){
-    super()
-    this.state = {
-      checked : [true, false, false],
-    }
-  }
-
-  handleClickRadio = (index) => () => {
-    this.props.filterRules('expedition', index)
-  }
-
-  render(){
-    return(
-      <div>
-        <Row>
-          <Col xs={2} className='filter-span'><span>{__ ('Expedition Setting')}</span></Col>
-          <Col xs={2}>
-            <Input type='radio' label={__('All')} onChange={this.handleClickRadio(0)} checked={(this.props.keyRadio == 0)} />
-          </Col>
-          <Col xs={2}>
-            <Input type='radio' label={__('In Expedition')} onChange={this.handleClickRadio(1)} checked={(this.props.keyRadio == 1)} />
-          </Col>
-          <Col xs={2}>
-            <Input type='radio' label={__('Not In Expedition')} onChange={this.handleClickRadio(2)} checked={(this.props.keyRadio == 2)} />
-          </Col>
-        </Row>
-      </div>
-    )
-  }
-}
-
-class ModernizationCheck extends Component {
-  constructor(){
-    super()
-    this.state = {
-      checked : [true, false, false],
-    }
-  }
-
-  handleClickRadio = (index) => () => {
-    this.props.filterRules('modernization', index)
-  }
-
-  render(){
-    return(
-      <div>
-        <Row>
-          <Col xs={2} className='filter-span'><span>{__('Modernization Setting')}</span></Col>
-          <Col xs={2}>
-            <Input type='radio' label={__('All')} onChange={this.handleClickRadio(0)} checked={(this.props.keyRadio == 0)} />
-          </Col>
-          <Col xs={2}>
-            <Input type='radio' label={__('Modernization Completed')} onChange={this.handleClickRadio(1)} checked={(this.props.keyRadio == 1)} />
-          </Col>
-          <Col xs={2}>
-            <Input type='radio' label={__('Modernization Incompleted')} onChange={this.handleClickRadio(2)} checked={(this.props.keyRadio == 2)} />
-          </Col>
-        </Row>
-      </div>
-    )
-  }
-}
-
-class RemodelCheck extends Component {
-  constructor(){
-    super()
-    this.state = {
-      checked : [true, false, false],
-    }
-  }
-
-  handleClickRadio = (index) => () => {
-    this.props.filterRules('remodel', index)
-  }
-
-  render(){
-    return(
-      <div>
-        <Row>
-          <Col xs={2} className='filter-span'><span>{__('Remodel Setting')}</span></Col>
-          <Col xs={2}>
-            <Input type='radio' label={__('All')} onChange={this.handleClickRadio(0)} checked={(this.props.keyRadio == 0)} />
-          </Col>
-          <Col xs={2}>
-            <Input type='radio' label={__('Not Remodelable')} onChange={this.handleClickRadio(1)} checked={(this.props.keyRadio == 1)} />
-          </Col>
-          <Col xs={2}>
-            <Input type='radio' label={__('Remodelable')} onChange={this.handleClickRadio(2)} checked={(this.props.keyRadio == 2)} />
-          </Col>
-        </Row>
-      </div>
-    )
-  }
-}
-
-class SallyAreaCheck extends Component {
+  })
+)(class SallyAreaCheck extends Component {
   constructor(props) {
     super(props)
     const {sallyAreaBoxes} = props
@@ -453,7 +296,7 @@ class SallyAreaCheck extends Component {
       </div>
     )
   }
-}
+})
 
 
 export default class ShipInfoFilter extends Component {
