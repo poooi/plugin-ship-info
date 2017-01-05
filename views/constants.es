@@ -14,6 +14,37 @@ export const typeMap = {
   others: [1, 9, 15, 16, 17, 19, 20, 22],
 }
 
+export const shipTypeMap = [
+  {
+    "name": "DD",
+    "id": [2],
+  },
+  {
+    "name": "CL",
+    "id": [3, 4, 21],
+  },
+  {
+    "name": "CA",
+    "id": [5, 6],
+  },
+  {
+    "name": "BB",
+    "id": [8, 10, 12],
+  },
+  {
+    "name": "CV",
+    "id": [7, 11, 18],
+  },
+  {
+    "name": "SS",
+    "id": [13, 14],
+  },
+  {
+    "name": "others",
+    "id": [1, 9, 15, 16, 17, 19, 20, 22],
+  },
+]
+
 export const lvOptions = {
   [0]: 'All',
   [1]: 'Lv.1',

@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import { Grid, Row, Col, Input, Button, ButtonGroup, Label } from 'react-bootstrap'
 import { connect } from 'react-redux'
 import { get, isEqual, difference } from 'lodash'
-import { typeMap, 
+import { typeMap, shipTypeMap,
   lvOptions, lockedOptions, expeditionOptions, modernizationOptions, remodelOptions } from './constants'
 
 const __ = window.__
@@ -63,24 +63,26 @@ const RadioCheck = connect(
 // to ensure a downgrade compatibility, another cofig key is used
 const TypeCheck = connect(
   (state, props) => {
-    const $shipTypes = get(state, 'const.$shipTypes', {})
-    const shipTypeIds = Object.keys($shipTypes).map(key => $shipTypes[key].api_id)
-    let othersId = shipTypeIds.slice()
-    Object.keys(typeMap).forEach(type => 
-      othersId = difference(othersId, typeMap[type])
-    )
-    const types = {
-      ...typeMap,
-      others: othersId,
-    }
-    const defaultBoxes = shipTypeIds.slice()
+    // const $shipTypes = get(state, 'const.$shipTypes', {})
+    // const shipTypeIds = Object.keys($shipTypes).map(key => $shipTypes[key].api_id)
+    // let othersId = shipTypeIds.slice()
+    // Object.keys(typeMap).forEach(type => 
+    //   othersId = difference(othersId, typeMap[type])
+    // )
+    // const types = {
+    //   ...typeMap,
+    //   others: othersId,
+    // }
+    // const defaultBoxes = shipTypeIds.slice()
 
-    const boxes = JSON.parse(config.get("plugin.ShipInfo.shipTypeChecked", JSON.stringify(defaultBoxes)))
-    const checkedAll = isEqual(boxes, defaultBoxes)
+    const defaultChecked = shipTypeMap.slice().fill(true)
+
+    let checked = config.get("plugin.ShipInfo.shipTypeChecked", defaultChecked)
+    checked = defaultChecked.length == checked.length ? checked : defaultChecked
+    const checkedAll = checked.reduce((a, b) => a && b)
 
     return({
-      types,
-      boxes,
+      checked,
       checkedAll,
     })
   }
@@ -97,6 +99,21 @@ const TypeCheck = connect(
       checked,
       checkedAll,
     }
+  }
+
+  handleClickBox = (index) => () => {
+    let checked = this.props.checked.slice()
+    let {checkedAll, typeIndex} = this.props
+
+    if (index == -1) {
+      checkedAll = !checkedAll
+      checked.fill(checkedAll)
+    } else {
+      checked[index] = !checked[index]
+      checkedAll = checked.reduce((a, b) => a && b)
+    }
+
+    config.set ("plugin.ShipInfo.shipTypeChecked", checked)
   }
 
   handleClickCheckbox = (index) => () => {
