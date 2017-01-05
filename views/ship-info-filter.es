@@ -241,22 +241,26 @@ class TypeCheck extends Component {
 }
 
 const SallyAreaCheck = connect(
-  (state, props) => ({
+  (state, props) => {
+    const mapname = get(state, 'fcd.shiptag.mapname', [])
+    const defaultChecked = mapname.slice().fill(true)
+    let checked = JSON.parse(config.get("plugin.ShipInfo.sallyAreaBoxes", JSON.stringify(defaultChecked)))
 
-  })
-)(class SallyAreaCheck extends Component {
-  constructor(props) {
-    super(props)
-    const {sallyAreaBoxes} = props
-    this.state = {
-      checked: sallyAreaBoxes,
-      checkedAll: sallyAreaBoxes.reduce((a, b) => a && b),
-    }
+    checked = mapname.length == checked.length ? checked : defaultChecked
+    const checkedAll = checked.reduce((a, b) => a && b)
+
+    return({
+      mapname,
+      color: get(state, 'fcd.shiptag.color', []),
+      checked,
+      checkedAll,
+    })
   }
+)(class SallyAreaCheck extends Component {
 
   handleClickBox = (index) => () => {
-    let checked = this.state.checked.slice()
-    let {checkedAll} = this.state
+    let checked = this.props.checked.slice()
+    let {checkedAll} = this.props
 
     if (index == -1) {
       checkedAll = !checkedAll
@@ -266,28 +270,34 @@ const SallyAreaCheck = connect(
       checkedAll = checked.reduce((a, b) => a && b)
     }
 
-    this.props.filterRules('sallyArea', checked)
-    this.setState({
-      checked,
-      checkedAll,
-    })
+    config.set ("plugin.ShipInfo.sallyAreaBoxes", JSON.stringify(checked))
   }
 
   render(){
-    const {sallyTags} = this.props
-    const xs = Math.floor(12 / (1 + sallyTags.length))
+    const {mapname, color, checked, checkedAll} = this.props
+    const xs = Math.floor(12 / (1 + mapname.length))
+    // console.log(mapname, color, checked, checkedAll)
     return(
       <div>
         <Row>
           <Col xs={2} className='filter-span'><span>{__('Sally Area Setting')}</span></Col>
           <Col xs={10}>
             <Col xs={xs}>
-              <Input type='checkbox' label={__ ('All')} onChange={this.handleClickBox(-1)} checked={this.state.checkedAll} />
+              <Input type='checkbox' 
+                label={__ ('All')} 
+                onChange={this.handleClickBox(-1)} 
+                checked={checkedAll}
+              />
             </Col>
             {
-              sallyTags.map((tag, idx) =>
+              mapname.map((name, idx) =>
                 <Col xs={xs} key={idx}>
-                  <Input type='checkbox' label={__(tag)} onChange={this.handleClickBox(idx)} checked={this.state.checked[idx]} />                
+                  <Input type='checkbox' 
+                    label={__(name)} 
+                    onChange={this.handleClickBox(idx)} 
+                    checked={checked[idx]} 
+                    style={{color: color[idx] || ''}}
+                  />                
                 </Col>
               )
             }
@@ -338,9 +348,7 @@ export default class ShipInfoFilter extends Component {
                 options={remodelOptions}
                 default={0}
               />
-              <SallyAreaCheck sallyTags={this.props.sallyTags} tagStyles={this.props.tagStyles}
-                filterRules={this.props.sallyAreaFilterRules} sallyAreaBoxes={this.props.sallyAreaBoxes} 
-              />
+              <SallyAreaCheck />
             </div>
         }
       </Grid>      
