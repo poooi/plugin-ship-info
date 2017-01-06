@@ -171,3 +171,8 @@ img.svg {
 th {
   height: 3em;
 }
+
+.info-tooltip .tooltip-inner{
+  max-width: initial;
+  width: fit-content;
+}
