@@ -6,6 +6,7 @@ import FontAwesome from 'react-fontawesome'
 import { isEqual, clone, sortBy, get } from 'lodash'
 import { connect } from 'react-redux'
 import classNames from 'classnames'
+import memoize from 'fast-memoize'
 
 import Divider from './divider'
 import { shipTypeMap } from './constants'
@@ -321,12 +322,12 @@ const ShipInfoTableArea = connect(
     })
   }
 )(class ShipInfoTableArea extends Component{
-  handleTypeFilter = (type_id, shipTypes) => {
+  handleTypeFilter = memoize((type_id, shipTypes) => {
     return shipTypes.includes(type_id)
-  }
+  })
 
-  handleLvFilter = (lv) => {
-    switch(this.props.lvRadio){
+  handleLvFilter = memoize((lv, lvRadio) => {
+    switch(lvRadio){
     case 0:
       return true
     case 1:
@@ -334,10 +335,10 @@ const ShipInfoTableArea = connect(
     case 2:
       return lv >= 2
     }
-  }
+  })
 
-  handleLockedFilter = (locked) => {
-    switch(this.props.lockedRadio){
+  handleLockedFilter = memoize((locked, lockedRadio) => {
+    switch(lockedRadio){
     case 0:
       return true
     case 1:
@@ -345,10 +346,10 @@ const ShipInfoTableArea = connect(
     case 2:
       return locked == 0
     }
-  }
+  })
 
-  handleExpeditionFilter = (id, expeditionShips = []) => {
-    switch(this.props.expeditionRadio){
+  handleExpeditionFilter = memoize((id, expeditionShips = [], expeditionRadio) => {
+    switch(expeditionRadio){
     case 0:
       return true
     case 1:
@@ -356,9 +357,9 @@ const ShipInfoTableArea = connect(
     case 2:
       return !expeditionShips.includes(id)
     }
-  }
+  })
 
-  handleModernizationFilter = (ship) => {
+  handleModernizationFilter = memoize((ship, modernizationRadio) => {
     let karyokuNow = ship.houg[0] + ship.kyouka[0]
     let karyokuMax = ship.karyoku[1]
     let raisouNow = ship.raig[0] + ship.kyouka[1]
@@ -371,7 +372,7 @@ const ShipInfoTableArea = connect(
                   raisouNow >= raisouMax &&
                   taikuNow >= taikuMax &&
                   soukouNow >= soukouMax
-    switch(this.props.modernizationRadio){
+    switch(modernizationRadio){
     case 0:
       return true
     case 1:
@@ -379,11 +380,11 @@ const ShipInfoTableArea = connect(
     case 2:
       return !isCompleted
     }
-  }
+  })
 
-  handleRemodelFilter = (ship) => {
-    const remodelable = ship.after != '0'
-    switch (this.props.remodelRadio) {
+  handleRemodelFilter = memoize((after, remodelRadio) => {
+    const remodelable = after != '0'
+    switch (remodelRadio) {
     case 0:
       return true
     case 1:
@@ -391,27 +392,27 @@ const ShipInfoTableArea = connect(
     case 2:
       return !remodelable  
     }
-  }
+  })
 
-  handleSallyAreaFilter = (sallyArea) => {
-    return sallyArea ? this.props.sallyAreaChecked[sallyArea] : true
-  }
+  handleSallyAreaFilter = memoize((sallyArea, sallyAreaChecked = []) => {
+    return sallyArea ? sallyAreaChecked[sallyArea] : true
+  })
 
   handleShowRows = () => {
     const {remodelRadio, lvRadio, lockedRadio, expeditionRadio, modernizationRadio, 
-      shipTypes, expeditionShips} = this.props
-    console.log(remodelRadio, lvRadio, lockedRadio, expeditionRadio, modernizationRadio, shipTypes, expeditionShips)
+      shipTypes, expeditionShips, sallyAreaChecked} = this.props
+    // console.log(remodelRadio, lvRadio, lockedRadio, expeditionRadio, modernizationRadio, shipTypes, expeditionShips)
     
 
     const {rows} = this.props || []
     let showRows = rows.filter( row => 
       this.handleTypeFilter(row.type_id, shipTypes) &&
-      this.handleLvFilter(row.lv) &&
-      this.handleLockedFilter(row.locked) &&
-      this.handleExpeditionFilter(row.id, expeditionShips) &&
-      this.handleModernizationFilter(row) &&
-      this.handleRemodelFilter(row) && 
-      this.handleSallyAreaFilter(row.sallyArea)  
+      this.handleLvFilter(row.lv, lvRadio) &&
+      this.handleLockedFilter(row.locked, lockedRadio) &&
+      this.handleExpeditionFilter(row.id, expeditionShips, expeditionRadio) &&
+      this.handleModernizationFilter(row, modernizationRadio) &&
+      this.handleRemodelFilter(row.after, remodelRadio) && 
+      this.handleSallyAreaFilter(row.sallyArea, sallyAreaChecked)  
     )
 
     // sort
