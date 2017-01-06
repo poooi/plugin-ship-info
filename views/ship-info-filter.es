@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
-import { Grid, Row, Col, Input, Button, ButtonGroup, Label } from 'react-bootstrap'
+import { Grid, Row, Col, Input, Label } from 'react-bootstrap'
 import { connect } from 'react-redux'
-import { get, isEqual, difference } from 'lodash'
+import { get, isEqual } from 'lodash'
 import { shipTypeMap,
   lvOptions, lockedOptions, expeditionOptions, modernizationOptions, remodelOptions } from './constants'
 
@@ -100,7 +100,7 @@ const TypeCheck = connect(
               />
             </Col>
             <Col xs={12-xs}>
-            {
+              {
               shipTypeMap.map((type, idx) =>
                 <Col xs={xs} key={idx}>
                   <Input type='checkbox' 
@@ -177,12 +177,13 @@ const SallyAreaCheck = connect(
             {
               mapname.map((name, idx) =>
                 <Col xs={xs} key={idx}>
+                
                   <Input type='checkbox' 
-                    label={__(name)} 
+                    label={<Label style={{color: color[idx]}}>{__(name)}</Label> } 
                     onChange={this.handleClickBox(idx)} 
                     checked={checked[idx]} 
                     style={{color: color[idx] || ''}}
-                  />                
+                  />                                 
                 </Col>
               )
             }
