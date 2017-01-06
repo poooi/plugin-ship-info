@@ -1,12 +1,15 @@
-import React, {Component} from 'react'
+import React, { Component } from 'react'
 import { Panel, Table, Grid, Col, OverlayTrigger, Tooltip, Label } from 'react-bootstrap'
 import Path from 'path'
 import { SlotitemIcon } from 'views/components/etc/icon'
 import FontAwesome from 'react-fontawesome'
-import {isEqual, clone, sortBy} from 'lodash'
-import {connect} from 'react-redux'
+import { isEqual, clone, sortBy, get } from 'lodash'
+import { connect } from 'react-redux'
 
 import Divider from './divider'
+import { shipTypeMap } from './constants'
+
+const { ROOT, __, resolveTime, getStore } = window
 
 const collator = new Intl.Collator()
 const jpCollator = new Intl.Collator("ja-JP")
@@ -62,50 +65,55 @@ const Slotitems = (props) => {
   )
 }
 
-const SallyArea = (props) => {
-  const {label, sallyTags, tagStyles} = props
-  if(!label || label == 0) {
-    return <Label className="status-label text-default" style={{opacity: 0}}></Label>
-  } else if (label < sallyTags.length - 1) {
+const SallyArea = connect(
+  (state, props) =>{
+    const area = props.area || -1
+    const mapname = get(state, `fcd.shiptag.mapname.${area}`, '')
+    const color = get(state, `fcd.shiptag.color.${area}`, '')
+
+    return({
+      area,
+      mapname,
+      color,
+    })
+  }
+)(class SallyArea extends Component{
+  shouldComponentUpdate = (nextProps, nextState) => {
+    return nextProps.area != this.props.area ||
+      nextProps.mapname != this.props.mapname ||
+      nextProps.color != this.props.color
+  }
+
+  render(){
+    const {area, mapname, color, info_id} = this.props
     return(
-      <OverlayTrigger 
-        placement="top" 
-        overlay={
-          <Tooltip id="sally-area-#{label}">
-            {__('Ship tag: %s'), sallyTags[label]}
-          </Tooltip>
-        }
-      >
-        <Label bsStyle={tagStyles[label]}>
-          <FontAwesome name='tag' />
-        </Label>
-      </OverlayTrigger>
-    )
-  } else {
-    return(
-      <OverlayTrigger 
-        placement="top" 
-        overlay={
-          <Tooltip id="sally-area-#{label}">
-            {__('Ship tag: %s'), sallyTags[sallyTags.length - 1]}
-          </Tooltip>
-          }
-      >
-        <Label bsStyle={tagStyles[tagStyles.length - 1]}>
-          <FontAwesome name='tag' />
-        </Label>
-      </OverlayTrigger>
+        area >= 0 ? 
+          <OverlayTrigger 
+            placement="top" 
+            overlay={
+              <Tooltip id={`sally-area-${info_id}`}>
+                {__('Ship tag: %s'), mapname}
+              </Tooltip>
+            }
+          >
+            <Label style={{color: color}}>
+              <FontAwesome name='tag' />
+            </Label>
+          </OverlayTrigger>
+        : 
+          <Label className="status-label text-default" style={{opacity: 0}}></Label>
+
     )
   }
-}
+
+
+})
+
 
 class ShipInfoTable extends Component {
   shouldComponentUpdate = (nextProps, nextState) => {
-    const {dataVersion, shipInfo} = this.props
-    if (!isEqual(nextProps.shipInfo, shipInfo)) {
-      return true
-    }
-    return false
+    const {shipInfo} = this.props
+    return !isEqual(nextProps.shipInfo, shipInfo)
   }
 
   render() {
@@ -201,7 +209,7 @@ class ShipInfoTable extends Component {
         <td>{shipInfo.id}</td>
         <td>{window.i18n.resources.__ (shipInfo.type)}</td>
         <td className="ship-name">{window.i18n.resources.__ (shipInfo.name)}
-          <SallyArea label={shipInfo.sallyArea} tagStyles={this.props.tagStyles} sallyTags={this.props.sallyTags}/>
+          <SallyArea area={shipInfo.sallyArea} info_id={shipInfo.id}/>
         </td>
         <td className='center'>{shipInfo.lv}</td>
         <td className='center' style={{backgroundColor: condColor}}>{shipInfo.cond}</td>
@@ -239,6 +247,23 @@ const ShipInfoTableArea = connect(
     const $shipTypes = state.const.$shipTypes
     const $ships = state.const.$ships
     const _ships = state.info.ships
+
+    // construct shiptype filter array
+    const shipTypeChecked = config.get("plugin.ShipInfo.shipTypeChecked", shipTypeMap.slice().fill(true))
+    const shipTypes = shipTypeChecked.reduce((types, checked, index) => {
+      return checked ? types.concat(shipTypeMap[index].id) : types
+    }, [] )
+
+    // construct ships in expedition array
+    const decks = get(state, 'info.fleets', [])
+    const expeditionShips = decks.reduce((ships, fleet) => {
+      return fleet.api_mission[0] == 1 ?
+        ships.concat(fleet.api_ship.filter(id => id > 0))
+        : ships
+    }, [])
+
+    const mapname = get(state, 'fcd.shiptag.mapname', [])
+
     const rows = []
     Object.keys(_ships).map(_shipId => {
       const ship = _ships[_shipId]
@@ -280,13 +305,23 @@ const ShipInfoTableArea = connect(
     })
 
     return({
+      sortName: config.get("plugin.ShipInfo.sortName", "lv"),
+      sortOrder: config.get ("plugin.ShipInfo.sortOrder", 0),
+      lvRadio: config.get ("plugin.ShipInfo.lvRadio", 2),
+      lockedRadio: config.get ("plugin.ShipInfo.lockedRadio", 1),
+      expeditionRadio: config.get ("plugin.ShipInfo.expeditionRadio", 0),
+      modernizationRadio: config.get ("plugin.ShipInfo.modernizationRadio", 0),
+      remodelRadio: config.get ("plugin.ShipInfo.remodelRadio", 0),
+      sallyAreaChecked: config.get("plugin.ShipInfo.sallyAreaChecked", mapname.slice().fill(true)),
+      shipTypes,
+      expeditionShips,
       rows,
       show: true,
     })
   }
 )(class ShipInfoTableArea extends Component{
-  handleTypeFilter = (type, shipTypes) => {
-    return shipTypes.includes(type)
+  handleTypeFilter = (type_id, shipTypes) => {
+    return shipTypes.includes(type_id)
   }
 
   handleLvFilter = (lv) => {
@@ -358,28 +393,18 @@ const ShipInfoTableArea = connect(
   }
 
   handleSallyAreaFilter = (sallyArea) => {
-    return sallyArea ? this.props.sallyAreaBoxes[sallyArea] : true
+    return sallyArea ? this.props.sallyAreaChecked[sallyArea] : true
   }
 
   handleShowRows = () => {
-    const $shipTypes = getStore('const.$shipTypes') || {}
-    const shipTypes = this.props.shipTypeBoxes.map( key => $shipTypes[key].api_name )
-    // console.log(shipTypes)
-
-    const decks = getStore('info.fleets') || []
-    const expeditionShips = decks.reduce((ships, fleet) => {
-      return fleet.api_mission[0] == 1 ?
-        ships.concat(fleet.api_ship.filter(id => id != -1))
-        : ships
-    }, [])
-
-    const {remodelRadio, lvRadio, lockedRadio, expeditionRadio, modernizationRadio} = this.props
-    console.log(remodelRadio, lvRadio, lockedRadio, expeditionRadio, modernizationRadio)
+    const {remodelRadio, lvRadio, lockedRadio, expeditionRadio, modernizationRadio, 
+      shipTypes, expeditionShips} = this.props
+    console.log(remodelRadio, lvRadio, lockedRadio, expeditionRadio, modernizationRadio, shipTypes, expeditionShips)
     
 
     const {rows} = this.props || []
     let showRows = rows.filter( row => 
-      this.handleTypeFilter(row.type, shipTypes) &&
+      this.handleTypeFilter(row.type_id, shipTypes) &&
       this.handleLvFilter(row.lv) &&
       this.handleLockedFilter(row.locked) &&
       this.handleExpeditionFilter(row.id, expeditionShips) &&
@@ -438,12 +463,17 @@ const ShipInfoTableArea = connect(
     return showRows
   }
 
+  sortRules = (name, order) => {
+    config.set ("plugin.ShipInfo.sortName", name)
+    config.set ("plugin.ShipInfo.sortOrder", order)  
+  }
+
   handleClickTitle = (title) => () => {
     if (this.props.sortName != title){
       let order = (title == 'id' || title == 'type' || title == 'name') ? 1 : 0
-      this.props.sortRules(title, order)
+      this.sortRules(title, order)
     } else
-      this.props.sortRules(this.props.sortName, (this.props.sortOrder + 1) % 2)
+      this.sortRules(this.props.sortName, (this.props.sortOrder + 1) % 2)
   }
 
   render(){

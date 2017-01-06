@@ -131,7 +131,7 @@ const SallyAreaCheck = connect(
   (state, props) => {
     const mapname = get(state, 'fcd.shiptag.mapname', [])
     const defaultChecked = mapname.slice().fill(true)
-    let checked = JSON.parse(config.get("plugin.ShipInfo.sallyAreaBoxes", JSON.stringify(defaultChecked)))
+    let checked = config.get("plugin.ShipInfo.sallyAreaChecked", defaultChecked)
 
     checked = mapname.length == checked.length ? checked : defaultChecked
     const checkedAll = checked.reduce((a, b) => a && b)
@@ -162,7 +162,7 @@ const SallyAreaCheck = connect(
       checkedAll = checked.reduce((a, b) => a && b)
     }
 
-    config.set ("plugin.ShipInfo.sallyAreaBoxes", JSON.stringify(checked))
+    config.set ("plugin.ShipInfo.sallyAreaChecked", checked)
   }
 
   render(){
