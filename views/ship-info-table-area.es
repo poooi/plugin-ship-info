@@ -5,6 +5,7 @@ import { SlotitemIcon } from 'views/components/etc/icon'
 import FontAwesome from 'react-fontawesome'
 import { isEqual, clone, sortBy, get } from 'lodash'
 import { connect } from 'react-redux'
+import classNames from 'classnames'
 
 import Divider from './divider'
 import { shipTypeMap } from './constants'
@@ -29,7 +30,7 @@ const Slotitems = (props) => {
   const {slot, exslot} = props
   return(
     <div className="slotitem-container">
-    {
+      {
       _slotitems && $slotitems &&
       slot.concat(exslot).map( (itemId, i) => {
         const item = _slotitems[itemId] || {}
@@ -478,7 +479,31 @@ const ShipInfoTableArea = connect(
 
   render(){
     const showRows = this.handleShowRows()
-    console.log(showRows)
+    const {sortName, sortOrder} = this.props
+    const types = [
+      'id', 'type', 'name', 'lv', 'cond', 
+      'karyoku', 'raisou', 'taiku', 'soukou', 'lucky', 
+      'kaihi', 'taisen', 'sakuteki', 'repairtime', 'Equipment', 
+      'Lock',
+    ]
+    const titles = [
+      'ID', 'Class', 'Name', 'Level', 'Cond',
+      'Firepower', 'Torpedo', 'AA', 'Armor', 'Luck',
+      'Evasion', 'ASW', 'LOS', 'Repair', 'Equipment',
+      'Lock',
+    ]
+    const sortable = [
+      true, true, true, true, true,
+      true, true, true, true, true,
+      true, true, true, true, false,
+      false,
+    ]
+    const centerAlign = [
+      false, false, false, true, true,
+      true, true, true, true, true,
+      true, true, true, true, false,
+      false,
+    ]
     return(
       <div id="ship-info-show">
         <Divider text={__ ('Ship Girls Info')} icon={false}/>
@@ -487,26 +512,27 @@ const ShipInfoTableArea = connect(
             <thead>
               <tr>
                 <th>No.</th>
-                <th className='clickable' onClick={this.handleClickTitle('id')}>{__ ('ID')}</th>
-                <th className='clickable' onClick={this.handleClickTitle('type')}>{__ ('Class')}</th>
-                <th className='clickable' onClick={this.handleClickTitle('name')}>{__ ('Name')}</th>
-                <th className='center clickable' onClick={this.handleClickTitle('lv')}>{__ ('Level')}</th>
-                <th className='center clickable' onClick={this.handleClickTitle('cond')}>{__ ('Cond')}</th>
-                <th className='center clickable' onClick={this.handleClickTitle('karyoku')}>{__ ('Firepower')}</th>
-                <th className='center clickable' onClick={this.handleClickTitle('raisou')}>{__ ('Torpedo')}</th>
-                <th className='center clickable' onClick={this.handleClickTitle('taiku')}>{__ ('AA')}</th>
-                <th className='center clickable' onClick={this.handleClickTitle('soukou')}>{__ ('Armor')}</th>
-                <th className='center clickable' onClick={this.handleClickTitle('lucky')}>{__ ('Luck')}</th>
-                <th className='center clickable' onClick={this.handleClickTitle('kaihi')}>{__ ('Evasion')}</th>
-                <th className='center clickable' onClick={this.handleClickTitle('taisen')}>{__ ('ASW')}</th>
-                <th className='center clickable' onClick={this.handleClickTitle('sakuteki')}>{__ ('LOS')}</th>
-                <th className='center clickable' onClick={this.handleClickTitle('repairtime')}>{__ ('Repair')}</th>
-                <th>{__ ('Equipment')}</th>
-                <th>{__ ('Lock')}</th>
+                {
+                  titles.map((title, index) => 
+                    <th
+                      key={index}
+                      onClick={sortable[index] ? this.handleClickTitle(types[index]) : ''}
+                      className={classNames({
+                        clickable: sortable[index],
+                        center: centerAlign[index],
+                        sorting: sortName == types[index],
+                        up: sortName == types[index] && sortOrder,
+                        down: sortName == types[index] && !sortOrder,
+                      })}
+                    >
+                      {__(title)}
+                    </th>
+                  )
+                }
               </tr>
             </thead>
             <tbody>
-            {
+              {
                 showRows.map((row, indx) =>
                   <ShipInfoTable
                     key = {row.id}

@@ -159,3 +159,15 @@ img.svg {
   height: 23px;
   margin: 5px 3px 4px 3px;
 }
+
+.sorting.up {
+  background: linear-gradient(to top, rgba(255, 82, 82, 0.5), rgba(0, 0, 0, 0));
+}
+
+.sorting.down {
+  background: linear-gradient(to top, rgba(105, 240, 174, 0.5), rgba(0, 0, 0, 0));
+}
+
+th {
+  height: 3em;
+}
