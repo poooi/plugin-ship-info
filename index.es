@@ -25,4 +25,5 @@ export const windowOptions = {
   height,
 }
 export const windowURL = `file://${__dirname}/index.html`
-export const useEnv = true
+// export const useEnv = true
+// export const realClose = true

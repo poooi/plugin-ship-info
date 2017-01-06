@@ -1,7 +1,9 @@
-
 import 'views/env'
+
 import i18n2 from 'i18n-2'
 import path from 'path-extra'
+import { remote } from 'electron'
+import { debounce } from 'lodash'
 
 const i18n = new i18n2({
   locales: ['en-US', 'ja-JP', 'zh-CN', 'zh-TW'],
@@ -34,6 +36,17 @@ additionalStyle.innerHTML = `
     font-size: ${zoomLevel * 100}%;
   }
 `
+// remember window size
+window.shipInfoWindow = remote.getCurrentWindow()
+
+const rememberSize = debounce(() => {
+  const b = window.shipInfoWindow.getBounds()
+  config.set('plugin.ShipInfo.bounds', b)
+}, 5000)
+
+
+window.shipInfoWindow.on('move', rememberSize)
+window.shipInfoWindow.on('resize', rememberSize)
 
 
 require('./views')
