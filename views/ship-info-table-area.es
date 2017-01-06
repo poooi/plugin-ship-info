@@ -16,7 +16,7 @@ import { shipTypeMap, repairFactor } from './constants'
 const { ROOT, __, resolveTime } = window
 
 const getTimePerHP = memoize((api_lv = 1, api_stype = 1) => {
-  let factor
+  let factor = 0
   if (repairFactor[api_stype] != null ) factor = repairFactor[api_stype].factor || 0
 
   if (factor == 0) return 0
