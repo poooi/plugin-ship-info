@@ -8,6 +8,8 @@ import { connect } from 'react-redux'
 import classNames from 'classnames'
 import memoize from 'fast-memoize'
 
+import { equipDataSelectorFactory } from 'views/utils/selectors'
+
 import Divider from './divider'
 import { shipTypeMap, repairFactor } from './constants'
 
@@ -39,46 +41,69 @@ const nameCompare = (a, b) => {
   }
 }
 
-const Slotitems = (props) => {
-  const {$slotitems, _slotitems} = window
-  const {slot, exslot} = props
-  return(
-    <div className="slotitem-container">
-      {
-      _slotitems && $slotitems &&
-      slot.concat(exslot).map( (itemId, i) => {
-        const item = _slotitems[itemId] || {}
-        return(
-          Object.keys(item).length > 0 &&
-          <span key={itemId} >
-            <OverlayTrigger placement='top' overlay={
-              <Tooltip id={`item-${itemId}`} className='info-tooltip'>
-                {window.i18n.resources.__(item.api_name)}
-                {
-                  item.api_level > 0 ? 
-                    <strong style={{color: '#45A9A5'}}>★+{item.api_level}</strong> 
-                  : ''}
-                {
-                  item.api_alv && item.api_alv <= 7 && item.api_alv >= 1 ?
-                    <img 
-                      className='alv-img' 
-                      src={Path.join(ROOT, 'assets', 'img', 'airplane', `alv${item.api_alv}.png`)} 
-                    />
-                  : ''
-                }
-              </Tooltip>}
-            >
-              <span>
-                <SlotitemIcon slotitemId={item.api_type[3]}/>
-              </span>
-            </OverlayTrigger>
-          </span>
-        )
-      })
-    }
-    </div>
-  )
-}
+const Slotitems = connect(
+  (state, props) => {
+    const items = []
+    const _items = []
+    const {slot, exslot} = props
+    slot.concat(exslot).forEach((itemId) => {
+      const data = equipDataSelectorFactory(itemId)(state)
+      if(typeof data != 'undefined') {
+        _items.push(data[0])
+        items.push(data[1])
+      }
+    })
+
+    return({
+      _items,
+      items,
+    })
+  }
+)(class Slotitems extends Component {
+
+  shouldComponentUpdate = (nextProps, nextState) => {
+    return !isEqual(this.props._items, nextProps._items)
+  }
+
+  render() {
+    const {_items, items} = this.props
+    return(
+      <div className="slotitem-container">
+        {
+        _items &&
+        _items.map( (_item, i) => {
+          const item = items[i]
+          return(
+            <span key={_item.api_id} >
+              <OverlayTrigger placement='top' overlay={
+                <Tooltip id={`item-${_item.api_id}`} className='info-tooltip'>
+                  {window.i18n.resources.__(item.api_name)}
+                  {
+                    item.api_level > 0 ? 
+                      <strong style={{color: '#45A9A5'}}>★+{_item.api_level}</strong> 
+                    : ''}
+                  {
+                    _item.api_alv && _item.api_alv <= 7 && item.api_alv >= 1 ?
+                      <img 
+                        className='alv-img' 
+                        src={Path.join(ROOT, 'assets', 'img', 'airplane', `alv${item.api_alv}.png`)} 
+                      />
+                    : ''
+                  }
+                </Tooltip>}
+              >
+                <span>
+                  <SlotitemIcon slotitemId={item.api_type[3]}/>
+                </span>
+              </OverlayTrigger>
+            </span>
+          )
+        })
+      }
+      </div>
+    )
+  }
+})
 
 const SallyArea = connect(
   (state, props) =>{
