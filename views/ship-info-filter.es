@@ -15,7 +15,7 @@ const __ = window.__
 //  default@Number, default option, optional
 const RadioCheck = connect(
   (state, props) => ({
-    currentRadio: config.get(`plugin.ShipInfo.${props.configKey}`, props.default || 0),
+    currentRadio: get(state.config, `plugin.ShipInfo.${props.configKey}`, props.default || 0),
   })
 )(class RadioCheck extends Component{
 
@@ -57,7 +57,7 @@ const TypeCheck = connect(
   (state, props) => {
     const defaultChecked = shipTypeMap.slice().fill(true)
 
-    let checked = config.get("plugin.ShipInfo.shipTypeChecked", defaultChecked)
+    let checked = get(state.config, "plugin.ShipInfo.shipTypeChecked", defaultChecked)
     checked = defaultChecked.length == checked.length ? checked : defaultChecked
     const checkedAll = checked.reduce((a, b) => a && b)
 
@@ -126,7 +126,7 @@ const SallyAreaCheck = connect(
   (state, props) => {
     const mapname = get(state, 'fcd.shiptag.mapname', [])
     const defaultChecked = mapname.slice().fill(true)
-    let checked = config.get("plugin.ShipInfo.sallyAreaChecked", defaultChecked)
+    let checked = get(state.config, "plugin.ShipInfo.sallyAreaChecked", defaultChecked)
 
     checked = mapname.length == checked.length ? checked : defaultChecked
     const checkedAll = checked.reduce((a, b) => a && b)

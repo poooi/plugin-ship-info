@@ -290,7 +290,7 @@ const ShipInfoTableArea = connect(
     const _ships = state.info.ships
 
     // construct shiptype filter array
-    const shipTypeChecked = config.get("plugin.ShipInfo.shipTypeChecked", shipTypeMap.slice().fill(true))
+    const shipTypeChecked = get(state.config, "plugin.ShipInfo.shipTypeChecked", shipTypeMap.slice().fill(true))
     const shipTypes = shipTypeChecked.reduce((types, checked, index) => {
       return checked ? types.concat(shipTypeMap[index].id) : types
     }, [] )
@@ -346,14 +346,14 @@ const ShipInfoTableArea = connect(
     })
 
     return({
-      sortName: config.get("plugin.ShipInfo.sortName", "lv"),
-      sortOrder: config.get ("plugin.ShipInfo.sortOrder", 0),
-      lvRadio: config.get ("plugin.ShipInfo.lvRadio", 2),
-      lockedRadio: config.get ("plugin.ShipInfo.lockedRadio", 1),
-      expeditionRadio: config.get ("plugin.ShipInfo.expeditionRadio", 0),
-      modernizationRadio: config.get ("plugin.ShipInfo.modernizationRadio", 0),
-      remodelRadio: config.get ("plugin.ShipInfo.remodelRadio", 0),
-      sallyAreaChecked: config.get("plugin.ShipInfo.sallyAreaChecked", mapname.slice().fill(true)),
+      sortName: get(state.config, "plugin.ShipInfo.sortName", "lv"),
+      sortOrder: get(state.config, "plugin.ShipInfo.sortOrder", 0),
+      lvRadio: get(state.config, "plugin.ShipInfo.lvRadio", 2),
+      lockedRadio: get(state.config, "plugin.ShipInfo.lockedRadio", 1),
+      expeditionRadio: get(state.config, "plugin.ShipInfo.expeditionRadio", 0),
+      modernizationRadio: get(state.config, "plugin.ShipInfo.modernizationRadio", 0),
+      remodelRadio: get(state.config, "plugin.ShipInfo.remodelRadio", 0),
+      sallyAreaChecked: get(state.config, "plugin.ShipInfo.sallyAreaChecked", mapname.slice().fill(true)),
       shipTypes,
       expeditionShips,
       rows,
@@ -505,11 +505,14 @@ const ShipInfoTableArea = connect(
   }
 
   sortRules = (name, order) => {
-    config.set ("plugin.ShipInfo.sortName", name)
-    config.set ("plugin.ShipInfo.sortOrder", order)  
+    console.log(name, order)
+    config.set("plugin.ShipInfo.sortName", name)
+    config.set("plugin.ShipInfo.sortOrder", order)
+    console.log(config.get("plugin.ShipInfo.sortName"))
   }
 
   handleClickTitle = (title) => () => {
+    console.log(title, this.props.sortName)
     if (this.props.sortName != title){
       let order = (title == 'id' || title == 'type' || title == 'name') ? 1 : 0
       this.sortRules(title, order)

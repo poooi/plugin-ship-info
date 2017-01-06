@@ -25,7 +25,7 @@ export const windowOptions = {
   height,
 }
 export const windowURL = `file://${__dirname}/index.html`
-// export const useEnv = true
+export const useEnv = true
 // export const realClose = true
 
 // remove legacy config to tidy the config.cson
