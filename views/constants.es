@@ -20,7 +20,7 @@ export const shipTypeMap = [
   },
   {
     "name": "BB",
-    "id": [8, 10, 12],
+    "id": [8, 9, 10, 12],
   },
   {
     "name": "CV",
@@ -32,7 +32,7 @@ export const shipTypeMap = [
   },
   {
     "name": "Others",
-    "id": [1, 9, 15, 16, 17, 19, 20, 22],
+    "id": [1, 15, 16, 17, 19, 20, 22],
   },
 ]
 
