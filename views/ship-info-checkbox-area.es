@@ -1,8 +1,9 @@
 import React, {Component} from 'react'
-import {Button, Input, Col, Grid, Row} from 'react-bootstrap'
 
 import Divider from './divider'
 import ShipInfoFilter from './ship-info-filter'
+
+const {__} = window
 
 export default class ShipInfoCheckboxArea extends Component {
   constructor(){

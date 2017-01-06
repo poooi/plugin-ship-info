@@ -7,9 +7,9 @@ import { store } from 'views/create-store'
 import ShipInfoTableArea from './ship-info-table-area'
 import ShipInfoCheckboxArea from './ship-info-checkbox-area'
 
+const {$} = window
+
 $('#font-awesome').setAttribute ('href', require.resolve('font-awesome/css/font-awesome.css'))
-
-
 
 class ShipInfoArea extends Component {
 

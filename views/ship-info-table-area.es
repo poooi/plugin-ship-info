@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Panel, Table, Grid, Col, OverlayTrigger, Tooltip, Label } from 'react-bootstrap'
+import { Table,  OverlayTrigger, Tooltip, Label } from 'react-bootstrap'
 import Path from 'path'
 import { SlotitemIcon } from 'views/components/etc/icon'
 import FontAwesome from 'react-fontawesome'
@@ -11,7 +11,7 @@ import memoize from 'fast-memoize'
 import Divider from './divider'
 import { shipTypeMap } from './constants'
 
-const { ROOT, __, resolveTime, getStore } = window
+const { ROOT, __, resolveTime } = window
 
 const collator = new Intl.Collator()
 const jpCollator = new Intl.Collator("ja-JP")
@@ -23,8 +23,6 @@ const nameCompare = (a, b) => {
     return jpCollator.compare(a.yomi, b.yomi)
   }
 }
-
-const resultPanelTitle = <h3>{__('Ship Girls Info')}</h3>
 
 const Slotitems = (props) => {
   const {$slotitems, _slotitems} = window
@@ -204,25 +202,26 @@ class ShipInfoTable extends Component {
       condColor = 'transparent'
     }
 
+    const {id, type, name, sallyArea, cond, kaihi, taisen, sakuteki, slot, exslot} = shipInfo
 
     return(
       <tr>
         <td></td>
-        <td>{shipInfo.id}</td>
-        <td>{window.i18n.resources.__ (shipInfo.type)}</td>
-        <td className="ship-name">{window.i18n.resources.__ (shipInfo.name)}
-          <SallyArea area={shipInfo.sallyArea} info_id={shipInfo.id}/>
+        <td>{id}</td>
+        <td>{window.i18n.resources.__ (type)}</td>
+        <td className="ship-name">{window.i18n.resources.__ (name)}
+          <SallyArea area={sallyArea} info_id={id}/>
         </td>
-        <td className='center'>{shipInfo.lv}</td>
-        <td className='center' style={{backgroundColor: condColor}}>{shipInfo.cond}</td>
+        <td className='center'>{lv}</td>
+        <td className='center' style={{backgroundColor: condColor}}>{cond}</td>
         <td className={karyokuClass}>{karyoku + '/'}<span style={{fontSize: '80%'}}>{karyokuString}</span></td>
         <td className={raisouClass}>{raisou + '/'}<span style={{fontSize: '80%'}}>{raisouString}</span></td>
         <td className={taikuClass}>{taiku + '/'}<span style={{fontSize: '80%'}}>{taikuString}</span></td>
         <td className={soukouClass}>{soukou + '/'}<span style={{fontSize: '80%'}}>{soukouString}</span></td>
         <td className={luckyClass}>{lucky + '/'}<span style={{fontSize: '80%'}}>{luckyString}</span></td>
-        <td className='center'>{shipInfo.kaihi}</td>
-        <td className='center'>{shipInfo.taisen}</td>
-        <td className='center'>{shipInfo.sakuteki}</td>
+        <td className='center'>{kaihi}</td>
+        <td className='center'>{taisen}</td>
+        <td className='center'>{sakuteki}</td>
         <td className='center' style={{backgroundColor: repairColor}}>
           {
             repairtime &&
@@ -232,12 +231,12 @@ class ShipInfoTable extends Component {
                     { `1HP : ${resolveTime((repairtime - 60) / losshp)}` }
                   </Tooltip>}
               >
-                <span>{resolveTime(shipInfo.repairtime)}</span>
+                <span>{resolveTime(repairtime)}</span>
               </OverlayTrigger>
 
           }
         </td>
-        <td><Slotitems slot={shipInfo.slot} exslot={shipInfo.exslot} /></td>
+        <td><Slotitems slot={slot} exslot={exslot} /></td>
         <td>{locked == 1 ? <FontAwesome name='lock' /> : ' '}</td>
       </tr>
     )
@@ -538,8 +537,6 @@ const ShipInfoTableArea = connect(
                   <ShipInfoTable
                     key = {row.id}
                     shipInfo = {row}
-                    tagStyles={this.props.tagStyles}
-                    sallyTags={this.props.sallyTags}
                   />
                 )
             }

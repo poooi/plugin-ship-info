@@ -71,12 +71,12 @@ body {
   background-color: rgba(125, 239, 94, 0.33);
 }
 clickable {
-  -webkit-filter: none;
+  filter: none;
   transition: 0.2s;
 }
 .clickable:hover {
   cursor: pointer;
-  -webkit-filter: drop-shadow(0px 0px 8px #2196F3);
+  filter: drop-shadow(0px 0px 8px #2196F3);
   transition: 0.2s;
 }
 #ship-info-settings .filter-type .checkbox {
@@ -132,10 +132,10 @@ clickable {
   width: 10px;
 }
 ::-webkit-scrollbar-track {
-  -webkit-border-radius: 1px;
+  border-radius: 1px;
 }
 ::-webkit-scrollbar-thumb {
-  -webkit-border-radius: 1px;
+  border-radius: 1px;
   background-color: #3d3d3d;
 }
 

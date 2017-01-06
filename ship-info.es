@@ -19,9 +19,9 @@ try {
   require('poi-plugin-translator').pluginDidLoad()
 }
 catch (error) {
-  console.log (error)
+  console.warn (error)
 }
-document.title = __('Ship Girls Info')
+document.title = window.__('Ship Girls Info')
 
 // augment font size with poi zoom level
 const zoomLevel = config.get('poi.zoomLevel', 1)

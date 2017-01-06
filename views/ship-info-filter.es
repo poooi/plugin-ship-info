@@ -29,7 +29,6 @@ const RadioCheck = connect(
 
   render() {
     const {label, options, currentRadio} = this.props
-    console.log(label, options, currentRadio)
     return(
       <div>
         <Row>
@@ -71,7 +70,7 @@ const TypeCheck = connect(
 
   handleClickBox = (index) => () => {
     let checked = this.props.checked.slice()
-    let {checkedAll, typeIndex} = this.props
+    let {checkedAll} = this.props
 
     if (index == -1) {
       checkedAll = !checkedAll
@@ -161,7 +160,6 @@ const SallyAreaCheck = connect(
   render(){
     const {mapname, color, checked, checkedAll} = this.props
     const xs = Math.floor(12 / (1 + mapname.length))
-    console.log(mapname, color, checked, checkedAll)
     return(
       <div>
         <Row>
