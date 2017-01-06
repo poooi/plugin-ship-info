@@ -67,6 +67,9 @@ const TypeCheck = connect(
     })
   }
 )(class TypeCheck extends Component {
+  shouldComponentUpdate = (nextProps, nextState) => {
+    return !isEqual(nextProps.checked, this.props.checked)
+  }
 
   handleClickBox = (index) => () => {
     let checked = this.props.checked.slice()
