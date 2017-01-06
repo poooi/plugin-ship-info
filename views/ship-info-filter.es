@@ -2,17 +2,10 @@ import React, { Component } from 'react'
 import { Grid, Row, Col, Input, Button, ButtonGroup, Label } from 'react-bootstrap'
 import { connect } from 'react-redux'
 import { get, isEqual, difference } from 'lodash'
-import { typeMap, shipTypeMap,
+import { shipTypeMap,
   lvOptions, lockedOptions, expeditionOptions, modernizationOptions, remodelOptions } from './constants'
 
 const __ = window.__
-
-const shipTypes = ['', '海防艦', '駆逐艦', '軽巡洋艦', 
-  '重雷装巡洋艦', '重巡洋艦', '航空巡洋艦', '軽空母', '戦艦', 
-  '戦艦', '航空戦艦', '正規空母', '超弩級戦艦', '潜水艦', 
-  '潜水空母', '補給艦', '水上機母艦', '揚陸艦', '装甲空母', 
-  '工作艦', '潜水母艦', '練習巡洋艦']
-
 
 // single option check
 // props: 
@@ -59,7 +52,7 @@ const RadioCheck = connect(
   }
 })
 
-// new ship type check is based on preset ship type collections as in typeMap
+// new ship type check is based on preset ship type collections as in shipTypeMap
 // to ensure a downgrade compatibility, another cofig key is used
 const TypeCheck = connect(
   (state, props) => {
