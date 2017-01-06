@@ -32,7 +32,8 @@ remote.getCurrentWindow().webContents.on('dom-ready', (e) => {
 })
 
 additionalStyle.innerHTML = `
-  ship-info {
+  ship-info,
+  .info-tooltip {
     font-size: ${zoomLevel * 100}%;
   }
 `

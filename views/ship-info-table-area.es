@@ -37,7 +37,7 @@ const Slotitems = (props) => {
           Object.keys(item).length > 0 &&
           <span key={itemId} >
             <OverlayTrigger placement='top' overlay={
-              <Tooltip id="item-#{itemId}">
+              <Tooltip id={`item-${itemId}`} className='info-tooltip'>
                 {window.i18n.resources.__(item.api_name)}
                 {
                   item.api_level > 0 ? 
@@ -47,7 +47,7 @@ const Slotitems = (props) => {
                   item.api_alv && item.api_alv <= 7 && item.api_alv >= 1 ?
                     <img 
                       className='alv-img' 
-                      src={Path.join(ROOT, 'assets', 'img', 'airplane', "alv#{item.api_alv}.png")} 
+                      src={Path.join(ROOT, 'assets', 'img', 'airplane', `alv${item.api_alv}.png`)} 
                     />
                   : ''
                 }
@@ -91,7 +91,7 @@ const SallyArea = connect(
           <OverlayTrigger 
             placement="top" 
             overlay={
-              <Tooltip id={`sally-area-${info_id}`}>
+              <Tooltip id={`sally-area-${info_id}`} className='info-tooltip'>
                 {__('Ship tag: %s'), mapname}
               </Tooltip>
             }
@@ -226,8 +226,8 @@ class ShipInfoTable extends Component {
             repairtime &&
               <OverlayTrigger placement="top" 
                 overlay={
-                  <Tooltip id="repairtime1hp">
-                  { `1HP : ${resolveTime(repairtime / losshp)}` }
+                  <Tooltip id="repairtime1hp" className='info-tooltip'>
+                    { `1HP : ${resolveTime((repairtime - 60) / losshp)}` }
                   </Tooltip>}
               >
                 <span>{resolveTime(shipInfo.repairtime)}</span>
