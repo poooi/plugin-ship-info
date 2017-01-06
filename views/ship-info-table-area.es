@@ -9,9 +9,24 @@ import classNames from 'classnames'
 import memoize from 'fast-memoize'
 
 import Divider from './divider'
-import { shipTypeMap } from './constants'
+import { shipTypeMap, repairFactor } from './constants'
 
 const { ROOT, __, resolveTime } = window
+
+const getTimePerHP = memoize((api_lv = 1, api_stype = 1) => {
+  let factor
+  if (repairFactor[api_stype] != null ) factor = repairFactor[api_stype].factor || 0
+
+  if (factor == 0) return 0
+
+  if (api_lv < 12) {
+    return api_lv * 10 * factor * 1000
+  }
+  else {
+    return (api_lv * 5 + (Math.floor(Math.sqrt(api_lv - 11)) * 10 + 50))* factor * 1000
+  }
+})
+
 
 const collator = new Intl.Collator()
 const jpCollator = new Intl.Collator("ja-JP")
@@ -202,7 +217,7 @@ class ShipInfoTable extends Component {
       condColor = 'transparent'
     }
 
-    const {id, type, name, sallyArea, cond, kaihi, taisen, sakuteki, slot, exslot} = shipInfo
+    const {id, type, type_id, name, sallyArea, cond, kaihi, taisen, sakuteki, slot, exslot} = shipInfo
 
     return(
       <tr>
@@ -228,7 +243,7 @@ class ShipInfoTable extends Component {
               <OverlayTrigger placement="top" 
                 overlay={
                   <Tooltip id="repairtime1hp" className='info-tooltip'>
-                    { `1HP : ${resolveTime((repairtime - 60) / losshp)}` }
+                    { `1HP : ${resolveTime(getTimePerHP(lv, type_id) /1000 )}` }
                   </Tooltip>}
               >
                 <span>{resolveTime(repairtime)}</span>
