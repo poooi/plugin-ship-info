@@ -1,8 +1,8 @@
 import React, { Component } from 'react'
-import { Grid, Row, Col, Input, Label } from 'react-bootstrap'
+import { Grid, Row, Col, Input, Label, Button, ButtonGroup } from 'react-bootstrap'
 import { connect } from 'react-redux'
-import { get, isEqual } from 'lodash'
-import { shipTypeMap,
+import { get, isEqual, map, intersection } from 'lodash'
+import { shipSuperTypeMap,
   lvOptions, lockedOptions, expeditionOptions, modernizationOptions, remodelOptions } from './constants'
 
 const __ = window.__
@@ -51,70 +51,113 @@ const RadioCheck = connect(
   }
 })
 
-// new ship type check is based on preset ship type collections as in shipTypeMap
+// new ship type check is based on preset ship type collections as in shipSuperTypeMap
 // to ensure a downgrade compatibility, another cofig key is used
 const TypeCheck = connect(
   (state, props) => {
-    const defaultChecked = shipTypeMap.slice().fill(true)
+    const $shipTypes = get(state, 'const.$shipTypes')
+    const defaultChecked = map($shipTypes, type => type.api_id).fill(true)
 
     let checked = get(state.config, "plugin.ShipInfo.shipTypeChecked", defaultChecked)
     checked = defaultChecked.length == checked.length ? checked : defaultChecked
     const checkedAll = checked.reduce((a, b) => a && b)
 
     return({
+      $shipTypes,
       checked,
       checkedAll,
     })
   }
 )(class TypeCheck extends Component {
+
   shouldComponentUpdate = (nextProps, nextState) => {
     return !isEqual(nextProps.checked, this.props.checked)
   }
 
-  handleClickBox = (index) => () => {
+  getTypeArray = (checked, $shipTypes) => {
+    return checked.reduce((types, checked, index) => {
+      return checked && ((index+1) in $shipTypes) ? types.concat([index + 1]) : types
+    }, [])
+  }
+
+  getArrayInclusion = (array, subArray) => {
+    return isEqual(intersection(array, subArray), subArray) && array.length > 0
+  }
+
+  handleClickSuperType = (checkedTypes, index) => () => {
+    let checked = this.props.checked.slice()
+    const keys = shipSuperTypeMap[index].id
+    if(this.getArrayInclusion(checkedTypes, keys)){
+      keys.forEach((key) => {
+        checked[key - 1] = false
+      })
+    } else {
+      keys.forEach((key) => {
+        checked[key - 1] = true
+      })
+    }
+
+    config.set ("plugin.ShipInfo.shipTypeChecked", checked)
+  }
+
+  handleClickSignleBox = (index) => () => {
     let checked = this.props.checked.slice()
     let {checkedAll} = this.props
+    console.log(index)
 
     if (index == -1) {
       checkedAll = !checkedAll
       checked.fill(checkedAll)
     } else {
       checked[index] = !checked[index]
-      checkedAll = checked.reduce((a, b) => a && b)
     }
 
     config.set ("plugin.ShipInfo.shipTypeChecked", checked)
   }
 
   render(){
-    const {checked, checkedAll} = this.props
-    const xs = Math.floor(24 / (1 + shipTypeMap.length))
+    const {$shipTypes, checked, checkedAll} = this.props
+    const xs = 2
+    const checkedTypes = checked.reduce((types, checked, index) => {
+      return checked && ((index + 1) in $shipTypes) ? types.concat([index + 1]) : types
+    }, [] )
+    
     return(
       <div className='filter-type'>
         <Row>
-          <Col xs={2} className='filter-span'><span>{__('Ship Type Setting')}</span></Col>
-          <Col xs={10}>
-            <Col xs={xs} className='filter-span'>
-              <Input type='checkbox' 
-                label={__ ('All')} 
-                onChange={this.handleClickBox(-1)} 
-                checked={checkedAll}
-              />
-            </Col>
-            <Col xs={12-xs}>
+        <Col xs={12} className='super-type'>
+            <Button
+              onClick={this.handleClickSignleBox(-1)} 
+              bsStyle={checkedAll ? 'success': 'default'}
+            >
+              {__ ('All')}
+            </Button>
+          {
+            shipSuperTypeMap.map((supertype, index) =>
+              <Button 
+                onClick={this.handleClickSuperType(checkedTypes, index)} 
+                bsStyle={this.getArrayInclusion(checkedTypes, supertype.id) ? 'success': 'default' }
+              >
+                {__(`Filter${supertype.name}`)}              
+              </Button>
+            )
+          }
+          </Col>
+        </Row>
+        <Row>
+            <Col xs={12}>
               {
-              shipTypeMap.map((type, idx) =>
-                <Col xs={xs} key={idx}>
+              map($shipTypes, (type, key) =>
+                <Col xs={xs} key={key}>
                   <Input type='checkbox' 
-                    label={__(`Filter${type.name}`)} 
-                    onChange={this.handleClickBox(idx)} 
-                    checked={checked[idx]} 
+                    label={__(type.api_name)} 
+                    onChange={this.handleClickSignleBox(key - 1)} 
+                    checked={checked[key -1]} 
                   />                
                 </Col>
               )
             }
             </Col>
-          </Col>
         </Row>
       </div>
     )
@@ -122,6 +165,7 @@ const TypeCheck = connect(
   }
 })
 
+// to ensure a downgrade compatibility, another cofig key is used
 const SallyAreaCheck = connect(
   (state, props) => {
     const mapname = get(state, 'fcd.shiptag.mapname', [])

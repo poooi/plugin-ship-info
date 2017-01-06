@@ -11,7 +11,7 @@ import memoize from 'fast-memoize'
 import { equipDataSelectorFactory } from 'views/utils/selectors'
 
 import Divider from './divider'
-import { shipTypeMap, repairFactor } from './constants'
+import { shipSuperTypeMap, repairFactor } from './constants'
 
 const { ROOT, __, resolveTime } = window
 
@@ -290,9 +290,9 @@ const ShipInfoTableArea = connect(
     const _ships = state.info.ships
 
     // construct shiptype filter array
-    const shipTypeChecked = get(state.config, "plugin.ShipInfo.shipTypeChecked", shipTypeMap.slice().fill(true))
+    const shipTypeChecked = get(state.config, "plugin.ShipInfo.shipTypeChecked", shipSuperTypeMap.slice().fill(true))
     const shipTypes = shipTypeChecked.reduce((types, checked, index) => {
-      return checked ? types.concat(shipTypeMap[index].id) : types
+      return checked && ((index + 1) in $shipTypes) ? types.concat([index + 1]) : types
     }, [] )
 
     // construct ships in expedition array
@@ -362,6 +362,7 @@ const ShipInfoTableArea = connect(
   }
 )(class ShipInfoTableArea extends Component{
   handleTypeFilter = memoize((type_id, shipTypes) => {
+    console.log(shipTypes)
     return shipTypes.includes(type_id)
   })
 
