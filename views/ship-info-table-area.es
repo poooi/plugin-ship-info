@@ -83,10 +83,10 @@ const Slotitems = connect(
                       <strong style={{color: '#45A9A5'}}>★+{_item.api_level}</strong> 
                     : ''}
                   {
-                    _item.api_alv && _item.api_alv <= 7 && item.api_alv >= 1 ?
+                    _item.api_alv && _item.api_alv <= 7 && _item.api_alv >= 1 ?
                       <img 
                         className='alv-img' 
-                        src={Path.join(ROOT, 'assets', 'img', 'airplane', `alv${item.api_alv}.png`)} 
+                        src={Path.join(ROOT, 'assets', 'img', 'airplane', `alv${_item.api_alv}.png`)} 
                       />
                     : ''
                   }
