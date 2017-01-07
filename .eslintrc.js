@@ -62,6 +62,9 @@ module.exports = {
       'fs-extra',
       'lodash',
       'cson',
+      'fast-memoize',
+      'classnames',
+      'i18n-2',
     ],
   },
 }
