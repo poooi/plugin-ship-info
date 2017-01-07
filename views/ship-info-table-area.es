@@ -8,7 +8,7 @@ import { connect } from 'react-redux'
 import classNames from 'classnames'
 import memoize from 'fast-memoize'
 
-import { shipDataSelectorFactory, equipDataSelectorFactory } from 'views/utils/selectors'
+import { fleetShipsIdSelectorFactory, fleetInExpeditionSelectorFactory, equipDataSelectorFactory } from 'views/utils/selectors'
 
 import Divider from './divider'
 import { shipSuperTypeMap, repairFactor } from './constants'
@@ -426,6 +426,7 @@ class ShipInfoTable extends Component {
       condColor,
     } = this.extractShipInfo(shipInfo)
 
+    // TODO: support unequip ship data display
     return(
       <tr>
         <td></td>
@@ -472,16 +473,15 @@ const ShipInfoTableArea = connect(
     const _ships = state.info.ships
 
     // construct shiptype filter array
-    const shipTypeChecked = get(state.config, "plugin.ShipInfo.shipTypeChecked", shipSuperTypeMap.slice().fill(true))
+    const shipTypeChecked = get(state.config, "plugin.ShipInfo.shipTypeChecked", Array.keys($shipTypes).slice().fill(true))
     const shipTypes = shipTypeChecked.reduce((types, checked, index) => {
       return checked && ((index + 1) in $shipTypes) ? types.concat([index + 1]) : types
     }, [] )
 
-    // construct ships in expedition array
-    const decks = get(state, 'info.fleets', [])
-    const expeditionShips = decks.reduce((ships, fleet) => {
-      return fleet.api_mission[0] == 1 ?
-        ships.concat(fleet.api_ship.filter(id => id > 0))
+    // construct ship ids in expedition array, 10 is used here to support Kancolle in 2030
+    const expeditionShips = [...Array(10).keys()].reduce((ships, fleetId) => {
+      return fleetInExpeditionSelectorFactory(fleetId)(state) ?
+        ships.concat(fleetShipsIdSelectorFactory(fleetId)(state))
         : ships
     }, [])
 
@@ -582,6 +582,7 @@ const ShipInfoTableArea = connect(
     return sallyArea ? sallyAreaChecked[sallyArea] : true
   })
 
+  // get all ship data
   getRows = memoize((_ships, $ships, $shipTypes) => {
     console.log('getrows')
     const rows = Object.keys(_ships).map(_shipId => {
@@ -663,14 +664,11 @@ const ShipInfoTableArea = connect(
   }
 
   sortRules = (name, order) => {
-    console.log(name, order)
     config.set("plugin.ShipInfo.sortName", name)
     config.set("plugin.ShipInfo.sortOrder", order)
-    console.log(config.get("plugin.ShipInfo.sortName"))
   }
 
   handleClickTitle = (title) => () => {
-    console.log(title, this.props.sortName)
     if (this.props.sortName != title){
       let order = (title == 'id' || title == 'type' || title == 'name') ? 1 : 0
       this.sortRules(title, order)
