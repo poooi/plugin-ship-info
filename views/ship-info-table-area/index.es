@@ -230,7 +230,6 @@ const ShipInfoTableArea = connect(
 
   // get all ship data
   getRows = memoize((_ships, $ships, $shipTypes) => {
-    console.log('getrows')
     const rows = Object.keys(_ships).map(_shipId => {
       
       const ship = _ships[_shipId]
@@ -244,9 +243,7 @@ const ShipInfoTableArea = connect(
   handleShowRows = () => {
     const {remodelRadio, lvRadio, lockedRadio, expeditionRadio, modernizationRadio, 
       shipTypes, expeditionShips, sallyAreaChecked, _ships, $ships, $shipTypes} = this.props
-    // console.log(remodelRadio, lvRadio, lockedRadio, expeditionRadio, modernizationRadio, shipTypes, expeditionShips)
     
-
     const rows = this.getRows(_ships, $ships, $shipTypes)
 
     let showRows = rows.filter( row => 

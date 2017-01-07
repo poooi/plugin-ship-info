@@ -17,7 +17,6 @@ export const getTimePerHP = memoize((api_lv = 1, api_stype = 1) => {
 })
 
 export const getShipInfoData = memoize((ship, $ship, $shipTypes) => {
-  console.log('getShipData')
   const shipInfo = {
     id: ship.api_id,
     type_id: $ship.api_stype,
@@ -102,7 +101,6 @@ export const nameCompare = (a, b) => {
 }
 
 export const extractShipInfo = memoize((shipInfo) => {
-  console.log('extractShip')
   const {
     karyokuNow,
     karyokuMax,

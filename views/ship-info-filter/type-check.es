@@ -60,7 +60,6 @@ const TypeCheck = connect(
   handleClickSingleBox = (index) => () => {
     let checked = this.props.checked.slice()
     let {checkedAll} = this.props
-    console.log(index)
 
     if (index == -1) {
       checkedAll = !checkedAll
