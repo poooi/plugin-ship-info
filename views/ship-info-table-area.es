@@ -8,7 +8,7 @@ import { connect } from 'react-redux'
 import classNames from 'classnames'
 import memoize from 'fast-memoize'
 
-import { equipDataSelectorFactory } from 'views/utils/selectors'
+import { shipDataSelectorFactory, equipDataSelectorFactory } from 'views/utils/selectors'
 
 import Divider from './divider'
 import { shipSuperTypeMap, repairFactor } from './constants'
@@ -29,6 +29,79 @@ const getTimePerHP = memoize((api_lv = 1, api_stype = 1) => {
   }
 })
 
+const getShipInfoData = memoize((ship, $ship, $shipTypes) => {
+  console.log('getShipData')
+  const shipInfo = {
+    id: ship.api_id,
+    type_id: $ship.api_stype,
+    type: $shipTypes[$ship.api_stype].api_name,
+    name: $ship.api_name,
+    yomi: $ship.api_yomi,
+    sortno: $ship.api_sortno,
+    lv:  ship.api_lv,
+    cond: ship.api_cond,
+    karyoku: ship.api_karyoku,
+    houg: $ship.api_houg,
+    raisou: ship.api_raisou,
+    raig: $ship.api_raig,
+    taiku: ship.api_taiku,
+    tyku: $ship.api_tyku,
+    soukou: ship.api_soukou,
+    souk: $ship.api_souk,
+    lucky: ship.api_lucky,
+    luck: $ship.api_luck,
+    kyouka: ship.api_kyouka,
+    kaihi: ship.api_kaihi[0],
+    taisen: ship.api_taisen[0],
+    sakuteki: ship.api_sakuteki[0],
+    slot: clone(ship.api_slot),
+    exslot: ship.api_slot_ex,
+    locked: ship.api_locked,
+    nowhp: ship.api_nowhp,
+    maxhp: ship.api_maxhp,
+    losshp: ship.api_maxhp - ship.api_nowhp,
+    repairtime: parseInt (ship.api_ndock_time / 1000.0),
+    after: $ship.api_aftershipid,
+    sallyArea: ship.api_sally_area,
+  }
+
+  // Attention, this will overwrite some original properties
+  const karyokuNow = shipInfo.houg[0] + shipInfo.kyouka[0]
+  const karyokuMax = shipInfo.karyoku[1]
+  const karyoku = shipInfo.karyoku[0]
+  const raisouNow = shipInfo.raig[0] + shipInfo.kyouka[1]
+  const raisouMax = shipInfo.raisou[1]
+  const raisou = shipInfo.raisou[0]
+  const taikuNow = shipInfo.tyku[0] + shipInfo.kyouka[2]
+  const taikuMax = shipInfo.taiku[1]
+  const taiku = shipInfo.taiku[0]
+  const soukouNow = shipInfo.souk[0] + shipInfo.kyouka[3]
+  const soukouMax = shipInfo.soukou[1]
+  const soukou = shipInfo.soukou[0]
+  const luckyNow = shipInfo.luck[0] + shipInfo.kyouka[4]
+  const luckyMax = shipInfo.lucky[1]
+  const lucky = shipInfo.lucky[0]
+
+  return ({
+    ...shipInfo,
+    karyokuNow,
+    karyokuMax,
+    karyoku,
+    raisouNow,
+    raisouMax,
+    raisou,
+    taikuNow,
+    taikuMax,
+    taiku,
+    soukouNow,
+    soukouMax,
+    soukou,
+    luckyNow,
+    luckyMax,
+    lucky,
+  })
+
+})
 
 const collator = new Intl.Collator()
 const jpCollator = new Intl.Collator("ja-JP")
@@ -156,31 +229,43 @@ class ShipInfoTable extends Component {
     return !isEqual(nextProps.shipInfo, shipInfo)
   }
 
-  render() {
-    const {shipInfo} = this.props
+  extractShipInfo = memoize((shipInfo) => {
+    console.log('extractShip')
+    const {
+      karyokuNow,
+      karyokuMax,
+      karyoku,
+      raisouNow,
+      raisouMax,
+      raisou,
+      taikuNow,
+      taikuMax,
+      taiku,
+      soukouNow,
+      soukouMax,
+      soukou,
+      luckyNow,
+      luckyMax,
+      lucky,
+      lv,
+      nowhp,
+      maxhp,
+      losshp,
+      repairtime,
+      locked,
+      id,
+      type,
+      type_id, 
+      name, 
+      sallyArea, 
+      cond, 
+      kaihi, 
+      taisen, 
+      sakuteki, 
+      slot, 
+      exslot,
+    } = shipInfo
 
-    let karyokuNow = shipInfo.houg[0] + shipInfo.kyouka[0]
-    let karyokuMax = shipInfo.karyoku[1]
-    let karyoku = shipInfo.karyoku[0]
-    let raisouNow = shipInfo.raig[0] + shipInfo.kyouka[1]
-    let raisouMax = shipInfo.raisou[1]
-    let raisou = shipInfo.raisou[0]
-    let taikuNow = shipInfo.tyku[0] + shipInfo.kyouka[2]
-    let taikuMax = shipInfo.taiku[1]
-    let taiku = shipInfo.taiku[0]
-    let soukouNow = shipInfo.souk[0] + shipInfo.kyouka[3]
-    let soukouMax = shipInfo.soukou[1]
-    let soukou = shipInfo.soukou[0]
-    let luckyNow = shipInfo.luck[0] + shipInfo.kyouka[4]
-    let luckyMax = shipInfo.lucky[1]
-    let lucky = shipInfo.lucky[0]
-    let lv = shipInfo.lv
-    let nowhp = shipInfo.nowhp
-    let maxhp = shipInfo.maxhp
-    let losshp = shipInfo.losshp
-    let repairtime = shipInfo.repairtime
-
-    let locked = shipInfo.locked
 
     let karyokuClass = 'td-karyoku'
     let raisouClass = 'td-raisou'
@@ -188,15 +273,15 @@ class ShipInfoTable extends Component {
     let soukouClass = 'td-soukou'
     let luckyClass = 'td-lucky'
 
-    let karyokuToInc = karyokuMax - karyokuNow
+    const karyokuToInc = karyokuMax - karyokuNow
     let karyokuString = '+' + karyokuToInc
-    let raisouToInc = raisouMax - raisouNow
+    const raisouToInc = raisouMax - raisouNow
     let raisouString = '+' + raisouToInc
-    let taikuToInc = taikuMax - taikuNow
+    const taikuToInc = taikuMax - taikuNow
     let taikuString = '+' + taikuToInc
-    let soukouToInc = soukouMax - soukouNow
+    const soukouToInc = soukouMax - soukouNow
     let soukouString = '+' + soukouToInc
-    let luckyToInc = luckyMax - luckyNow
+    const luckyToInc = luckyMax - luckyNow
     let luckyString = '+' + luckyToInc
 
     if (karyokuNow >= karyokuMax) {
@@ -220,7 +305,7 @@ class ShipInfoTable extends Component {
       luckyString = 'MAX'
     }
 
-    let repairColor
+    let repairColor = ''
     if (nowhp * 4 <= maxhp) {
       repairColor = 'rgba(255, 0, 0, 0.4)'
     } else if (nowhp * 2 <= maxhp) {
@@ -231,7 +316,7 @@ class ShipInfoTable extends Component {
       repairColor = 'transparent'
     }
 
-    let condColor
+    let condColor = ''
     if (shipInfo.cond >= 0 && shipInfo.cond < 20) {
       condColor = 'rgba(255, 0, 0, 0.4)'
     } else if (shipInfo.cond >= 20 && shipInfo.cond < 30) {
@@ -242,7 +327,104 @@ class ShipInfoTable extends Component {
       condColor = 'transparent'
     }
 
-    const {id, type, type_id, name, sallyArea, cond, kaihi, taisen, sakuteki, slot, exslot} = shipInfo
+    return ({
+      karyokuNow,
+      karyokuMax,
+      karyoku,
+      raisouNow,
+      raisouMax,
+      raisou,
+      taikuNow,
+      taikuMax,
+      taiku,
+      soukouNow,
+      soukouMax,
+      soukou,
+      luckyNow,
+      luckyMax,
+      lucky,
+      lv,
+      nowhp,
+      maxhp,
+      losshp,
+      repairtime,
+      locked,
+      id,
+      type,
+      type_id, 
+      name, 
+      sallyArea, 
+      cond, 
+      kaihi, 
+      taisen, 
+      sakuteki, 
+      slot, 
+      exslot,
+      karyokuClass,
+      karyokuString,
+      raisouClass,
+      raisouString,
+      taikuClass,
+      taikuString,
+      soukouClass,
+      soukouString,
+      luckyClass,
+      luckyString,
+      repairColor,
+      condColor,
+    })
+
+  }) 
+
+  render() {
+    const {shipInfo} = this.props
+
+    const {
+      karyokuNow,
+      karyokuMax,
+      karyoku,
+      raisouNow,
+      raisouMax,
+      raisou,
+      taikuNow,
+      taikuMax,
+      taiku,
+      soukouNow,
+      soukouMax,
+      soukou,
+      luckyNow,
+      luckyMax,
+      lucky,
+      lv,
+      nowhp,
+      maxhp,
+      losshp,
+      repairtime,
+      locked,
+      id,
+      type,
+      type_id, 
+      name, 
+      sallyArea, 
+      cond, 
+      kaihi, 
+      taisen, 
+      sakuteki, 
+      slot, 
+      exslot,
+      karyokuClass,
+      karyokuString,
+      raisouClass,
+      raisouString,
+      taikuClass,
+      taikuString,
+      soukouClass,
+      soukouString,
+      luckyClass,
+      luckyString,
+      repairColor,
+      condColor,
+    } = this.extractShipInfo(shipInfo)
 
     return(
       <tr>
@@ -305,45 +487,6 @@ const ShipInfoTableArea = connect(
 
     const mapname = get(state, 'fcd.shiptag.mapname', [])
 
-    const rows = []
-    Object.keys(_ships).map(_shipId => {
-      const ship = _ships[_shipId]
-      const $ship = $ships[ship.api_ship_id]
-      const row = {
-        id: ship.api_id,
-        type_id: $ships[ship.api_ship_id].api_stype,
-        type: $shipTypes[$ships[ship.api_ship_id].api_stype].api_name,
-        name: $ships[ship.api_ship_id].api_name,
-        yomi: $ships[ship.api_ship_id].api_yomi,
-        sortno: $ships[ship.api_ship_id].api_sortno,
-        lv:  ship.api_lv,
-        cond: ship.api_cond,
-        karyoku: ship.api_karyoku,
-        houg: $ship.api_houg,
-        raisou: ship.api_raisou,
-        raig: $ship.api_raig,
-        taiku: ship.api_taiku,
-        tyku: $ship.api_tyku,
-        soukou: ship.api_soukou,
-        souk: $ship.api_souk,
-        lucky: ship.api_lucky,
-        luck: $ship.api_luck,
-        kyouka: ship.api_kyouka,
-        kaihi: ship.api_kaihi[0],
-        taisen: ship.api_taisen[0],
-        sakuteki: ship.api_sakuteki[0],
-        slot: clone(ship.api_slot),
-        exslot: ship.api_slot_ex,
-        locked: ship.api_locked,
-        nowhp: ship.api_nowhp,
-        maxhp: ship.api_maxhp,
-        losshp: ship.api_maxhp - ship.api_nowhp,
-        repairtime: parseInt (ship.api_ndock_time / 1000.0),
-        after: $ship.api_aftershipid,
-        sallyArea: ship.api_sally_area,
-      }
-      rows.push(row)
-    })
 
     return({
       sortName: get(state.config, "plugin.ShipInfo.sortName", "lv"),
@@ -356,13 +499,14 @@ const ShipInfoTableArea = connect(
       sallyAreaChecked: get(state.config, "plugin.ShipInfo.sallyAreaChecked", mapname.slice().fill(true)),
       shipTypes,
       expeditionShips,
-      rows,
+      _ships,
+      $ships,
+      $shipTypes,
       show: true,
     })
   }
 )(class ShipInfoTableArea extends Component{
   handleTypeFilter = memoize((type_id, shipTypes) => {
-    console.log(shipTypes)
     return shipTypes.includes(type_id)
   })
 
@@ -438,13 +582,26 @@ const ShipInfoTableArea = connect(
     return sallyArea ? sallyAreaChecked[sallyArea] : true
   })
 
+  getRows = memoize((_ships, $ships, $shipTypes) => {
+    console.log('getrows')
+    const rows = Object.keys(_ships).map(_shipId => {
+      
+      const ship = _ships[_shipId]
+      const $ship = $ships[ship.api_ship_id]
+
+      return getShipInfoData(ship, $ship, $shipTypes)
+    })
+    return rows
+  })
+
   handleShowRows = () => {
     const {remodelRadio, lvRadio, lockedRadio, expeditionRadio, modernizationRadio, 
-      shipTypes, expeditionShips, sallyAreaChecked} = this.props
+      shipTypes, expeditionShips, sallyAreaChecked, _ships, $ships, $shipTypes} = this.props
     // console.log(remodelRadio, lvRadio, lockedRadio, expeditionRadio, modernizationRadio, shipTypes, expeditionShips)
     
 
-    const {rows} = this.props || []
+    const rows = this.getRows(_ships, $ships, $shipTypes)
+
     let showRows = rows.filter( row => 
       this.handleTypeFilter(row.type_id, shipTypes) &&
       this.handleLvFilter(row.lv, lvRadio) &&
