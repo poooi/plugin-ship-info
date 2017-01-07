@@ -16,7 +16,7 @@ const TypeCheck = connect(
 
     let checked = get(state.config, "plugin.ShipInfo.shipTypeChecked", defaultChecked)
     checked = defaultChecked.length == checked.length ? checked : defaultChecked
-    const checkedAll = checked.reduce((a, b) => a && b)
+    const checkedAll = checked.reduce((a, b) => a && b, true)
 
     return({
       show: props.show || false,
@@ -57,7 +57,7 @@ const TypeCheck = connect(
     config.set ("plugin.ShipInfo.shipTypeChecked", checked)
   }
 
-  handleClickSignleBox = (index) => () => {
+  handleClickSingleBox = (index) => () => {
     let checked = this.props.checked.slice()
     let {checkedAll} = this.props
     console.log(index)
@@ -88,13 +88,13 @@ const TypeCheck = connect(
               show ?
                 <Input type='checkbox' 
                   label={__('All')} 
-                  onChange={this.handleClickSignleBox(-1)} 
+                  onChange={this.handleClickSingleBox(-1)} 
                   checked={checkedAll} 
                 />  
               :
                 <Button 
                   className='filter-button-all'
-                  onClick={this.handleClickSignleBox(-1)} 
+                  onClick={this.handleClickSingleBox(-1)} 
                   bsStyle={checkedAll ? 'success': 'default'}
                 >
                   {__ ('All')}
@@ -111,7 +111,7 @@ const TypeCheck = connect(
                 <Col xs={xs} key={key}>
                   <Input type='checkbox' 
                     label={__(type.api_name)} 
-                    onChange={this.handleClickSignleBox(key - 1)} 
+                    onChange={this.handleClickSingleBox(key - 1)} 
                     checked={checked[key -1]} 
                   />                
                 </Col>

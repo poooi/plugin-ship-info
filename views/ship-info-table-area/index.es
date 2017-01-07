@@ -113,9 +113,9 @@ class ShipInfoTable extends Component {
 
 const ShipInfoTableArea = connect(
   (state, props) => {
-    const $shipTypes = state.const.$shipTypes
-    const $ships = state.const.$ships
-    const _ships = state.info.ships
+    const $shipTypes = get(state, 'const.$shipTypes', {})
+    const $ships = get(state, 'const.$ships', {})
+    const _ships = get(state, 'info.ships', {})
 
     // construct shiptype filter array
     const shipTypeChecked = get(state.config, "plugin.ShipInfo.shipTypeChecked", Object.keys($shipTypes).slice().fill(true))
