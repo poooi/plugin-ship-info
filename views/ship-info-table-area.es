@@ -473,7 +473,7 @@ const ShipInfoTableArea = connect(
     const _ships = state.info.ships
 
     // construct shiptype filter array
-    const shipTypeChecked = get(state.config, "plugin.ShipInfo.shipTypeChecked", Array.keys($shipTypes).slice().fill(true))
+    const shipTypeChecked = get(state.config, "plugin.ShipInfo.shipTypeChecked", Object.keys($shipTypes).slice().fill(true))
     const shipTypes = shipTypeChecked.reduce((types, checked, index) => {
       return checked && ((index + 1) in $shipTypes) ? types.concat([index + 1]) : types
     }, [] )
@@ -544,14 +544,15 @@ const ShipInfoTableArea = connect(
   })
 
   handleModernizationFilter = memoize((ship, modernizationRadio) => {
-    let karyokuNow = ship.houg[0] + ship.kyouka[0]
-    let karyokuMax = ship.karyoku[1]
-    let raisouNow = ship.raig[0] + ship.kyouka[1]
-    let raisouMax = ship.raisou[1]
-    let taikuNow = ship.tyku[0] + ship.kyouka[2]
-    let taikuMax = ship.taiku[1]
-    let soukouNow = ship.souk[0] + ship.kyouka[3]
-    let soukouMax = ship.soukou[1]
+    const {karyokuNow,
+     karyokuMax,
+     raisouNow,
+     raisouMax,
+     taikuNow,
+     taikuMax,
+     soukouNow,
+     soukouMax,
+    } = ship
     let isCompleted = karyokuNow >= karyokuMax &&
                   raisouNow >= raisouMax &&
                   taikuNow >= taikuMax &&
