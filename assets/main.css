@@ -176,3 +176,11 @@ th {
   max-width: initial;
   width: fit-content;
 }
+
+.super-type {
+  display: flex;
+}
+
+.super-type button {
+  flex: 1;
+}

@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import { Grid, Row, Col, Input, Label, Button, ButtonGroup } from 'react-bootstrap'
 import { connect } from 'react-redux'
 import { get, isEqual, map, intersection } from 'lodash'
+import FontAwesome from 'react-fontawesome'
 import { shipSuperTypeMap,
   lvOptions, lockedOptions, expeditionOptions, modernizationOptions, remodelOptions } from './constants'
 
@@ -52,7 +53,7 @@ const RadioCheck = connect(
 })
 
 // new ship type check is based on preset ship type collections as in shipSuperTypeMap
-// to ensure a downgrade compatibility, another cofig key is used
+// to ensure a downgrade compatibility, another config key is used
 const TypeCheck = connect(
   (state, props) => {
     const $shipTypes = get(state, 'const.$shipTypes')
@@ -63,6 +64,7 @@ const TypeCheck = connect(
     const checkedAll = checked.reduce((a, b) => a && b)
 
     return({
+      show: props.show || false,
       $shipTypes,
       checked,
       checkedAll,
@@ -71,7 +73,7 @@ const TypeCheck = connect(
 )(class TypeCheck extends Component {
 
   shouldComponentUpdate = (nextProps, nextState) => {
-    return !isEqual(nextProps.checked, this.props.checked)
+    return !isEqual(nextProps.checked, this.props.checked) || this.props.show != nextProps.show
   }
 
   getTypeArray = (checked, $shipTypes) => {
@@ -116,35 +118,38 @@ const TypeCheck = connect(
   }
 
   render(){
-    const {$shipTypes, checked, checkedAll} = this.props
+    const {show, $shipTypes, checked, checkedAll} = this.props
     const xs = 2
     const checkedTypes = checked.reduce((types, checked, index) => {
       return checked && ((index + 1) in $shipTypes) ? types.concat([index + 1]) : types
     }, [] )
     
+
     return(
       <div className='filter-type'>
         <Row>
-        <Col xs={12} className='super-type'>
-            <Button
-              onClick={this.handleClickSignleBox(-1)} 
-              bsStyle={checkedAll ? 'success': 'default'}
-            >
-              {__ ('All')}
-            </Button>
-          {
-            shipSuperTypeMap.map((supertype, index) =>
-              <Button 
-                onClick={this.handleClickSuperType(checkedTypes, index)} 
-                bsStyle={this.getArrayInclusion(checkedTypes, supertype.id) ? 'success': 'default' }
-              >
-                {__(`Filter${supertype.name}`)}              
-              </Button>
-            )
-          }
+          <Col xs={12} className='super-type'>
+            {
+              show ?
+                <Input type='checkbox' 
+                  label={__('All')} 
+                  onChange={this.handleClickSignleBox(-1)} 
+                  checked={checkedAll} 
+                />  
+              :
+                <Button 
+                  className='filter-button-all'
+                  onClick={this.handleClickSignleBox(-1)} 
+                  bsStyle={checkedAll ? 'success': 'default'}
+                >
+                  {__ ('All')}
+                </Button>
+            }
           </Col>
         </Row>
-        <Row>
+        {
+          show &&
+          <Row>
             <Col xs={12}>
               {
               map($shipTypes, (type, key) =>
@@ -158,6 +163,28 @@ const TypeCheck = connect(
               )
             }
             </Col>
+          </Row>
+        }
+        <Row>
+          <Col xs={12} className='super-type'>
+            {
+              shipSuperTypeMap.map((supertype, index) =>
+                <Button
+                  key={index}
+                  className='filter-button'
+                  onClick={this.handleClickSuperType(checkedTypes, index)} 
+                  bsStyle='default'
+                >
+                  {this.getArrayInclusion(checkedTypes, supertype.id) ?
+                    <FontAwesome name='check'/>  
+                    :
+                    ''
+                  }
+                  {__(`Filter${supertype.name}`)}              
+                </Button>
+              )
+            }
+          </Col>
         </Row>
       </div>
     )
@@ -165,7 +192,7 @@ const TypeCheck = connect(
   }
 })
 
-// to ensure a downgrade compatibility, another cofig key is used
+// to ensure a downgrade compatibility, another config key is used
 const SallyAreaCheck = connect(
   (state, props) => {
     const mapname = get(state, 'fcd.shiptag.mapname', [])
@@ -245,7 +272,7 @@ export default class ShipInfoFilter extends Component {
     const {showDetails} = this.props
     return(
       <Grid>
-        <TypeCheck />
+        <TypeCheck show={showDetails}/>
         {
           showDetails &&
             <div>
