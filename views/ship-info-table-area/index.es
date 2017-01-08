@@ -10,6 +10,7 @@ import { fleetShipsIdSelectorFactory, fleetInExpeditionSelectorFactory } from 'v
 
 import Divider from '../divider'
 import { getTimePerHP, getShipInfoData, nameCompare, extractShipInfo } from './utils'
+import { shipTableDataSelectorFactory } from './selectors'
 import Slotitems from './slotitems'
 import SallyArea from './sallyarea'
 
@@ -115,7 +116,8 @@ const ShipInfoTableArea = connect(
   (state, props) => {
     const $shipTypes = get(state, 'const.$shipTypes', {})
     const $ships = get(state, 'const.$ships', {})
-    const _ships = get(state, 'info.ships', {})
+    // const _ships = get(state, 'info.ships', {})
+    const mapname = get(state, 'fcd.shiptag.mapname', [])
 
     // construct shiptype filter array
     const shipTypeChecked = get(state.config, "plugin.ShipInfo.shipTypeChecked", Object.keys($shipTypes).slice().fill(true))
@@ -130,7 +132,11 @@ const ShipInfoTableArea = connect(
         : ships
     }, [])
 
-    const mapname = get(state, 'fcd.shiptag.mapname', [])
+    // construct ship data for filter and sort
+    const _ships = get(state, 'info.ships', {})
+    const rows = Object.keys(_ships).map(shipId => {
+      return shipTableDataSelectorFactory(parseInt(shipId))(state)
+    })
 
 
     return({
@@ -144,9 +150,7 @@ const ShipInfoTableArea = connect(
       sallyAreaChecked: get(state.config, "plugin.ShipInfo.sallyAreaChecked", mapname.slice().fill(true)),
       shipTypes,
       expeditionShips,
-      _ships,
-      $ships,
-      $shipTypes,
+      rows,
       show: true,
     })
   }
@@ -228,25 +232,25 @@ const ShipInfoTableArea = connect(
     return sallyArea ? sallyAreaChecked[sallyArea] : true
   })
 
-  // get all ship data
-  getRows = memoize((_ships, $ships, $shipTypes) => {
-    const rows = Object.keys(_ships).map(_shipId => {
+  // // get all ship data
+  // getRows = memoize((_ships, $ships, $shipTypes) => {
+  //   const rows = Object.keys(_ships).map(_shipId => {
       
-      const ship = _ships[_shipId]
-      const $ship = $ships[ship.api_ship_id]
+  //     const ship = _ships[_shipId]
+  //     const $ship = $ships[ship.api_ship_id]
 
-      return getShipInfoData(ship, $ship, $shipTypes)
-    })
-    return rows
-  })
+  //     return getShipInfoData(ship, $ship, $shipTypes)
+  //   })
+  //   return rows
+  // })
 
   handleShowRows = () => {
     const {remodelRadio, lvRadio, lockedRadio, expeditionRadio, modernizationRadio, 
-      shipTypes, expeditionShips, sallyAreaChecked, _ships, $ships, $shipTypes} = this.props
+      shipTypes, expeditionShips, sallyAreaChecked, rows, sortName, sortOrder} = this.props
     
-    const rows = this.getRows(_ships, $ships, $shipTypes)
+    // const rows = this.getRows(_ships, $ships, $shipTypes)
 
-    let showRows = rows.filter( row => 
+    let showRows = rows.filter( (row={}) => 
       this.handleTypeFilter(row.type_id, shipTypes) &&
       this.handleLvFilter(row.lv, lvRadio) &&
       this.handleLockedFilter(row.locked, lockedRadio) &&
@@ -262,19 +266,19 @@ const ShipInfoTableArea = connect(
       showRows.sort(nameCompare)
       break
     case 'karyoku':
-      showRows = sortBy (showRows, (row) => row.karyoku[0])
+      showRows = sortBy (showRows, (row) => row.karyoku)
       break
     case 'raisou':
-      showRows = sortBy (showRows, (row) => row.raisou[0])
+      showRows = sortBy (showRows, (row) => row.raisou)
       break
     case 'taiku':
-      showRows = sortBy (showRows, (row) => row.taiku[0])
+      showRows = sortBy (showRows, (row) => row.taiku)
       break
     case 'soukou':
-      showRows = sortBy (showRows, (row) => row.soukou[0])
+      showRows = sortBy (showRows, (row) => row.soukou)
       break
     case 'lucky':
-      showRows = sortBy (showRows, (row) => row.lucky[0])
+      showRows = sortBy (showRows, (row) => row.lucky)
       break
     case 'lv':
       // Sort rule of level in game (descending):
@@ -298,10 +302,10 @@ const ShipInfoTableArea = connect(
       })
       break
     default:
-      showRows = sortBy (showRows, this.props.sortName)
+      showRows = sortBy (showRows, sortName)
     }
 
-    if (!this.props.sortOrder) showRows.reverse()
+    if (!sortOrder) showRows.reverse()
 
     return showRows
   }
@@ -375,7 +379,8 @@ const ShipInfoTableArea = connect(
             </thead>
             <tbody>
               {
-                showRows.map((row, indx) =>
+                showRows.map((row, index) =>
+                  row &&
                   <ShipInfoTable
                     key = {row.id}
                     shipInfo = {row}

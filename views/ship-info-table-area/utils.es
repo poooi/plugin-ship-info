@@ -16,7 +16,8 @@ export const getTimePerHP = memoize((api_lv = 1, api_stype = 1) => {
   }
 })
 
-export const getShipInfoData = memoize((ship, $ship, $shipTypes) => {
+export const getShipInfoData = (ship, $ship, $shipTypes) => {
+  if(!(typeof ship === 'object' && $ship && typeof ship === 'object' && ship)) return
   const shipInfo = {
     id: ship.api_id,
     type_id: $ship.api_stype,
@@ -87,7 +88,7 @@ export const getShipInfoData = memoize((ship, $ship, $shipTypes) => {
     lucky,
   })
 
-})
+}
 
 const collator = new Intl.Collator()
 const jpCollator = new Intl.Collator("ja-JP")
@@ -100,7 +101,7 @@ export const nameCompare = (a, b) => {
   }
 }
 
-export const extractShipInfo = memoize((shipInfo) => {
+export const extractShipInfo = (shipInfo) => {
   const {
     karyokuNow,
     karyokuMax,
@@ -244,4 +245,79 @@ export const extractShipInfo = memoize((shipInfo) => {
     condColor,
   })
 
-}) 
+}
+
+
+export const getTableInfoData = (ship, $ship, $shipTypes) => {
+  if(!(typeof ship === 'object' && $ship && typeof ship === 'object' && ship)) return
+  const shipInfo = {
+    id: ship.api_id,
+    type_id: $ship.api_stype,
+    type: $shipTypes[$ship.api_stype].api_name,
+    name: $ship.api_name,
+    yomi: $ship.api_yomi,
+    sortno: $ship.api_sortno,
+    lv:  ship.api_lv,
+    cond: ship.api_cond,
+    karyoku: ship.api_karyoku,
+    houg: $ship.api_houg,
+    raisou: ship.api_raisou,
+    raig: $ship.api_raig,
+    taiku: ship.api_taiku,
+    tyku: $ship.api_tyku,
+    soukou: ship.api_soukou,
+    souk: $ship.api_souk,
+    lucky: ship.api_lucky,
+    luck: $ship.api_luck,
+    kyouka: ship.api_kyouka,
+    kaihi: ship.api_kaihi[0],
+    taisen: ship.api_taisen[0],
+    sakuteki: ship.api_sakuteki[0],
+    slot: clone(ship.api_slot),
+    exslot: ship.api_slot_ex,
+    locked: ship.api_locked,
+    nowhp: ship.api_nowhp,
+    maxhp: ship.api_maxhp,
+    losshp: ship.api_maxhp - ship.api_nowhp,
+    repairtime: parseInt (ship.api_ndock_time / 1000.0),
+    after: $ship.api_aftershipid,
+    sallyArea: ship.api_sally_area,
+  }
+
+  // Attention, this will overwrite some original properties
+  const karyokuNow = shipInfo.houg[0] + shipInfo.kyouka[0]
+  const karyokuMax = shipInfo.karyoku[1]
+  const karyoku = shipInfo.karyoku[0]
+  const raisouNow = shipInfo.raig[0] + shipInfo.kyouka[1]
+  const raisouMax = shipInfo.raisou[1]
+  const raisou = shipInfo.raisou[0]
+  const taikuNow = shipInfo.tyku[0] + shipInfo.kyouka[2]
+  const taikuMax = shipInfo.taiku[1]
+  const taiku = shipInfo.taiku[0]
+  const soukouNow = shipInfo.souk[0] + shipInfo.kyouka[3]
+  const soukouMax = shipInfo.soukou[1]
+  const soukou = shipInfo.soukou[0]
+  const luckyNow = shipInfo.luck[0] + shipInfo.kyouka[4]
+  const luckyMax = shipInfo.lucky[1]
+  const lucky = shipInfo.lucky[0]
+
+  return ({
+    ...shipInfo,
+    karyokuNow,
+    karyokuMax,
+    karyoku,
+    raisouNow,
+    raisouMax,
+    raisou,
+    taikuNow,
+    taikuMax,
+    taiku,
+    soukouNow,
+    soukouMax,
+    soukou,
+    luckyNow,
+    luckyMax,
+    lucky,
+  })
+
+}
