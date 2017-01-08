@@ -151,7 +151,6 @@ const ShipInfoTableArea = connect(
       shipTypes,
       expeditionShips,
       rows,
-      show: true,
     })
   }
 )(class ShipInfoTableArea extends Component{
@@ -219,23 +218,10 @@ const ShipInfoTableArea = connect(
     return sallyArea ? sallyAreaChecked[sallyArea] : true
   })
 
-  // // get all ship data
-  // getRows = memoize((_ships, $ships, $shipTypes) => {
-  //   const rows = Object.keys(_ships).map(_shipId => {
-      
-  //     const ship = _ships[_shipId]
-  //     const $ship = $ships[ship.api_ship_id]
-
-  //     return getShipInfoData(ship, $ship, $shipTypes)
-  //   })
-  //   return rows
-  // })
-
   handleShowRows = () => {
     const {remodelRadio, lvRadio, lockedRadio, expeditionRadio, modernizationRadio, 
       shipTypes, expeditionShips, sallyAreaChecked, rows, sortName, sortOrder} = this.props
-    
-    // const rows = this.getRows(_ships, $ships, $shipTypes)
+
 
     let showRows = rows.filter( (row={}) => 
       this.handleTypeFilter(row.type_id, shipTypes) &&
