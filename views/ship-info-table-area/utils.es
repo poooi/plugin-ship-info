@@ -21,7 +21,7 @@ export const getShipInfoData = (ship, $ship, $shipTypes) => {
   const shipInfo = {
     id: ship.api_id,
     type_id: $ship.api_stype,
-    type: $shipTypes[$ship.api_stype].api_name,
+    type: ($shipTypes[$ship.api_stype] || {} ).api_name,
     name: $ship.api_name,
     yomi: $ship.api_yomi,
     sortno: $ship.api_sortno,
