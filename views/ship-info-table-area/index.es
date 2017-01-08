@@ -192,20 +192,7 @@ const ShipInfoTableArea = connect(
     }
   })
 
-  handleModernizationFilter = memoize((ship, modernizationRadio) => {
-    const {karyokuNow,
-     karyokuMax,
-     raisouNow,
-     raisouMax,
-     taikuNow,
-     taikuMax,
-     soukouNow,
-     soukouMax,
-    } = ship
-    let isCompleted = karyokuNow >= karyokuMax &&
-                  raisouNow >= raisouMax &&
-                  taikuNow >= taikuMax &&
-                  soukouNow >= soukouMax
+  handleModernizationFilter = memoize((isCompleted, modernizationRadio) => {
     switch(modernizationRadio){
     case 0:
       return true
@@ -255,7 +242,7 @@ const ShipInfoTableArea = connect(
       this.handleLvFilter(row.lv, lvRadio) &&
       this.handleLockedFilter(row.locked, lockedRadio) &&
       this.handleExpeditionFilter(row.id, expeditionShips, expeditionRadio) &&
-      this.handleModernizationFilter(row, modernizationRadio) &&
+      this.handleModernizationFilter(row.isCompleted, modernizationRadio) &&
       this.handleRemodelFilter(row.after, remodelRadio) && 
       this.handleSallyAreaFilter(row.sallyArea, sallyAreaChecked)  
     )

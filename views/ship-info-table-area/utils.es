@@ -69,6 +69,11 @@ export const getShipInfoData = (ship, $ship, $shipTypes) => {
   const luckyMax = shipInfo.lucky[1]
   const lucky = shipInfo.lucky[0]
 
+  const isCompleted = karyokuNow >= karyokuMax &&
+            raisouNow >= raisouMax &&
+            taikuNow >= taikuMax &&
+            soukouNow >= soukouMax
+
   return ({
     ...shipInfo,
     karyokuNow,
@@ -86,6 +91,7 @@ export const getShipInfoData = (ship, $ship, $shipTypes) => {
     luckyNow,
     luckyMax,
     lucky,
+    isCompleted,
   })
 
 }
@@ -247,41 +253,40 @@ export const extractShipInfo = (shipInfo) => {
 
 }
 
-
-export const getTableInfoData = (ship, $ship, $shipTypes) => {
+// just to confirm that table sorting requires so much data, which is almost all data used in display
+export const getTableInfoData = (ship, $ship) => {
   if(!(typeof ship === 'object' && $ship && typeof ship === 'object' && ship)) return
   const shipInfo = {
-    id: ship.api_id,
-    type_id: $ship.api_stype,
-    type: $shipTypes[$ship.api_stype].api_name,
+    id: ship.api_id, //
+    type_id: $ship.api_stype, //
     name: $ship.api_name,
-    yomi: $ship.api_yomi,
-    sortno: $ship.api_sortno,
-    lv:  ship.api_lv,
-    cond: ship.api_cond,
-    karyoku: ship.api_karyoku,
-    houg: $ship.api_houg,
-    raisou: ship.api_raisou,
-    raig: $ship.api_raig,
-    taiku: ship.api_taiku,
-    tyku: $ship.api_tyku,
-    soukou: ship.api_soukou,
-    souk: $ship.api_souk,
-    lucky: ship.api_lucky,
-    luck: $ship.api_luck,
-    kyouka: ship.api_kyouka,
-    kaihi: ship.api_kaihi[0],
-    taisen: ship.api_taisen[0],
-    sakuteki: ship.api_sakuteki[0],
+    yomi: $ship.api_yomi, //
+    sortno: $ship.api_sortno, //
+    lv:  ship.api_lv, //
+    cond: ship.api_cond, //
+    karyoku: ship.api_karyoku, //
+    houg: $ship.api_houg, //
+    raisou: ship.api_raisou, //
+    raig: $ship.api_raig, //
+    taiku: ship.api_taiku, //
+    tyku: $ship.api_tyku, //
+    soukou: ship.api_soukou, //
+    souk: $ship.api_souk, //
+    lucky: ship.api_lucky, //
+    luck: $ship.api_luck, //
+    kyouka: ship.api_kyouka, //
+    kaihi: ship.api_kaihi[0], //
+    taisen: ship.api_taisen[0], //
+    sakuteki: ship.api_sakuteki[0], //
     slot: clone(ship.api_slot),
     exslot: ship.api_slot_ex,
-    locked: ship.api_locked,
+    locked: ship.api_locked, //
     nowhp: ship.api_nowhp,
     maxhp: ship.api_maxhp,
     losshp: ship.api_maxhp - ship.api_nowhp,
-    repairtime: parseInt (ship.api_ndock_time / 1000.0),
-    after: $ship.api_aftershipid,
-    sallyArea: ship.api_sally_area,
+    repairtime: parseInt (ship.api_ndock_time / 1000.0), //
+    after: $ship.api_aftershipid, //
+    sallyArea: ship.api_sally_area, //
   }
 
   // Attention, this will overwrite some original properties
@@ -301,23 +306,19 @@ export const getTableInfoData = (ship, $ship, $shipTypes) => {
   const luckyMax = shipInfo.lucky[1]
   const lucky = shipInfo.lucky[0]
 
+  const isCompleted = karyokuNow >= karyokuMax &&
+              raisouNow >= raisouMax &&
+              taikuNow >= taikuMax &&
+              soukouNow >= soukouMax
+
   return ({
     ...shipInfo,
-    karyokuNow,
-    karyokuMax,
     karyoku,
-    raisouNow,
-    raisouMax,
     raisou,
-    taikuNow,
-    taikuMax,
     taiku,
-    soukouNow,
-    soukouMax,
     soukou,
-    luckyNow,
-    luckyMax,
     lucky,
+    isCompleted,
   })
 
 }
