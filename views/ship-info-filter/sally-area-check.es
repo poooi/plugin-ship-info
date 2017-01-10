@@ -13,7 +13,7 @@ const SallyAreaCheck = connect(
     let checked = get(state.config, "plugin.ShipInfo.sallyAreaChecked", defaultChecked)
 
     checked = mapname.length == checked.length ? checked : defaultChecked
-    const checkedAll = checked.reduce((a, b) => a && b)
+    const checkedAll = checked.reduce((a, b) => a && b, true)
 
     return({
       mapname,
@@ -38,7 +38,7 @@ const SallyAreaCheck = connect(
       checked.fill(checkedAll)
     } else {
       checked[index] = !checked[index]
-      checkedAll = checked.reduce((a, b) => a && b)
+      checkedAll = checked.reduce((a, b) => a && b, true)
     }
 
     config.set ("plugin.ShipInfo.sallyAreaChecked", checked)
