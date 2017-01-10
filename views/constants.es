@@ -90,3 +90,15 @@ export const repairFactor = {
   '21': { api_id: 21, api_name: '練習巡洋艦', factor: 1 },
   '22': { api_id: 22, api_name: '補給艦', factor: 1 },
 }
+
+export const sokuInterpretation = {
+  [5]: 'Slow',
+  [10]: 'Fast',
+  [15]: 'Fast+',
+  [20]: 'Fastest',
+}
+
+export const sokuStyles = {
+  [15]: {color: '#1E88E5'},
+  [20]: {color: '#64B5F6'},
+}

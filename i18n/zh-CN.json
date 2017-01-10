@@ -48,5 +48,10 @@
   "Remodelable": "仍能改造",
   "Ship tag: %s": "出击限定: %s",
   "Sally Area Setting": "出击限定",
-  "No Sally Area": "未出击"
+  "No Sally Area": "未出击",
+  "Speed": "速力",
+  "Slow":"低速",
+  "Fast": "高速",
+  "Fast+": "高速+",
+  "Fastest": "最速"
 }

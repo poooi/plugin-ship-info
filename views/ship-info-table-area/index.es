@@ -70,6 +70,8 @@ class ShipInfoTable extends Component {
       luckyString,
       repairColor,
       condColor,
+      sokuString,
+      sokuStyle,
     } = extractShipInfo(shipInfo)
 
     // TODO: support unequip ship data display
@@ -81,6 +83,7 @@ class ShipInfoTable extends Component {
         <td className="ship-name">{window.i18n.resources.__ (name)}
           <SallyArea area={sallyArea} info_id={id}/>
         </td>
+        <td style={sokuStyle}>{__(sokuString)}</td>
         <td className='center'>{lv}</td>
         <td className='center' style={{backgroundColor: condColor}}>{cond}</td>
         <td className={karyokuClass}>{karyoku + '/'}<span style={{fontSize: '80%'}}>{karyokuString}</span></td>
@@ -275,7 +278,7 @@ const ShipInfoTableArea = connect(
       })
       break
     default:
-      showRows = sortBy (showRows, sortName)
+      showRows = sortBy (showRows, [sortName, 'api_id'])
     }
 
     if (!sortOrder) showRows.reverse()
@@ -300,28 +303,28 @@ const ShipInfoTableArea = connect(
     const showRows = this.handleShowRows()
     const {sortName, sortOrder} = this.props
     const types = [
-      'id', 'type', 'name', 'lv', 'cond', 
-      'karyoku', 'raisou', 'taiku', 'soukou', 'lucky', 
-      'kaihi', 'taisen', 'sakuteki', 'repairtime', 'Equipment', 
-      'Lock',
+      'id', 'type', 'name', 'soku', 'lv', 
+      'cond', 'karyoku', 'raisou', 'taiku', 'soukou', 
+      'lucky', 'kaihi', 'taisen', 'sakuteki', 'repairtime', 
+      'Equipment', 'Lock',
     ]
     const titles = [
-      'ID', 'Class', 'Name', 'Level', 'Cond',
-      'Firepower', 'Torpedo', 'AA', 'Armor', 'Luck',
-      'Evasion', 'ASW', 'LOS', 'Repair', 'Equipment',
-      'Lock',
+      'ID', 'Class', 'Name', 'Speed', 'Level', 
+      'Cond', 'Firepower', 'Torpedo', 'AA', 'Armor', 
+      'Luck', 'Evasion', 'ASW', 'LOS', 'Repair',
+      'Equipment', 'Lock',
     ]
     const sortable = [
       true, true, true, true, true,
       true, true, true, true, true,
-      true, true, true, true, false,
-      false,
+      true, true, true, true, true, 
+      false, false,
     ]
     const centerAlign = [
-      false, false, false, true, true,
+      false, false, false, false, true, 
       true, true, true, true, true,
-      true, true, true, true, false,
-      false,
+      true, true, true, true, true,
+      false, false,
     ]
     return(
       <div id="ship-info-show">

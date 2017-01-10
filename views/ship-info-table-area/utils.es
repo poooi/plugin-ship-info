@@ -1,6 +1,6 @@
 import { clone } from 'lodash'
 import memoize from 'fast-memoize'
-import { repairFactor } from '../constants'
+import { repairFactor, sokuInterpretation, sokuStyles } from '../constants'
 
 export const getTimePerHP = memoize((api_lv = 1, api_stype = 1) => {
   let factor = 0
@@ -50,6 +50,7 @@ export const getShipInfoData = (ship, $ship, $shipTypes) => {
     repairtime: parseInt (ship.api_ndock_time / 1000.0),
     after: $ship.api_aftershipid,
     sallyArea: ship.api_sally_area,
+    soku: ship.api_soku,
   }
 
   // Attention, this will overwrite some original properties
@@ -141,6 +142,7 @@ export const extractShipInfo = (shipInfo) => {
     sakuteki, 
     slot, 
     exslot,
+    soku,
   } = shipInfo
 
 
@@ -204,6 +206,9 @@ export const extractShipInfo = (shipInfo) => {
     condColor = 'transparent'
   }
 
+  const sokuString = sokuInterpretation[soku] || 'Unknown'
+  const sokuStyle = sokuStyles[soku] || {}
+
   return ({
     karyokuNow,
     karyokuMax,
@@ -249,6 +254,8 @@ export const extractShipInfo = (shipInfo) => {
     luckyString,
     repairColor,
     condColor,
+    sokuString,
+    sokuStyle,
   })
 
 }
