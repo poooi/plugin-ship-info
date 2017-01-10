@@ -71,15 +71,15 @@ body {
   background-color: rgba(125, 239, 94, 0.33);
 }
 clickable {
-  -webkit-filter: none;
+  filter: none;
   transition: 0.2s;
 }
 .clickable:hover {
   cursor: pointer;
-  -webkit-filter: drop-shadow(0px 0px 8px #2196F3);
+  filter: drop-shadow(0px 0px 8px #2196F3);
   transition: 0.2s;
 }
-#ship-info-settings .checkbox {
+#ship-info-settings .filter-type .checkbox {
   margin-top: 1px;
   margin-bottom: 1px;
 }
@@ -132,10 +132,10 @@ clickable {
   width: 10px;
 }
 ::-webkit-scrollbar-track {
-  -webkit-border-radius: 1px;
+  border-radius: 1px;
 }
 ::-webkit-scrollbar-thumb {
-  -webkit-border-radius: 1px;
+  border-radius: 1px;
   background-color: #3d3d3d;
 }
 
@@ -158,4 +158,29 @@ img.svg {
   width: 26px;
   height: 23px;
   margin: 5px 3px 4px 3px;
+}
+
+.sorting.up {
+  background: linear-gradient(to top, rgba(255, 82, 82, 0.5), rgba(0, 0, 0, 0));
+}
+
+.sorting.down {
+  background: linear-gradient(to top, rgba(105, 240, 174, 0.5), rgba(0, 0, 0, 0));
+}
+
+th {
+  height: 3em;
+}
+
+.info-tooltip .tooltip-inner{
+  max-width: initial;
+  width: fit-content;
+}
+
+.super-type {
+  display: flex;
+}
+
+.super-type button {
+  flex: 1;
 }
