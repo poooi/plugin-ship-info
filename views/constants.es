@@ -51,24 +51,24 @@ export const lockedOptions = {
 
 export const expeditionOptions = {
   [0]: 'All',
-  [1]: 'In Expedition',
-  [2]: 'Not In Expedition',  
+  [1]: 'Yes',
+  [2]: 'No',  
 }
 
 export const modernizationOptions = {
   [0]: 'All',
-  [1]: 'Modernization Completed',
-  [2]: 'Modernization Incompleted',
+  [1]: 'Completed',
+  [2]: 'Incomplete',
 }
 
 export const remodelOptions = {
   [0]: 'All',
-  [1]: 'Not Remodelable',
-  [2]: 'Remodelable',
+  [1]: 'No',
+  [2]: 'Yes',
 }
 
 export const rawValueOptions = {
-  [0]: 'Equipment Included',
+  [0]: 'Equip. Incl.',
   [1]: 'Raw Value',
 }
 

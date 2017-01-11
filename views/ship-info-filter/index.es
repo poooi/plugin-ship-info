@@ -30,19 +30,19 @@ export default class ShipInfoFilter extends Component {
               <Row>
                 <RadioCheck 
                   configKey='lvRadio'
-                  label='Level Setting'
+                  label='Level'
                   options={lvOptions}
                   default={2}
                 />
                 <RadioCheck 
                   configKey='lockedRadio'
-                  label='Lock Setting'
+                  label='Lock'
                   options={lockedOptions}
                   default={1}
                 />
                 <RadioCheck 
                   configKey='expeditionRadio'
-                  label='Expedition Setting'
+                  label='Expedition'
                   options={expeditionOptions}
                   default={0}
                 />
@@ -54,13 +54,13 @@ export default class ShipInfoFilter extends Component {
                 />
                 <RadioCheck 
                   configKey='modernizationRadio'
-                  label='Modernization Setting'
+                  label='Modernization'
                   options={modernizationOptions}
                   default={0}
                 />
                 <RadioCheck 
                   configKey='remodelRadio'
-                  label='Remodel Setting'
+                  label='Remodelable'
                   options={remodelOptions}
                   default={0}
                 />

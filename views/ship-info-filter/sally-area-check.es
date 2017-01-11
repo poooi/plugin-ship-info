@@ -49,7 +49,7 @@ const SallyAreaCheck = connect(
     return(
       <Row>
         <Col xs={8} className='radio-check'>
-        <div className='filter-span'><span>{__('Sally Area Setting')}</span></div>
+        <div className='filter-span'><span>{__('Sally Area')}</span></div>
 
           <div>
             <Input type='checkbox' 
