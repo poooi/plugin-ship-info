@@ -73,8 +73,8 @@ export const rawValueOptions = {
 }
 
 export const pagedLayoutOptions = {
-  [0]: 'No',
-  [1]: 'Yes',
+  [0]: 'Single',
+  [1]: 'Multiple',
 }
 
 export const marriedOptions = {

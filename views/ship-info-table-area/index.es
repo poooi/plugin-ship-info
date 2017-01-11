@@ -396,7 +396,7 @@ const ShipInfoTableArea = connect(
           shipInfo = {row}
         />
       )
-      if (index>=0 && index % 15 == 14 && pagedLayout ) ShipRows.push(
+      if (index>=0 && (index + 1) % 15 == 0 && pagedLayout ) ShipRows.push(
         <TitleHead key={`head${index}`} />
       )
     })
