@@ -31,7 +31,7 @@ body {
   margin-bottom: 0px;
 }
 .filter-span {
-  font-size: 120%;
+  font-weight: bold;
   margin-top: 10px;
   text-align: center;
 }
@@ -160,7 +160,7 @@ img.svg {
 }
 
 th {
-  height: 3em;
+  height: 4em;
 }
 
 .info-tooltip .tooltip-inner{
@@ -199,4 +199,17 @@ th {
 
 .slotitem-container:not(:first-child) {
   margin-left: 0.25ex;
+}
+
+.radio-check {
+  display: flex;
+  flex-direction: row;
+}
+
+.radio-check>div {
+  flex: 1;
+}
+
+.title-row th {
+  vertical-align: bottom !important;
 }

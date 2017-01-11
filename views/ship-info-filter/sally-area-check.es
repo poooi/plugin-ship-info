@@ -48,33 +48,31 @@ const SallyAreaCheck = connect(
     const {mapname, color, checked, checkedAll} = this.props
     const xs = Math.floor(12 / (1 + mapname.length))
     return(
-      <div>
-        <Row>
-          <Col xs={2} className='filter-span'><span>{__('Sally Area Setting')}</span></Col>
-          <Col xs={10}>
-            <Col xs={xs}>
-              <Input type='checkbox' 
-                label={__ ('All')} 
-                onChange={this.handleClickBox(-1)} 
-                checked={checkedAll}
-              />
-            </Col>
-            {
-              mapname.map((name, idx) =>
-                <Col xs={xs} key={idx}>
-                
-                  <Input type='checkbox' 
-                    label={<Label style={{color: color[idx]}}>{__(name)}</Label> } 
-                    onChange={this.handleClickBox(idx)} 
-                    checked={checked[idx]} 
-                    style={{color: color[idx] || ''}}
-                  />                                 
-                </Col>
-              )
-            }
+      <Row>
+        <Col xs={2} className='filter-span'><span>{__('Sally Area Setting')}</span></Col>
+        <Col xs={10}>
+          <Col xs={xs}>
+            <Input type='checkbox' 
+              label={__ ('All')} 
+              onChange={this.handleClickBox(-1)} 
+              checked={checkedAll}
+            />
           </Col>
-        </Row>
-      </div>
+          {
+            mapname.map((name, idx) =>
+              <Col xs={xs} key={idx}>
+              
+                <Input type='checkbox' 
+                  label={<Label style={{color: color[idx]}}>{__(name)}</Label> } 
+                  onChange={this.handleClickBox(idx)} 
+                  checked={checked[idx]} 
+                  style={{color: color[idx] || ''}}
+                />                                 
+              </Col>
+            )
+          }
+        </Col>
+      </Row>
     )
   }
 })
