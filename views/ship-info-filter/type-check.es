@@ -94,7 +94,7 @@ const TypeCheck = connect(
                 <Button 
                   className='filter-button-all'
                   onClick={this.handleClickSingleBox(-1)} 
-                  bsStyle={checkedAll ? 'success': 'default'}
+                  bsStyle={checkedAll ? 'success': 'warning'}
                 >
                   {__ ('All')}
                 </Button>
@@ -127,13 +127,11 @@ const TypeCheck = connect(
                   key={index}
                   className='filter-button'
                   onClick={this.handleClickSuperType(checkedTypes, index)} 
-                  bsStyle='default'
-                >
-                  {this.getArrayInclusion(checkedTypes, supertype.id) ?
-                    <FontAwesome name='check'/>  
-                    :
-                    ''
+                  bsStyle={
+                    this.getArrayInclusion(checkedTypes, supertype.id)
+                    ? 'success' : 'warning'
                   }
+                >
                   {__(`Filter${supertype.name}`)}              
                 </Button>
               )
