@@ -10,7 +10,7 @@ import { fleetShipsIdSelectorFactory, fleetInExpeditionSelectorFactory } from 'v
 
 import Divider from '../divider'
 import { getTimePerHP, getShipInfoData, nameCompare, extractShipInfo } from './utils'
-import { shipTableDataSelectorFactory } from './selectors'
+import { shipTableDataSelectorFactory, shipInfoConfigSelector } from './selectors'
 import Slotitems from './slotitems'
 import SallyArea from './sallyarea'
 
@@ -118,9 +118,6 @@ class ShipInfoTable extends Component {
 const ShipInfoTableArea = connect(
   (state, props) => {
     const $shipTypes = get(state, 'const.$shipTypes', {})
-    const $ships = get(state, 'const.$ships', {})
-    // const _ships = get(state, 'info.ships', {})
-    const mapname = get(state, 'fcd.shiptag.mapname', [])
 
     // construct shiptype filter array
     const shipTypeChecked = get(state.config, "plugin.ShipInfo.shipTypeChecked", Object.keys($shipTypes).slice().fill(true))
@@ -143,14 +140,7 @@ const ShipInfoTableArea = connect(
 
 
     return({
-      sortName: get(state.config, "plugin.ShipInfo.sortName", "lv"),
-      sortOrder: get(state.config, "plugin.ShipInfo.sortOrder", 0),
-      lvRadio: get(state.config, "plugin.ShipInfo.lvRadio", 2),
-      lockedRadio: get(state.config, "plugin.ShipInfo.lockedRadio", 1),
-      expeditionRadio: get(state.config, "plugin.ShipInfo.expeditionRadio", 0),
-      modernizationRadio: get(state.config, "plugin.ShipInfo.modernizationRadio", 0),
-      remodelRadio: get(state.config, "plugin.ShipInfo.remodelRadio", 0),
-      sallyAreaChecked: get(state.config, "plugin.ShipInfo.sallyAreaChecked", mapname.slice().fill(true)),
+      ...shipInfoConfigSelector(state),
       shipTypes,
       expeditionShips,
       rows,
