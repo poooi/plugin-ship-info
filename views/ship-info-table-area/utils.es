@@ -16,7 +16,7 @@ export const getTimePerHP = memoize((api_lv = 1, api_stype = 1) => {
   }
 })
 
-export const getShipInfoData = (ship, $ship, $shipTypes, rawValue=false) => {
+export const getShipInfoData = (ship, $ship, equips, $shipTypes, rawValue=false) => {
   if(!(typeof ship === 'object' && $ship && typeof ship === 'object' && ship)) return
   const shipInfo = {
     id: ship.api_id,
@@ -69,7 +69,7 @@ export const getShipInfoData = (ship, $ship, $shipTypes, rawValue=false) => {
   const soukouNow = shipInfo.souk[0] + shipInfo.kyouka[3]
   const soukouMax = shipInfo.soukou[1]
   const soukou = rawValue ? soukouNow : shipInfo.soukou[0]
-  
+
   const luckyNow = shipInfo.luck[0] + shipInfo.kyouka[4]
   const luckyMax = shipInfo.lucky[1]
   const lucky = rawValue ? luckyNow : shipInfo.lucky[0]
@@ -78,6 +78,18 @@ export const getShipInfoData = (ship, $ship, $shipTypes, rawValue=false) => {
             raisouNow >= raisouMax &&
             taikuNow >= taikuMax &&
             soukouNow >= soukouMax
+  
+  let {kaihi, taisen, sakuteki} = shipInfo
+  // get raw kaihi, taisen and sakuteki value by substracting effects of equipments
+  if (rawValue) {
+    equips.forEach(equip => {
+      if (typeof equip == 'undefined') return
+      const $equip = equip[1] || {}
+      kaihi -= $equip.api_houk || 0
+      taisen -= $equip.api_tais || 0
+      sakuteki -= $equip.api_saku || 0
+    })
+  }
 
   return ({
     ...shipInfo,
@@ -97,6 +109,9 @@ export const getShipInfoData = (ship, $ship, $shipTypes, rawValue=false) => {
     luckyMax,
     lucky,
     isCompleted,
+    kaihi,
+    taisen,
+    sakuteki,
   })
 
 }

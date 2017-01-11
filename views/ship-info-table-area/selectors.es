@@ -1,6 +1,7 @@
 import memoize from 'fast-memoize'
 import { createSelector } from 'reselect'
-import { constSelector, shipDataSelectorFactory, configSelector, fcdSelector } from 'views/utils/selectors'
+import { constSelector, shipDataSelectorFactory, 
+  configSelector, fcdSelector, shipEquipDataSelectorFactory } from 'views/utils/selectors'
 import { getShipInfoData } from './utils'
 import { get } from 'lodash'
 
@@ -8,11 +9,12 @@ export const shipTableDataSelectorFactory = memoize((shipId) =>
   createSelector(
     [
       shipDataSelectorFactory(shipId),
+      shipEquipDataSelectorFactory(shipId),
       constSelector,
       configSelector,
     ], 
-    ([ship, $ship]=[], {$shipTypes}, config) =>
-      getShipInfoData(ship, $ship, $shipTypes, get(config, 'plugin.ShipInfo.rawValue', false))
+    ([ship, $ship]=[], equips, {$shipTypes}, config) =>
+      getShipInfoData(ship, $ship, equips, $shipTypes, get(config, 'plugin.ShipInfo.rawValue', false))
   )
 )
 
