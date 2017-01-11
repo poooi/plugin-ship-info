@@ -9,8 +9,8 @@ import memoize from 'fast-memoize'
 import { fleetShipsIdSelectorFactory, fleetInExpeditionSelectorFactory } from 'views/utils/selectors'
 
 import Divider from '../divider'
-import { getTimePerHP, getShipInfoData, nameCompare, extractShipInfo } from './utils'
-import { shipTableDataSelectorFactory, shipInfoConfigSelector } from './selectors'
+import { getTimePerHP, nameCompare, extractShipInfo } from './utils'
+import { shipTableDataSelectorFactory, shipInfoConfigSelector, shipFleetIdMapSelector } from './selectors'
 import Slotitems from './slotitems'
 import SallyArea from './sallyarea'
 
@@ -18,12 +18,13 @@ const { __, resolveTime } = window
 
 class ShipInfoTable extends Component {
   shouldComponentUpdate = (nextProps, nextState) => {
-    const {shipInfo} = this.props
-    return !isEqual(nextProps.shipInfo, shipInfo)
+    const {shipInfo, fleetId} = this.props
+    return !isEqual(nextProps.shipInfo, shipInfo) ||
+      !isEqual(nextProps.fleetId, fleetId)
   }
 
   render() {
-    const {shipInfo} = this.props
+    const {shipInfo, fleetId} = this.props
 
     const {
       karyokuNow,
@@ -81,6 +82,13 @@ class ShipInfoTable extends Component {
         <td>{id}</td>
         <td>{window.i18n.resources.__ (type)}</td>
         <td className="ship-name">{window.i18n.resources.__ (name)}
+          {
+            Number.isNaN(fleetId) ? '' 
+            : 
+            <span className="fleet-id-indicator">
+              {`/${fleetId + 1}`}
+            </span> 
+          }
           <SallyArea area={sallyArea} info_id={id}/>
         </td>
         <td style={sokuStyle}>{__(sokuString)}</td>
@@ -125,8 +133,7 @@ const ShipInfoTableArea = connect(
       return checked && ((index + 1) in $shipTypes) ? types.concat([index + 1]) : types
     }, [] )
 
-    // construct ship ids in expedition array, 10 is used here to support Kancolle in 2030
-    const expeditionShips = [...Array(10).keys()].reduce((ships, fleetId) => {
+    const expeditionShips = [...Array(4).keys()].reduce((ships, fleetId) => {
       return fleetInExpeditionSelectorFactory(fleetId)(state) ?
         ships.concat(fleetShipsIdSelectorFactory(fleetId)(state))
         : ships
@@ -138,16 +145,14 @@ const ShipInfoTableArea = connect(
       return shipTableDataSelectorFactory(parseInt(shipId))(state)
     })
 
-    const fleetShips = [...Array(10).keys()].reduce((ships, fleetId) => {
-      const ids = fleetShipsIdSelectorFactory(fleetId)(state)
-      return typeof ids != 'undefined' ?
-        ships.concat(ids)
-        : ships
-    }, [])
+    const fleetShips = [...Array(4).keys()].map((ships, fleetId) => 
+      fleetShipsIdSelectorFactory(fleetId)(state)
+    )
 
 
     return({
       ...shipInfoConfigSelector(state),
+      fleetIdMap: shipFleetIdMapSelector(state),
       shipTypes,
       expeditionShips,
       fleetShips,
@@ -221,14 +226,14 @@ const ShipInfoTableArea = connect(
     return sallyArea ? sallyAreaChecked[sallyArea] : true
   })
 
-  handleInFleetFilter = memoize((id, fleetShips = [], inFleetRadio) => {
+  handleInFleetFilter = memoize((id, fleetId, inFleetRadio) => {
     switch(inFleetRadio){
     case 0:
       return true
     case 1:
-      return fleetShips.includes(id)
+      return !Number.isNaN(fleetId)
     case 2:
-      return !fleetShips.includes(id)
+      return Number.isNaN(fleetId)
     }
   })
 
@@ -257,9 +262,8 @@ const ShipInfoTableArea = connect(
 
   handleShowRows = () => {
     const {remodelRadio, lvRadio, lockedRadio, expeditionRadio, modernizationRadio, 
-      inFleetRadio, sparkleRadio, exSlotRadio,
-      shipTypes, expeditionShips, fleetShips, sallyAreaChecked, rows, sortName, sortOrder} = this.props
-
+      inFleetRadio, sparkleRadio, exSlotRadio, fleetIdMap,
+      shipTypes, expeditionShips, sallyAreaChecked, rows, sortName, sortOrder} = this.props
 
     let showRows = rows.filter( (row={}) => 
       this.handleTypeFilter(row.type_id, shipTypes) &&
@@ -269,7 +273,7 @@ const ShipInfoTableArea = connect(
       this.handleModernizationFilter(row.isCompleted, modernizationRadio) &&
       this.handleRemodelFilter(row.after, remodelRadio) && 
       this.handleSallyAreaFilter(row.sallyArea, sallyAreaChecked) &&
-      this.handleInFleetFilter(row.id, fleetShips, inFleetRadio) &&
+      this.handleInFleetFilter(row.id, fleetIdMap[row.id] || NaN, inFleetRadio) &&
       this.handleExSlotFilter(row.exslot, exSlotRadio) &&
       this.handleSparkleFilter(row.cond, sparkleRadio)
     )
@@ -339,7 +343,7 @@ const ShipInfoTableArea = connect(
 
   render(){
     const showRows = this.handleShowRows()
-    const {sortName, sortOrder, pagedLayout} = this.props
+    const {sortName, sortOrder, pagedLayout, fleetIdMap} = this.props
     const types = [
       'id', 'type', 'name', 'soku', 'lv', 
       'cond', 'karyoku', 'raisou', 'taiku', 'soukou', 
@@ -394,6 +398,7 @@ const ShipInfoTableArea = connect(
         <ShipInfoTable
           key = {row.id}
           shipInfo = {row}
+          fleetId = {fleetIdMap[row.id] || NaN}
         />
       )
       if (index>=0 && (index + 1) % 15 == 0 && pagedLayout ) ShipRows.push(

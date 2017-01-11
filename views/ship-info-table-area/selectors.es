@@ -1,7 +1,7 @@
 import memoize from 'fast-memoize'
 import { createSelector } from 'reselect'
-import { constSelector, shipDataSelectorFactory, 
-  configSelector, fcdSelector, shipEquipDataSelectorFactory } from 'views/utils/selectors'
+import { constSelector, shipDataSelectorFactory, shipsSelector,
+  configSelector, fcdSelector, shipEquipDataSelectorFactory, fleetShipsIdSelectorFactory } from 'views/utils/selectors'
 import { getShipInfoData } from './utils'
 import { get } from 'lodash'
 
@@ -39,4 +39,34 @@ export const shipInfoConfigSelector = createSelector(
     sparkleRadio: get(config, "plugin.ShipInfo.sparkleRadio", 0),
     exSlotRadio: get(config, "plugin.ShipInfo.exSlotRadio", 0),
   })
+)
+
+const allFleetShipIdSelector = createSelector(
+  [
+    ...[...Array(4).keys()].map(fleetId => fleetShipsIdSelectorFactory(fleetId)),
+  ], 
+  (id1, id2, id3, id4) => [id1, id2, id3, id4]
+)
+
+const getShipFleetId = memoize((shipId, fleetShips) => {
+  return fleetShips.reduce((id, ships, index) =>
+    (Number.isNaN(id) && (ships || []).includes(parseInt(shipId))) 
+    ? index 
+    : id
+  , NaN)
+})
+
+
+export const shipFleetIdMapSelector = createSelector(
+  [
+    shipsSelector,
+    allFleetShipIdSelector,
+  ], 
+  (ships=[], fleetShips=[]) => {
+    const map = {}
+    Object.keys(ships).forEach(shipId => 
+      map[shipId] = getShipFleetId(shipId, fleetShips)
+    )
+    return map
+  }
 )
