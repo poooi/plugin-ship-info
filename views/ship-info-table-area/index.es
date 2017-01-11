@@ -222,7 +222,6 @@ const ShipInfoTableArea = connect(
   })
 
   handleInFleetFilter = memoize((id, fleetShips = [], inFleetRadio) => {
-    console.log(fleetShips)
     switch(inFleetRadio){
     case 0:
       return true

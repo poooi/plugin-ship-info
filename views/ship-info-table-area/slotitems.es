@@ -53,7 +53,6 @@ const Slotitems = connect(
     const exitems = []
     const _exitems = []
     const {slot=[], exslot=0} = props
-    console.log(exslot)
     slot.forEach((itemId) => {
       const data = equipDataSelectorFactory(itemId)(state)
       if(typeof data != 'undefined') {
