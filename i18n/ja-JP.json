@@ -19,7 +19,7 @@
   "Repair": "入渠",
   "Descending": "降順",
   "Ascending": "昇順",
-  "Filter Setting": "フィルター設定",
+  "Filter Setting": "フィルターと設定",
   "All": "すべて",
   "FilterDD": "駆逐艦",
   "FilterCL": "軽巡·雷巡",
@@ -62,5 +62,6 @@
   "No": "いいえ",
   "In Fleet": "艦隊編入",
   "Sparkle": "キラキラ",
-  "Extra Slot": "補強増設"
+  "Extra Slot": "補強増設",
+  "Reset all filters and Settings": "フィルターと設定をリセットする"
 }

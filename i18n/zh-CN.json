@@ -19,7 +19,7 @@
   "Repair": "修理",
   "Descending": "降序",
   "Ascending": "升序",
-  "Filter Setting": "过滤设置",
+  "Filter Setting": "过滤与设置",
   "All": "全部",
   "FilterDD": "驱逐舰",
   "FilterCL": "轻巡·雷巡",
@@ -62,5 +62,6 @@
   "No": "否",
   "In Fleet": "舰队编入",
   "Sparkle": "战意高昂",
-  "Extra Slot": "补强增设"
+  "Extra Slot": "补强增设",
+  "Reset all filters and Settings": "重置所有过滤与设置"
 }

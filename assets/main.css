@@ -212,3 +212,7 @@ th {
 .title-row th {
   vertical-align: bottom !important;
 }
+
+.reset-panel {
+  text-align: center;
+}

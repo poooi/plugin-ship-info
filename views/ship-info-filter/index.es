@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Grid, Row } from 'react-bootstrap'
+import { Grid, Row, Col, Button } from 'react-bootstrap'
 import { lvOptions, lockedOptions, expeditionOptions, modernizationOptions, 
   remodelOptions, rawValueOptions, pagedLayoutOptions,
   marriedOptions, inFleetOptions, sparkleOptions,
@@ -8,8 +8,14 @@ import TypeCheck from './type-check'
 import RadioCheck from './radio-check'
 import SallyAreaCheck from './sally-area-check'
 
+const {__} = window
 
 export default class ShipInfoFilter extends Component {
+
+  handleResetAll = () => {
+    config.set("plugin.ShipInfo")
+  }
+
   render(){
     const {showDetails} = this.props
     return(
@@ -82,6 +88,16 @@ export default class ShipInfoFilter extends Component {
                   options={pagedLayoutOptions}
                   default={0}
                 />
+              </Row>
+              <Row>
+                <Col xs={12} className='reset-panel'>
+                  <Button
+                    onClick={this.handleResetAll}
+                    id='reset-button'
+                  >
+                    {__('Reset all filters and Settings')}
+                  </Button>
+                </Col>
               </Row>
             </div>
         }
