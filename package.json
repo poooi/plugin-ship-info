@@ -1,6 +1,6 @@
 {
   "name": "poi-plugin-ship-info",
-  "version": "2.0.0-beta.0",
+  "version": "2.0.0-beta.1",
   "description": "Show detailed information of all owned ship girls",
   "main": "index.es",
   "scripts": {
@@ -14,6 +14,9 @@
     "name": "Yunze",
     "link": "https://github.com/myzwillmake"
   },
+  "contributors": [
+    "かがみ <seki@kagami.me> (http://kagami.me)"
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/poooi/plugin-ship-info/issues"
