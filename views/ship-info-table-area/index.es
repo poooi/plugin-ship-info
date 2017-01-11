@@ -291,7 +291,7 @@ const ShipInfoTableArea = connect(
 
   render(){
     const showRows = this.handleShowRows()
-    const {sortName, sortOrder} = this.props
+    const {sortName, sortOrder, pagedLayout} = this.props
     const types = [
       'id', 'type', 'name', 'soku', 'lv', 
       'cond', 'karyoku', 'raisou', 'taiku', 'soukou', 
@@ -316,42 +316,54 @@ const ShipInfoTableArea = connect(
       true, true, true, true, true,
       false, false,
     ]
+
+    const TitleHead = () =>
+      <tr className='title-row'>
+        <th>No.</th>
+        {
+          titles.map((title, index) => 
+            <th
+              key={index}
+              onClick={sortable[index] ? this.handleClickTitle(types[index]) : ''}
+              className={classNames({
+                clickable: sortable[index],
+                center: centerAlign[index],
+                sorting: sortName == types[index],
+                up: sortName == types[index] && sortOrder,
+                down: sortName == types[index] && !sortOrder,
+              })}
+            >
+              {__(title)}
+            </th>
+          )
+        }
+      </tr>
+
+    const ShipRows = []
+
+    showRows.map((row, index) =>{
+      if (row) ShipRows.push(
+        <ShipInfoTable
+          key = {row.id}
+          shipInfo = {row}
+        />
+      )
+      if (index>=0 && index % 15 == 14 && pagedLayout ) ShipRows.push(
+        <TitleHead key={`head${index}`} />
+      )
+    })
+    
     return(
       <div id="ship-info-show">
         <Divider text={__ ('Ship Girls Info')} icon={false}/>
         <div className="ship-info-table">
           <Table striped condensed hover>
             <thead>
-              <tr>
-                <th>No.</th>
-                {
-                  titles.map((title, index) => 
-                    <th
-                      key={index}
-                      onClick={sortable[index] ? this.handleClickTitle(types[index]) : ''}
-                      className={classNames({
-                        clickable: sortable[index],
-                        center: centerAlign[index],
-                        sorting: sortName == types[index],
-                        up: sortName == types[index] && sortOrder,
-                        down: sortName == types[index] && !sortOrder,
-                      })}
-                    >
-                      {__(title)}
-                    </th>
-                  )
-                }
-              </tr>
+              <TitleHead/>
             </thead>
             <tbody>
               {
-                showRows.map((row, index) =>
-                  row &&
-                  <ShipInfoTable
-                    key = {row.id}
-                    shipInfo = {row}
-                  />
-                )
+                ShipRows
             }
             </tbody>
           </Table>

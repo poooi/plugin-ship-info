@@ -71,6 +71,11 @@ export const rawValueOptions = {
   [1]: 'Raw Value',
 }
 
+export const pagedLayoutOptions = {
+  [0]: 'No',
+  [1]: 'Yes',
+}
+
 export const repairFactor = {
   '1': { api_id: 1, api_name: '海防艦', factor: 0 },
   '2': { api_id: 2, api_name: '駆逐艦', factor: 1 },
