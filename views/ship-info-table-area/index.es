@@ -138,11 +138,19 @@ const ShipInfoTableArea = connect(
       return shipTableDataSelectorFactory(parseInt(shipId))(state)
     })
 
+    const fleetShips = [...Array(10).keys()].reduce((ships, fleetId) => {
+      const ids = fleetShipsIdSelectorFactory(fleetId)(state)
+      return typeof ids != 'undefined' ?
+        ships.concat(ids)
+        : ships
+    }, [])
+
 
     return({
       ...shipInfoConfigSelector(state),
       shipTypes,
       expeditionShips,
+      fleetShips,
       rows,
     })
   }
@@ -159,6 +167,8 @@ const ShipInfoTableArea = connect(
       return lv == 1
     case 2:
       return lv >= 2
+    case 3:
+      return lv >= 100
     }
   })
 
@@ -211,9 +221,45 @@ const ShipInfoTableArea = connect(
     return sallyArea ? sallyAreaChecked[sallyArea] : true
   })
 
+  handleInFleetFilter = memoize((id, fleetShips = [], inFleetRadio) => {
+    console.log(fleetShips)
+    switch(inFleetRadio){
+    case 0:
+      return true
+    case 1:
+      return fleetShips.includes(id)
+    case 2:
+      return !fleetShips.includes(id)
+    }
+  })
+
+  handleSparkleFilter = memoize((cond, sparkleRadio) => {
+    switch(sparkleRadio){
+    case 0:
+      return true
+    case 1:
+      return cond >= 50
+    case 2:
+      return cond < 50
+    }
+  })
+
+  handleExSlotFilter = memoize((exslot, exSlotRadio) => {
+    switch(exSlotRadio){
+    case 0:
+      return true
+    case 1:
+      return exslot != 0
+    case 2:
+      return exslot == 0
+    }
+  })
+
+
   handleShowRows = () => {
     const {remodelRadio, lvRadio, lockedRadio, expeditionRadio, modernizationRadio, 
-      shipTypes, expeditionShips, sallyAreaChecked, rows, sortName, sortOrder} = this.props
+      inFleetRadio, sparkleRadio, exSlotRadio,
+      shipTypes, expeditionShips, fleetShips, sallyAreaChecked, rows, sortName, sortOrder} = this.props
 
 
     let showRows = rows.filter( (row={}) => 
@@ -223,7 +269,10 @@ const ShipInfoTableArea = connect(
       this.handleExpeditionFilter(row.id, expeditionShips, expeditionRadio) &&
       this.handleModernizationFilter(row.isCompleted, modernizationRadio) &&
       this.handleRemodelFilter(row.after, remodelRadio) && 
-      this.handleSallyAreaFilter(row.sallyArea, sallyAreaChecked)  
+      this.handleSallyAreaFilter(row.sallyArea, sallyAreaChecked) &&
+      this.handleInFleetFilter(row.id, fleetShips, inFleetRadio) &&
+      this.handleExSlotFilter(row.exslot, exSlotRadio) &&
+      this.handleSparkleFilter(row.cond, sparkleRadio)
     )
 
     // sort
