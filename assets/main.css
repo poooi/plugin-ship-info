@@ -215,4 +215,9 @@ th {
 
 .reset-panel {
   text-align: center;
+  padding-top: 1em;
+}
+
+#reset-button {
+  font-weight: bold;    
 }

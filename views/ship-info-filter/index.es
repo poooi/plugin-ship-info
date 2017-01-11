@@ -98,7 +98,7 @@ export default class ShipInfoFilter extends Component {
                     onClick={this.handleResetAll}
                     id='reset-button'
                   >
-                    {__('Reset all filters and Settings')}
+                    {__('Reset all Filters & Settings')}
                   </Button>
                 </Col>
               </Row>
