@@ -211,9 +211,9 @@ const ShipInfoTableArea = connect(
     case 0:
       return true
     case 1:
-      return !remodelable
+      return remodelable
     case 2:
-      return remodelable  
+      return !remodelable  
     }
   })
 
