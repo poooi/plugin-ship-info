@@ -1,7 +1,9 @@
 import React, { Component } from 'react'
 import { Grid, Row } from 'react-bootstrap'
 import { lvOptions, lockedOptions, expeditionOptions, modernizationOptions, 
-  remodelOptions, rawValueOptions, pagedLayoutOptions } from '../constants'
+  remodelOptions, rawValueOptions, pagedLayoutOptions,
+  marriedOptions, inFleetOptions, sparkleOptions,
+  exSlotOptions } from '../constants'
 import TypeCheck from './type-check'
 import RadioCheck from './radio-check'
 import SallyAreaCheck from './sally-area-check'
@@ -36,6 +38,12 @@ export default class ShipInfoFilter extends Component {
                   default={0}
                 />
                 <RadioCheck 
+                  configKey='inFleetRadio'
+                  label='In Fleet'
+                  options={inFleetOptions}
+                  default={0}
+                />
+                <RadioCheck 
                   configKey='modernizationRadio'
                   label='Modernization Setting'
                   options={modernizationOptions}
@@ -45,6 +53,18 @@ export default class ShipInfoFilter extends Component {
                   configKey='remodelRadio'
                   label='Remodel Setting'
                   options={remodelOptions}
+                  default={0}
+                />
+                <RadioCheck 
+                  configKey='sparkleRadio'
+                  label='Sparkle'
+                  options={sparkleOptions}
+                  default={0}
+                />
+                <RadioCheck 
+                  configKey='exSlotRadio'
+                  label='Extra Slot'
+                  options={exSlotOptions}
                   default={0}
                 />
               </Row>

@@ -29,20 +29,22 @@ const RadioCheck = connect(
   render() {
     const {label, options, currentRadio} = this.props
     return(
-      <Col xs={6} className='radio-check'>
-        <Col className='filter-span'><span>{__(label)}</span></Col>
+      <Col xs={6} >
+        <div style={{width: '80%'}} className='radio-check'>
+        <div className='filter-span'><span>{__(label)}</span></div>
         {
           Object.keys(options).map(key => 
-            <Col key={key}>
+            <div key={key}>
               <Input 
                 type='radio' 
                 label={__(options[key])} 
                 onChange={this.handleClickRadio(parseInt(key))} 
                 checked={(key == currentRadio)} 
               />
-            </Col>
+            </div>
           )
         }
+        </div>
       </Col>
     )
   }

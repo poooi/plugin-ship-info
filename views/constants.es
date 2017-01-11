@@ -39,7 +39,8 @@ export const shipSuperTypeMap = [
 export const lvOptions = {
   [0]: 'All',
   [1]: 'Lv.1',
-  [2]: 'Above Lv.2',
+  [2]: 'Lv.≥ 2',
+  [3]: 'Lv.≥ 100',
 }
 
 export const lockedOptions = {
@@ -74,6 +75,31 @@ export const rawValueOptions = {
 export const pagedLayoutOptions = {
   [0]: 'No',
   [1]: 'Yes',
+}
+
+export const marriedOptions = {
+  [0]: 'All',
+  [1]: 'Yes',
+  [2]: 'No',
+}
+
+export const inFleetOptions = {
+  [0]: 'All',
+  [1]: 'Yes',
+  [2]: 'No',
+}
+
+export const sparkleOptions = {
+  [0]: 'All',
+  [1]: 'Yes',
+  [2]: 'No',
+}
+
+
+export const exSlotOptions = {
+  [0]: 'All',
+  [1]: 'Yes',
+  [2]: 'No',
 }
 
 export const repairFactor = {
