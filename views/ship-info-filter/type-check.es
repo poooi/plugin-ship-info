@@ -5,7 +5,7 @@ import { get, isEqual, map, intersection } from 'lodash'
 import FontAwesome from 'react-fontawesome'
 import { shipSuperTypeMap } from '../constants'
 
-const __ = window.__
+const {__, __r} = window
 
 // new super ship type check is based on preset ship type collections as in shipSuperTypeMap
 // to ensure a downgrade compatibility, another config key is used
@@ -73,7 +73,7 @@ const TypeCheck = connect(
 
   render(){
     const {show, $shipTypes, checked, checkedAll} = this.props
-    const xs = 2
+    const xs = window.language == "en-US" ? 3 : 2
     const checkedTypes = checked.reduce((types, checked, index) => {
       return checked && ((index + 1) in $shipTypes) ? types.concat([index + 1]) : types
     }, [] )
@@ -109,7 +109,7 @@ const TypeCheck = connect(
               map($shipTypes, (type, key) =>
                 <Col xs={xs} key={key}>
                   <Input type='checkbox' 
-                    label={__(type.api_name)} 
+                    label={__r(type.api_name)} 
                     onChange={this.handleClickSingleBox(key - 1)} 
                     checked={checked[key -1]} 
                   />                

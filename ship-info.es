@@ -13,14 +13,30 @@ const i18n = new i18n2({
   extension: '.json',
 })
 i18n.setLocale(window.language)
-window.__ = i18n.__.bind(i18n)
 
+if(i18n.resources == null){
+  i18n.resources = {}
+}
+
+if(i18n.resources.__ == null){
+  i18n.resources.__ = (str) => str
+}
+if(i18n.resources.translate == null){
+  i18n.resources.translate = (locale, str) => str
+}
+if(i18n.resources.setLocale == null){
+  i18n.resources.setLocale = (str) => {}
+}
+window.i18n = i18n
 try {
   require('poi-plugin-translator').pluginDidLoad()
 }
 catch (error) {
   console.warn (error)
 }
+
+window.__ = i18n.__.bind(i18n)
+window.__r = i18n.resources.__.bind(i18n.resources)
 document.title = window.__('Ship Girls Info')
 
 // augment font size with poi zoom level
