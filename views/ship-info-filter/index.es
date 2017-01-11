@@ -8,12 +8,15 @@ import TypeCheck from './type-check'
 import RadioCheck from './radio-check'
 import SallyAreaCheck from './sally-area-check'
 
-const {__} = window
+const {__, config} = window
 
 export default class ShipInfoFilter extends Component {
 
   handleResetAll = () => {
-    config.set("plugin.ShipInfo")
+    const {bounds} = config.get('plugin.ShipInfo', {})
+    config.set("plugin.ShipInfo", {
+      bounds,
+    })
   }
 
   render(){
