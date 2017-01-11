@@ -16,7 +16,7 @@ export const getTimePerHP = memoize((api_lv = 1, api_stype = 1) => {
   }
 })
 
-export const getShipInfoData = (ship, $ship, $shipTypes) => {
+export const getShipInfoData = (ship, $ship, $shipTypes, rawValue=false) => {
   if(!(typeof ship === 'object' && $ship && typeof ship === 'object' && ship)) return
   const shipInfo = {
     id: ship.api_id,
@@ -56,19 +56,23 @@ export const getShipInfoData = (ship, $ship, $shipTypes) => {
   // Attention, this will overwrite some original properties
   const karyokuNow = shipInfo.houg[0] + shipInfo.kyouka[0]
   const karyokuMax = shipInfo.karyoku[1]
-  const karyoku = shipInfo.karyoku[0]
+  const karyoku = rawValue ? karyokuNow : shipInfo.karyoku[0]
+
   const raisouNow = shipInfo.raig[0] + shipInfo.kyouka[1]
   const raisouMax = shipInfo.raisou[1]
-  const raisou = shipInfo.raisou[0]
+  const raisou = rawValue ? raisouNow : shipInfo.raisou[0]
+
   const taikuNow = shipInfo.tyku[0] + shipInfo.kyouka[2]
   const taikuMax = shipInfo.taiku[1]
-  const taiku = shipInfo.taiku[0]
+  const taiku = rawValue ? taikuNow : shipInfo.taiku[0]
+
   const soukouNow = shipInfo.souk[0] + shipInfo.kyouka[3]
   const soukouMax = shipInfo.soukou[1]
-  const soukou = shipInfo.soukou[0]
+  const soukou = rawValue ? soukouNow : shipInfo.soukou[0]
+  
   const luckyNow = shipInfo.luck[0] + shipInfo.kyouka[4]
   const luckyMax = shipInfo.lucky[1]
-  const lucky = shipInfo.lucky[0]
+  const lucky = rawValue ? luckyNow : shipInfo.lucky[0]
 
   const isCompleted = karyokuNow >= karyokuMax &&
             raisouNow >= raisouMax &&
