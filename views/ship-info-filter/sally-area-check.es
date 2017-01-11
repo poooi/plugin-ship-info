@@ -46,21 +46,21 @@ const SallyAreaCheck = connect(
 
   render(){
     const {mapname, color, checked, checkedAll} = this.props
-    const xs = Math.floor(12 / (1 + mapname.length))
     return(
       <Row>
-        <Col xs={2} className='filter-span'><span>{__('Sally Area Setting')}</span></Col>
-        <Col xs={10}>
-          <Col xs={xs}>
+        <Col xs={8} className='radio-check'>
+        <div className='filter-span'><span>{__('Sally Area Setting')}</span></div>
+
+          <div>
             <Input type='checkbox' 
               label={__ ('All')} 
               onChange={this.handleClickBox(-1)} 
               checked={checkedAll}
             />
-          </Col>
+          </div>
           {
             mapname.map((name, idx) =>
-              <Col xs={xs} key={idx}>
+              <div key={idx}>
               
                 <Input type='checkbox' 
                   label={<Label style={{color: color[idx]}}>{__(name)}</Label> } 
@@ -68,7 +68,7 @@ const SallyAreaCheck = connect(
                   checked={checked[idx]} 
                   style={{color: color[idx] || ''}}
                 />                                 
-              </Col>
+              </div>
             )
           }
         </Col>
