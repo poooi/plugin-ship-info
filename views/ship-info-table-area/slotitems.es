@@ -9,22 +9,71 @@ import { equipDataSelectorFactory } from 'views/utils/selectors'
 
 const { ROOT } = window
 
+const getBackgroundStyle = () => 
+  window.isDarkTheme 
+  ? {backgroundColor: 'rgba(33, 33, 33, 0.7)'}
+  : {backgroundColor: 'rgba(256, 256, 256, 0.7)'}
+
+
+const Slotitem = ({_item, item, isEx=false}) =>
+  <div className="slotitem-container">
+    <OverlayTrigger placement='top' overlay={
+      <Tooltip id={`item-${_item.api_id}`} className='info-tooltip'>
+        {window.i18n.resources.__(item.api_name)}
+        {
+          item.api_level > 0 ? 
+            <strong style={{color: '#45A9A5'}}>★+{_item.api_level}</strong> 
+          : ''}
+        {
+          _item.api_alv && _item.api_alv <= 7 && _item.api_alv >= 1 ?
+            <img 
+              className='alv-img' 
+              src={Path.join(ROOT, 'assets', 'img', 'airplane', `alv${_item.api_alv}.png`)} 
+            />
+          : ''
+        }
+      </Tooltip>}
+    >
+      <span>
+        <SlotitemIcon slotitemId={item.api_type[3]}/>
+        {
+          isEx &&
+          <span className='slotitem-onslot' style={getBackgroundStyle()} >
+            +
+          </span>
+        }
+      </span>
+    </OverlayTrigger>
+  </div>
+
 const Slotitems = connect(
   (state, props) => {
     const items = []
     const _items = []
-    const {slot, exslot} = props
-    slot.concat(exslot).forEach((itemId) => {
+    const exitems = []
+    const _exitems = []
+    const {slot=[], exslot=0} = props
+    console.log(exslot)
+    slot.forEach((itemId) => {
       const data = equipDataSelectorFactory(itemId)(state)
       if(typeof data != 'undefined') {
         _items.push(data[0])
         items.push(data[1])
       }
     })
+    ;[exslot].forEach((itemId) => {
+      const data = equipDataSelectorFactory(itemId)(state)
+      if(typeof data != 'undefined') {
+        _exitems.push(data[0])
+        exitems.push(data[1])
+      }
+    })
 
     return({
       _items,
       items,
+      _exitems,
+      exitems,
     })
   }
 )(class Slotitems extends Component {
@@ -34,7 +83,7 @@ const Slotitems = connect(
   }
 
   render() {
-    const {_items, items} = this.props
+    const {_items, items, _exitems, exitems} = this.props
     return(
       <div className="slotitem-container">
         {
@@ -42,29 +91,25 @@ const Slotitems = connect(
         _items.map( (_item, i) => {
           const item = items[i]
           return(
-            <span key={_item.api_id} >
-              <OverlayTrigger placement='top' overlay={
-                <Tooltip id={`item-${_item.api_id}`} className='info-tooltip'>
-                  {window.i18n.resources.__(item.api_name)}
-                  {
-                    item.api_level > 0 ? 
-                      <strong style={{color: '#45A9A5'}}>★+{_item.api_level}</strong> 
-                    : ''}
-                  {
-                    _item.api_alv && _item.api_alv <= 7 && _item.api_alv >= 1 ?
-                      <img 
-                        className='alv-img' 
-                        src={Path.join(ROOT, 'assets', 'img', 'airplane', `alv${_item.api_alv}.png`)} 
-                      />
-                    : ''
-                  }
-                </Tooltip>}
-              >
-                <span>
-                  <SlotitemIcon slotitemId={item.api_type[3]}/>
-                </span>
-              </OverlayTrigger>
-            </span>
+            <Slotitem 
+              _item={item}
+              item={item}
+              key={i}
+            />
+          )
+        })
+        }
+        {
+        _exitems &&
+        _exitems.map( (_item, i) => {
+          const item = exitems[i]
+          return(
+            <Slotitem 
+              _item={item}
+              item={item}
+              key={i}
+              isEx={true}
+            />
           )
         })
       }

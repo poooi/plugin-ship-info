@@ -101,9 +101,7 @@ clickable {
 #ship-info-show .slotitem-container img {
   height: 32px;
 }
-#ship-info-show .slotitem-container {
-  margin-left: -6px;
-}
+
 #ship-info-show table tbody tr td {
   vertical-align: middle;
   line-height: 36px;
@@ -121,13 +119,6 @@ clickable {
   content: counter(rowNumber);
   min-width: 1em;
 }
-.slotitem-onslot {
-  display: none;
-  /*
-    help wanted
-  */
-}
-
 ::-webkit-scrollbar {
   width: 10px;
 }
@@ -183,4 +174,29 @@ th {
 
 .super-type button {
   flex: 1;
+}
+
+.slotitem-onslot {
+  position: absolute;
+  font-size: 12px;
+  text-align: center;
+  left: 0;
+  bottom: 0;
+  border-radius: 100%;
+  width: 16px;
+  height: 16px;
+  padding-left: 2px;
+  padding-right: 2px;
+  vertical-align: middle;
+}
+
+.slotitem-container {
+  position: relative;
+  vertical-align: bottom;
+  display: inline;
+  line-height: initial;
+}
+
+.slotitem-container:not(:first-child) {
+  margin-left: 0.25ex;
 }
