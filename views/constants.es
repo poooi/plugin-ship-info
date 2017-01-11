@@ -45,8 +45,8 @@ export const lvOptions = {
 
 export const lockedOptions = {
   [0]: 'All',
-  [1]: 'Locked',
-  [2]: 'Not Locked',
+  [1]: 'Yes',
+  [2]: 'No',
 }
 
 export const expeditionOptions = {
