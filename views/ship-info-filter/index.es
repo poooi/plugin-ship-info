@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import { Grid} from 'react-bootstrap'
-import { lvOptions, lockedOptions, expeditionOptions, modernizationOptions, remodelOptions } from '../constants'
+import { lvOptions, lockedOptions, expeditionOptions, modernizationOptions, remodelOptions, rawValueOptions } from '../constants'
 import TypeCheck from './type-check'
 import RadioCheck from './radio-check'
 import SallyAreaCheck from './sally-area-check'
@@ -46,6 +46,12 @@ export default class ShipInfoFilter extends Component {
                 default={0}
               />
               <SallyAreaCheck />
+              <RadioCheck 
+                configKey='rawValue'
+                label='Value Type'
+                options={rawValueOptions}
+                default={0}
+              />
             </div>
         }
       </Grid>      

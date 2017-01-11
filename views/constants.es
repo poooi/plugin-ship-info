@@ -66,6 +66,11 @@ export const remodelOptions = {
   [2]: 'Remodelable',
 }
 
+export const rawValueOptions = {
+  [0]: 'Equip Included',
+  [1]: 'Raw Value',
+}
+
 export const repairFactor = {
   '1': { api_id: 1, api_name: '海防艦', factor: 0 },
   '2': { api_id: 2, api_name: '駆逐艦', factor: 1 },
