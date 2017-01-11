@@ -53,5 +53,8 @@
   "Slow":"低速",
   "Fast": "高速",
   "Fast+": "高速+",
-  "Fastest": "最速"
+  "Fastest": "最速",
+  "Value Type": "數值",
+  "Equipment Included": "装備込み",
+  "Raw Value": "艦娘のみ"
 }

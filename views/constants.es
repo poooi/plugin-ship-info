@@ -67,7 +67,7 @@ export const remodelOptions = {
 }
 
 export const rawValueOptions = {
-  [0]: 'Equip Included',
+  [0]: 'Equipment Included',
   [1]: 'Raw Value',
 }
 

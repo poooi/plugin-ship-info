@@ -53,5 +53,8 @@
   "Slow":"低速",
   "Fast": "高速",
   "Fast+": "高速+",
-  "Fastest": "最速"
+  "Fastest": "最速",
+  "Value Type": "数值",
+  "Equipment Included": "包含装备",
+  "Raw Value": "裸装数值"
 }
