@@ -81,8 +81,7 @@ class ShipInfoRow extends Component {
         <td>{window.i18n.resources.__(type)}</td>
         <td className="ship-name">{window.i18n.resources.__(name)}
           {
-            Number.isNaN(fleetId) ? ''
-            :
+            Number.isInteger(fleetId) &&
             <span className="fleet-id-indicator">
               {`/${fleetId + 1}`}
             </span>

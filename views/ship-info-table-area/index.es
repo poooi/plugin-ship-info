@@ -169,14 +169,15 @@ const ShipInfoTableArea = connect(
     return sallyArea ? sallyAreaChecked[sallyArea] : true
   })
 
-  handleInFleetFilter = memoize((id, fleetId, inFleetRadio) => {
+  handleInFleetFilter = memoize((fleetId, inFleetRadio) => {
+    const isInFleet = Number.isInteger(fleetId)
     switch (inFleetRadio) {
     case 0:
       return true
     case 1:
-      return !Number.isNaN(fleetId)
+      return isInFleet
     case 2:
-      return Number.isNaN(fleetId)
+      return !isInFleet
     }
   })
 
@@ -216,7 +217,7 @@ const ShipInfoTableArea = connect(
       this.handleModernizationFilter(row.isCompleted, modernizationRadio) &&
       this.handleRemodelFilter(row.after, remodelRadio) &&
       this.handleSallyAreaFilter(row.sallyArea, sallyAreaChecked) &&
-      this.handleInFleetFilter(row.id, fleetIdMap[row.id] || NaN, inFleetRadio) &&
+      this.handleInFleetFilter(fleetIdMap[row.id], inFleetRadio) &&
       this.handleExSlotFilter(row.exslot, exSlotRadio) &&
       this.handleSparkleFilter(row.cond, sparkleRadio)
     )
@@ -334,7 +335,7 @@ const ShipInfoTableArea = connect(
           <ShipInfoRow
             key={row.id}
             shipInfo={row}
-            fleetId={fleetIdMap[row.id] || NaN}
+            fleetId={fleetIdMap[row.id]}
           />
         )
       }
