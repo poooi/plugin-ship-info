@@ -1,7 +1,6 @@
 import React, { Component, PropTypes } from 'react'
-import { Table, OverlayTrigger, Tooltip } from 'react-bootstrap'
-import FontAwesome from 'react-fontawesome'
-import { isEqual, sortBy, get } from 'lodash'
+import { Table } from 'react-bootstrap'
+import { sortBy, get } from 'lodash'
 import { connect } from 'react-redux'
 import classNames from 'classnames'
 import memoize from 'fast-memoize'
@@ -9,162 +8,48 @@ import memoize from 'fast-memoize'
 import { fleetShipsIdSelectorFactory, fleetInExpeditionSelectorFactory } from 'views/utils/selectors'
 
 import Divider from '../divider'
-import { getTimePerHP, nameCompare, extractShipInfo, shipInfoShape } from './utils'
+import { nameCompare, shipInfoShape } from './utils'
 import { shipTableDataSelectorFactory, shipInfoConfigSelector, shipFleetIdMapSelector } from './selectors'
-import Slotitems from './slotitems'
-import SallyArea from './sallyarea'
+import ShipInfoRow from './ship-info-row'
 
-const { __, resolveTime } = window
+const { __ } = window
 
-class ShipInfoTable extends Component {
-  static propTypes = {
-    shipInfo: PropTypes.shape(shipInfoShape).isRequired,
-    fleetId: PropTypes.number.isRequired,
-  }
-
-  shouldComponentUpdate = (nextProps, nextState) => {
-    const { shipInfo, fleetId } = this.props
-    return !isEqual(nextProps.shipInfo, shipInfo) ||
-      !isEqual(nextProps.fleetId, fleetId)
-  }
-
-  render() {
-    const { shipInfo, fleetId } = this.props
-
-    const {
-      karyokuNow,
-      karyokuMax,
-      karyoku,
-      raisouNow,
-      raisouMax,
-      raisou,
-      taikuNow,
-      taikuMax,
-      taiku,
-      soukouNow,
-      soukouMax,
-      soukou,
-      luckyNow,
-      luckyMax,
-      lucky,
-      lv,
-      nowhp,
-      maxhp,
-      losshp,
-      repairtime,
-      locked,
-      id,
-      type,
-      type_id,
-      name,
-      sallyArea,
-      cond,
-      kaihi,
-      taisen,
-      sakuteki,
-      slot,
-      exslot,
-      karyokuClass,
-      karyokuString,
-      raisouClass,
-      raisouString,
-      taikuClass,
-      taikuString,
-      soukouClass,
-      soukouString,
-      luckyClass,
-      luckyString,
-      repairColor,
-      condColor,
-      sokuString,
-      sokuStyle,
-    } = extractShipInfo(shipInfo)
-
-    // TODO: support unequip ship data display
-    return (
-      <tr>
-        <td></td>
-        <td>{id}</td>
-        <td>{window.i18n.resources.__(type)}</td>
-        <td className="ship-name">{window.i18n.resources.__(name)}
-          {
-            Number.isNaN(fleetId) ? ''
-            :
-            <span className="fleet-id-indicator">
-              {`/${fleetId + 1}`}
-            </span>
-          }
-          <SallyArea area={sallyArea} info_id={id}/>
-        </td>
-        <td style={sokuStyle}>{__(sokuString)}</td>
-        <td className='center'>{lv}</td>
-        <td className='center' style={{ backgroundColor: condColor }}>{cond}</td>
-        <td className={karyokuClass}>{`${karyoku}/`}<span style={{ fontSize: '80%' }}>{karyokuString}</span></td>
-        <td className={raisouClass}>{`${raisou}/`}<span style={{ fontSize: '80%' }}>{raisouString}</span></td>
-        <td className={taikuClass}>{`${taiku}/`}<span style={{ fontSize: '80%' }}>{taikuString}</span></td>
-        <td className={soukouClass}>{`${soukou}/`}<span style={{ fontSize: '80%' }}>{soukouString}</span></td>
-        <td className={luckyClass}>{`${lucky}/`}<span style={{ fontSize: '80%' }}>{luckyString}</span></td>
-        <td className='center'>{kaihi}</td>
-        <td className='center'>{taisen}</td>
-        <td className='center'>{sakuteki}</td>
-        <td className='center' style={{ backgroundColor: repairColor }}>
-          {
-            repairtime &&
-              <OverlayTrigger placement="top"
-                overlay={
-                  <Tooltip id="repairtime1hp" className='info-tooltip'>
-                    { `1HP : ${resolveTime(getTimePerHP(lv, type_id) / 1000)}` }
-                  </Tooltip>}
-              >
-                <span>{resolveTime(repairtime)}</span>
-              </OverlayTrigger>
-
-          }
-        </td>
-        <td><Slotitems slot={slot} exslot={exslot} /></td>
-        <td>{locked == 1 ? <FontAwesome name='lock' /> : ' '}</td>
-      </tr>
-    )
-  }
+const TitleHeader = (props) => {
+  const { titles, types, sortable,
+      centerAlign, sortName, sortOrder, handleClickTitle } = props
+  return (
+    <tr className="title-row">
+      <th>No.</th>
+      {
+        titles.map((title, index) =>
+          <th
+            key={title[index]}
+            onClick={sortable[index] ? handleClickTitle(types[index]) : ''}
+            className={classNames({
+              clickable: sortable[index],
+              center: centerAlign[index],
+              sorting: sortName == types[index],
+              up: sortName == types[index] && sortOrder,
+              down: sortName == types[index] && !sortOrder,
+            })}
+          >
+            {__(title)}
+          </th>
+        )
+      }
+    </tr>
+  )
 }
 
-class TitleHeader extends Component {
-  static propTypes = {
-    titles: PropTypes.arrayOf(PropTypes.string).isRequired,
-    types: PropTypes.arrayOf(PropTypes.string).isRequired,
-    sortable: PropTypes.arrayOf(PropTypes.bool).isRequired,
-    centerAlign: PropTypes.arrayOf(PropTypes.bool).isRequired,
-    sortName: PropTypes.string.isRequired,
-    sortOrder: PropTypes.number.isRequired,
-    handleClickTitle: PropTypes.func.isRequired,
-  }
 
-  render() {
-    const { titles, types, sortable,
-      centerAlign, sortName, sortOrder, handleClickTitle } = this.props
-    return (
-      <tr className='title-row'>
-        <th>No.</th>
-        {
-          titles.map((title, index) =>
-            <th
-              key={index}
-              onClick={sortable[index] ? handleClickTitle(types[index]) : ''}
-              className={classNames({
-                clickable: sortable[index],
-                center: centerAlign[index],
-                sorting: sortName == types[index],
-                up: sortName == types[index] && sortOrder,
-                down: sortName == types[index] && !sortOrder,
-              })}
-            >
-              {__(title)}
-            </th>
-          )
-        }
-      </tr>
-    )
-  }
+TitleHeader.propTypes = {
+  titles: PropTypes.arrayOf(PropTypes.string).isRequired,
+  types: PropTypes.arrayOf(PropTypes.string).isRequired,
+  sortable: PropTypes.arrayOf(PropTypes.bool).isRequired,
+  centerAlign: PropTypes.arrayOf(PropTypes.bool).isRequired,
+  sortName: PropTypes.string.isRequired,
+  sortOrder: PropTypes.number.isRequired,
+  handleClickTitle: PropTypes.func.isRequired,
 }
 
 const ShipInfoTableArea = connect(
@@ -209,7 +94,6 @@ const ShipInfoTableArea = connect(
     remodelRadio: PropTypes.number.isRequired,
     sallyAreaChecked: PropTypes.arrayOf(PropTypes.bool).isRequired,
     pagedLayout: PropTypes.number.isRequired,
-    marriedRadio: PropTypes.number.isRequired,
     inFleetRadio: PropTypes.number.isRequired,
     sparkleRadio: PropTypes.number.isRequired,
     exSlotRadio: PropTypes.number.isRequired,
@@ -430,25 +314,27 @@ const ShipInfoTableArea = connect(
     ]
 
     const header =
-      <TitleHeader
-        titles={titles}
-        types={types}
-        sortable={sortable}
-        centerAlign={centerAlign}
-        sortName={sortName}
-        sortOrder={sortOrder}
-        handleClickTitle={this.handleClickTitle}
-      />
+      (
+        <TitleHeader
+          titles={titles}
+          types={types}
+          sortable={sortable}
+          centerAlign={centerAlign}
+          sortName={sortName}
+          sortOrder={sortOrder}
+          handleClickTitle={this.handleClickTitle}
+        />
+      )
 
     const ShipRows = []
 
     showRows.forEach((row, index) => {
       if (row) {
         ShipRows.push(
-          <ShipInfoTable
-            key = {row.id}
-            shipInfo = {row}
-            fleetId = {fleetIdMap[row.id] || NaN}
+          <ShipInfoRow
+            key={row.id}
+            shipInfo={row}
+            fleetId={fleetIdMap[row.id] || NaN}
           />
         )
       }
@@ -459,7 +345,7 @@ const ShipInfoTableArea = connect(
 
     return (
       <div id="ship-info-show">
-        <Divider text={__('Ship Girls Info')} icon={false}/>
+        <Divider text={__('Ship Girls Info')} icon={false} />
         <div className="ship-info-table">
           <Table striped condensed hover>
             <thead>

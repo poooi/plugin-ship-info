@@ -9,7 +9,7 @@ module.exports = {
     'plugin:react/recommended',
     'plugin:import/errors',
     'plugin:import/warnings',
-    "airbnb-base",
+    "airbnb",
   ],
   "parserOptions": {
     "ecmaFeatures": {
@@ -54,6 +54,9 @@ module.exports = {
     'radix': 'warn',
     'no-return-assign': 'off',
     'no-trailing-spaces': ["error", { "skipBlankLines": true }],
+    'react/jsx-filename-extension': 'off',
+    'jsx-a11y/no-static-element-interactions': 'off',
+    'jsx-a11y/img-has-alt': 'off',
   },
   'settings': {
     'import/resolver': {

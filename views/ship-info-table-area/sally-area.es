@@ -30,17 +30,17 @@ const SallyArea = connect(
           <OverlayTrigger
             placement="top"
             overlay={
-              <Tooltip id={`sally-area-${info_id}`} className='info-tooltip'>
+              <Tooltip id={`sally-area-${info_id}`} className="info-tooltip">
                 {__('Ship tag: %s', mapname)}
               </Tooltip>
             }
           >
             <Label style={{ color: color }}>
-              <FontAwesome name='tag' />
+              <FontAwesome name="tag" />
             </Label>
           </OverlayTrigger>
         :
-          <Label className="status-label text-default" style={{ opacity: 0 }}></Label>
+          <Label className="status-label text-default" style={{ opacity: 0 }} />
 
     )
   }

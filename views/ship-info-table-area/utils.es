@@ -167,9 +167,8 @@ const jpCollator = new Intl.Collator('ja-JP')
 export const nameCompare = (a, b) => {
   if (a.yomi == b.yomi) {
     return a.lv == b.lv ? collator.compare(a.id, b.id) : collator.compare(a.lv, b.lv)
-  } else {
-    return jpCollator.compare(a.yomi, b.yomi)
   }
+  return jpCollator.compare(a.yomi, b.yomi)
 }
 
 export const extractShipInfo = (shipInfo) => {
@@ -217,15 +216,15 @@ export const extractShipInfo = (shipInfo) => {
   let luckyClass = 'td-lucky'
 
   const karyokuToInc = karyokuMax - karyokuNow
-  let karyokuString = `+${  karyokuToInc}`
+  let karyokuString = `+${karyokuToInc}`
   const raisouToInc = raisouMax - raisouNow
-  let raisouString = `+${  raisouToInc}`
+  let raisouString = `+${raisouToInc}`
   const taikuToInc = taikuMax - taikuNow
-  let taikuString = `+${  taikuToInc}`
+  let taikuString = `+${taikuToInc}`
   const soukouToInc = soukouMax - soukouNow
-  let soukouString = `+${  soukouToInc}`
+  let soukouString = `+${soukouToInc}`
   const luckyToInc = luckyMax - luckyNow
-  let luckyString = `+${  luckyToInc}`
+  let luckyString = `+${luckyToInc}`
 
   if (karyokuNow >= karyokuMax) {
     karyokuClass = 'td-karyoku-max'
@@ -323,7 +322,8 @@ export const extractShipInfo = (shipInfo) => {
   })
 }
 
-// just to confirm that table sorting requires so much data, which is almost all data used in display
+// just to confirm that table sorting requires so much data,
+// which is almost all data used in display
 // export const getTableInfoData = (ship, $ship) => {
 //   if(!(typeof ship === 'object' && $ship && typeof ship === 'object' && ship)) return
 //   const shipInfo = {

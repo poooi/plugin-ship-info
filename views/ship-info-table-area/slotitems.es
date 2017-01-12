@@ -17,28 +17,32 @@ const getBackgroundStyle = () => {
 
 const Slotitem = ({ _item, item, isEx = false }) =>
   <div className="slotitem-container">
-    <OverlayTrigger placement='top' overlay={
-      <Tooltip id={`item-${_item.api_id}`} className='info-tooltip'>
-        {window.i18n.resources.__(item.api_name)}
-        {
-          item.api_level > 0 ?
-            <strong style={{ color: '#45A9A5' }}>★+{_item.api_level}</strong>
-          : ''}
-        {
-          _item.api_alv && _item.api_alv <= 7 && _item.api_alv >= 1 ?
-            <img
-              className='alv-img'
-              src={Path.join(ROOT, 'assets', 'img', 'airplane', `alv${_item.api_alv}.png`)}
-            />
-          : ''
+    <OverlayTrigger
+      placement="top"
+      overlay={
+        <Tooltip id={`item-${_item.api_id}`} className="info-tooltip">
+          {window.i18n.resources.__(item.api_name)}
+          {
+            item.api_level > 0 ?
+              <strong style={{ color: '#45A9A5' }}>★+{_item.api_level}</strong>
+            : ''
+          }
+          {
+            _item.api_alv && _item.api_alv <= 7 && _item.api_alv >= 1 ?
+              <img
+                className="alv-img"
+                src={Path.join(ROOT, 'assets', 'img', 'airplane', `alv${_item.api_alv}.png`)}
+              />
+            : ''
+           }
+        </Tooltip>
         }
-      </Tooltip>}
     >
       <span>
-        <SlotitemIcon slotitemId={item.api_type[3]}/>
+        <SlotitemIcon slotitemId={item.api_type[3]} />
         {
           isEx &&
-          <span className='slotitem-onslot' style={getBackgroundStyle()} >
+          <span className="slotitem-onslot" style={getBackgroundStyle()} >
             +
           </span>
         }
@@ -93,7 +97,7 @@ const Slotitems = connect(
             <Slotitem
               _item={item}
               item={item}
-              key={i}
+              key={_item.api_id || 0}
             />
           )
         })
@@ -106,8 +110,8 @@ const Slotitems = connect(
             <Slotitem
               _item={item}
               item={item}
-              key={i}
-              isEx={true}
+              key={_item.api_id || 0}
+              isEx
             />
           )
         })
