@@ -5,7 +5,7 @@ import { get, isEqual, map, intersection } from 'lodash'
 import FontAwesome from 'react-fontawesome'
 import { shipSuperTypeMap } from '../constants'
 
-const {__, __r} = window
+const { __, __r } = window
 
 // new super ship type check is based on preset ship type collections as in shipSuperTypeMap
 // to ensure a downgrade compatibility, another config key is used
@@ -14,11 +14,11 @@ const TypeCheck = connect(
     const $shipTypes = get(state, 'const.$shipTypes')
     const defaultChecked = map($shipTypes, type => type.api_id).fill(true)
 
-    let checked = get(state.config, "plugin.ShipInfo.shipTypeChecked", defaultChecked)
+    let checked = get(state.config, 'plugin.ShipInfo.shipTypeChecked', defaultChecked)
     checked = defaultChecked.length == checked.length ? checked : defaultChecked
     const checkedAll = checked.reduce((a, b) => a && b, true)
 
-    return({
+    return ({
       show: props.show || false,
       $shipTypes,
       checked,
@@ -32,8 +32,8 @@ const TypeCheck = connect(
   }
 
   getTypeArray = (checked, $shipTypes) => {
-    return checked.reduce((types, checked, index) => {
-      return checked && ((index+1) in $shipTypes) ? types.concat([index + 1]) : types
+    return checked.reduce((types, isChecked, index) => {
+      return isChecked && ((index + 1) in $shipTypes) ? types.concat([index + 1]) : types
     }, [])
   }
 
@@ -42,9 +42,9 @@ const TypeCheck = connect(
   }
 
   handleClickSuperType = (checkedTypes, index) => () => {
-    let checked = this.props.checked.slice()
+    const checked = this.props.checked.slice()
     const keys = shipSuperTypeMap[index].id
-    if(this.getArrayInclusion(checkedTypes, keys)){
+    if (this.getArrayInclusion(checkedTypes, keys)) {
       keys.forEach((key) => {
         checked[key - 1] = false
       })
@@ -54,12 +54,12 @@ const TypeCheck = connect(
       })
     }
 
-    config.set ("plugin.ShipInfo.shipTypeChecked", checked)
+    config.set('plugin.ShipInfo.shipTypeChecked', checked)
   }
 
-  handleClickSingleBox = (index) => () => {
-    let checked = this.props.checked.slice()
-    let {checkedAll} = this.props
+  handleClickSingleBox = index => () => {
+    const checked = this.props.checked.slice()
+    let { checkedAll } = this.props
 
     if (index == -1) {
       checkedAll = !checkedAll
@@ -68,35 +68,35 @@ const TypeCheck = connect(
       checked[index] = !checked[index]
     }
 
-    config.set ("plugin.ShipInfo.shipTypeChecked", checked)
+    config.set('plugin.ShipInfo.shipTypeChecked', checked)
   }
 
-  render(){
-    const {show, $shipTypes, checked, checkedAll} = this.props
-    const xs = window.language == "en-US" ? 3 : 2
-    const checkedTypes = checked.reduce((types, checked, index) => {
-      return checked && ((index + 1) in $shipTypes) ? types.concat([index + 1]) : types
-    }, [] )
+  render() {
+    const { show, $shipTypes, checked, checkedAll } = this.props
+    const xs = window.language == 'en-US' ? 3 : 2
+    const checkedTypes = checked.reduce((types, isChecked, index) => {
+      return isChecked && ((index + 1) in $shipTypes) ? types.concat([index + 1]) : types
+    }, [])
     
 
-    return(
+    return (
       <div className='filter-type'>
         <Row>
           <Col xs={12} className='super-type'>
             {
               show ?
-                <Input type='checkbox' 
-                  label={__('All')} 
-                  onChange={this.handleClickSingleBox(-1)} 
-                  checked={checkedAll} 
-                />  
+                <Input type='checkbox'
+                  label={__('All')}
+                  onChange={this.handleClickSingleBox(-1)}
+                  checked={checkedAll}
+                />
               :
-                <Button 
+                <Button
                   className='filter-button-all'
-                  onClick={this.handleClickSingleBox(-1)} 
-                  bsStyle={checkedAll ? 'success': 'warning'}
+                  onClick={this.handleClickSingleBox(-1)}
+                  bsStyle={checkedAll ? 'success' : 'warning'}
                 >
-                  {__ ('All')}
+                  {__('All')}
                 </Button>
             }
           </Col>
@@ -108,11 +108,11 @@ const TypeCheck = connect(
               {
               map($shipTypes, (type, key) =>
                 <Col xs={xs} key={key}>
-                  <Input type='checkbox' 
-                    label={__r(type.api_name)} 
-                    onChange={this.handleClickSingleBox(key - 1)} 
-                    checked={checked[key -1]} 
-                  />                
+                  <Input type='checkbox'
+                    label={__r(type.api_name)}
+                    onChange={this.handleClickSingleBox(key - 1)}
+                    checked={checked[key - 1]}
+                  />
                 </Col>
               )
             }
@@ -126,13 +126,13 @@ const TypeCheck = connect(
                 <Button
                   key={index}
                   className='filter-button'
-                  onClick={this.handleClickSuperType(checkedTypes, index)} 
+                  onClick={this.handleClickSuperType(checkedTypes, index)}
                   bsStyle={
                     this.getArrayInclusion(checkedTypes, supertype.id)
                     ? 'success' : 'warning'
                   }
                 >
-                  {__(`Filter${supertype.name}`)}              
+                  {__(`Filter${supertype.name}`)}
                 </Button>
               )
             }
@@ -140,7 +140,6 @@ const TypeCheck = connect(
         </Row>
       </div>
     )
-
   }
 })
 

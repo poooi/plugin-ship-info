@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import { Grid, Row, Col, Button } from 'react-bootstrap'
-import { lvOptions, lockedOptions, expeditionOptions, modernizationOptions, 
+import { lvOptions, lockedOptions, expeditionOptions, modernizationOptions,
   remodelOptions, rawValueOptions, pagedLayoutOptions,
   marriedOptions, inFleetOptions, sparkleOptions,
   exSlotOptions } from '../constants'
@@ -8,69 +8,69 @@ import TypeCheck from './type-check'
 import RadioCheck from './radio-check'
 import SallyAreaCheck from './sally-area-check'
 
-const {__, config} = window
+const { __, config } = window
 
 export default class ShipInfoFilter extends Component {
 
   handleResetAll = () => {
-    const {bounds} = config.get('plugin.ShipInfo', {})
-    config.set("plugin.ShipInfo", {
+    const { bounds } = config.get('plugin.ShipInfo', {})
+    config.set('plugin.ShipInfo', {
       bounds,
     })
   }
 
-  render(){
-    const {showDetails} = this.props
-    return(
+  render() {
+    const { showDetails } = this.props
+    return (
       <Grid>
         <TypeCheck show={showDetails}/>
         {
           showDetails &&
             <div>
               <Row>
-                <RadioCheck 
+                <RadioCheck
                   configKey='lvRadio'
                   label='Level'
                   options={lvOptions}
                   default={2}
                 />
-                <RadioCheck 
+                <RadioCheck
                   configKey='lockedRadio'
                   label='Lock'
                   options={lockedOptions}
                   default={1}
                 />
-                <RadioCheck 
+                <RadioCheck
                   configKey='expeditionRadio'
                   label='Expedition'
                   options={expeditionOptions}
                   default={0}
                 />
-                <RadioCheck 
+                <RadioCheck
                   configKey='inFleetRadio'
                   label='In Fleet'
                   options={inFleetOptions}
                   default={0}
                 />
-                <RadioCheck 
+                <RadioCheck
                   configKey='modernizationRadio'
                   label='Modernization'
                   options={modernizationOptions}
                   default={0}
                 />
-                <RadioCheck 
+                <RadioCheck
                   configKey='remodelRadio'
                   label='Remodelable'
                   options={remodelOptions}
                   default={0}
                 />
-                <RadioCheck 
+                <RadioCheck
                   configKey='sparkleRadio'
                   label='Sparkle'
                   options={sparkleOptions}
                   default={0}
                 />
-                <RadioCheck 
+                <RadioCheck
                   configKey='exSlotRadio'
                   label='Extra Slot'
                   options={exSlotOptions}
@@ -79,13 +79,13 @@ export default class ShipInfoFilter extends Component {
               </Row>
               <SallyAreaCheck />
               <Row>
-                <RadioCheck 
+                <RadioCheck
                   configKey='rawValue'
                   label='Value Type'
                   options={rawValueOptions}
                   default={0}
                 />
-                <RadioCheck 
+                <RadioCheck
                   configKey='pagedLayout'
                   label='Paged'
                   options={pagedLayoutOptions}
@@ -104,7 +104,7 @@ export default class ShipInfoFilter extends Component {
               </Row>
             </div>
         }
-      </Grid>      
+      </Grid>
     )
   }
 }
