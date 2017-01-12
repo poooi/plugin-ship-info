@@ -23,7 +23,7 @@ const TitleHeader = (props) => {
       {
         titles.map((title, index) =>
           <th
-            key={title[index]}
+            key={title}
             onClick={sortable[index] ? handleClickTitle(types[index]) : ''}
             className={classNames({
               clickable: sortable[index],
