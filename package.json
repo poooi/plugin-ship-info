@@ -25,14 +25,17 @@
     "description": "Show detailed information of all owned ship girls",
     "icon": "fa/ship",
     "priority": 50,
-    "apiVer":{
+    "apiVer": {
       "7.2.99": "1.10.3"
     }
   },
   "devDependencies": {
     "babel-eslint": "^7.1.1",
-    "eslint": "^3.12.2",
+    "eslint": "^3.13.1",
+    "eslint-config-airbnb": "^14.0.0",
+    "eslint-config-airbnb-base": "^11.0.1",
     "eslint-plugin-import": "^2.2.0",
-    "eslint-plugin-react": "^6.8.0"
+    "eslint-plugin-jsx-a11y": "^3.0.2",
+    "eslint-plugin-react": "^6.9.0"
   }
 }

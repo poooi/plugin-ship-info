@@ -9,6 +9,7 @@ module.exports = {
     'plugin:react/recommended',
     'plugin:import/errors',
     'plugin:import/warnings',
+    "airbnb-base",
   ],
   "parserOptions": {
     "ecmaFeatures": {
@@ -41,6 +42,16 @@ module.exports = {
     "react/jsx-indent-props": [1, 2],
     "react/jsx-closing-bracket-location": [1, 'tag-aligned'],
     "comma-spacing": ["error", { "before": false, "after": true }],
+    'import/extensions': 'off',
+    'import/no-extraneous-dependencies': 'off',
+    'eqeqeq': 'off',
+    'default-case': 'off',
+    'consistent-return': 'off',
+    'no-underscore-dangle': 'off',
+    'camelcase': 'off',
+    'object-shorthand': 'off',
+    'arrow-body-style': 'off',
+    'radix': 'warn'
   },
   'settings': {
     'import/resolver': {
