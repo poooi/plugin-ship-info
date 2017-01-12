@@ -1,14 +1,14 @@
-import React, {Component} from 'react'
+import React, { Component } from 'react'
 import FontAwesome from 'react-fontawesome'
 
 export default class Divider extends Component {
-  render(){
-    const {text, icon, show} = this.props
-    return(
+  render() {
+    const { text, icon, show } = this.props
+    return (
       <div className="divider">
         <hr />
         <h5>
-          <span>{text + '  '}</span>
+          <span>{`${text}  `}</span>
           <span>
             {
               icon &&
@@ -16,7 +16,7 @@ export default class Divider extends Component {
             }
           </span>
         </h5>
-      </div>      
+      </div>
     )
   }
 }
