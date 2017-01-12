@@ -37,16 +37,12 @@ if (semver.lte(POI_VERSION, '7.3.0')) {
 
 $('#font-awesome').setAttribute('href', require.resolve('font-awesome/css/font-awesome.css'))
 
-class ShipInfoArea extends Component {
-  render() {
-    return (
-      <div>
-        <ShipInfoCheckboxArea />
-        <ShipInfoTableArea />
-      </div>
-    )
-  }
-}
+const ShipInfoArea = () =>
+  <div>
+    <ShipInfoCheckboxArea />
+    <ShipInfoTableArea />
+  </div>
+
 
 ReactDOM.render(
   <Provider store={store}>

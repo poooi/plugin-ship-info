@@ -21,11 +21,11 @@ export default class ShipInfoCheckboxArea extends Component {
 
   render() {
     return (
-      <div id='ship-info-settings'>
+      <div id="ship-info-settings">
         <div onClick={this.handleFilterShow}>
-          <Divider text={__('Filter Setting')} icon={true} show={this.state.filterShow} />
+          <Divider text={__('Filter Setting')} icon show={this.state.filterShow} />
         </div>
-        <div id='ship-info-filter' style={{ display: 'block' }}>
+        <div id="ship-info-filter" style={{ display: 'block' }}>
           <ShipInfoFilter
             showDetails={this.state.filterShow}
           />

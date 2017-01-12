@@ -80,19 +80,20 @@ const TypeCheck = connect(
     
 
     return (
-      <div className='filter-type'>
+      <div className="filter-type">
         <Row>
-          <Col xs={12} className='super-type'>
+          <Col xs={12} className="super-type">
             {
               show ?
-                <Input type='checkbox'
+                <Input
+                  type="checkbox"
                   label={__('All')}
                   onChange={this.handleClickSingleBox(-1)}
                   checked={checkedAll}
                 />
               :
                 <Button
-                  className='filter-button-all'
+                  className="filter-button-all"
                   onClick={this.handleClickSingleBox(-1)}
                   bsStyle={checkedAll ? 'success' : 'warning'}
                 >
@@ -108,7 +109,8 @@ const TypeCheck = connect(
               {
               map($shipTypes, (type, key) =>
                 <Col xs={xs} key={key}>
-                  <Input type='checkbox'
+                  <Input
+                    type="checkbox"
                     label={__r(type.api_name)}
                     onChange={this.handleClickSingleBox(key - 1)}
                     checked={checked[key - 1]}
@@ -120,12 +122,12 @@ const TypeCheck = connect(
           </Row>
         }
         <Row>
-          <Col xs={12} className='super-type'>
+          <Col xs={12} className="super-type">
             {
               shipSuperTypeMap.map((supertype, index) =>
                 <Button
-                  key={index}
-                  className='filter-button'
+                  key={supertype.name}
+                  className="filter-button"
                   onClick={this.handleClickSuperType(checkedTypes, index)}
                   bsStyle={
                     this.getArrayInclusion(checkedTypes, supertype.id)
