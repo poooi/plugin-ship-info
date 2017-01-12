@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import {   OverlayTrigger, Tooltip } from 'react-bootstrap'
+import { OverlayTrigger, Tooltip } from 'react-bootstrap'
 import Path from 'path'
 import { SlotitemIcon } from 'views/components/etc/icon'
 import { isEqual } from 'lodash'
@@ -9,26 +9,26 @@ import { equipDataSelectorFactory } from 'views/utils/selectors'
 
 const { ROOT } = window
 
-const getBackgroundStyle = () => 
-  window.isDarkTheme 
-  ? {backgroundColor: 'rgba(33, 33, 33, 0.7)'}
-  : {backgroundColor: 'rgba(256, 256, 256, 0.7)'}
+const getBackgroundStyle = () => {
+  return window.isDarkTheme
+  ? { backgroundColor: 'rgba(33, 33, 33, 0.7)' }
+  : { backgroundColor: 'rgba(256, 256, 256, 0.7)' }
+}
 
-
-const Slotitem = ({_item, item, isEx=false}) =>
+const Slotitem = ({ _item, item, isEx = false }) =>
   <div className="slotitem-container">
     <OverlayTrigger placement='top' overlay={
       <Tooltip id={`item-${_item.api_id}`} className='info-tooltip'>
         {window.i18n.resources.__(item.api_name)}
         {
-          item.api_level > 0 ? 
-            <strong style={{color: '#45A9A5'}}>★+{_item.api_level}</strong> 
+          item.api_level > 0 ?
+            <strong style={{ color: '#45A9A5' }}>★+{_item.api_level}</strong>
           : ''}
         {
           _item.api_alv && _item.api_alv <= 7 && _item.api_alv >= 1 ?
-            <img 
-              className='alv-img' 
-              src={Path.join(ROOT, 'assets', 'img', 'airplane', `alv${_item.api_alv}.png`)} 
+            <img
+              className='alv-img'
+              src={Path.join(ROOT, 'assets', 'img', 'airplane', `alv${_item.api_alv}.png`)}
             />
           : ''
         }
@@ -52,23 +52,23 @@ const Slotitems = connect(
     const _items = []
     const exitems = []
     const _exitems = []
-    const {slot=[], exslot=0} = props
+    const { slot = [], exslot = 0 } = props
     slot.forEach((itemId) => {
       const data = equipDataSelectorFactory(itemId)(state)
-      if(typeof data != 'undefined') {
+      if (typeof data != 'undefined') {
         _items.push(data[0])
         items.push(data[1])
       }
     })
     ;[exslot].forEach((itemId) => {
       const data = equipDataSelectorFactory(itemId)(state)
-      if(typeof data != 'undefined') {
+      if (typeof data != 'undefined') {
         _exitems.push(data[0])
         exitems.push(data[1])
       }
     })
 
-    return({
+    return ({
       _items,
       items,
       _exitems,
@@ -82,15 +82,15 @@ const Slotitems = connect(
   }
 
   render() {
-    const {_items, items, _exitems, exitems} = this.props
-    return(
+    const { _items, items, _exitems, exitems } = this.props
+    return (
       <div className="slotitem-container">
         {
         _items &&
-        _items.map( (_item, i) => {
+        _items.map((_item, i) => {
           const item = items[i]
-          return(
-            <Slotitem 
+          return (
+            <Slotitem
               _item={item}
               item={item}
               key={i}
@@ -100,10 +100,10 @@ const Slotitems = connect(
         }
         {
         _exitems &&
-        _exitems.map( (_item, i) => {
+        _exitems.map((_item, i) => {
           const item = exitems[i]
-          return(
-            <Slotitem 
+          return (
+            <Slotitem
               _item={item}
               item={item}
               key={i}

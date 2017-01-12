@@ -51,7 +51,9 @@ module.exports = {
     'camelcase': 'off',
     'object-shorthand': 'off',
     'arrow-body-style': 'off',
-    'radix': 'warn'
+    'radix': 'warn',
+    'no-return-assign': 'off',
+    'no-trailing-spaces': ["error", { "skipBlankLines": true }],
   },
   'settings': {
     'import/resolver': {

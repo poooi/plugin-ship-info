@@ -7,42 +7,40 @@ import { connect } from 'react-redux'
 const { __ } = window
 
 const SallyArea = connect(
-  (state, props) =>{
+  (state, props) => {
     const area = props.area || -1
     const mapname = get(state, `fcd.shiptag.mapname.${area}`, '')
     const color = get(state, `fcd.shiptag.color.${area}`, '')
 
-    return({
+    return ({
       area,
       mapname,
       color,
     })
   }
-)(class SallyArea extends Component{
-  shouldComponentUpdate = (nextProps, nextState) => {
-    return nextProps.area != this.props.area ||
+)(class SallyArea extends Component {
+  shouldComponentUpdate = (nextProps, nextState) => nextProps.area != this.props.area ||
       nextProps.mapname != this.props.mapname ||
       nextProps.color != this.props.color
-  }
 
-  render(){
-    const {area, mapname, color, info_id} = this.props
-    return(
-        area >= 0 ? 
-          <OverlayTrigger 
-            placement="top" 
+  render() {
+    const { area, mapname, color, info_id } = this.props
+    return (
+        area >= 0 ?
+          <OverlayTrigger
+            placement="top"
             overlay={
               <Tooltip id={`sally-area-${info_id}`} className='info-tooltip'>
-                {__('Ship tag: %s'), mapname}
+                {__('Ship tag: %s', mapname)}
               </Tooltip>
             }
           >
-            <Label style={{color: color}}>
+            <Label style={{ color: color }}>
               <FontAwesome name='tag' />
             </Label>
           </OverlayTrigger>
-        : 
-          <Label className="status-label text-default" style={{opacity: 0}}></Label>
+        :
+          <Label className="status-label text-default" style={{ opacity: 0 }}></Label>
 
     )
   }
