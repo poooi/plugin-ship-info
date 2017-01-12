@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
+import React, { Component, PropTypes } from 'react'
 import { Table,  OverlayTrigger, Tooltip } from 'react-bootstrap'
 import FontAwesome from 'react-fontawesome'
 import { isEqual, sortBy, get } from 'lodash'
@@ -9,7 +9,7 @@ import memoize from 'fast-memoize'
 import { fleetShipsIdSelectorFactory, fleetInExpeditionSelectorFactory } from 'views/utils/selectors'
 
 import Divider from '../divider'
-import { getTimePerHP, nameCompare, extractShipInfo } from './utils'
+import { getTimePerHP, nameCompare, extractShipInfo, shipInfoShape } from './utils'
 import { shipTableDataSelectorFactory, shipInfoConfigSelector, shipFleetIdMapSelector } from './selectors'
 import Slotitems from './slotitems'
 import SallyArea from './sallyarea'
@@ -17,6 +17,11 @@ import SallyArea from './sallyarea'
 const { __, resolveTime } = window
 
 class ShipInfoTable extends Component {
+  static propTypes = {
+    shipInfo: PropTypes.shape(shipInfoShape).isRequired,
+    fleetId: PropTypes.number.isRequired,
+  }
+
   shouldComponentUpdate = (nextProps, nextState) => {
     const {shipInfo, fleetId} = this.props
     return !isEqual(nextProps.shipInfo, shipInfo) ||
@@ -123,6 +128,44 @@ class ShipInfoTable extends Component {
   }
 }
 
+class TitleHeader extends Component {
+  static propTypes = {
+    titles: PropTypes.arrayOf(PropTypes.string).isRequired,
+    types: PropTypes.arrayOf(PropTypes.string).isRequired,
+    sortable: PropTypes.arrayOf(PropTypes.bool).isRequired,
+    centerAlign: PropTypes.arrayOf(PropTypes.bool).isRequired,
+    sortName: PropTypes.string.isRequired,
+    sortOrder: PropTypes.number.isRequired,
+    handleClickTitle: PropTypes.func.isRequired,
+  }
+
+  render(){
+    const {titles, types, sortable, centerAlign, sortName, sortOrder, handleClickTitle} = this.props
+    return(
+      <tr className='title-row'>
+        <th>No.</th>
+        {
+          titles.map((title, index) => 
+            <th
+              key={index}
+              onClick={sortable[index] ? handleClickTitle(types[index]) : ''}
+              className={classNames({
+                clickable: sortable[index],
+                center: centerAlign[index],
+                sorting: sortName == types[index],
+                up: sortName == types[index] && sortOrder,
+                down: sortName == types[index] && !sortOrder,
+              })}
+            >
+              {__(title)}
+            </th>
+          )
+        }
+      </tr>
+    )
+  }
+}
+
 const ShipInfoTableArea = connect(
   (state, props) => {
     const $shipTypes = get(state, 'const.$shipTypes', {})
@@ -145,21 +188,36 @@ const ShipInfoTableArea = connect(
       return shipTableDataSelectorFactory(parseInt(shipId))(state)
     })
 
-    const fleetShips = [...Array(4).keys()].map((ships, fleetId) => 
-      fleetShipsIdSelectorFactory(fleetId)(state)
-    )
-
 
     return({
       ...shipInfoConfigSelector(state),
       fleetIdMap: shipFleetIdMapSelector(state),
       shipTypes,
       expeditionShips,
-      fleetShips,
       rows,
     })
   }
 )(class ShipInfoTableArea extends Component{
+  static propTypes = {
+    sortName: PropTypes.string.isRequired,
+    sortOrder: PropTypes.number.isRequired,
+    lvRadio: PropTypes.number.isRequired,
+    lockedRadio: PropTypes.number.isRequired,
+    expeditionRadio: PropTypes.number.isRequired,
+    modernizationRadio: PropTypes.number.isRequired,
+    remodelRadio: PropTypes.number.isRequired,
+    sallyAreaChecked: PropTypes.arrayOf(PropTypes.bool).isRequired,
+    pagedLayout: PropTypes.number.isRequired,
+    marriedRadio: PropTypes.number.isRequired,
+    inFleetRadio: PropTypes.number.isRequired,
+    sparkleRadio: PropTypes.number.isRequired,
+    exSlotRadio: PropTypes.number.isRequired,
+    fleetIdMap: PropTypes.objectOf(PropTypes.number).isRequired,
+    shipTypes: PropTypes.arrayOf(PropTypes.number).isRequired,
+    expeditionShips: PropTypes.arrayOf(PropTypes.number).isRequired,
+    rows: PropTypes.arrayOf(PropTypes.shape(shipInfoShape)).isRequired,
+  }
+
   handleTypeFilter = memoize((type_id, shipTypes) => {
     return shipTypes.includes(type_id)
   })
@@ -369,27 +427,16 @@ const ShipInfoTableArea = connect(
       false, false,
     ]
 
-    const TitleHead = () =>
-      <tr className='title-row'>
-        <th>No.</th>
-        {
-          titles.map((title, index) => 
-            <th
-              key={index}
-              onClick={sortable[index] ? this.handleClickTitle(types[index]) : ''}
-              className={classNames({
-                clickable: sortable[index],
-                center: centerAlign[index],
-                sorting: sortName == types[index],
-                up: sortName == types[index] && sortOrder,
-                down: sortName == types[index] && !sortOrder,
-              })}
-            >
-              {__(title)}
-            </th>
-          )
-        }
-      </tr>
+    const header = 
+      <TitleHeader
+        titles={titles}
+        types={types}
+        sortable={sortable}
+        centerAlign={centerAlign}
+        sortName={sortName}
+        sortOrder={sortOrder}
+        handleClickTitle={this.handleClickTitle}
+      />
 
     const ShipRows = []
 
@@ -401,9 +448,7 @@ const ShipInfoTableArea = connect(
           fleetId = {fleetIdMap[row.id] || NaN}
         />
       )
-      if (index>=0 && (index + 1) % 15 == 0 && pagedLayout ) ShipRows.push(
-        <TitleHead key={`head${index}`} />
-      )
+      if (index>=0 && (index + 1) % 15 == 0 && pagedLayout ) ShipRows.push(header)
     })
     
     return(
@@ -412,7 +457,7 @@ const ShipInfoTableArea = connect(
         <div className="ship-info-table">
           <Table striped condensed hover>
             <thead>
-              <TitleHead/>
+              {header}
             </thead>
             <tbody>
               {

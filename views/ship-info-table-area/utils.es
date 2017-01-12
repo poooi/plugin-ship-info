@@ -1,3 +1,4 @@
+import { PropTypes } from 'react'
 import { clone } from 'lodash'
 import memoize from 'fast-memoize'
 import { repairFactor, sokuInterpretation, sokuStyles } from '../constants'
@@ -48,7 +49,7 @@ export const getShipInfoData = (ship, $ship, equips, $shipTypes, rawValue=false)
     maxhp: ship.api_maxhp,
     losshp: ship.api_maxhp - ship.api_nowhp,
     repairtime: parseInt (ship.api_ndock_time / 1000.0),
-    after: $ship.api_aftershipid,
+    after: parseInt($ship.api_aftershipid),
     sallyArea: ship.api_sally_area,
     soku: ship.api_soku,
   }
@@ -114,6 +115,52 @@ export const getShipInfoData = (ship, $ship, equips, $shipTypes, rawValue=false)
     sakuteki,
   })
 
+}
+
+export const shipInfoShape = {
+  id: PropTypes.number.isRequired,
+  type_id: PropTypes.number.isRequired,
+  type: PropTypes.string.isRequired,
+  name: PropTypes.string.isRequired,
+  yomi: PropTypes.string.isRequired,
+  sortno: PropTypes.number.isRequired,
+  lv:  PropTypes.number.isRequired,
+  cond: PropTypes.number.isRequired,
+  karyoku: PropTypes.number.isRequired,
+  houg: PropTypes.arrayOf(PropTypes.number).isRequired,
+  raisou: PropTypes.number.isRequired,
+  raig: PropTypes.arrayOf(PropTypes.number).isRequired,
+  taiku: PropTypes.number.isRequired,
+  tyku: PropTypes.arrayOf(PropTypes.number).isRequired,
+  soukou: PropTypes.number.isRequired,
+  souk: PropTypes.arrayOf(PropTypes.number).isRequired,
+  lucky: PropTypes.number.isRequired,
+  luck: PropTypes.arrayOf(PropTypes.number).isRequired,
+  kyouka: PropTypes.arrayOf(PropTypes.number).isRequired,
+  kaihi: PropTypes.number.isRequired,
+  taisen: PropTypes.number.isRequired,
+  sakuteki: PropTypes.number.isRequired,
+  slot: PropTypes.arrayOf(PropTypes.number).isRequired,
+  exslot: PropTypes.number.isRequired,
+  locked: PropTypes.number.isRequired,
+  nowhp: PropTypes.number.isRequired,
+  maxhp: PropTypes.number.isRequired,
+  losshp: PropTypes.number.isRequired,
+  repairtime: PropTypes.number.isRequired,
+  after: PropTypes.number.isRequired,
+  sallyArea: PropTypes.number,
+  soku: PropTypes.number.isRequired, 
+  karyokuNow: PropTypes.number.isRequired,
+  karyokuMax: PropTypes.number.isRequired,
+  raisouNow: PropTypes.number.isRequired,
+  raisouMax: PropTypes.number.isRequired,
+  taikuNow: PropTypes.number.isRequired,
+  taikuMax: PropTypes.number.isRequired,
+  soukouNow: PropTypes.number.isRequired,
+  soukouMax: PropTypes.number.isRequired,
+  luckyNow: PropTypes.number.isRequired,
+  luckyMax: PropTypes.number.isRequired,
+  isCompleted: PropTypes.bool.isRequired,
 }
 
 const collator = new Intl.Collator()
@@ -280,71 +327,71 @@ export const extractShipInfo = (shipInfo) => {
 }
 
 // just to confirm that table sorting requires so much data, which is almost all data used in display
-export const getTableInfoData = (ship, $ship) => {
-  if(!(typeof ship === 'object' && $ship && typeof ship === 'object' && ship)) return
-  const shipInfo = {
-    id: ship.api_id, //
-    type_id: $ship.api_stype, //
-    name: $ship.api_name,
-    yomi: $ship.api_yomi, //
-    sortno: $ship.api_sortno, //
-    lv:  ship.api_lv, //
-    cond: ship.api_cond, //
-    karyoku: ship.api_karyoku, //
-    houg: $ship.api_houg, //
-    raisou: ship.api_raisou, //
-    raig: $ship.api_raig, //
-    taiku: ship.api_taiku, //
-    tyku: $ship.api_tyku, //
-    soukou: ship.api_soukou, //
-    souk: $ship.api_souk, //
-    lucky: ship.api_lucky, //
-    luck: $ship.api_luck, //
-    kyouka: ship.api_kyouka, //
-    kaihi: ship.api_kaihi[0], //
-    taisen: ship.api_taisen[0], //
-    sakuteki: ship.api_sakuteki[0], //
-    slot: clone(ship.api_slot),
-    exslot: ship.api_slot_ex,
-    locked: ship.api_locked, //
-    nowhp: ship.api_nowhp,
-    maxhp: ship.api_maxhp,
-    losshp: ship.api_maxhp - ship.api_nowhp,
-    repairtime: parseInt (ship.api_ndock_time / 1000.0), //
-    after: $ship.api_aftershipid, //
-    sallyArea: ship.api_sally_area, //
-  }
+// export const getTableInfoData = (ship, $ship) => {
+//   if(!(typeof ship === 'object' && $ship && typeof ship === 'object' && ship)) return
+//   const shipInfo = {
+//     id: ship.api_id, //
+//     type_id: $ship.api_stype, //
+//     name: $ship.api_name,
+//     yomi: $ship.api_yomi, //
+//     sortno: $ship.api_sortno, //
+//     lv:  ship.api_lv, //
+//     cond: ship.api_cond, //
+//     karyoku: ship.api_karyoku, //
+//     houg: $ship.api_houg, //
+//     raisou: ship.api_raisou, //
+//     raig: $ship.api_raig, //
+//     taiku: ship.api_taiku, //
+//     tyku: $ship.api_tyku, //
+//     soukou: ship.api_soukou, //
+//     souk: $ship.api_souk, //
+//     lucky: ship.api_lucky, //
+//     luck: $ship.api_luck, //
+//     kyouka: ship.api_kyouka, //
+//     kaihi: ship.api_kaihi[0], //
+//     taisen: ship.api_taisen[0], //
+//     sakuteki: ship.api_sakuteki[0], //
+//     slot: clone(ship.api_slot),
+//     exslot: ship.api_slot_ex,
+//     locked: ship.api_locked, //
+//     nowhp: ship.api_nowhp,
+//     maxhp: ship.api_maxhp,
+//     losshp: ship.api_maxhp - ship.api_nowhp,
+//     repairtime: parseInt (ship.api_ndock_time / 1000.0), //
+//     after: $ship.api_aftershipid, //
+//     sallyArea: ship.api_sally_area, //
+//   }
 
-  // Attention, this will overwrite some original properties
-  const karyokuNow = shipInfo.houg[0] + shipInfo.kyouka[0]
-  const karyokuMax = shipInfo.karyoku[1]
-  const karyoku = shipInfo.karyoku[0]
-  const raisouNow = shipInfo.raig[0] + shipInfo.kyouka[1]
-  const raisouMax = shipInfo.raisou[1]
-  const raisou = shipInfo.raisou[0]
-  const taikuNow = shipInfo.tyku[0] + shipInfo.kyouka[2]
-  const taikuMax = shipInfo.taiku[1]
-  const taiku = shipInfo.taiku[0]
-  const soukouNow = shipInfo.souk[0] + shipInfo.kyouka[3]
-  const soukouMax = shipInfo.soukou[1]
-  const soukou = shipInfo.soukou[0]
-  const luckyNow = shipInfo.luck[0] + shipInfo.kyouka[4]
-  const luckyMax = shipInfo.lucky[1]
-  const lucky = shipInfo.lucky[0]
+//   // Attention, this will overwrite some original properties
+//   const karyokuNow = shipInfo.houg[0] + shipInfo.kyouka[0]
+//   const karyokuMax = shipInfo.karyoku[1]
+//   const karyoku = shipInfo.karyoku[0]
+//   const raisouNow = shipInfo.raig[0] + shipInfo.kyouka[1]
+//   const raisouMax = shipInfo.raisou[1]
+//   const raisou = shipInfo.raisou[0]
+//   const taikuNow = shipInfo.tyku[0] + shipInfo.kyouka[2]
+//   const taikuMax = shipInfo.taiku[1]
+//   const taiku = shipInfo.taiku[0]
+//   const soukouNow = shipInfo.souk[0] + shipInfo.kyouka[3]
+//   const soukouMax = shipInfo.soukou[1]
+//   const soukou = shipInfo.soukou[0]
+//   const luckyNow = shipInfo.luck[0] + shipInfo.kyouka[4]
+//   const luckyMax = shipInfo.lucky[1]
+//   const lucky = shipInfo.lucky[0]
 
-  const isCompleted = karyokuNow >= karyokuMax &&
-              raisouNow >= raisouMax &&
-              taikuNow >= taikuMax &&
-              soukouNow >= soukouMax
+//   const isCompleted = karyokuNow >= karyokuMax &&
+//               raisouNow >= raisouMax &&
+//               taikuNow >= taikuMax &&
+//               soukouNow >= soukouMax
 
-  return ({
-    ...shipInfo,
-    karyoku,
-    raisou,
-    taiku,
-    soukou,
-    lucky,
-    isCompleted,
-  })
+//   return ({
+//     ...shipInfo,
+//     karyoku,
+//     raisou,
+//     taiku,
+//     soukou,
+//     lucky,
+//     isCompleted,
+//   })
 
-}
+// }
