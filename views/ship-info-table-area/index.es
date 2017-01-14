@@ -166,7 +166,13 @@ const ShipInfoTableArea = connect(
   })
 
   handleSallyAreaFilter = memoize((sallyArea, sallyAreaChecked = []) => {
-    return sallyArea ? sallyAreaChecked[sallyArea] : true
+    const checkedAll = sallyAreaChecked.reduce((all, checked) =>
+      all && checked
+    , true)
+    if (checkedAll) return true
+    return typeof sallyArea != 'undefined'
+      ? sallyAreaChecked[sallyArea]
+      : true
   })
 
   handleInFleetFilter = memoize((fleetId, inFleetRadio) => {

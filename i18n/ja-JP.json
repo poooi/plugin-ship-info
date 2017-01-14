@@ -63,5 +63,6 @@
   "Extra Slot": "補強増設",
   "Reset all Filters & Settings": "フィルターと設定をリセットする",
   "Single": "単",
-  "Multiple": "多"
+  "Multiple": "多",
+  "Unknown Area %s, please update data": "未知の海域　%s、データを更新する必要があります"
 }

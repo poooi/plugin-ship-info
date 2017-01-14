@@ -80,13 +80,13 @@ class ShipInfoRow extends Component {
         <td>{id}</td>
         <td>{window.i18n.resources.__(type)}</td>
         <td className="ship-name">{window.i18n.resources.__(name)}
+          <SallyArea area={sallyArea} info_id={id} />
           {
             Number.isInteger(fleetId) &&
             <span className="fleet-id-indicator">
               {`/${fleetId + 1}`}
             </span>
           }
-          <SallyArea area={sallyArea} info_id={id} />
         </td>
         <td style={sokuStyle}>{__(sokuString)}</td>
         <td className="center">{lv}</td>

@@ -6,6 +6,7 @@ import { constSelector, shipDataSelectorFactory, shipsSelector,
   configSelector, fcdSelector, shipEquipDataSelectorFactory, fleetShipsIdSelectorFactory } from 'views/utils/selectors'
 import { getShipInfoData } from './utils'
 
+const { __ } = window
 
 export const shipTableDataSelectorFactory = memoize(shipId =>
   createSelector(
@@ -72,3 +73,13 @@ export const shipFleetIdMapSelector = createSelector(
     return map
   }
 )
+
+export const sallyAreaSelectorFactory = memoize(area => createSelector(
+  [
+    fcdSelector,
+  ],
+  fcd => ({
+    mapname: get(fcd, `shiptag.mapname.${area}`, __('Unknown Area %s, please update data', area)),
+    color: get(fcd, `shiptag.color.${area}`, ''),
+  })
+))

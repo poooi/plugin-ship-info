@@ -234,3 +234,7 @@ th {
     1px 1px 0 lightseagreen;
   -webkit-font-smoothing: antialiased;  
 }
+
+.sally-area-label {
+  margin-left: 0.5em;
+}

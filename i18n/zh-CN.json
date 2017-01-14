@@ -63,5 +63,6 @@
   "Extra Slot": "补强增设",
   "Reset all Filters & Settings": "重置所有过滤与设置",
   "Single": "单页",
-  "Multiple": "多页"
+  "Multiple": "多页",
+  "Unknown Area %s, please update data": "未知海域 %s，请更新数据"
 }

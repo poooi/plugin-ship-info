@@ -4,16 +4,15 @@ import FontAwesome from 'react-fontawesome'
 import { get } from 'lodash'
 import { connect } from 'react-redux'
 
+import { sallyAreaSelectorFactory } from './selectors'
+
 const { __ } = window
 
 const SallyArea = connect(
   (state, props) => {
-    const area = props.area || -1
-    const mapname = get(state, `fcd.shiptag.mapname.${area}`, '')
-    const color = get(state, `fcd.shiptag.color.${area}`, '')
-
+    const area = props.area
+    const { mapname, color } = sallyAreaSelectorFactory(area)(state)
     return ({
-      area,
       mapname,
       color,
     })
@@ -26,7 +25,7 @@ const SallyArea = connect(
   render() {
     const { area, mapname, color, info_id } = this.props
     return (
-        area >= 0 ?
+        area >= 0 &&
           <OverlayTrigger
             placement="top"
             overlay={
@@ -35,12 +34,10 @@ const SallyArea = connect(
               </Tooltip>
             }
           >
-            <Label style={{ color: color }}>
+            <Label style={{ color: color }} className="sally-area-label" >
               <FontAwesome name="tag" />
             </Label>
           </OverlayTrigger>
-        :
-          <Label className="status-label text-default" style={{ opacity: 0 }} />
 
     )
   }
