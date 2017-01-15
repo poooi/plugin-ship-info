@@ -79,7 +79,7 @@ export const sallyAreaSelectorFactory = memoize(area => createSelector(
     fcdSelector,
   ],
   fcd => ({
-    mapname: get(fcd, `shiptag.mapname.${area}`, __('Unknown Area %s, please update data', area)),
+    mapname: get(fcd, `shiptag.mapname.${area}`, __('Unknown Area %s, data not updated', area)),
     color: get(fcd, `shiptag.color.${area}`, ''),
   })
 ))

@@ -64,5 +64,5 @@
   "Reset all Filters & Settings": "重置所有過濾與設置",
   "Single": "單頁",
   "Multiple": "多頁",
-  "Unknown Area %s, please update data": "未知海域 %s，請更新數據"
+  "Unknown Area %s, data not updated": "未知海域 %s，數據未更新"
 }
