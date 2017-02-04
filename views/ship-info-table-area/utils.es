@@ -166,7 +166,8 @@ const jpCollator = new Intl.Collator('ja-JP')
 
 export const nameCompare = (a, b) => {
   if (a.yomi == b.yomi) {
-    return a.lv == b.lv ? collator.compare(a.id, b.id) : collator.compare(a.lv, b.lv)
+    if (a.lv != b.lv) return a.lv - b.lv
+    if (a.id != b.id) return -(a.id - b.id)
   }
   return jpCollator.compare(a.yomi, b.yomi)
 }

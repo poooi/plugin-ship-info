@@ -230,23 +230,11 @@ const ShipInfoTableArea = connect(
 
     // sort
     switch (this.props.sortName) {
+    case 'id':
+      showRows = sortBy(showRows, 'id')
+      break
     case 'name':
       showRows.sort(nameCompare)
-      break
-    case 'karyoku':
-      showRows = sortBy(showRows, row => row.karyoku)
-      break
-    case 'raisou':
-      showRows = sortBy(showRows, row => row.raisou)
-      break
-    case 'taiku':
-      showRows = sortBy(showRows, row => row.taiku)
-      break
-    case 'soukou':
-      showRows = sortBy(showRows, row => row.soukou)
-      break
-    case 'lucky':
-      showRows = sortBy(showRows, row => row.lucky)
       break
     case 'lv':
       // Sort rule of level in game (descending):
@@ -256,7 +244,7 @@ const ShipInfoTableArea = connect(
       showRows.sort((a, b) => {
         if (a.lv != b.lv) return a.lv - b.lv
         if (a.sortno != b.sortno) return -(a.sortno - b.sortno)
-        if (a.id != b.id) return a.id - b.id
+        if (a.id != b.id) return -(a.id - b.id)
         return 0
       })
       break
@@ -265,12 +253,12 @@ const ShipInfoTableArea = connect(
         if (a.type_id != b.type_id) return a.type_id - b.type_id
         if (a.sortno != b.sortno) return -(a.sortno - b.sortno)
         if (a.lv != b.lv) return a.lv - b.lv
-        if (a.id != b.id) return a.id - b.id
+        if (a.id != b.id) return -(a.id - b.id)
         return 0
       })
       break
     default:
-      showRows = sortBy(showRows, [sortName, 'api_id'])
+      showRows = sortBy(showRows, [sortName, 'sortno', row => -row.id])
     }
 
     if (!sortOrder) showRows.reverse()
