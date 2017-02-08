@@ -138,7 +138,7 @@ const ShipInfoTableArea = connect(
     case 1:
       return (expeditionShips || []).includes(id)
     case 2:
-      return (expeditionShips || []).includes(id)
+      return !(expeditionShips || []).includes(id)
     }
   })
 
