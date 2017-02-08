@@ -104,7 +104,7 @@ const ShipInfoTableArea = connect(
   }
 
   handleTypeFilter = memoize((type_id, shipTypes) => {
-    return shipTypes.includes(type_id)
+    return (shipTypes || []).includes(type_id)
   })
 
   handleLvFilter = memoize((lv, lvRadio) => {
@@ -131,14 +131,14 @@ const ShipInfoTableArea = connect(
     }
   })
 
-  handleExpeditionFilter = memoize((id, expeditionShips = [], expeditionRadio) => {
+  handleExpeditionFilter = memoize((id, expeditionShips, expeditionRadio) => {
     switch (expeditionRadio) {
     case 0:
       return true
     case 1:
-      return expeditionShips.includes(id)
+      return (expeditionShips || []).includes(id)
     case 2:
-      return !expeditionShips.includes(id)
+      return (expeditionShips || []).includes(id)
     }
   })
 
@@ -165,13 +165,13 @@ const ShipInfoTableArea = connect(
     }
   })
 
-  handleSallyAreaFilter = memoize((sallyArea, sallyAreaChecked = []) => {
-    const checkedAll = sallyAreaChecked.reduce((all, checked) =>
+  handleSallyAreaFilter = memoize((sallyArea, sallyAreaChecked) => {
+    const checkedAll = (sallyAreaChecked || []).reduce((all, checked) =>
       all && checked
     , true)
     if (checkedAll) return true
     return typeof sallyArea != 'undefined'
-      ? sallyAreaChecked[sallyArea]
+      ? (sallyAreaChecked || [])[sallyArea]
       : true
   })
 
