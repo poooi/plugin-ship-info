@@ -171,7 +171,7 @@ const ShipInfoTableArea = connect(
     , true)
     if (checkedAll) return true
     return typeof sallyArea != 'undefined'
-      ? (sallyAreaChecked || [])[sallyArea]
+      ? (sallyAreaChecked || [])[sallyArea - 1]
       : true
   })
 

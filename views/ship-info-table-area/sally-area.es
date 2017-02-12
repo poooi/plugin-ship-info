@@ -25,7 +25,7 @@ const SallyArea = connect(
   render() {
     const { area, mapname, color, info_id } = this.props
     return (
-        area >= 0 &&
+        area > 0 &&
           <OverlayTrigger
             placement="top"
             overlay={
