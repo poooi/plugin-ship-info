@@ -64,5 +64,6 @@
   "Reset all Filters & Settings": "重置所有过滤与设置",
   "Single": "单页",
   "Multiple": "多页",
-  "Unknown Area %s, data not updated": "未知海域 %s，数据未更新"
+  "Unknown Area %s, data not updated": "未知海域 %s，数据未更新",
+  "Free":"无限定"
 }

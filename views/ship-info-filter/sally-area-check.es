@@ -6,13 +6,17 @@ import { get, isEqual } from 'lodash'
 const __ = window.__
 
 // to ensure a downgrade compatibility, another config key is used
+// Sally area value starts from 1, 0 is used for non-tagged ships
 const SallyAreaCheck = connect(
   (state, props) => {
     const mapname = get(state, 'fcd.shiptag.mapname', [])
-    const defaultChecked = mapname.slice().fill(true)
+    const defaultChecked = Array(mapname.length + 1).fill(true)
     let checked = get(state.config, 'plugin.ShipInfo.sallyAreaChecked', defaultChecked)
 
-    checked = mapname.length == checked.length ? checked : defaultChecked
+    // reset config values if updated
+    checked = (mapname.length + 1) == checked.length
+        ? checked
+        : defaultChecked
     const checkedAll = checked.reduce((a, b) => a && b, true)
 
     return ({
@@ -59,6 +63,14 @@ const SallyAreaCheck = connect(
               checked={checkedAll}
             />
           </div>
+          <div>
+            <Input
+              type="checkbox"
+              label={__('Free')}
+              onChange={this.handleClickBox(0)}
+              checked={checked[0]}
+            />
+          </div>
           {
             mapname.map((name, idx) =>
               <div key={name}>
@@ -66,8 +78,8 @@ const SallyAreaCheck = connect(
                 <Input
                   type="checkbox"
                   label={<Label style={{ color: color[idx] }}>{__(name)}</Label>}
-                  onChange={this.handleClickBox(idx)}
-                  checked={checked[idx]}
+                  onChange={this.handleClickBox(idx + 1)}
+                  checked={checked[idx + 1]}
                   style={{ color: color[idx] || '' }}
                 />
               </div>

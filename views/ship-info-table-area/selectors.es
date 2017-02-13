@@ -35,7 +35,7 @@ export const shipInfoConfigSelector = createSelector(
     modernizationRadio: get(config, 'plugin.ShipInfo.modernizationRadio', 0),
     remodelRadio: get(config, 'plugin.ShipInfo.remodelRadio', 0),
     sallyAreaChecked: get(config,
-      'plugin.ShipInfo.sallyAreaChecked', (shiptag.mapname || []).slice().fill(true)),
+      'plugin.ShipInfo.sallyAreaChecked', Array((shiptag.mapname || []).length + 1).fill(true)),
     pagedLayout: get(config, 'plugin.ShipInfo.pagedLayout', 0),
     marriedRadio: get(config, 'plugin.ShipInfo.marriedRadio', 0),
     inFleetRadio: get(config, 'plugin.ShipInfo.inFleetRadio', 0),

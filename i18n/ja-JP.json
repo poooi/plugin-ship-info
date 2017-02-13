@@ -64,5 +64,6 @@
   "Reset all Filters & Settings": "フィルターと設定をリセットする",
   "Single": "単",
   "Multiple": "多",
-  "Unknown Area %s, data not updated": "未知の海域　%s、データが更新されていません"
+  "Unknown Area %s, data not updated": "未知の海域　%s、データが更新されていません",
+  "Free": "なし"
 }

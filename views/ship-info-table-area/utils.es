@@ -49,7 +49,7 @@ export const getShipInfoData = (ship, $ship, equips, $shipTypes, rawValue = fals
     losshp: ship.api_maxhp - ship.api_nowhp,
     repairtime: parseInt(ship.api_ndock_time / 1000.0),
     after: parseInt($ship.api_aftershipid),
-    sallyArea: ship.api_sally_area,
+    sallyArea: ship.api_sally_area || 0,
     soku: ship.api_soku,
   }
 
