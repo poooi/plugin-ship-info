@@ -65,5 +65,6 @@
   "Single": "単",
   "Multiple": "多",
   "Unknown Area %s, data not updated": "未知の海域　%s、データが更新されていません",
-  "Free": "なし"
+  "Free": "なし",
+  "Daihatsu": "大発装備可能"
 }
