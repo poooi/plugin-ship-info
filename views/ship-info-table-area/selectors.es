@@ -41,6 +41,7 @@ export const shipInfoConfigSelector = createSelector(
     inFleetRadio: get(config, 'plugin.ShipInfo.inFleetRadio', 0),
     sparkleRadio: get(config, 'plugin.ShipInfo.sparkleRadio', 0),
     exSlotRadio: get(config, 'plugin.ShipInfo.exSlotRadio', 0),
+    daihatsuRadio: get(config, 'plugin.ShipInfo.daihatsuRadio', 0),
   })
 )
 

@@ -91,6 +91,27 @@ export const getShipInfoData = (ship, $ship, equips, $shipTypes, rawValue = fals
     })
   }
 
+  // check if ship can equip daihatsu
+  let daihatsu = false
+  // AV=16, LHA=17, AO=22
+  if ([16, 17, 22].includes($ship.api_stype)) {
+    daihatsu = true
+  }
+
+  // excluding Akitsushima(445) and Hayasui(352)
+  if ([445, 460].includes($ship.api_id)) {
+    daihatsu = false
+  }
+
+  // Abukuma Kai 2 = 200, Kinu Kai 2 = 487
+  // Satsuki Kai 2 = 418 , Mutsuki Kai 2 = 434, Kisaragi Kai 2 = 435
+  // Kasumi Kai 2 = 464, Kasumi Kai 2 B = 470, Ooshio Kai 2 = 199,
+  //   Asashio Kai 2 D = 468, Arashio Kai 2 = 490
+  // Verniy = 147, Kawakaze Kai 2 = 469
+  if ([200, 487, 418, 434, 435, 464, 470, 199, 468, 490, 147, 469].includes($ship.api_id)) {
+    daihatsu = true
+  }
+
   return ({
     ...shipInfo,
     karyokuNow,
@@ -112,6 +133,7 @@ export const getShipInfoData = (ship, $ship, equips, $shipTypes, rawValue = fals
     kaihi,
     taisen,
     sakuteki,
+    daihatsu,
   })
 }
 
@@ -159,6 +181,7 @@ export const shipInfoShape = {
   luckyNow: PropTypes.number.isRequired,
   luckyMax: PropTypes.number.isRequired,
   isCompleted: PropTypes.bool.isRequired,
+  daihatsu: PropTypes.bool.isRequired,
 }
 
 const collator = new Intl.Collator()

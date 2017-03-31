@@ -3,7 +3,7 @@ import { Grid, Row, Col, Button } from 'react-bootstrap'
 import { lvOptions, lockedOptions, expeditionOptions, modernizationOptions,
   remodelOptions, rawValueOptions, pagedLayoutOptions,
   inFleetOptions, sparkleOptions,
-  exSlotOptions } from '../constants'
+  exSlotOptions, daihatsuOptions } from '../constants'
 import TypeCheck from './type-check'
 import RadioCheck from './radio-check'
 import SallyAreaCheck from './sally-area-check'
@@ -74,6 +74,12 @@ export default class ShipInfoFilter extends Component {
                   configKey="exSlotRadio"
                   label="Extra Slot"
                   options={exSlotOptions}
+                  default={0}
+                />
+                <RadioCheck
+                  configKey="daihatsuRadio"
+                  label="Daihatsu"
+                  options={daihatsuOptions}
                   default={0}
                 />
               </Row>

@@ -102,6 +102,12 @@ export const exSlotOptions = {
   2: 'No',
 }
 
+export const daihatsuOptions = {
+  0: 'All',
+  1: 'Yes',
+  2: 'No',
+}
+
 export const repairFactor = {
   1: { api_id: 1, api_name: '海防艦', factor: 0 },
   2: { api_id: 2, api_name: '駆逐艦', factor: 1 },
