@@ -2,6 +2,8 @@ import React, { Component } from 'react'
 import { Dropdown, MenuItem, FormControl } from 'react-bootstrap'
 import Fuse from 'fuse.js'
 
+import { onUpdate } from '../redux'
+
 const { __ } = window
 
 const bookmarks = ['test', 'foo', 'bar']
@@ -18,6 +20,16 @@ class BookmarkMenu extends Component {
 
   onSelect = (eventKey = this.state.query, _) => {
     console.log(eventKey)
+  }
+
+  onCreateOrOverwrite = () => {
+    const settings = config.get('plugin.ShipInfo')
+    delete settings.bounds
+    settings.name = this.state.query
+    window.store.dispatch(onUpdate({
+      bookmark: this.state.query,
+      settings,
+    }))
   }
 
   handleInput = e => this.setState({ query: e.target.value })
@@ -47,7 +59,7 @@ class BookmarkMenu extends Component {
         }
         {
           query.length > 0 &&
-          <MenuItem>
+          <MenuItem onSelect={this.onCreateOrOverwrite}>
             {__('Create or overwrite %s', query)}
           </MenuItem>
         }
@@ -56,22 +68,18 @@ class BookmarkMenu extends Component {
   }
 }
 
-export default class BookmarkDropdown extends Component {
+const BookmarkDropdown = () =>
+  (<Dropdown id="bookmark">
+    <Dropdown.Toggle>
+      {__('Bookmarks')}
+    </Dropdown.Toggle>
+    <BookmarkMenu bsRole="menu">
+      {
+        bookmarks.map(bookmark =>
+          <MenuItem eventKey={bookmark} key={bookmark}>{bookmark}</MenuItem>
+        )
+      }
+    </BookmarkMenu>
+  </Dropdown>)
 
-  render() {
-    return (
-      <Dropdown id="bookmark">
-        <Dropdown.Toggle>
-          {__('Bookmarks')}
-        </Dropdown.Toggle>
-        <BookmarkMenu bsRole="menu">
-          {
-            bookmarks.map(bookmark =>
-              <MenuItem eventKey={bookmark} key={bookmark}>{bookmark}</MenuItem>
-            )
-          }
-        </BookmarkMenu>
-      </Dropdown>
-    )
-  }
-}
+export default BookmarkDropdown

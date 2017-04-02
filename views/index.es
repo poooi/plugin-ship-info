@@ -4,8 +4,9 @@ import { Provider } from 'react-redux'
 import { remote } from 'electron'
 import semver from 'semver'
 
-import { store } from 'views/create-store'
+import { store, extendReducer } from 'views/create-store'
 
+import { reducer, PLUGIN_KEY } from './redux'
 import ShipInfoTableArea from './ship-info-table-area'
 import ShipInfoCheckboxArea from './ship-info-checkbox-area'
 
@@ -43,6 +44,8 @@ const ShipInfoArea = () =>
     <ShipInfoTableArea />
   </div>
 
+extendReducer(PLUGIN_KEY, reducer)
+window.store = store
 
 ReactDOM.render(
   <Provider store={store}>
