@@ -1,5 +1,3 @@
-import { extensionSelectorFactory } from 'views/utils/selectors'
-
 export const PLUGIN_KEY = 'poi-plugin-ship-info'
 
 export const reducer = (state = {}, action) => {
@@ -8,7 +6,10 @@ export const reducer = (state = {}, action) => {
   case '@@poi-plugin-ship-info@update':
     return {
       ...state,
-      [bookmark]: settings,
+      [bookmark]: {
+        ...settings,
+        name: bookmark,
+      },
     }
   }
   return state
