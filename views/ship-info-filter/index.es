@@ -7,6 +7,7 @@ import { lvOptions, lockedOptions, expeditionOptions, modernizationOptions,
 import TypeCheck from './type-check'
 import RadioCheck from './radio-check'
 import SallyAreaCheck from './sally-area-check'
+import BookmarkDropdown from './bookmark-dropdown'
 
 const { __, config } = window
 
@@ -106,6 +107,9 @@ export default class ShipInfoFilter extends Component {
                   >
                     {__('Reset all Filters & Settings')}
                   </Button>
+                </Col>
+                <Col xs={12} className="reset-panel">
+                  <BookmarkDropdown />
                 </Col>
               </Row>
             </div>
