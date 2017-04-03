@@ -100,7 +100,7 @@ export default class ShipInfoFilter extends Component {
                 />
               </Row>
               <Row>
-                <Col xs={12} className="reset-panel">
+                <Col xs={6} className="reset-panel">
                   <Button
                     onClick={this.handleResetAll}
                     id="reset-button"
@@ -108,7 +108,7 @@ export default class ShipInfoFilter extends Component {
                     {__('Reset all Filters & Settings')}
                   </Button>
                 </Col>
-                <Col xs={12} className="reset-panel">
+                <Col xs={6} className="reset-panel">
                   <BookmarkDropdown />
                 </Col>
               </Row>

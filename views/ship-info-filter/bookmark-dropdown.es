@@ -1,12 +1,14 @@
 import React, { Component } from 'react'
-import { Dropdown, MenuItem, FormControl, Button } from 'react-bootstrap'
+import { Dropdown, MenuItem, FormControl, Button, Label } from 'react-bootstrap'
 import Fuse from 'fuse.js'
 import { connect } from 'react-redux'
 import { values } from 'lodash'
+import FontAwesome from 'react-fontawesome'
+import { observe } from 'redux-observers'
 
 import { extensionSelectorFactory } from 'views/utils/selectors'
 
-import { onUpdate, PLUGIN_KEY } from '../redux'
+import { onUpdate, onDelete, PLUGIN_KEY, bookmarksObserver } from '../redux'
 
 const { __ } = window
 
