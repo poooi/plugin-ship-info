@@ -8,7 +8,7 @@ export const PLUGIN_KEY = 'poi-plugin-ship-info'
 let initState = {}
 
 try {
-  initState = JSON.parse(localStorage.getItem(PLUGIN_KEY))
+  initState = JSON.parse(localStorage.getItem(PLUGIN_KEY)) || {}
 } catch (e) {
   console.error(e.stack)
 }
