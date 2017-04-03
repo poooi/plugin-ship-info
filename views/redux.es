@@ -11,6 +11,11 @@ export const reducer = (state = {}, action) => {
         name: bookmark,
       },
     }
+  case '@@poi-plugin-ship-info@delete': {
+    const newState = {}
+    Object.keys(state).filter(key => key != bookmark).forEach(key => newState[key] = state[key])
+    return newState
+  }
   }
   return state
 }
@@ -21,3 +26,9 @@ export const onUpdate = ({ bookmark, settings }) => ({
   bookmark,
   settings,
 })
+
+export const onDelete = ({ bookmark }) => ({
+  type: '@@poi-plugin-ship-info@delete',
+  bookmark,
+})
+

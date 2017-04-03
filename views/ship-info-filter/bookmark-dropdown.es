@@ -14,11 +14,15 @@ const { __ } = window
 
 const BookmarkItem = ({ eventKey, onSelect, onClick, children }) =>
   (
-    <MenuItem eventKey={eventKey} onSelect={onSelect}>
-      {
-        children
-      }
-      <Button onClick={onClick}>Remove</Button>
+    <MenuItem eventKey={eventKey} onSelect={onSelect} className="bookmark">
+      <span className="bookmark-content">
+        {
+          children
+        }
+      </span>
+      <Button onClick={onClick} className="bookmark-delete" bsStyle="danger">
+        {<FontAwesome name="trash-o" />}
+      </Button>
     </MenuItem>
   )
 
@@ -40,14 +44,26 @@ const BookmarkMenu = connect(
     }
   }
 
+  componentDidMount = () => {
+    this.unsubsribeObserver = observe(window.store, [bookmarksObserver])
+  }
+
+  componentWillUnmount = () => {
+    if (this.unsubsribeObserver) {
+      this.unsubsribeObserver()
+    }
+  }
+
   componentWillReceiveProps = (nextProps) => {
     const bookmarks = values(nextProps.bookmarks)
     this.fuse.set(bookmarks)
     console.log(nextProps.bookmarks, bookmarks, this.fuse.list)
   }
 
-  onSelect = (eventKey = this.state.query, e) => { 
-    console.log(eventKey)
+  onSelect = (eventKey = this.state.query, e) => {
+    const settings = this.props.bookmarks[eventKey] || {}
+    settings.bounds = config.get('plugin.ShipInfo.bounds')
+    config.set('plugin.ShipInfo', settings)
   }
 
   onCreateOrOverwrite = () => {
@@ -60,9 +76,11 @@ const BookmarkMenu = connect(
     }))
   }
 
-  onClick = (e) => {
+  onClickDelete = eventKey => (e) => {
     e.stopPropagation()
-    console.log(e)
+    window.store.dispatch(onDelete({
+      bookmark: eventKey,
+    }))
   }
 
   handleInput = e => this.setState({ query: e.target.value })
@@ -79,12 +97,18 @@ const BookmarkMenu = connect(
     console.log(query, result, this.fuse.search(query))
     return (
       <ul className="dropdown-menu">
-        <FormControl
-          type="text"
-          value={query}
-          placeholder={__('Search or create a bookmark')}
-          onChange={this.handleInput}
-        />
+        <li className="bookmark-input-list">
+          <a>
+            <FormControl
+              type="text"
+              value={query}
+              placeholder={__('Search or create a bookmark')}
+              onChange={this.handleInput}
+              id="bookmark-input"
+            />
+          </a>
+        </li>
+
 
         <MenuItem divider />
         {
@@ -92,13 +116,16 @@ const BookmarkMenu = connect(
             .filter(child => result.includes(child.props.eventKey))
             .map(child => React.cloneElement(child, {
               onSelect: this.onSelect,
-              onClick: this.onClick,
+              onClick: this.onClickDelete(child.props.eventKey),
             }))
         }
         {
           query.length > 0 &&
           <MenuItem onSelect={this.onCreateOrOverwrite}>
-            {__('Create or overwrite %s', query)}
+            <span className="bookmark-content">
+              {__('Create or overwrite ')}
+              <Label bsStyle="primary" className="query-label">{query}</Label>
+            </span>
           </MenuItem>
         }
       </ul>
