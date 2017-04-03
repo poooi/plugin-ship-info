@@ -125,7 +125,7 @@ const BookmarkMenu = connect(
           query.length > 0 &&
           <MenuItem onSelect={this.onCreateOrOverwrite}>
             <span className="bookmark-content">
-              {__('Create or overwrite ')}
+              {result.includes(query) ? __('Overwrite ') : __('Create ') }
               <Label bsStyle="primary" className="query-label">{query}</Label>
             </span>
           </MenuItem>
