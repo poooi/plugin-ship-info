@@ -66,5 +66,8 @@
   "Multiple": "多页",
   "Unknown Area %s, data not updated": "未知海域 %s，数据未更新",
   "Free":"无限定",
-  "Daihatsu": "携带大发"
+  "Daihatsu": "携带大发",
+  "Create or overwrite ": "创建或覆盖 ",
+  "Search or create a bookmark": "搜索或创建书签",
+  "Bookmarks": "书签"
 }

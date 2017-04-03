@@ -66,5 +66,8 @@
   "Multiple": "多",
   "Unknown Area %s, data not updated": "未知の海域　%s、データが更新されていません",
   "Free": "なし",
-  "Daihatsu": "大発装備可能"
+  "Daihatsu": "大発装備可能",
+  "Create or overwrite ": "作成 / 上書き：",
+  "Search or create a bookmark": "ブックマークを検索 / 作成する",
+  "Bookmarks": "ブックマーク"
 }

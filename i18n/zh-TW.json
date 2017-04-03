@@ -66,5 +66,8 @@
   "Multiple": "多頁",
   "Unknown Area %s, data not updated": "未知海域 %s，數據未更新",
   "Free":"無限定",
-  "Daihatsu": "攜帶大發"
+  "Daihatsu": "攜帶大發",
+  "Create or overwrite ": "創建或覆蓋 ",
+  "Search or create a bookmark": "搜索或創建書籤",
+  "Bookmarks": "書籤"
 }

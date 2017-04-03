@@ -238,3 +238,33 @@ th {
 .sally-area-label {
   margin-left: 0.5em;
 }
+
+li > a,
+.bookmark > a{
+  display: flex !important;
+  align-items: center;
+  height: 3em;
+  min-width: 25em;
+}
+
+.bookmark-content {
+  flex-grow: 1;
+  margin-right: 2em;
+}
+
+.bookmark-delete {
+  flex-grow: 0;
+}
+
+#bookmark-input {
+  font-size: 120%;
+}
+
+.bookmark-input-list > a:hover,
+.bookmark-input-list > a:focus {
+  background-color: transparent !important;
+}
+
+.query-label {
+  font-size: 100%;
+}
