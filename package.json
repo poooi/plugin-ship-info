@@ -1,6 +1,6 @@
 {
   "name": "poi-plugin-ship-info",
-  "version": "2.4.0",
+  "version": "2.4.1",
   "description": "Show detailed information of all owned ship girls",
   "main": "index.es",
   "scripts": {
