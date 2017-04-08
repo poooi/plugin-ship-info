@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import { Dropdown, MenuItem, FormControl, Button, Label } from 'react-bootstrap'
 import Fuse from 'fuse.js'
 import { connect } from 'react-redux'
-import { values } from 'lodash'
+import { get, values, clone } from 'lodash'
 import FontAwesome from 'react-fontawesome'
 import { observe } from 'redux-observers'
 
@@ -63,15 +63,16 @@ const BookmarkMenu = connect(
   }
 
   onSelect = (eventKey = this.state.query, e) => {
-    const settings = this.props.bookmarks[eventKey] || {}
-    settings.bounds = config.get('plugin.ShipInfo.bounds')
-    config.set('plugin.ShipInfo', settings)
+    const settings = get(this.props.bookmarks, eventKey, {})
+    Object.keys(settings).forEach(key => config.set(`plugin.ShipInfo.${key}`, settings[key]))
   }
 
   onCreateOrOverwrite = () => {
-    const settings = config.get('plugin.ShipInfo')
-    delete settings.bounds
-    console.log(this.state.query)
+    const settings = Object.create(null)
+    Object.assign(settings, config.get('plugin.ShipInfo'))
+    if ('bounds' in settings) {
+      delete settings.bounds
+    }
     window.store.dispatch(onUpdate({
       bookmark: this.state.query,
       settings,
@@ -96,7 +97,6 @@ const BookmarkMenu = connect(
         .map(([key, value]) => value)
         .map(value => value.name)
       : Object.keys(this.props.bookmarks)
-    console.log(query, result, this.fuse.search(query))
     return (
       <ul className="dropdown-menu">
         <li className="bookmark-input-list">
