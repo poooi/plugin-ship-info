@@ -3,7 +3,8 @@
 }
 body {
   margin-top: 15px;
-  font-size: 13px;
+  font-size: 14px;
+  zoom: 1 !important;
 }
 .center {
   text-align: center;
@@ -219,7 +220,7 @@ th {
 }
 
 #reset-button {
-  font-weight: bold;    
+  font-weight: bold;
 }
 
 .fleet-id-indicator {
@@ -232,7 +233,7 @@ th {
     1px -1px 0 lightseagreen,
     -1px 1px 0 lightseagreen,
     1px 1px 0 lightseagreen;
-  -webkit-font-smoothing: antialiased;  
+  -webkit-font-smoothing: antialiased;
 }
 
 .sally-area-label {

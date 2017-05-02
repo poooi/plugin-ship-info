@@ -1,14 +1,14 @@
 import 'views/env'
 
 import i18n2 from 'i18n-2'
-import path from 'path-extra'
+import { join } from 'path-extra'
 import { remote } from 'electron'
 import { debounce } from 'lodash'
 
 const i18n = new i18n2({
   locales: ['en-US', 'ja-JP', 'zh-CN', 'zh-TW', 'ko-KR'],
   defaultLocale: 'zh-CN',
-  directory: path.join(__dirname, 'i18n'),
+  directory: join(__dirname, 'i18n'),
   devMode: false,
   extension: '.json',
 })
@@ -38,28 +38,50 @@ window.__ = i18n.__.bind(i18n)
 window.__r = i18n.resources.__.bind(i18n.resources)
 document.title = window.__('Ship Girls Info')
 
-// augment font size with poi zoom level
-const zoomLevel = config.get('poi.zoomLevel', 1)
-const additionalStyle = document.createElement('style')
+// // augment font size with poi zoom level
+// const zoomLevel = config.get('poi.zoomLevel', 1)
+// const additionalStyle = document.createElement('style')
 
-remote.getCurrentWindow().webContents.on('dom-ready', (e) => {
-  document.body.appendChild(additionalStyle)
-})
+// remote.getCurrentWindow().webContents.on('dom-ready', (e) => {
+//   document.body.appendChild(additionalStyle)
+// })
 
-additionalStyle.innerHTML = `
-  ship-info,
-  .info-tooltip {
-    font-size: ${zoomLevel * 100}%;
-  }
-`
+// additionalStyle.innerHTML = `
+//   ship-info,
+//   .info-tooltip {
+//     font-size: ${zoomLevel * 100}%;
+//   }
+// `
 // remember window size
 window.shipInfoWindow = remote.getCurrentWindow()
+window.shipInfoContents = remote.getCurrentWebContents()
 
 const rememberSize = debounce(() => {
   const b = window.shipInfoWindow.getBounds()
   config.set('plugin.ShipInfo.bounds', b)
 }, 5000)
 
+// apply zoomLevel to webcontents
+const setZoom = (zoom) => {
+  window.shipInfoContents.setLayoutZoomLevelLimits(-999999, 999999)
+  window.shipInfoContents.setZoomFactor(zoom)
+  // attention, calling remote methods
+  const zl = window.shipInfoContents._getZoomLevel()
+  window.shipInfoContents.setLayoutZoomLevelLimits(zl, zl)
+}
+
+setZoom(config.get('poi.zoomLevel', 1))
+
+config.on('config.set', (path, value) => {
+  switch (path) {
+  case 'poi.zoomLevel': {
+    const zoom = parseFloat(value)
+    if (!Number.isNaN(zoom)) {
+      setZoom(zoom)
+    }
+  }
+  }
+})
 
 window.shipInfoWindow.on('move', rememberSize)
 window.shipInfoWindow.on('resize', rememberSize)
