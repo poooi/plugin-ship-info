@@ -63,11 +63,7 @@ const rememberSize = debounce(() => {
 
 // apply zoomLevel to webcontents
 const setZoom = (zoom) => {
-  window.shipInfoContents.setLayoutZoomLevelLimits(-999999, 999999)
   window.shipInfoContents.setZoomFactor(zoom)
-  // attention, calling remote methods
-  const zl = window.shipInfoContents._getZoomLevel()
-  window.shipInfoContents.setLayoutZoomLevelLimits(zl, zl)
 }
 
 setZoom(config.get('poi.zoomLevel', 1))
