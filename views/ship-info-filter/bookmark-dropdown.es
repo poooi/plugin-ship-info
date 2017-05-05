@@ -114,14 +114,6 @@ const BookmarkMenu = connect(
 
         <MenuItem divider />
         {
-          React.Children.toArray(children)
-            .filter(child => result.includes(child.props.eventKey))
-            .map(child => React.cloneElement(child, {
-              onSelect: this.onSelect,
-              onClick: this.onClickDelete(child.props.eventKey),
-            }))
-        }
-        {
           query.length > 0 &&
           <MenuItem onSelect={this.onCreateOrOverwrite}>
             <span className="bookmark-content">
@@ -129,6 +121,14 @@ const BookmarkMenu = connect(
               <Label bsStyle="primary" className="query-label">{query}</Label>
             </span>
           </MenuItem>
+        }
+        {
+          React.Children.toArray(children)
+            .filter(child => result.includes(child.props.eventKey))
+            .map(child => React.cloneElement(child, {
+              onSelect: this.onSelect,
+              onClick: this.onClickDelete(child.props.eventKey),
+            }))
         }
       </ul>
     )

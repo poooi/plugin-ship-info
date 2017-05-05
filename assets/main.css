@@ -269,3 +269,12 @@ li > a,
 .query-label {
   font-size: 100%;
 }
+
+.dropdown-menu {
+  overflow-y: scroll;
+  max-height: 25em;
+}
+
+.dropdown-menu::-webkit-scrollbar {
+  width: 1em;
+}
