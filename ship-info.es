@@ -68,15 +68,23 @@ const setZoom = (zoom) => {
 
 setZoom(config.get('poi.zoomLevel', 1))
 
-config.on('config.set', (path, value) => {
+const handleConfig = (path, value) => {
   switch (path) {
-  case 'poi.zoomLevel': {
-    const zoom = parseFloat(value)
-    if (!Number.isNaN(zoom)) {
-      setZoom(zoom)
+    case 'poi.zoomLevel': {
+      const zoom = parseFloat(value)
+      if (!Number.isNaN(zoom)) {
+        setZoom(zoom)
+      }
     }
+      break
+    default:
   }
-  }
+}
+
+config.on('config.set', handleConfig)
+
+window.addEventListener('unload', () => {
+  config.removeListener('config.set', handleConfig)
 })
 
 window.shipInfoWindow.on('move', rememberSize)
