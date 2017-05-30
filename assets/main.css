@@ -35,6 +35,9 @@ body {
   font-weight: bold;
   margin-top: 10px;
 }
+.table {
+  white-space: nowrap;
+}
 .td-karyoku {
   text-align: center;
 }
