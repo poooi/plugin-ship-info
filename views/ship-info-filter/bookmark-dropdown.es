@@ -58,7 +58,7 @@ const BookmarkMenu = connect(
 
   componentWillReceiveProps = (nextProps) => {
     const bookmarks = values(nextProps.bookmarks)
-    this.fuse.set(bookmarks)
+    this.fuse.setCollection(bookmarks)
     console.log(nextProps.bookmarks, bookmarks, this.fuse.list)
   }
 
