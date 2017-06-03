@@ -3,6 +3,9 @@ Show detailed information of all owned ship girls
 
 [![npm package][npm-badge]][npm]
 
+## Note for developers
+This plugin uses prepublish & postpublish scripts, please use npm^5 for publishing new versions, behaviours with npm<5 are not guaranteed.
+
 ### Change Log
 
 #### V1.6.0

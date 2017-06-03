@@ -4,6 +4,9 @@
   "description": "Show detailed information of all owned ship girls",
   "main": "index.es",
   "scripts": {
+    "reset": "git clean -f && git checkout .",
+    "prepublish": "node compile.js",
+    "postpublish": "npm run reset",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
