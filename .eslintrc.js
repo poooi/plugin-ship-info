@@ -81,7 +81,8 @@ module.exports = {
       'fast-memoize',
       'classnames',
       'i18n-2',
-      'semver'
+      'semver',
+      'react-virtualized',
     ],
   },
 }
