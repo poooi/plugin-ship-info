@@ -104,8 +104,8 @@ const ShipInfoTableArea = connect(
     rows: PropTypes.arrayOf(PropTypes.shape(shipInfoShape)).isRequired,
   }
 
-  handleTypeFilter = memoize((type_id, shipTypes) => {
-    return (shipTypes || []).includes(type_id)
+  handleTypeFilter = memoize((typeId, shipTypes) => {
+    return (shipTypes || []).includes(typeId)
   })
 
   handleLvFilter = memoize((lv, lvRadio) => {
@@ -228,7 +228,7 @@ const ShipInfoTableArea = connect(
       shipTypes, expeditionShips, sallyAreaChecked, rows, sortName, sortOrder } = this.props
 
     let showRows = rows.filter((row = {}) =>
-      this.handleTypeFilter(row.type_id, shipTypes) &&
+      this.handleTypeFilter(row.typeId, shipTypes) &&
       this.handleLvFilter(row.lv, lvRadio) &&
       this.handleLockedFilter(row.locked, lockedRadio) &&
       this.handleExpeditionFilter(row.id, expeditionShips, expeditionRadio) &&
@@ -263,7 +263,7 @@ const ShipInfoTableArea = connect(
       break
     case 'type':
       showRows.sort((a, b) => {
-        if (a.type_id != b.type_id) return a.type_id - b.type_id
+        if (a.typeId != b.typeId) return a.typeId - b.typeId
         if (a.sortno != b.sortno) return -(a.sortno - b.sortno)
         if (a.lv != b.lv) return a.lv - b.lv
         if (a.id != b.id) return -(a.id - b.id)

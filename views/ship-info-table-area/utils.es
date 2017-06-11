@@ -20,7 +20,7 @@ export const getShipInfoData = (ship, $ship, equips, $shipTypes, rawValue = fals
   if (!(typeof ship === 'object' && $ship && typeof ship === 'object' && ship)) return
   const shipInfo = {
     id: ship.api_id,
-    type_id: $ship.api_stype,
+    typeId: $ship.api_stype,
     type: ($shipTypes[$ship.api_stype] || {}).api_name,
     name: $ship.api_name,
     yomi: $ship.api_yomi,
@@ -140,7 +140,7 @@ export const getShipInfoData = (ship, $ship, equips, $shipTypes, rawValue = fals
 
 export const shipInfoShape = {
   id: PropTypes.number.isRequired,
-  type_id: PropTypes.number.isRequired,
+  typeId: PropTypes.number.isRequired,
   type: PropTypes.string.isRequired,
   name: PropTypes.string.isRequired,
   yomi: PropTypes.string.isRequired,
@@ -221,7 +221,7 @@ export const extractShipInfo = (shipInfo) => {
     locked,
     id,
     type,
-    type_id,
+    typeId,
     name,
     sallyArea,
     cond,
@@ -321,7 +321,7 @@ export const extractShipInfo = (shipInfo) => {
     locked,
     id,
     type,
-    type_id,
+    typeId,
     name,
     sallyArea,
     cond,
@@ -353,7 +353,7 @@ export const extractShipInfo = (shipInfo) => {
 //   if(!(typeof ship === 'object' && $ship && typeof ship === 'object' && ship)) return
 //   const shipInfo = {
 //     id: ship.api_id, //
-//     type_id: $ship.api_stype, //
+//     typeId: $ship.api_stype, //
 //     name: $ship.api_name,
 //     yomi: $ship.api_yomi, //
 //     sortno: $ship.api_sortno, //

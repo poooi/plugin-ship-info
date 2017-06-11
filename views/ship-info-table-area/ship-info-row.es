@@ -48,7 +48,7 @@ class ShipInfoRow extends Component {
       locked,
       id,
       type,
-      type_id,
+      typeId,
       name,
       sallyArea,
       cond,
@@ -106,7 +106,7 @@ class ShipInfoRow extends Component {
                 placement="top"
                 overlay={
                   <Tooltip id="repairtime1hp" className="info-tooltip">
-                    { `1HP : ${resolveTime(getTimePerHP(lv, type_id) / 1000)}` }
+                    { `1HP : ${resolveTime(getTimePerHP(lv, typeId) / 1000)}` }
                   </Tooltip>}
               >
                 <span>{resolveTime(repairtime)}</span>
