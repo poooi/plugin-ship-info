@@ -189,7 +189,7 @@ const handleDaihatsuFilter = (daihatsu, daihatsuRadio) => {
 const getSortValue = sortName => (ship) => {
   switch (sortName) {
     case 'id':
-      return [ship.id]
+      return ship.id
     case 'name':
       return [katakanaToHiragana(ship.yomi), ship.lv, -ship.id]
     case 'lv':

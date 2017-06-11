@@ -9,6 +9,176 @@ import SallyArea from './sally-area'
 
 const { __, resolveTime } = window
 
+
+const shipRenderer = ({ index, ship, style }) => {
+  const {
+    karyoku,
+    raisou,
+    taiku,
+    soukou,
+    lucky,
+    lv,
+    repairtime,
+    locked,
+    id,
+    type,
+    typeId,
+    fleetId,
+    name,
+    sallyArea,
+    cond,
+    kaihi,
+    taisen,
+    sakuteki,
+    slot,
+    exslot,
+    karyokuClass,
+    karyokuString,
+    raisouClass,
+    raisouString,
+    taikuClass,
+    taikuString,
+    soukouClass,
+    soukouString,
+    luckyClass,
+    luckyString,
+    repairColor,
+    condColor,
+    sokuString,
+    sokuStyle,
+  } = extractShipInfo(ship)
+
+  let content
+
+  switch (index) {
+    case 0:
+      content = id
+      break
+    case 1:
+      content = window.i18n.resources.__(type)
+      break
+    case 2:
+      content = (
+        <span className="ship-name">
+          {window.i18n.resources.__(name)}
+          <SallyArea area={sallyArea} info_id={id} />
+          {
+            fleetId > -1 &&
+            <span className="fleet-id-indicator">
+              {`/${fleetId + 1}`}
+            </span>
+          }
+        </span>
+      )
+      break
+    case 3:
+      content = <span className={sokuStyle}>{__(sokuString)}</span>
+      break
+    case 4:
+      content = lv
+      break
+    case 5:
+      content = (
+        <span className="center" style={{ backgroundColor: condColor }}>
+          {cond}
+        </span>
+      )
+      break
+    case 6:
+      content = (
+        <span className={karyokuClass}>
+          {`${karyoku}/`}
+          <span style={{ fontSize: '80%' }}>{karyokuString}</span>
+        </span>
+      )
+      break
+    case 7:
+      content = (
+        <span className={raisouClass}>
+          {`${raisou}/`}
+          <span style={{ fontSize: '80%' }}>{raisouString}</span>
+        </span>
+      )
+      break
+    case 8:
+      content = (
+        <span className={taikuClass}>
+          {`${taiku}/`}
+          <span style={{ fontSize: '80%' }}>{taikuString}</span>
+        </span>
+      )
+      break
+    case 9:
+      content = (
+        <span className={soukouClass}>
+          {`${soukou}/`}
+          <span style={{ fontSize: '80%' }}>{soukouString}</span>
+        </span>
+      )
+      break
+    case 10:
+      content = (
+        <span className={luckyClass}>
+          {`${lucky}/`}
+          <span style={{ fontSize: '80%' }}>{luckyString}</span>
+        </span>
+      )
+      break
+    case 11:
+      content = kaihi
+      break
+    case 12:
+      content = taisen
+      break
+    case 13:
+      content = sakuteki
+      break
+    case 14:
+      content = (
+        <span style={{ backgroundColor: repairColor }}>
+          {
+            repairtime &&
+              <OverlayTrigger
+                placement="top"
+                overlay={
+                  <Tooltip id="repairtime1hp" className="info-tooltip">
+                    { `1HP : ${resolveTime(getTimePerHP(lv, typeId) / 1000)}` }
+                  </Tooltip>}
+              >
+                <span>{resolveTime(repairtime)}</span>
+              </OverlayTrigger>
+
+          }
+        </span>
+      )
+      break
+    case 15:
+      content = <Slotitems slot={slot} exslot={exslot} />
+      break
+    case 16:
+      content = (
+        <span>
+          {locked === 1 ? <FontAwesome name="lock" /> : ' '}
+        </span>
+      )
+      break
+    default:
+      content = 'UNDEFINED'
+  }
+
+  return (
+    <div style={{
+      ...style,
+      paddingLeft: '1ex',
+      paddingRight: '1ex',
+      whiteSpace: 'nowrap',
+      }}
+      >
+      {content}
+    </div>
+    )
+}
+
 class ShipInfoRow extends Component {
   static propTypes = {
     shipInfo: PropTypes.shape(shipInfoShape).isRequired,
@@ -24,25 +194,12 @@ class ShipInfoRow extends Component {
     const { shipInfo } = this.props
 
     const {
-      karyokuNow,
-      karyokuMax,
       karyoku,
-      raisouNow,
-      raisouMax,
       raisou,
-      taikuNow,
-      taikuMax,
       taiku,
-      soukouNow,
-      soukouMax,
       soukou,
-      luckyNow,
-      luckyMax,
       lucky,
       lv,
-      nowhp,
-      maxhp,
-      losshp,
       repairtime,
       locked,
       id,
@@ -121,4 +278,4 @@ class ShipInfoRow extends Component {
   }
 }
 
-export default ShipInfoRow
+export default shipRenderer

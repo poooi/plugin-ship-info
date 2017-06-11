@@ -7,7 +7,7 @@ import { CellMeasurer, CellMeasurerCache, Grid, MultiGrid, AutoSizer, WindowScro
 import Divider from '../divider'
 import { shipInfoShape } from './utils'
 import { shipRowsSelector, shipInfoConfigSelector } from './selectors'
-import ShipInfoRow from './ship-info-row'
+import shipRenderer from './ship-info-row'
 
 const { __ } = window
 
@@ -121,7 +121,7 @@ const ShipInfoTableArea = connect(
 
   titleRenderer = ({ columnIndex, style, sortName, sortOrder }) => {
     if (columnIndex === 0) {
-      return <div style={style}>NULL</div>
+      return <div style={style} />
     }
 
     const index = columnIndex - 1
@@ -147,7 +147,12 @@ const ShipInfoTableArea = connect(
     if (rowIndex === 0) {
       content = this.titleRenderer({ columnIndex, style, sortName, sortOrder })
     } else {
-      content = <div style={{ ...style, minWidth: '200px' }}>{`${columnIndex}-${rowIndex}`}</div>
+      if (columnIndex === 0) {
+        content = <div style={style}>{rowIndex}</div>
+      } else {
+        const index = columnIndex - 1
+        content = shipRenderer({ index, ship: rows[rowIndex - 1], style })
+      }
     }
 
     return (
@@ -173,37 +178,37 @@ const ShipInfoTableArea = connect(
   }
 
   render() {
-    const showRows = this.props.rows
-    const { sortName, sortOrder, pagedLayout } = this.props
+    // const showRows = this.props.rows
+    const { rows, sortName, sortOrder, pagedLayout } = this.props
 
-    const header =
-      (
-        <TitleHeader
-          titles={titles}
-          types={types}
-          sortable={sortables}
-          centerAlign={centerAligns}
-          sortName={sortName}
-          sortOrder={sortOrder}
-          handleClickTitle={this.handleClickTitle}
-        />
-      )
+    // const header =
+    //   (
+    //     <TitleHeader
+    //       titles={titles}
+    //       types={types}
+    //       sortable={sortables}
+    //       centerAlign={centerAligns}
+    //       sortName={sortName}
+    //       sortOrder={sortOrder}
+    //       handleClickTitle={this.handleClickTitle}
+    //     />
+    //   )
 
-    const ShipRows = []
+    // const ShipRows = []
 
-    showRows.forEach((row, index) => {
-      if (row) {
-        ShipRows.push(
-          <ShipInfoRow
-            key={row.id}
-            shipInfo={row}
-          />
-        )
-      }
-      if (index >= 0 && (index + 1) % 15 === 0 && pagedLayout) {
-        ShipRows.push(header)
-      }
-    })
+    // showRows.forEach((row, index) => {
+    //   if (row) {
+    //     ShipRows.push(
+    //       <ShipInfoRow
+    //         key={row.id}
+    //         shipInfo={row}
+    //       />
+    //     )
+    //   }
+    //   if (index >= 0 && (index + 1) % 15 === 0 && pagedLayout) {
+    //     ShipRows.push(header)
+    //   }
+    // })
 
     return (
       <div id="ship-info-show" style={{ display: 'flex', flexDirection: 'column' }}>
@@ -212,17 +217,19 @@ const ShipInfoTableArea = connect(
           <AutoSizer>
             {
               ({ width, height }) => (
-                <Grid
+                <MultiGrid
                   sortName={sortName}
                   sortOrder={sortOrder}
                   columnCount={17}
                   columnWidth={this._cache.columnWidth}
                   deferredMeasurementCache={this._cache}
+                  fixedColumnCount={4}
+                  fixedRowCount={1}
                   height={height}
-                  overscanColumnCount={2}
-                  overscanRowCount={2}
+                  overscanColumnCount={6}
+                  overscanRowCount={3}
                   cellRenderer={this.cellRenderer}
-                  rowCount={50}
+                  rowCount={rows.length + 1}
                   rowHeight={30}
                   width={width}
                 />
