@@ -82,7 +82,7 @@ class ShipInfoRow extends Component {
         <td className="ship-name">{window.i18n.resources.__(name)}
           <SallyArea area={sallyArea} info_id={id} />
           {
-            Number.isInteger(fleetId) &&
+            fleetId > -1 &&
             <span className="fleet-id-indicator">
               {`/${fleetId + 1}`}
             </span>

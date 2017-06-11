@@ -174,7 +174,7 @@ const ShipInfoTableArea = connect(
   })
 
   handleInFleetFilter = memoize((fleetId, inFleetRadio) => {
-    const isInFleet = Number.isInteger(fleetId)
+    const isInFleet = fleetId > -1
     switch (inFleetRadio) {
       case 1:
         return isInFleet

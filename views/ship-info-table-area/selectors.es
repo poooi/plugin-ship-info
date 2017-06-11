@@ -1,6 +1,6 @@
 import memoize from 'fast-memoize'
 import { createSelector } from 'reselect'
-import { get } from 'lodash'
+import { get, mapValues, findIndex, includes } from 'lodash'
 
 import { constSelector, shipDataSelectorFactory, shipsSelector,
   configSelector, fcdSelector, shipEquipDataSelectorFactory, fleetShipsIdSelectorFactory } from 'views/utils/selectors'
@@ -52,27 +52,12 @@ const allFleetShipIdSelector = createSelector(
   (id1, id2, id3, id4) => [id1, id2, id3, id4]
 )
 
-const getShipFleetId = memoize((shipId, fleetShips) => {
-  return fleetShips.reduce((id, ships, index) => {
-    return (Number.isNaN(id) && (ships || []).includes(parseInt(shipId, 10)))
-    ? index
-    : id
-  }, NaN)
-})
-
-
 export const shipFleetIdMapSelector = createSelector(
   [
     shipsSelector,
     allFleetShipIdSelector,
-  ],
-  (ships = [], fleetShips = []) => {
-    const map = {}
-    Object.keys(ships).forEach(shipId =>
-      map[shipId] = getShipFleetId(shipId, fleetShips)
-    )
-    return map
-  }
+  ], (ships, fleetIds) =>
+    mapValues(ships, ship => findIndex(fleetIds, fleetId => includes(fleetId, ship.api_id)))
 )
 
 export const sallyAreaSelectorFactory = memoize(area => createSelector(
