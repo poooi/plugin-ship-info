@@ -39,7 +39,7 @@ if (semver.lte(POI_VERSION, '7.3.0')) {
 $('#font-awesome').setAttribute('href', require.resolve('font-awesome/css/font-awesome.css'))
 
 const ShipInfoArea = () =>
-  <div>
+  <div className="ship-info-wrap">
     <ShipInfoCheckboxArea />
     <ShipInfoTableArea />
   </div>
@@ -51,5 +51,5 @@ ReactDOM.render(
   <Provider store={store}>
     <ShipInfoArea />
   </Provider>,
-  $('ship-info')
+  $('#ship-info')
 )

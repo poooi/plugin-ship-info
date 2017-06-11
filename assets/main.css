@@ -1,10 +1,28 @@
 *, body, h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
   font-family: "Ubuntu", "Helvetica Neue", "Helvetica", "Arial", "Heiti SC", "WenQuanYi Micro Hei", "Microsoft YaHei", sans-serif;
 }
+html {
+  height: 100%;
+}
 body {
-  margin-top: 15px;
   font-size: 14px;
+  height: 100%;
   zoom: 1 !important;
+}
+#ship-info {
+  height: 100%;
+}
+.ship-info-wrap {
+  height: 100%;
+  display: flex;
+  flex-direction: column
+}
+#ship-info-show {
+  flex-grow: 1;
+}
+#ship-info-show ::-webkit-scrollbar{
+  width: 1em;
+  height: 1em;
 }
 .center {
   text-align: center;
@@ -280,4 +298,8 @@ li > a,
 
 .dropdown-menu::-webkit-scrollbar {
   width: 1em;
+}
+
+.ReactVirtualized__Grid:focus {
+  border: 0px;
 }
