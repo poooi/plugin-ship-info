@@ -8,19 +8,6 @@ import { getShipInfoData } from './utils'
 
 const { __ } = window
 
-export const shipTableDataSelectorFactory = memoize(shipId =>
-  createSelector(
-    [
-      shipDataSelectorFactory(shipId),
-      shipEquipDataSelectorFactory(shipId),
-      constSelector,
-      configSelector,
-    ],
-    ([ship, $ship] = [], equips, { $shipTypes }, config) =>
-      getShipInfoData(ship, $ship, equips, $shipTypes, get(config, 'plugin.ShipInfo.rawValue', false))
-  )
-)
-
 export const shipInfoConfigSelector = createSelector(
   [
     configSelector,
@@ -58,6 +45,20 @@ export const shipFleetIdMapSelector = createSelector(
     allFleetShipIdSelector,
   ], (ships, fleetIds) =>
     mapValues(ships, ship => findIndex(fleetIds, fleetId => includes(fleetId, ship.api_id)))
+)
+
+export const shipTableDataSelectorFactory = memoize(shipId =>
+  createSelector(
+    [
+      shipDataSelectorFactory(shipId),
+      shipEquipDataSelectorFactory(shipId),
+      constSelector,
+      shipFleetIdMapSelector,
+      configSelector,
+    ],
+    ([ship, $ship] = [], equips, { $shipTypes }, fleetIdMap, config) =>
+      getShipInfoData(ship, $ship, equips, $shipTypes, fleetIdMap, get(config, 'plugin.ShipInfo.rawValue', false))
+  )
 )
 
 export const sallyAreaSelectorFactory = memoize(area => createSelector(

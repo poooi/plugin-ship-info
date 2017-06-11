@@ -12,7 +12,6 @@ const { __, resolveTime } = window
 class ShipInfoRow extends Component {
   static propTypes = {
     shipInfo: PropTypes.shape(shipInfoShape).isRequired,
-    fleetId: PropTypes.number.isRequired,
   }
 
   shouldComponentUpdate = (nextProps, nextState) => {
@@ -22,7 +21,7 @@ class ShipInfoRow extends Component {
   }
 
   render() {
-    const { shipInfo, fleetId } = this.props
+    const { shipInfo } = this.props
 
     const {
       karyokuNow,
@@ -49,6 +48,7 @@ class ShipInfoRow extends Component {
       id,
       type,
       typeId,
+      fleetId,
       name,
       sallyArea,
       cond,

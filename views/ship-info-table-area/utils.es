@@ -16,11 +16,12 @@ export const getTimePerHP = memoize((api_lv = 1, api_stype = 1) => {
   return ((api_lv * 5) + ((Math.floor(Math.sqrt(api_lv - 11)) * 10) + 50)) * factor * 1000
 })
 
-export const getShipInfoData = (ship, $ship, equips, $shipTypes, rawValue = false) => {
+export const getShipInfoData = (ship, $ship, equips, $shipTypes, fleetIdMap, rawValue = false) => {
   if (!(typeof ship === 'object' && $ship && typeof ship === 'object' && ship)) return
   const shipInfo = {
     id: ship.api_id,
     typeId: $ship.api_stype,
+    fleetId: fleetIdMap[ship.api_id],
     type: ($shipTypes[$ship.api_stype] || {}).api_name,
     name: $ship.api_name,
     yomi: $ship.api_yomi,
@@ -83,7 +84,9 @@ export const getShipInfoData = (ship, $ship, equips, $shipTypes, rawValue = fals
   // get raw kaihi, taisen and sakuteki value by substracting effects of equipments
   if (rawValue) {
     equips.forEach((equip) => {
-      if (typeof equip === 'undefined') return
+      if (typeof equip === 'undefined') {
+        return
+      }
       const $equip = equip[1] || {}
       kaihi -= $equip.api_houk || 0
       taisen -= $equip.api_tais || 0
@@ -141,6 +144,7 @@ export const getShipInfoData = (ship, $ship, equips, $shipTypes, rawValue = fals
 export const shipInfoShape = {
   id: PropTypes.number.isRequired,
   typeId: PropTypes.number.isRequired,
+  fleetId: PropTypes.number.isRequired,
   type: PropTypes.string.isRequired,
   name: PropTypes.string.isRequired,
   yomi: PropTypes.string.isRequired,
@@ -222,6 +226,7 @@ export const extractShipInfo = (shipInfo) => {
     id,
     type,
     typeId,
+    fleetId,
     name,
     sallyArea,
     cond,
@@ -322,6 +327,7 @@ export const extractShipInfo = (shipInfo) => {
     id,
     type,
     typeId,
+    fleetId,
     name,
     sallyArea,
     cond,

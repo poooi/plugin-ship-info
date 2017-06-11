@@ -66,12 +66,11 @@ const ShipInfoTableArea = connect(
 
     // construct ship data for filter and sort
     const _ships = get(state, 'info.ships', {})
-    const rows = Object.keys(_ships).map(shipId => shipTableDataSelectorFactory(parseInt(shipId))(state))
+    const rows = Object.keys(_ships).map(shipId => shipTableDataSelectorFactory(parseInt(shipId, 10))(state))
 
 
     return ({
       ...shipInfoConfigSelector(state),
-      fleetIdMap: shipFleetIdMapSelector(state),
       shipTypes,
       expeditionShips,
       rows,
@@ -92,7 +91,6 @@ const ShipInfoTableArea = connect(
     sparkleRadio: PropTypes.number.isRequired,
     exSlotRadio: PropTypes.number.isRequired,
     daihatsuRadio: PropTypes.number.isRequired,
-    fleetIdMap: PropTypes.objectOf(PropTypes.number).isRequired,
     shipTypes: PropTypes.arrayOf(PropTypes.number).isRequired,
     expeditionShips: PropTypes.arrayOf(PropTypes.number).isRequired,
     rows: PropTypes.arrayOf(PropTypes.shape(shipInfoShape)).isRequired,
@@ -225,8 +223,8 @@ const ShipInfoTableArea = connect(
 
   handleShowRows = () => {
     const { remodelRadio, lvRadio, lockedRadio, expeditionRadio, modernizationRadio,
-      inFleetRadio, sparkleRadio, exSlotRadio, daihatsuRadio, fleetIdMap,
-      shipTypes, expeditionShips, sallyAreaChecked, rows, sortName, sortOrder } = this.props
+      inFleetRadio, sparkleRadio, exSlotRadio, daihatsuRadio, shipTypes,
+      expeditionShips, sallyAreaChecked, rows, sortName, sortOrder } = this.props
 
     let showRows = rows.filter((row = {}) =>
       this.handleTypeFilter(row.typeId, shipTypes) &&
@@ -236,7 +234,7 @@ const ShipInfoTableArea = connect(
       this.handleModernizationFilter(row.isCompleted, modernizationRadio) &&
       this.handleRemodelFilter(row.after, remodelRadio) &&
       this.handleSallyAreaFilter(row.sallyArea, sallyAreaChecked) &&
-      this.handleInFleetFilter(fleetIdMap[row.id], inFleetRadio) &&
+      this.handleInFleetFilter(row.fleetId, inFleetRadio) &&
       this.handleExSlotFilter(row.exslot, exSlotRadio) &&
       this.handleSparkleFilter(row.cond, sparkleRadio) &&
       this.handleDaihatsuFilter(row.daihatsu, daihatsuRadio)
@@ -296,7 +294,7 @@ const ShipInfoTableArea = connect(
 
   render() {
     const showRows = this.handleShowRows()
-    const { sortName, sortOrder, pagedLayout, fleetIdMap } = this.props
+    const { sortName, sortOrder, pagedLayout } = this.props
     const types = [
       'id', 'type', 'name', 'soku', 'lv',
       'cond', 'karyoku', 'raisou', 'taiku', 'soukou',
@@ -343,7 +341,6 @@ const ShipInfoTableArea = connect(
           <ShipInfoRow
             key={row.id}
             shipInfo={row}
-            fleetId={fleetIdMap[row.id]}
           />
         )
       }
