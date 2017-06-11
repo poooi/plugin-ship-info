@@ -21,21 +21,21 @@ const TitleHeader = (props) => {
     <tr className="title-row">
       <th>No.</th>
       {
-        titles.map((title, index) =>
+        titles.map((title, index) => (
           <th
             key={title}
             onClick={sortable[index] ? handleClickTitle(types[index]) : ''}
             className={classNames({
               clickable: sortable[index],
               center: centerAlign[index],
-              sorting: sortName == types[index],
-              up: sortName == types[index] && sortOrder,
-              down: sortName == types[index] && !sortOrder,
+              sorting: sortName === types[index],
+              up: sortName === types[index] && sortOrder,
+              down: sortName === types[index] && !sortOrder,
             })}
           >
             {__(title)}
           </th>
-        )
+        ))
       }
     </tr>
   )
@@ -58,21 +58,15 @@ const ShipInfoTableArea = connect(
 
     // construct shiptype filter array
     const shipTypeChecked = get(state.config, 'plugin.ShipInfo.shipTypeChecked', Object.keys($shipTypes).slice().fill(true))
-    const shipTypes = shipTypeChecked.reduce((types, checked, index) => {
-      return checked && ((index + 1) in $shipTypes) ? types.concat([index + 1]) : types
-    }, [])
+    const shipTypes = shipTypeChecked.reduce((types, checked, index) => checked && ((index + 1) in $shipTypes) ? types.concat([index + 1]) : types, [])
 
-    const expeditionShips = [...Array(4).keys()].reduce((ships, fleetId) => {
-      return fleetInExpeditionSelectorFactory(fleetId)(state) ?
+    const expeditionShips = [...Array(4).keys()].reduce((ships, fleetId) => fleetInExpeditionSelectorFactory(fleetId)(state) ?
         ships.concat(fleetShipsIdSelectorFactory(fleetId)(state))
-        : ships
-    }, [])
+        : ships, [])
 
     // construct ship data for filter and sort
     const _ships = get(state, 'info.ships', {})
-    const rows = Object.keys(_ships).map((shipId) => {
-      return shipTableDataSelectorFactory(parseInt(shipId))(state)
-    })
+    const rows = Object.keys(_ships).map(shipId => shipTableDataSelectorFactory(parseInt(shipId))(state))
 
 
     return ({
@@ -104,65 +98,68 @@ const ShipInfoTableArea = connect(
     rows: PropTypes.arrayOf(PropTypes.shape(shipInfoShape)).isRequired,
   }
 
-  handleTypeFilter = memoize((typeId, shipTypes) => {
-    return (shipTypes || []).includes(typeId)
-  })
+  handleTypeFilter = memoize((typeId, shipTypes) => (shipTypes || []).includes(typeId))
 
   handleLvFilter = memoize((lv, lvRadio) => {
     switch (lvRadio) {
-    case 0:
-      return true
-    case 1:
-      return lv == 1
-    case 2:
-      return lv >= 2
-    case 3:
-      return lv >= 100
+      case 1:
+        return lv === 1
+      case 2:
+        return lv >= 2
+      case 3:
+        return lv >= 100
+      case 0:
+      default:
+        return true
     }
   })
 
   handleLockedFilter = memoize((locked, lockedRadio) => {
     switch (lockedRadio) {
-    case 0:
-      return true
-    case 1:
-      return locked == 1
-    case 2:
-      return locked == 0
+      case 1:
+        return locked === 1
+      case 2:
+        return locked === 0
+      case 0:
+      default:
+        return true
     }
   })
 
   handleExpeditionFilter = memoize((id, expeditionShips, expeditionRadio) => {
     switch (expeditionRadio) {
-    case 0:
-      return true
-    case 1:
-      return (expeditionShips || []).includes(id)
-    case 2:
-      return !(expeditionShips || []).includes(id)
+      case 1:
+        return (expeditionShips || []).includes(id)
+      case 2:
+        return !(expeditionShips || []).includes(id)
+      case 0:
+      default:
+        return true
     }
   })
 
   handleModernizationFilter = memoize((isCompleted, modernizationRadio) => {
     switch (modernizationRadio) {
-    case 0:
-      return true
-    case 1:
-      return isCompleted
-    case 2:
-      return !isCompleted
+      case 1:
+        return isCompleted
+      case 2:
+        return !isCompleted
+      case 0:
+      default:
+        return true
     }
   })
 
   handleRemodelFilter = memoize((after, remodelRadio) => {
-    const remodelable = after != '0'
+    const remodelable = after !== '0'
     switch (remodelRadio) {
-    case 0:
-      return true
-    case 1:
-      return remodelable
-    case 2:
-      return !remodelable
+      case 1:
+        return remodelable
+      case 2:
+        return !remodelable
+      case 0:
+      default:
+        return true
     }
   })
 
@@ -171,7 +168,7 @@ const ShipInfoTableArea = connect(
       all && checked
     , true)
     if (checkedAll) return true
-    return typeof sallyArea != 'undefined'
+    return typeof sallyArea !== 'undefined'
       ? (sallyAreaChecked || [])[sallyArea || 0]
       : true
   })
@@ -179,45 +176,49 @@ const ShipInfoTableArea = connect(
   handleInFleetFilter = memoize((fleetId, inFleetRadio) => {
     const isInFleet = Number.isInteger(fleetId)
     switch (inFleetRadio) {
-    case 0:
-      return true
-    case 1:
-      return isInFleet
-    case 2:
-      return !isInFleet
+      case 1:
+        return isInFleet
+      case 2:
+        return !isInFleet
+      case 0:
+      default:
+        return true
     }
   })
 
   handleSparkleFilter = memoize((cond, sparkleRadio) => {
     switch (sparkleRadio) {
-    case 0:
-      return true
-    case 1:
-      return cond >= 50
-    case 2:
-      return cond < 50
+      case 1:
+        return cond >= 50
+      case 2:
+        return cond < 50
+      case 0:
+      default:
+        return true
     }
   })
 
   handleExSlotFilter = memoize((exslot, exSlotRadio) => {
     switch (exSlotRadio) {
-    case 0:
-      return true
-    case 1:
-      return exslot != 0
-    case 2:
-      return exslot == 0
+      case 1:
+        return exslot !== 0
+      case 2:
+        return exslot === 0
+      case 0:
+      default:
+        return true
     }
   })
 
   handleDaihatsuFilter = (daihatsu, daihatsuRadio) => {
     switch (daihatsuRadio) {
-    case 0:
-      return true
-    case 1:
-      return daihatsu
-    case 2:
-      return !daihatsu
+      case 1:
+        return daihatsu
+      case 2:
+        return !daihatsu
+      case 0:
+      default:
+        return true
     }
   }
 
@@ -243,35 +244,35 @@ const ShipInfoTableArea = connect(
 
     // sort
     switch (this.props.sortName) {
-    case 'id':
-      showRows = sortBy(showRows, 'id')
-      break
-    case 'name':
-      showRows.sort(nameCompare)
-      break
-    case 'lv':
+      case 'id':
+        showRows = sortBy(showRows, 'id')
+        break
+      case 'name':
+        showRows.sort(nameCompare)
+        break
+      case 'lv':
       // Sort rule of level in game (descending):
       // 1. level (descending)
       // 2. sortno (ascending)
       // 3. id (descending)
-      showRows.sort((a, b) => {
-        if (a.lv != b.lv) return a.lv - b.lv
-        if (a.sortno != b.sortno) return -(a.sortno - b.sortno)
-        if (a.id != b.id) return -(a.id - b.id)
-        return 0
-      })
-      break
-    case 'type':
-      showRows.sort((a, b) => {
-        if (a.typeId != b.typeId) return a.typeId - b.typeId
-        if (a.sortno != b.sortno) return -(a.sortno - b.sortno)
-        if (a.lv != b.lv) return a.lv - b.lv
-        if (a.id != b.id) return -(a.id - b.id)
-        return 0
-      })
-      break
-    default:
-      showRows = sortBy(showRows, [sortName, 'sortno', row => -row.id])
+        showRows.sort((a, b) => {
+          if (a.lv !== b.lv) return a.lv - b.lv
+          if (a.sortno !== b.sortno) return -(a.sortno - b.sortno)
+          if (a.id !== b.id) return -(a.id - b.id)
+          return 0
+        })
+        break
+      case 'type':
+        showRows.sort((a, b) => {
+          if (a.typeId !== b.typeId) return a.typeId - b.typeId
+          if (a.sortno !== b.sortno) return -(a.sortno - b.sortno)
+          if (a.lv !== b.lv) return a.lv - b.lv
+          if (a.id !== b.id) return -(a.id - b.id)
+          return 0
+        })
+        break
+      default:
+        showRows = sortBy(showRows, [sortName, 'sortno', row => -row.id])
     }
 
     if (!sortOrder) showRows.reverse()
@@ -285,8 +286,8 @@ const ShipInfoTableArea = connect(
   }
 
   handleClickTitle = title => () => {
-    if (this.props.sortName != title) {
-      const order = (title == 'id' || title == 'type' || title == 'name') ? 1 : 0
+    if (this.props.sortName !== title) {
+      const order = (title === 'id' || title === 'type' || title === 'name') ? 1 : 0
       this.sortRules(title, order)
     } else {
       this.sortRules(this.props.sortName, (this.props.sortOrder + 1) % 2)
@@ -346,7 +347,7 @@ const ShipInfoTableArea = connect(
           />
         )
       }
-      if (index >= 0 && (index + 1) % 15 == 0 && pagedLayout) {
+      if (index >= 0 && (index + 1) % 15 === 0 && pagedLayout) {
         ShipRows.push(header)
       }
     })

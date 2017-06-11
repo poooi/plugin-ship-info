@@ -7,7 +7,7 @@ export const getTimePerHP = memoize((api_lv = 1, api_stype = 1) => {
   let factor = 0
   if (repairFactor[api_stype] != null) factor = repairFactor[api_stype].factor || 0
 
-  if (factor == 0) return 0
+  if (factor === 0) return 0
 
   if (api_lv < 12) {
     return api_lv * 10 * factor * 1000
@@ -47,8 +47,8 @@ export const getShipInfoData = (ship, $ship, equips, $shipTypes, rawValue = fals
     nowhp: ship.api_nowhp,
     maxhp: ship.api_maxhp,
     losshp: ship.api_maxhp - ship.api_nowhp,
-    repairtime: parseInt(ship.api_ndock_time / 1000.0),
-    after: parseInt($ship.api_aftershipid),
+    repairtime: parseInt(ship.api_ndock_time / 1000.0, 10),
+    after: parseInt($ship.api_aftershipid, 10),
     sallyArea: ship.api_sally_area || 0,
     soku: ship.api_soku,
   }
@@ -83,7 +83,7 @@ export const getShipInfoData = (ship, $ship, equips, $shipTypes, rawValue = fals
   // get raw kaihi, taisen and sakuteki value by substracting effects of equipments
   if (rawValue) {
     equips.forEach((equip) => {
-      if (typeof equip == 'undefined') return
+      if (typeof equip === 'undefined') return
       const $equip = equip[1] || {}
       kaihi -= $equip.api_houk || 0
       taisen -= $equip.api_tais || 0
@@ -189,9 +189,9 @@ const collator = new Intl.Collator()
 const jpCollator = new Intl.Collator('ja-JP')
 
 export const nameCompare = (a, b) => {
-  if (a.yomi == b.yomi) {
-    if (a.lv != b.lv) return a.lv - b.lv
-    if (a.id != b.id) return -(a.id - b.id)
+  if (a.yomi === b.yomi) {
+    if (a.lv !== b.lv) return a.lv - b.lv
+    if (a.id !== b.id) return -(a.id - b.id)
   }
   return jpCollator.compare(a.yomi, b.yomi)
 }

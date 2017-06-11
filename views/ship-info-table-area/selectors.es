@@ -54,7 +54,7 @@ const allFleetShipIdSelector = createSelector(
 
 const getShipFleetId = memoize((shipId, fleetShips) => {
   return fleetShips.reduce((id, ships, index) => {
-    return (Number.isNaN(id) && (ships || []).includes(parseInt(shipId)))
+    return (Number.isNaN(id) && (ships || []).includes(parseInt(shipId, 10)))
     ? index
     : id
   }, NaN)

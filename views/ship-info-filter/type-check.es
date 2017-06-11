@@ -77,7 +77,7 @@ const TypeCheck = connect(
     const checkedTypes = checked.reduce((types, isChecked, index) => {
       return isChecked && ((index + 1) in $shipTypes) ? types.concat([index + 1]) : types
     }, [])
-    
+
 
     return (
       <div className="filter-type">
