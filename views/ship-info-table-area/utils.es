@@ -200,6 +200,16 @@ export const nameCompare = (a, b) => {
   return jpCollator.compare(a.yomi, b.yomi)
 }
 
+// katagana to hiragana
+export const katakanaToHiragana = str =>
+  str.replace(/[\u30a1-\u30f6]/g, (match) => {
+    const chr = match.charCodeAt(0) - 0x60
+    return String.fromCharCode(chr)
+  })
+
+export const getKanaSortValues = str =>
+  katakanaToHiragana(str).split('').map(s => s.charCodeAt())
+
 export const extractShipInfo = (shipInfo) => {
   const {
     karyokuNow,

@@ -55,177 +55,13 @@ TitleHeader.propTypes = {
 const ShipInfoTableArea = connect(
   state => ({
     rows: shipRowsSelector(state),
+    ...shipInfoConfigSelector(state),
+    sortName: PropTypes.string.isRequired,
+    sortOrder: PropTypes.number.isRequired,
   })
 )(class ShipInfoTableArea extends Component {
   static propTypes = {
     rows: PropTypes.arrayOf(PropTypes.shape(shipInfoShape)).isRequired,
-  }
-
-  handleTypeFilter = memoize((typeId, shipTypes) => (shipTypes || []).includes(typeId))
-
-  handleLvFilter = memoize((lv, lvRadio) => {
-    switch (lvRadio) {
-      case 1:
-        return lv === 1
-      case 2:
-        return lv >= 2
-      case 3:
-        return lv >= 100
-      case 0:
-      default:
-        return true
-    }
-  })
-
-  handleLockedFilter = memoize((locked, lockedRadio) => {
-    switch (lockedRadio) {
-      case 1:
-        return locked === 1
-      case 2:
-        return locked === 0
-      case 0:
-      default:
-        return true
-    }
-  })
-
-  handleExpeditionFilter = memoize((id, expeditionShips, expeditionRadio) => {
-    switch (expeditionRadio) {
-      case 1:
-        return (expeditionShips || []).includes(id)
-      case 2:
-        return !(expeditionShips || []).includes(id)
-      case 0:
-      default:
-        return true
-    }
-  })
-
-  handleModernizationFilter = memoize((isCompleted, modernizationRadio) => {
-    switch (modernizationRadio) {
-      case 1:
-        return isCompleted
-      case 2:
-        return !isCompleted
-      case 0:
-      default:
-        return true
-    }
-  })
-
-  handleRemodelFilter = memoize((after, remodelRadio) => {
-    const remodelable = after !== '0'
-    switch (remodelRadio) {
-      case 1:
-        return remodelable
-      case 2:
-        return !remodelable
-      case 0:
-      default:
-        return true
-    }
-  })
-
-  handleSallyAreaFilter = memoize((sallyArea, sallyAreaChecked) => {
-    const checkedAll = (sallyAreaChecked || []).reduce((all, checked) =>
-      all && checked
-    , true)
-    if (checkedAll) return true
-    return typeof sallyArea !== 'undefined'
-      ? (sallyAreaChecked || [])[sallyArea || 0]
-      : true
-  })
-
-  handleInFleetFilter = memoize((fleetId, inFleetRadio) => {
-    const isInFleet = fleetId > -1
-    switch (inFleetRadio) {
-      case 1:
-        return isInFleet
-      case 2:
-        return !isInFleet
-      case 0:
-      default:
-        return true
-    }
-  })
-
-  handleSparkleFilter = memoize((cond, sparkleRadio) => {
-    switch (sparkleRadio) {
-      case 1:
-        return cond >= 50
-      case 2:
-        return cond < 50
-      case 0:
-      default:
-        return true
-    }
-  })
-
-  handleExSlotFilter = memoize((exslot, exSlotRadio) => {
-    switch (exSlotRadio) {
-      case 1:
-        return exslot !== 0
-      case 2:
-        return exslot === 0
-      case 0:
-      default:
-        return true
-    }
-  })
-
-  handleDaihatsuFilter = (daihatsu, daihatsuRadio) => {
-    switch (daihatsuRadio) {
-      case 1:
-        return daihatsu
-      case 2:
-        return !daihatsu
-      case 0:
-      default:
-        return true
-    }
-  }
-
-
-  handleShowRows = () => {
-    const { rows, sortName, sortOrder } = this.props
-    let showRows = rows.slice()
-
-    // sort
-    switch (this.props.sortName) {
-      case 'id':
-        showRows = sortBy(showRows, 'id')
-        break
-      case 'name':
-        showRows.sort(nameCompare)
-        break
-      case 'lv':
-      // Sort rule of level in game (descending):
-      // 1. level (descending)
-      // 2. sortno (ascending)
-      // 3. id (descending)
-        showRows.sort((a, b) => {
-          if (a.lv !== b.lv) return a.lv - b.lv
-          if (a.sortno !== b.sortno) return -(a.sortno - b.sortno)
-          if (a.id !== b.id) return -(a.id - b.id)
-          return 0
-        })
-        break
-      case 'type':
-        showRows.sort((a, b) => {
-          if (a.typeId !== b.typeId) return a.typeId - b.typeId
-          if (a.sortno !== b.sortno) return -(a.sortno - b.sortno)
-          if (a.lv !== b.lv) return a.lv - b.lv
-          if (a.id !== b.id) return -(a.id - b.id)
-          return 0
-        })
-        break
-      default:
-        showRows = sortBy(showRows, [sortName, 'sortno', row => -row.id])
-    }
-
-    if (!sortOrder) showRows.reverse()
-
-    return showRows
   }
 
   sortRules = (name, order) => {
@@ -243,7 +79,7 @@ const ShipInfoTableArea = connect(
   }
 
   render() {
-    const showRows = this.handleShowRows()
+    const showRows = this.props.rows
     const { sortName, sortOrder, pagedLayout } = this.props
     const types = [
       'id', 'type', 'name', 'soku', 'lv',

@@ -5,7 +5,7 @@ import fp from 'lodash/fp'
 
 import { constSelector, shipDataSelectorFactory, shipsSelector,
   configSelector, fcdSelector, shipEquipDataSelectorFactory, fleetShipsIdSelectorFactory, stateSelector } from 'views/utils/selectors'
-import { getShipInfoData } from './utils'
+import { getShipInfoData, katakanaToHiragana } from './utils'
 
 const { __ } = window
 
@@ -186,6 +186,25 @@ const handleDaihatsuFilter = (daihatsu, daihatsuRadio) => {
   }
 }
 
+const getSortValue = sortName => (ship) => {
+  switch (sortName) {
+    case 'id':
+      return [ship.id]
+    case 'name':
+      return [katakanaToHiragana(ship.yomi), ship.lv, -ship.id]
+    case 'lv':
+    // Sort rule of level in game (descending):
+    // 1. level (descending)
+    // 2. sortno (ascending)
+    // 3. id (descending)
+      return [ship.lv, -ship.sortno, -ship.id]
+    case 'type':
+      return [ship.typeId, -ship.sortno, ship.lv, -ship.id]
+    default:
+      return [ship[sortName], ship.sortno, -ship.id]
+  }
+}
+
 const shipTypesSelecor = createSelector(
   [
     state => get(state, 'const.$shipTypes', {}),
@@ -230,6 +249,8 @@ export const shipRowsSelector = createSelector(
       sparkleRadio,
       daihatsuRadio,
       sallyAreaChecked,
+      sortName,
+      sortOrder,
     }
   ) =>
     fp.flow(
@@ -246,7 +267,9 @@ export const shipRowsSelector = createSelector(
         handleExSlotFilter(ship.exslot, exSlotRadio) &&
         handleSparkleFilter(ship.cond, sparkleRadio) &&
         handleDaihatsuFilter(ship.daihatsu, daihatsuRadio)
-      )
+      ),
+      fp.sortBy(getSortValue(sortName)),
+      sortOrder ? ship => ship : fp.reverse,
     )(ships)
 )
 
