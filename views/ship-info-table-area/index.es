@@ -9,7 +9,7 @@ import { fleetShipsIdSelectorFactory, fleetInExpeditionSelectorFactory } from 'v
 
 import Divider from '../divider'
 import { nameCompare, shipInfoShape } from './utils'
-import { shipTableDataSelectorFactory, shipInfoConfigSelector, shipFleetIdMapSelector } from './selectors'
+import { shipRowsSelector, shipInfoConfigSelector, shipFleetIdMapSelector } from './selectors'
 import ShipInfoRow from './ship-info-row'
 
 const { __ } = window
@@ -53,46 +53,11 @@ TitleHeader.propTypes = {
 }
 
 const ShipInfoTableArea = connect(
-  (state, props) => {
-    const $shipTypes = get(state, 'const.$shipTypes', {})
-
-    // construct shiptype filter array
-    const shipTypeChecked = get(state.config, 'plugin.ShipInfo.shipTypeChecked', Object.keys($shipTypes).slice().fill(true))
-    const shipTypes = shipTypeChecked.reduce((types, checked, index) => checked && ((index + 1) in $shipTypes) ? types.concat([index + 1]) : types, [])
-
-    const expeditionShips = [...Array(4).keys()].reduce((ships, fleetId) => fleetInExpeditionSelectorFactory(fleetId)(state) ?
-        ships.concat(fleetShipsIdSelectorFactory(fleetId)(state))
-        : ships, [])
-
-    // construct ship data for filter and sort
-    const _ships = get(state, 'info.ships', {})
-    const rows = Object.keys(_ships).map(shipId => shipTableDataSelectorFactory(parseInt(shipId, 10))(state))
-
-
-    return ({
-      ...shipInfoConfigSelector(state),
-      shipTypes,
-      expeditionShips,
-      rows,
-    })
-  }
+  state => ({
+    rows: shipRowsSelector(state),
+  })
 )(class ShipInfoTableArea extends Component {
   static propTypes = {
-    sortName: PropTypes.string.isRequired,
-    sortOrder: PropTypes.number.isRequired,
-    lvRadio: PropTypes.number.isRequired,
-    lockedRadio: PropTypes.number.isRequired,
-    expeditionRadio: PropTypes.number.isRequired,
-    modernizationRadio: PropTypes.number.isRequired,
-    remodelRadio: PropTypes.number.isRequired,
-    sallyAreaChecked: PropTypes.arrayOf(PropTypes.bool).isRequired,
-    pagedLayout: PropTypes.number.isRequired,
-    inFleetRadio: PropTypes.number.isRequired,
-    sparkleRadio: PropTypes.number.isRequired,
-    exSlotRadio: PropTypes.number.isRequired,
-    daihatsuRadio: PropTypes.number.isRequired,
-    shipTypes: PropTypes.arrayOf(PropTypes.number).isRequired,
-    expeditionShips: PropTypes.arrayOf(PropTypes.number).isRequired,
     rows: PropTypes.arrayOf(PropTypes.shape(shipInfoShape)).isRequired,
   }
 
@@ -222,23 +187,8 @@ const ShipInfoTableArea = connect(
 
 
   handleShowRows = () => {
-    const { remodelRadio, lvRadio, lockedRadio, expeditionRadio, modernizationRadio,
-      inFleetRadio, sparkleRadio, exSlotRadio, daihatsuRadio, shipTypes,
-      expeditionShips, sallyAreaChecked, rows, sortName, sortOrder } = this.props
-
-    let showRows = rows.filter((row = {}) =>
-      this.handleTypeFilter(row.typeId, shipTypes) &&
-      this.handleLvFilter(row.lv, lvRadio) &&
-      this.handleLockedFilter(row.locked, lockedRadio) &&
-      this.handleExpeditionFilter(row.id, expeditionShips, expeditionRadio) &&
-      this.handleModernizationFilter(row.isCompleted, modernizationRadio) &&
-      this.handleRemodelFilter(row.after, remodelRadio) &&
-      this.handleSallyAreaFilter(row.sallyArea, sallyAreaChecked) &&
-      this.handleInFleetFilter(row.fleetId, inFleetRadio) &&
-      this.handleExSlotFilter(row.exslot, exSlotRadio) &&
-      this.handleSparkleFilter(row.cond, sparkleRadio) &&
-      this.handleDaihatsuFilter(row.daihatsu, daihatsuRadio)
-    )
+    const { rows, sortName, sortOrder } = this.props
+    let showRows = rows.slice()
 
     // sort
     switch (this.props.sortName) {
