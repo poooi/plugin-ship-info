@@ -85,10 +85,11 @@ const widths = [
 
 const getColumnWidth = ({ index }) => widths[index] || 40
 
-const TitleCell = ({ style, title, sortable, centerAlign, sorting, up, down, handleClickTitle }) => (
+const TitleCell = ({ style, title, sortable, centerAlign, sorting, up, down, handleClickTitle, onMouseOver }) => (
   <div
     role="button"
     tabIndex={0}
+    onMouseOver={onMouseOver}
     style={{ ...style }}
     onClick={sortable ? handleClickTitle : ''}
     className={classNames({
@@ -118,11 +119,10 @@ const ShipInfoTableArea = connect(
   constructor(props) {
     super(props)
 
-    this._cache = new CellMeasurerCache({
-      defaultHeight: 30,
-      defaultWidth: 60,
-      fixedHeight: true,
-    })
+    this.state = {
+      activeRow: -1,
+      activeColumn: -1,
+    }
   }
 
   sortRules = (name, order) => {
@@ -130,7 +130,7 @@ const ShipInfoTableArea = connect(
     config.set('plugin.ShipInfo.sortOrder', order)
   }
 
-  titleRenderer = ({ columnIndex, style, sortName, sortOrder }) => {
+  titleRenderer = ({ columnIndex, style, sortName, sortOrder, onMouseOver }) => {
     if (columnIndex === 0) {
       return <div style={style} />
     }
@@ -139,6 +139,7 @@ const ShipInfoTableArea = connect(
 
     return (
       <TitleCell
+        onMouseOver={onMouseOver}
         style={{ ...style }}
         title={titles[index]}
         sortable={sortables[index]}
@@ -153,23 +154,39 @@ const ShipInfoTableArea = connect(
 
   cellRenderer = ({ columnIndex, key, parent, rowIndex, style }) => {
     const { rows, sortName, sortOrder } = this.props
+    const setState = this.setState.bind(this)
+
+    const onMouseOver = () => {
+      setState({
+        activeColumn: columnIndex,
+        activeRow: rowIndex,
+      })
+    }
+    style = { ...style, margin: '-1px' }
+
+    if (columnIndex === this.state.activeColumn) {
+      style = { ...style, borderLeft: '1px solid rgba(255, 255, 255, 0.5)', borderRight: '1px solid rgba(255, 255, 255, 0.5)' }
+    }
+
+    if (rowIndex === this.state.activeRow) {
+      style = { ...style, borderTop: '1px solid rgba(255, 255, 255, 0.5)', borderBottom: '1px solid rgba(255, 255, 255, 0.5)' }
+    }
 
     let content
     if (rowIndex === 0) {
-      content = this.titleRenderer({ columnIndex, style, sortName, sortOrder })
+      content = this.titleRenderer({ columnIndex, style, sortName, sortOrder, onMouseOver })
     } else {
       if (columnIndex === 0) {
-        content = <div style={style}>{rowIndex}</div>
+        content = <div style={style} key={key} onMouseOver={onMouseOver}>{rowIndex}</div>
       } else {
         const index = columnIndex - 1
         const ship = rows[rowIndex - 1]
         const Cell = ShipInfoCells[types[index]]
-        // console.log(Cell)
-        content = <Cell ship={ship} style={style} />
+        content = <Cell ship={ship} style={style} onMouseOver={onMouseOver} />
       }
     }
 
-    return content
+    return React.cloneElement(content, { key })
   }
 
   handleClickTitle = title => () => {
@@ -184,7 +201,7 @@ const ShipInfoTableArea = connect(
   render() {
     // const showRows = this.props.rows
     const { rows, sortName, sortOrder, pagedLayout } = this.props
-
+    const { activeRow, activeColumn } = this.state
     // const header =
     //   (
     //     <TitleHeader
@@ -224,13 +241,16 @@ const ShipInfoTableArea = connect(
                 <MultiGrid
                   sortName={sortName}
                   sortOrder={sortOrder}
+                  activeRow={activeRow}
+                  activeColumn={activeColumn}
                   columnCount={18}
                   columnWidth={getColumnWidth}
+                  estimatedRowSize={100}
                   fixedColumnCount={3}
                   fixedRowCount={1}
                   height={height}
-                  overscanColumnCount={6}
-                  overscanRowCount={3}
+                  overscanColumnCount={3}
+                  overscanRowCount={10}
                   cellRenderer={this.cellRenderer}
                   rowCount={rows.length + 1}
                   rowHeight={30}

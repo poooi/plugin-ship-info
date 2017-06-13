@@ -9,7 +9,7 @@ import { getTimePerHP } from './utils'
 
 const { __, resolveTime } = window
 
-const Cell = ({ className, style, children }) => (
+const Cell = ({ className, style, children, onMouseOver }) => (
   <div
     style={{
       ...style,
@@ -18,23 +18,26 @@ const Cell = ({ className, style, children }) => (
       whiteSpace: 'nowrap',
     }}
     className={`ship-info-cell ${className}`}
+    onMouseOver={onMouseOver}
   >
     { children }
   </div>
 )
 
-const Id = ({ ship, style }) => (
+const Id = ({ ship, style, onMouseOver }) => (
   <Cell
     style={style}
+    onMouseOver={onMouseOver}
   >
     { ship.id }
   </Cell>
 )
 
-const Name = ({ ship, style }) => (
+const Name = ({ ship, style, onMouseOver }) => (
   <Cell
     className="ship-name"
     style={style}
+    onMouseOver={onMouseOver}
   >
     <span>
       {window.i18n.resources.__(ship.name)}
@@ -49,15 +52,16 @@ const Name = ({ ship, style }) => (
   </Cell>
 )
 
-const Type = ({ ship, style }) => (
+const Type = ({ ship, style, onMouseOver }) => (
   <Cell
     style={style}
+    onMouseOver={onMouseOver}
   >
     { window.i18n.resources.__(ship.type) }
   </Cell>
 )
 
-const Soku = ({ ship, style }) => {
+const Soku = ({ ship, style, onMouseOver }) => {
   const { soku } = ship
   const sokuString = sokuInterpretation[soku] || 'Unknown'
   const sokuClass = sokuStyles[soku] || {}
@@ -65,30 +69,33 @@ const Soku = ({ ship, style }) => {
     <Cell
       className={sokuClass}
       style={style}
+      onMouseOver={onMouseOver}
     >
       <span>{__(sokuString)}</span>
     </Cell>
   )
 }
 
-const Lv = ({ ship, style }) => (
+const Lv = ({ ship, style, onMouseOver }) => (
   <Cell
     style={style}
+    onMouseOver={onMouseOver}
   >
     { ship.lv }
   </Cell>
 )
 
-const Cond = ({ ship, style }) => (
+const Cond = ({ ship, style, onMouseOver }) => (
   <Cell
     className="center"
     style={style}
+    onMouseOver={onMouseOver}
   >
     { ship.cond }
   </Cell>
 )
 
-const Karyoku = ({ ship, style }) => {
+const Karyoku = ({ ship, style, onMouseOver }) => {
   const { karyoku, karyokuMax, karyokuNow } = ship
   const karyokuClass = karyokuNow >= karyokuMax
     ? 'td-karyoku-max'
@@ -100,6 +107,7 @@ const Karyoku = ({ ship, style }) => {
     <Cell
       className={karyokuClass}
       style={style}
+      onMouseOver={onMouseOver}
     >
       <span>
         {`${karyoku}/`}
@@ -109,7 +117,7 @@ const Karyoku = ({ ship, style }) => {
   )
 }
 
-const Raisou = ({ ship, style }) => {
+const Raisou = ({ ship, style, onMouseOver }) => {
   const { raisou, raisouMax, raisouNow } = ship
   const raisouClass = raisouNow >= raisouMax
     ? 'td-raisou-max'
@@ -121,6 +129,7 @@ const Raisou = ({ ship, style }) => {
     <Cell
       className={raisouClass}
       style={style}
+      onMouseOver={onMouseOver}
     >
       <span>
         {`${raisou}/`}
@@ -130,7 +139,7 @@ const Raisou = ({ ship, style }) => {
   )
 }
 
-const Taiku = ({ ship, style }) => {
+const Taiku = ({ ship, style, onMouseOver }) => {
   const { soukou, soukouMax, soukouNow } = ship
   const soukouClass = soukouNow >= soukouMax
     ? 'td-soukou-max'
@@ -142,6 +151,7 @@ const Taiku = ({ ship, style }) => {
     <Cell
       className={soukouClass}
       style={style}
+      onMouseOver={onMouseOver}
     >
       <span>
         {`${soukou}/`}
@@ -151,7 +161,7 @@ const Taiku = ({ ship, style }) => {
   )
 }
 
-const Soukou = ({ ship, style }) => {
+const Soukou = ({ ship, style, onMouseOver }) => {
   const { soukou, soukouMax, soukouNow } = ship
   const soukouClass = soukouNow >= soukouMax
     ? 'td-soukou-max'
@@ -163,6 +173,7 @@ const Soukou = ({ ship, style }) => {
     <Cell
       className={soukouClass}
       style={style}
+      onMouseOver={onMouseOver}
     >
       <span>
         {`${soukou}/`}
@@ -172,7 +183,7 @@ const Soukou = ({ ship, style }) => {
   )
 }
 
-const Lucky = ({ ship, style }) => {
+const Lucky = ({ ship, style, onMouseOver }) => {
   const { lucky, luckyMax, luckyNow } = ship
   const luckyClass = luckyNow >= luckyMax
     ? 'td-lucky-max'
@@ -184,6 +195,7 @@ const Lucky = ({ ship, style }) => {
     <Cell
       className={luckyClass}
       style={style}
+      onMouseOver={onMouseOver}
     >
       <span>
         {`${lucky}/`}
@@ -193,34 +205,37 @@ const Lucky = ({ ship, style }) => {
   )
 }
 
-const Kaihi = ({ ship, style }) => (
+const Kaihi = ({ ship, style, onMouseOver }) => (
   <Cell
     className="center"
     style={style}
+    onMouseOver={onMouseOver}
   >
     { ship.kaihi }
   </Cell>
 )
 
-const Taisen = ({ ship, style }) => (
+const Taisen = ({ ship, style, onMouseOver }) => (
   <Cell
     className="center"
     style={style}
+    onMouseOver={onMouseOver}
   >
     { ship.taisen }
   </Cell>
 )
 
-const Sakuteki = ({ ship, style }) => (
+const Sakuteki = ({ ship, style, onMouseOver }) => (
   <Cell
     className="center"
     style={style}
+    onMouseOver={onMouseOver}
   >
     { ship.sakuteki }
   </Cell>
 )
 
-const RepairTime = ({ ship, style }) => {
+const RepairTime = ({ ship, style, onMouseOver }) => {
   const { nowhp, maxhp, repairtime, lv, typeId } = ship
   let repairColor = ''
   if (nowhp * 4 <= maxhp) {
@@ -238,6 +253,7 @@ const RepairTime = ({ ship, style }) => {
         ...style,
         backgroundColor: repairColor,
       }}
+      onMouseOver={onMouseOver}
     >
       {
         repairtime &&
@@ -256,17 +272,19 @@ const RepairTime = ({ ship, style }) => {
   )
 }
 
-const Equipment = ({ ship, style }) => (
+const Equipment = ({ ship, style, onMouseOver }) => (
   <Cell
     style={style}
+    onMouseOver={onMouseOver}
   >
     <Slotitems slot={ship.slot} exslot={ship.exslot} />
   </Cell>
 )
 
-const Locke = ({ ship, style }) => (
+const Locke = ({ ship, style, onMouseOver }) => (
   <Cell
     style={style}
+    onMouseOver={onMouseOver}
   >
     {ship.locked === 1 ? <FontAwesome name="lock" /> : ' '}
   </Cell>
