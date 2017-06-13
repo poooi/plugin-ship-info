@@ -50,13 +50,13 @@ TitleHeader.propTypes = {
 }
 
 const types = [
-  'id', 'type', 'name', 'soku', 'lv',
+  'id', 'name', 'type', , 'soku', 'lv',
   'cond', 'karyoku', 'raisou', 'taiku', 'soukou',
   'lucky', 'kaihi', 'taisen', 'sakuteki', 'repairtime',
-  'Equipment', 'Lock',
+  'equipment', 'lock',
 ]
 const titles = [
-  'ID', 'Class', 'Name', 'Speed', 'Level',
+  'ID', 'Name', 'Class', 'Speed', 'Level',
   'Cond', 'Firepower', 'Torpedo', 'AA', 'Armor',
   'Luck', 'Evasion', 'ASW', 'LOS', 'Repair',
   'Equipment', 'Lock',
