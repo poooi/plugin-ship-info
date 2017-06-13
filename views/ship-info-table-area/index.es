@@ -74,6 +74,17 @@ const centerAligns = [
   false, false,
 ]
 
+// width will always unshift 1 extra element for row index
+const widths = [
+  30,
+  50, 140, 80, 30, 30,
+  30, 60, 60, 60, 60,
+  60, 30, 30, 30, 80,
+  180, 30,
+]
+
+const getColumnWidth = ({ index }) => widths[index] || 40
+
 const TitleCell = ({ style, title, sortable, centerAlign, sorting, up, down, handleClickTitle }) => (
   <div
     role="button"
@@ -214,7 +225,7 @@ const ShipInfoTableArea = connect(
                   sortName={sortName}
                   sortOrder={sortOrder}
                   columnCount={18}
-                  columnWidth={40}
+                  columnWidth={getColumnWidth}
                   fixedColumnCount={3}
                   fixedRowCount={1}
                   height={height}
