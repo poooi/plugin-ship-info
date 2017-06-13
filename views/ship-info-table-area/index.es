@@ -7,7 +7,7 @@ import { CellMeasurer, CellMeasurerCache, Grid, MultiGrid, AutoSizer, WindowScro
 import Divider from '../divider'
 import { shipInfoShape } from './utils'
 import { shipRowsSelector, shipInfoConfigSelector } from './selectors'
-import shipRenderer from './ship-info-row'
+import ShipInfoCells from './ship-info-cells'
 
 const { __ } = window
 
@@ -50,7 +50,7 @@ TitleHeader.propTypes = {
 }
 
 const types = [
-  'id', 'name', 'type', , 'soku', 'lv',
+  'id', 'name', 'type', 'soku', 'lv',
   'cond', 'karyoku', 'raisou', 'taiku', 'soukou',
   'lucky', 'kaihi', 'taisen', 'sakuteki', 'repairtime',
   'equipment', 'lock',
@@ -151,21 +151,14 @@ const ShipInfoTableArea = connect(
         content = <div style={style}>{rowIndex}</div>
       } else {
         const index = columnIndex - 1
-        content = shipRenderer({ index, ship: rows[rowIndex - 1], style })
+        const ship = rows[rowIndex - 1]
+        const Cell = ShipInfoCells[types[index]]
+        // console.log(Cell)
+        content = <Cell ship={ship} style={style} />
       }
     }
 
-    return (
-      <CellMeasurer
-        cache={this._cache}
-        columnIndex={columnIndex}
-        key={key}
-        parent={parent}
-        rowIndex={rowIndex}
-      >
-        { content }
-      </CellMeasurer>
-    )
+    return content
   }
 
   handleClickTitle = title => () => {
@@ -220,10 +213,9 @@ const ShipInfoTableArea = connect(
                 <MultiGrid
                   sortName={sortName}
                   sortOrder={sortOrder}
-                  columnCount={17}
-                  columnWidth={this._cache.columnWidth}
-                  deferredMeasurementCache={this._cache}
-                  fixedColumnCount={4}
+                  columnCount={18}
+                  columnWidth={40}
+                  fixedColumnCount={3}
                   fixedRowCount={1}
                   height={height}
                   overscanColumnCount={6}
