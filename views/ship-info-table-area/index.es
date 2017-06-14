@@ -13,6 +13,8 @@ import ShipInfoCells from './ship-info-cells'
 
 const { __ } = window
 
+const floor5 = num => floor(num / 5) * 5
+
 const TitleHeader = (props) => {
   const { titles, types, sortable,
       centerAlign, sortName, sortOrder, handleClickTitle } = props
@@ -242,12 +244,11 @@ const ShipInfoTableArea = connect(
   }
 
   getColumnWidth = ({ index }) => {
-    const width = floor((widths[index] || 40) *
+    const width = floor5((widths[index] || 40) *
       (this.state.windowWidth > this.tableWidth
         ? (this.state.windowWidth / this.tableWidth)
         : 1
       ),
-      -1
     )
     return width
   }
