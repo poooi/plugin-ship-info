@@ -130,7 +130,7 @@ const ShipInfoTableArea = connect(
     config.set('plugin.ShipInfo.sortOrder', order)
   }
 
-  titleRenderer = ({ columnIndex, style, sortName, sortOrder, onMouseOver }) => {
+  titleRenderer = ({ columnIndex, style, sortName, sortOrder, ...props}) => {
     if (columnIndex === 0) {
       return <div style={style} />
     }
@@ -139,7 +139,7 @@ const ShipInfoTableArea = connect(
 
     return (
       <TitleCell
-        onMouseOver={onMouseOver}
+        {...props}
         style={{ ...style }}
         title={titles[index]}
         sortable={sortables[index]}
@@ -174,19 +174,19 @@ const ShipInfoTableArea = connect(
 
     let content
     if (rowIndex === 0) {
-      content = this.titleRenderer({ columnIndex, style, sortName, sortOrder, onMouseOver })
+      content = this.titleRenderer({ columnIndex, style, sortName, sortOrder })
     } else {
       if (columnIndex === 0) {
-        content = <div style={style} key={key} onMouseOver={onMouseOver}>{rowIndex}</div>
+        content = <div style={style} key={key}>{rowIndex}</div>
       } else {
         const index = columnIndex - 1
         const ship = rows[rowIndex - 1]
         const Cell = ShipInfoCells[types[index]]
-        content = <Cell ship={ship} style={style} onMouseOver={onMouseOver} />
+        content = <Cell ship={ship} style={style} />
       }
     }
 
-    return React.cloneElement(content, { key })
+    return React.cloneElement(content, { key, onMouseOver })
   }
 
   handleClickTitle = title => () => {
