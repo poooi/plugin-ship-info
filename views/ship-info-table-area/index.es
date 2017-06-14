@@ -265,6 +265,7 @@ const ShipInfoTableArea = connect(
                   rowCount={rows.length + 1}
                   rowHeight={40}
                   width={width}
+                  onScroll={this.handleMouseLeave}
                 />
               )}
 
