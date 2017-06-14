@@ -201,6 +201,13 @@ const ShipInfoTableArea = connect(
     }
   }
 
+  handleMouseLeave = () => {
+    this.setState({
+      activeColumn: -1,
+      activeRow: -1,
+    })
+  }
+
   render() {
     // const showRows = this.props.rows
     const { rows, sortName, sortOrder, pagedLayout } = this.props
@@ -237,7 +244,7 @@ const ShipInfoTableArea = connect(
     return (
       <div id="ship-info-show" style={{ display: 'flex', flexDirection: 'column' }}>
         <Divider text={__('Ship Girls Info')} icon={false} />
-        <div style={{ flex: 1 }}>
+        <div style={{ flex: 1 }} onMouseLeave={this.handleMouseLeave}>
           <AutoSizer>
             {
               ({ width, height }) => (
