@@ -1,9 +1,7 @@
 import React, { Component, PropTypes } from 'react'
-import { Table } from 'react-bootstrap'
 import { connect } from 'react-redux'
-import classNames from 'classnames'
-import { CellMeasurer, CellMeasurerCache, Grid, MultiGrid, AutoSizer, WindowScroller } from 'react-virtualized'
 import cls from 'classnames'
+import { MultiGrid, AutoSizer } from 'react-virtualized'
 import { sum, debounce, floor } from 'lodash'
 
 import Divider from '../divider'
@@ -14,45 +12,6 @@ import ShipInfoCells from './ship-info-cells'
 const { __ } = window
 
 const floor5 = num => floor(num / 5) * 5
-
-const TitleHeader = (props) => {
-  const { titles, types, sortable,
-      centerAlign, sortName, sortOrder, handleClickTitle } = props
-  return (
-    <tr className="title-row">
-      <th>No.</th>
-      {
-        titles.map((title, index) => (
-          <th
-            key={title}
-            onClick={sortable[index] ? handleClickTitle(types[index]) : ''}
-            className={classNames({
-              clickable: sortable[index],
-              center: centerAlign[index],
-              sorting: sortName === types[index],
-              up: sortName === types[index] && sortOrder,
-              down: sortName === types[index] && !sortOrder,
-            })}
-          >
-            {__(title)}
-          </th>
-        ))
-      }
-    </tr>
-  )
-}
-
-
-TitleHeader.propTypes = {
-  titles: PropTypes.arrayOf(PropTypes.string).isRequired,
-  types: PropTypes.arrayOf(PropTypes.string).isRequired,
-  sortable: PropTypes.arrayOf(PropTypes.bool).isRequired,
-  centerAlign: PropTypes.arrayOf(PropTypes.bool).isRequired,
-  sortName: PropTypes.string.isRequired,
-  sortOrder: PropTypes.number.isRequired,
-  handleClickTitle: PropTypes.func.isRequired,
-}
-
 const types = [
   'id', 'name', 'type', 'soku', 'lv',
   'cond', 'karyoku', 'raisou', 'taiku', 'soukou',
@@ -87,8 +46,6 @@ const widths = [
   180, 40,
 ]
 
-const getColumnWidth = ({ index }) => widths[index] || 40
-
 const TitleCell = ({ style, title, sortable, centerAlign, sorting, up, down, handleClickTitle, onMouseOver }) => (
   <div
     role="button"
@@ -96,7 +53,7 @@ const TitleCell = ({ style, title, sortable, centerAlign, sorting, up, down, han
     onMouseOver={onMouseOver}
     style={{ ...style }}
     onClick={sortable ? handleClickTitle : ''}
-    className={classNames({
+    className={cls({
       clickable: sortable,
       center: centerAlign,
       sorting,
@@ -246,18 +203,6 @@ const ShipInfoTableArea = connect(
     })
   }
 
-  // handleScroll = (e) => {
-  //   const { scrollTop, scrollLeft } = e
-  //   const rowMove = floor((scrollTop - this.state.scrollTop) / 40)
-  //   const columnMove = floor((scrollLeft - this.state.scrollLeft) / 40)
-  //   this.setState({
-  //     scrollTop,
-  //     scrollLeft,
-  //     activeColumn: this.state.activeColumn + columnMove,
-  //     activeRow: this.state.activeRow + rowMove,
-  //   })
-  // }
-
   handleContentRendered = (e) => {
     const { rowStopIndex, columnStopIndex } = e
     if (this.activeColumn !== -1 && this.activeRow !== -1) {
@@ -285,37 +230,8 @@ const ShipInfoTableArea = connect(
   }
 
   render() {
-    // const showRows = this.props.rows
     const { rows, sortName, sortOrder, pagedLayout } = this.props
     const { activeRow, activeColumn, windowWidth } = this.state
-    // const header =
-    //   (
-    //     <TitleHeader
-    //       titles={titles}
-    //       types={types}
-    //       sortable={sortables}
-    //       centerAlign={centerAligns}
-    //       sortName={sortName}
-    //       sortOrder={sortOrder}
-    //       handleClickTitle={this.handleClickTitle}
-    //     />
-    //   )
-
-    // const ShipRows = []
-
-    // showRows.forEach((row, index) => {
-    //   if (row) {
-    //     ShipRows.push(
-    //       <ShipInfoRow
-    //         key={row.id}
-    //         shipInfo={row}
-    //       />
-    //     )
-    //   }
-    //   if (index >= 0 && (index + 1) % 15 === 0 && pagedLayout) {
-    //     ShipRows.push(header)
-    //   }
-    // })
 
     return (
       <div id="ship-info-show" style={{ display: 'flex', flexDirection: 'column' }}>
@@ -349,18 +265,6 @@ const ShipInfoTableArea = connect(
 
           </AutoSizer>
         </div>
-        {/*<div className="ship-info-table">
-          <Table striped condensed hover>
-            <thead>
-              {header}
-            </thead>
-            <tbody>
-              {
-                ShipRows
-            }
-            </tbody>
-          </Table>
-        </div>*/}
       </div>
     )
   }
