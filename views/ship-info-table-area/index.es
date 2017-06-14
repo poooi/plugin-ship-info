@@ -72,7 +72,7 @@ const centerAligns = [
   false, false, false, false, true,
   true, true, true, true, true,
   true, true, true, true, true,
-  false, false,
+  false, true,
 ]
 
 // width will always unshift 1 extra element for row index
