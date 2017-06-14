@@ -166,7 +166,7 @@ clickable {
   width: inherit;
 }
 #ship-info-show .slotitem-container img {
-  height: 32px;
+  height: 30px;
 }
 
 #ship-info-show table tbody tr td {
@@ -215,7 +215,7 @@ clickable {
 img.svg {
   width: 26px;
   height: 23px;
-  margin: 5px 3px 4px 3px;
+  margin: 0px 4px;
 }
 
 .sorting.up {
