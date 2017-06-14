@@ -4,6 +4,7 @@ import { connect } from 'react-redux'
 import classNames from 'classnames'
 import { CellMeasurer, CellMeasurerCache, Grid, MultiGrid, AutoSizer, WindowScroller } from 'react-virtualized'
 import cls from 'classnames'
+import { sum, debounce } from 'lodash'
 
 import Divider from '../divider'
 import { shipInfoShape } from './utils'
@@ -120,13 +121,42 @@ const ShipInfoTableArea = connect(
   constructor(props) {
     super(props)
 
+    this.tableWidth = sum(widths)
+
+    const width = document.body.clientWidth
+
+    console.log(this.tableWidth, width)
+
+    this.updateWindowWidth = debounce(this.updateWindowWidth, 500)
+
+    this.setRef = this.setRef.bind(this)
+
     this.state = {
       activeRow: -1,
       activeColumn: -1,
+      windowWidth: width,
     }
   }
 
-  sortRules = (name, order) => {
+  componentDidMount = () => {
+    this.updateWindowWidth()
+    window.addEventListener('resize', this.updateWindowWidth)
+  }
+
+  componentWillUnmount = () => {
+    window.removeListener('resize', this.updateWindowWidth)
+  }
+
+  updateWindowWidth = () => {
+    this.setState({
+      windowWidth: document.body.clientWidth,
+    })
+    if (this.grid) {
+      this.grid.forceUpdateGrids()
+    }
+  }
+
+  saveSortRules = (name, order) => {
     config.set('plugin.ShipInfo.sortName', name)
     config.set('plugin.ShipInfo.sortOrder', order)
   }
@@ -155,6 +185,7 @@ const ShipInfoTableArea = connect(
 
   cellRenderer = ({ columnIndex, key, rowIndex, style }) => {
     const { rows, sortName, sortOrder } = this.props
+    const { windowWidth } = this.state
     const setState = this.setState.bind(this)
 
     const onMouseOver = () => {
@@ -183,6 +214,7 @@ const ShipInfoTableArea = connect(
       {
         key,
         onMouseOver,
+        windowWidth,
         className: cls({
           'ship-info-cell': true,
           center: centerAligns[columnIndex - 1],
@@ -195,9 +227,9 @@ const ShipInfoTableArea = connect(
   handleClickTitle = title => () => {
     if (this.props.sortName !== title) {
       const order = (title === 'id' || title === 'type' || title === 'name') ? 1 : 0
-      this.sortRules(title, order)
+      this.saveSortRules(title, order)
     } else {
-      this.sortRules(this.props.sortName, (this.props.sortOrder + 1) % 2)
+      this.saveSortRules(this.props.sortName, (this.props.sortOrder + 1) % 2)
     }
   }
 
@@ -208,10 +240,25 @@ const ShipInfoTableArea = connect(
     })
   }
 
+  getColumnWidth = ({ index }) => {
+    const width = Math.floor((widths[index] || 40) *
+      (this.state.windowWidth > this.tableWidth
+        ? (this.state.windowWidth / this.tableWidth)
+        : 1
+      )
+    )
+    console.log(width, widths[index], this.tableWidth, this.state.windowWidth, width / widths[index], this.state.windowWidth / this.tableWidth )
+    return width
+  }
+
+  setRef = (ref) => {
+    this.grid = ref
+  }
+
   render() {
     // const showRows = this.props.rows
     const { rows, sortName, sortOrder, pagedLayout } = this.props
-    const { activeRow, activeColumn } = this.state
+    const { activeRow, activeColumn, windowWidth } = this.state
     // const header =
     //   (
     //     <TitleHeader
@@ -249,14 +296,16 @@ const ShipInfoTableArea = connect(
             {
               ({ width, height }) => (
                 <MultiGrid
+                  ref={this.setRef}
                   sortName={sortName}
                   sortOrder={sortOrder}
                   activeRow={activeRow}
+                  windowWidth={windowWidth}
                   activeColumn={activeColumn}
                   columnCount={18}
-                  columnWidth={getColumnWidth}
+                  columnWidth={this.getColumnWidth}
                   estimatedRowSize={100}
-                  fixedColumnCount={3}
+                  fixedColumnCount={windowWidth > this.tableWidth ? 0 : 3}
                   fixedRowCount={1}
                   height={height}
                   overscanColumnCount={3}

@@ -21,7 +21,7 @@ body {
   flex-grow: 1;
 }
 #ship-info-show ::-webkit-scrollbar{
-  width: 1em;
+  width: 0;
   height: 1em;
 }
 .center {
