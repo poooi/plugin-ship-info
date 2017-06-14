@@ -55,6 +55,10 @@ body {
 }
 .ship-info-cell {
   white-space: nowrap;
+  line-height: 40px;
+  vertical-align: middle;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .ship-info-cell.highlight{
   cursor: default;

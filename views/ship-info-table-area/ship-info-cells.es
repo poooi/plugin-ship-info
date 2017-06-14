@@ -9,15 +9,9 @@ import { getTimePerHP } from './utils'
 
 const { __, resolveTime } = window
 
-const Cell = ({ style, children, ...props }) => (
+const Cell = ({ children, ...props }) => (
   <div
     {...props}
-    style={{
-      ...style,
-      paddingLeft: '1ex',
-      paddingRight: '1ex',
-      whiteSpace: 'nowrap',
-    }}
   >
     { children }
   </div>

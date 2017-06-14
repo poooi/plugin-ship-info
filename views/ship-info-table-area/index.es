@@ -78,10 +78,10 @@ const centerAligns = [
 // width will always unshift 1 extra element for row index
 const widths = [
   30,
-  50, 140, 80, 30, 30,
-  30, 60, 60, 60, 60,
-  60, 30, 30, 30, 80,
-  180, 30,
+  50, 160, 90, 40, 40,
+  40, 60, 60, 60, 60,
+  60, 40, 40, 40, 80,
+  180, 40,
 ]
 
 const getColumnWidth = ({ index }) => widths[index] || 40
@@ -256,7 +256,7 @@ const ShipInfoTableArea = connect(
                   overscanRowCount={10}
                   cellRenderer={this.cellRenderer}
                   rowCount={rows.length + 1}
-                  rowHeight={30}
+                  rowHeight={40}
                   width={width}
                 />
               )}
