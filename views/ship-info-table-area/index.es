@@ -3,6 +3,7 @@ import { Table } from 'react-bootstrap'
 import { connect } from 'react-redux'
 import classNames from 'classnames'
 import { CellMeasurer, CellMeasurerCache, Grid, MultiGrid, AutoSizer, WindowScroller } from 'react-virtualized'
+import cls from 'classnames'
 
 import Divider from '../divider'
 import { shipInfoShape } from './utils'
@@ -152,7 +153,7 @@ const ShipInfoTableArea = connect(
     )
   }
 
-  cellRenderer = ({ columnIndex, key, parent, rowIndex, style }) => {
+  cellRenderer = ({ columnIndex, key, rowIndex, style }) => {
     const { rows, sortName, sortOrder } = this.props
     const setState = this.setState.bind(this)
 
@@ -161,15 +162,6 @@ const ShipInfoTableArea = connect(
         activeColumn: columnIndex,
         activeRow: rowIndex,
       })
-    }
-    style = { ...style, margin: '-1px' }
-
-    if (columnIndex === this.state.activeColumn) {
-      style = { ...style, borderLeft: '1px solid rgba(255, 255, 255, 0.5)', borderRight: '1px solid rgba(255, 255, 255, 0.5)' }
-    }
-
-    if (rowIndex === this.state.activeRow) {
-      style = { ...style, borderTop: '1px solid rgba(255, 255, 255, 0.5)', borderBottom: '1px solid rgba(255, 255, 255, 0.5)' }
     }
 
     let content
@@ -186,7 +178,18 @@ const ShipInfoTableArea = connect(
       }
     }
 
-    return React.cloneElement(content, { key, onMouseOver })
+    return React.cloneElement(
+      content,
+      {
+        key,
+        onMouseOver,
+        className: cls({
+          'ship-info-cell': true,
+          center: centerAligns[columnIndex - 1],
+          highlight: columnIndex === this.state.activeColumn || rowIndex === this.state.activeRow,
+        }),
+      }
+    )
   }
 
   handleClickTitle = title => () => {

@@ -53,8 +53,12 @@ body {
   font-weight: bold;
   margin-top: 10px;
 }
-.table {
+.ship-info-cell {
   white-space: nowrap;
+}
+.ship-info-cell.highlight{
+  cursor: default;
+  background-color: rgba(0, 150, 136, 0.75);
 }
 .td-karyoku {
   text-align: center;
@@ -63,12 +67,19 @@ body {
   text-align: center;
   background-color: rgba(245, 93, 93, 0.33);
 }
+.td-karyoku-max.highlight{
+  background-color: rgba(245, 93, 93, 0.75);
+}
 .td-raisou {
   text-align: center;
 }
 .td-raisou-max {
   text-align: center;
   background-color: rgba(162, 194, 230, 0.33);
+}
+.td-raisou-max.highlight {
+  text-align: center;
+  background-color: rgba(162, 194, 230, 0.75);
 }
 .td-taiku {
   text-align: center;
@@ -77,6 +88,10 @@ body {
   text-align: center;
   background-color: rgba(255, 176, 77, 0.33);
 }
+.td-taiku-max.highlight {
+  text-align: center;
+  background-color: rgba(255, 176, 77, 0.75);
+}
 .td-soukou {
   text-align: center;
 }
@@ -84,12 +99,38 @@ body {
   text-align: center;
   background-color: rgba(255, 219, 79, 0.33);
 }
+.td-soukou-max.highlight {
+  text-align: center;
+  background-color: rgba(255, 219, 79, 0.75);
+}
 .td-lucky {
   text-align: center;
 }
 .td-lucky-max {
   text-align: center;
   background-color: rgba(125, 239, 94, 0.33);
+}
+.td-lucky-max.hightlight {
+  text-align: center;
+  background-color: rgba(125, 239, 94, 0.75);
+}
+.repair-heavy {
+  background-color: rgba(255, 0, 0, 0.4);
+}
+.repair-moderate {
+  background-color: rgba(255, 65, 0, 0.4);
+}
+.repair-minor {
+  background-color: rgba(255, 255, 0, 0.4);
+}
+.repair-heavy.highlight {
+  background-color: rgba(255, 0, 0, 0.75);
+}
+.repair-moderate.highlight {
+  background-color: rgba(255, 65, 0, 0.75);
+}
+.repair-minor.highlight {
+  background-color: rgba(255, 255, 0, 0.75);
 }
 clickable {
   filter: none;

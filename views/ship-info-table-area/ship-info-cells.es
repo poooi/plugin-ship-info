@@ -9,7 +9,7 @@ import { getTimePerHP } from './utils'
 
 const { __, resolveTime } = window
 
-const Cell = ({ className, style, children, ...props }) => (
+const Cell = ({ style, children, ...props }) => (
   <div
     {...props}
     style={{
@@ -18,26 +18,23 @@ const Cell = ({ className, style, children, ...props }) => (
       paddingRight: '1ex',
       whiteSpace: 'nowrap',
     }}
-    className={`ship-info-cell ${className}`}
   >
     { children }
   </div>
 )
 
-const Id = ({ ship, style, ...props }) => (
+const Id = ({ ship, ...props }) => (
   <Cell
     {...props}
-    style={style}
   >
     { ship.id }
   </Cell>
 )
 
-const Name = ({ ship, style, ...props }) => (
+const Name = ({ className, ship, ...props }) => (
   <Cell
     {...props}
-    className="ship-name"
-    style={style}
+    className={`${className || ''} ship-name`}
   >
     <span>
       {window.i18n.resources.__(ship.name)}
@@ -52,49 +49,45 @@ const Name = ({ ship, style, ...props }) => (
   </Cell>
 )
 
-const Type = ({ ship, style, ...props }) => (
+const Type = ({ ship, ...props }) => (
   <Cell
     {...props}
-    style={style}
   >
     { window.i18n.resources.__(ship.type) }
   </Cell>
 )
 
-const Soku = ({ className, ship, style, ...props }) => {
+const Soku = ({ className, ship, ...props }) => {
   const { soku } = ship
   const sokuString = sokuInterpretation[soku] || 'Unknown'
-  const sokuClass = sokuStyles[soku] || {}
+  const sokuClass = sokuStyles[soku] || ''
   return (
     <Cell
       {...props}
       className={`${className} ${sokuClass}`}
-      style={style}
     >
       <span>{__(sokuString)}</span>
     </Cell>
   )
 }
 
-const Lv = ({ ship, style, ...props }) => (
+const Lv = ({ ship, ...props }) => (
   <Cell
     {...props}
-    style={style}
   >
     { ship.lv }
   </Cell>
 )
 
-const Cond = ({ ship, style, ...props }) => (
+const Cond = ({ ship, ...props }) => (
   <Cell
     {...props}
-    style={style}
   >
     { ship.cond }
   </Cell>
 )
 
-const Karyoku = ({ className, ship, style, ...props }) => {
+const Karyoku = ({ className, ship, ...props }) => {
   const { karyoku, karyokuMax, karyokuNow } = ship
   const karyokuClass = karyokuNow >= karyokuMax
     ? 'td-karyoku-max'
@@ -105,8 +98,7 @@ const Karyoku = ({ className, ship, style, ...props }) => {
   return (
     <Cell
       {...props}
-      className={`${className} ${karyokuClass}`}
-      style={style}
+      className={`${className || ''} ${karyokuClass}`}
     >
       <span>
         {`${karyoku}/`}
@@ -116,7 +108,7 @@ const Karyoku = ({ className, ship, style, ...props }) => {
   )
 }
 
-const Raisou = ({ className, ship, style, ...props }) => {
+const Raisou = ({ className, ship, ...props }) => {
   const { raisou, raisouMax, raisouNow } = ship
   const raisouClass = raisouNow >= raisouMax
     ? 'td-raisou-max'
@@ -127,8 +119,7 @@ const Raisou = ({ className, ship, style, ...props }) => {
   return (
     <Cell
       {...props}
-      className={`${className} ${raisouClass}`}
-      style={style}
+      className={`${className || ''} ${raisouClass}`}
     >
       <span>
         {`${raisou}/`}
@@ -138,7 +129,28 @@ const Raisou = ({ className, ship, style, ...props }) => {
   )
 }
 
-const Taiku = ({ className, ship, style, ...props }) => {
+const Taiku = ({ className, ship, ...props }) => {
+  const { taiku, taikuMax, taikuNow } = ship
+  const taikuClass = taikuNow >= taikuMax
+    ? 'td-taiku-max'
+    : 'td-taiku'
+  const taikuString = taikuNow >= taikuMax
+    ? 'MAX'
+    : `+${taikuMax - taikuNow}`
+  return (
+    <Cell
+      {...props}
+      className={`${className || ''} ${taikuClass}`}
+    >
+      <span>
+        {`${taiku}/`}
+        <span style={{ fontSize: '80%' }}>{taikuString}</span>
+      </span>
+    </Cell>
+  )
+}
+
+const Soukou = ({ className, ship, ...props }) => {
   const { soukou, soukouMax, soukouNow } = ship
   const soukouClass = soukouNow >= soukouMax
     ? 'td-soukou-max'
@@ -149,8 +161,7 @@ const Taiku = ({ className, ship, style, ...props }) => {
   return (
     <Cell
       {...props}
-      className={`${className} ${soukouClass}`}
-      style={style}
+      className={`${className || ''} ${soukouClass}`}
     >
       <span>
         {`${soukou}/`}
@@ -160,29 +171,7 @@ const Taiku = ({ className, ship, style, ...props }) => {
   )
 }
 
-const Soukou = ({ className, ship, style, ...props }) => {
-  const { soukou, soukouMax, soukouNow } = ship
-  const soukouClass = soukouNow >= soukouMax
-    ? 'td-soukou-max'
-    : 'td-soukou'
-  const soukouString = soukouNow >= soukouMax
-    ? 'MAX'
-    : `+${soukouMax - soukouNow}`
-  return (
-    <Cell
-      {...props}
-      className={`${className} ${soukouClass}`}
-      style={style}
-    >
-      <span>
-        {`${soukou}/`}
-        <span style={{ fontSize: '80%' }}>{soukouString}</span>
-      </span>
-    </Cell>
-  )
-}
-
-const Lucky = ({ className, ship, style, ...props }) => {
+const Lucky = ({ className, ship, ...props }) => {
   const { lucky, luckyMax, luckyNow } = ship
   const luckyClass = luckyNow >= luckyMax
     ? 'td-lucky-max'
@@ -193,8 +182,7 @@ const Lucky = ({ className, ship, style, ...props }) => {
   return (
     <Cell
       {...props}
-      className={`${className} ${luckyClass}`}
-      style={style}
+      className={`${className || ''} ${luckyClass}`}
     >
       <span>
         {`${lucky}/`}
@@ -204,50 +192,44 @@ const Lucky = ({ className, ship, style, ...props }) => {
   )
 }
 
-const Kaihi = ({ ship, style, ...props }) => (
+const Kaihi = ({ ship, ...props }) => (
   <Cell
     {...props}
-    style={style}
   >
     { ship.kaihi }
   </Cell>
 )
 
-const Taisen = ({ ship, style, ...props }) => (
+const Taisen = ({ ship, ...props }) => (
   <Cell
     {...props}
-    style={style}
   >
     { ship.taisen }
   </Cell>
 )
 
-const Sakuteki = ({ ship, style, ...props }) => (
+const Sakuteki = ({ ship, ...props }) => (
   <Cell
     {...props}
-    style={style}
   >
     { ship.sakuteki }
   </Cell>
 )
 
-const RepairTime = ({ ship, style, ...props }) => {
+const RepairTime = ({ className, ship, ...props }) => {
   const { nowhp, maxhp, repairtime, lv, typeId } = ship
-  let repairColor
+  let repairClass = ''
   if (nowhp * 4 <= maxhp) {
-    repairColor = 'rgba(255, 0, 0, 0.4)'
+    repairClass = 'repair-heavy'
   } else if (nowhp * 2 <= maxhp) {
-    repairColor = 'rgba(255, 65, 0, 0.4)'
+    repairClass = 'repair-moderate'
   } else if (nowhp * 4 <= maxhp * 3) {
-    repairColor = 'rgba(255, 255, 0, 0.4)'
+    repairClass = 'repair-minor'
   }
   return (
     <Cell
       {...props}
-      style={{
-        ...style,
-        backgroundColor: repairColor,
-      }}
+      className={`${repairClass} ${className}`}
     >
       {
         repairtime &&
@@ -266,19 +248,17 @@ const RepairTime = ({ ship, style, ...props }) => {
   )
 }
 
-const Equipment = ({ ship, style, ...props }) => (
+const Equipment = ({ ship, ...props }) => (
   <Cell
     {...props}
-    style={style}
   >
     <Slotitems slot={ship.slot} exslot={ship.exslot} />
   </Cell>
 )
 
-const Locke = ({ ship, style, ...props }) => (
+const Locke = ({ ship,...props }) => (
   <Cell
     {...props}
-    style={style}
   >
     {ship.locked === 1 ? <FontAwesome name="lock" /> : ' '}
   </Cell>
