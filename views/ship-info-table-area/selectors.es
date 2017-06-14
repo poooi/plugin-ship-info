@@ -186,22 +186,22 @@ const handleDaihatsuFilter = (daihatsu, daihatsuRadio) => {
   }
 }
 
-const getSortValue = sortName => (ship) => {
+const getSortFunction = (sortName) => {
   switch (sortName) {
     case 'id':
-      return ship.id
+      return ship => ship.id
     case 'name':
-      return [katakanaToHiragana(ship.yomi), ship.lv, -ship.id]
+      return [ship => katakanaToHiragana(ship.yomi), ship => ship.lv, ship => -ship.id]
     case 'lv':
     // Sort rule of level in game (descending):
     // 1. level (descending)
     // 2. sortno (ascending)
     // 3. id (descending)
-      return [ship.lv, -ship.sortno, -ship.id]
+      return [ship => ship.lv, ship => -ship.sortno, ship => -ship.id]
     case 'type':
-      return [ship.typeId, -ship.sortno, ship.lv, -ship.id]
+      return [ship => ship.typeId, ship => -ship.sortno, ship => ship.lv, ship => -ship.id]
     default:
-      return [ship[sortName], ship.sortno, -ship.id]
+      return [ship => ship[sortName], ship => ship.sortno, ship => -ship.id]
   }
 }
 
@@ -268,7 +268,7 @@ export const shipRowsSelector = createSelector(
         handleSparkleFilter(ship.cond, sparkleRadio) &&
         handleDaihatsuFilter(ship.daihatsu, daihatsuRadio)
       ),
-      fp.sortBy(getSortValue(sortName)),
+      fp.sortBy(getSortFunction(sortName)),
       sortOrder ? ship => ship : fp.reverse,
     )(ships)
 )
