@@ -4,7 +4,7 @@ import { connect } from 'react-redux'
 import classNames from 'classnames'
 import { CellMeasurer, CellMeasurerCache, Grid, MultiGrid, AutoSizer, WindowScroller } from 'react-virtualized'
 import cls from 'classnames'
-import { sum, debounce } from 'lodash'
+import { sum, debounce, floor } from 'lodash'
 
 import Divider from '../divider'
 import { shipInfoShape } from './utils'
@@ -152,6 +152,7 @@ const ShipInfoTableArea = connect(
       windowWidth: document.body.clientWidth,
     })
     if (this.grid) {
+      this.grid.recomputeGridSize()
       this.grid.forceUpdateGrids()
     }
   }
@@ -241,13 +242,13 @@ const ShipInfoTableArea = connect(
   }
 
   getColumnWidth = ({ index }) => {
-    const width = Math.floor((widths[index] || 40) *
+    const width = floor((widths[index] || 40) *
       (this.state.windowWidth > this.tableWidth
         ? (this.state.windowWidth / this.tableWidth)
         : 1
-      )
+      ),
+      -1
     )
-    console.log(width, widths[index], this.tableWidth, this.state.windowWidth, width / widths[index], this.state.windowWidth / this.tableWidth )
     return width
   }
 
