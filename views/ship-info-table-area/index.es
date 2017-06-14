@@ -133,6 +133,9 @@ const ShipInfoTableArea = connect(
 
     this.setRef = this.setRef.bind(this)
 
+    this.rowStopIndex = 0
+    this.columnStopIndex = 0
+
     this.state = {
       activeRow: -1,
       activeColumn: -1,
@@ -164,7 +167,7 @@ const ShipInfoTableArea = connect(
     config.set('plugin.ShipInfo.sortOrder', order)
   }
 
-  titleRenderer = ({ columnIndex, style, sortName, sortOrder, ...props}) => {
+  titleRenderer = ({ columnIndex, style, sortName, sortOrder, ...props }) => {
     if (columnIndex === 0) {
       return <div style={style} />
     }
@@ -243,6 +246,30 @@ const ShipInfoTableArea = connect(
     })
   }
 
+  // handleScroll = (e) => {
+  //   const { scrollTop, scrollLeft } = e
+  //   const rowMove = floor((scrollTop - this.state.scrollTop) / 40)
+  //   const columnMove = floor((scrollLeft - this.state.scrollLeft) / 40)
+  //   this.setState({
+  //     scrollTop,
+  //     scrollLeft,
+  //     activeColumn: this.state.activeColumn + columnMove,
+  //     activeRow: this.state.activeRow + rowMove,
+  //   })
+  // }
+
+  handleContentRendered = (e) => {
+    const { rowStopIndex, columnStopIndex } = e
+    if (this.activeColumn !== -1 && this.activeRow !== -1) {
+      this.setState({
+        activeColumn: (this.state.activeColumn + columnStopIndex) - this.columnStopIndex,
+        activeRow: (this.state.activeRow + rowStopIndex) - this.rowStopIndex,
+      })
+    }
+    this.rowStopIndex = rowStopIndex
+    this.columnStopIndex = columnStopIndex
+  }
+
   getColumnWidth = ({ index }) => {
     const width = floor5((widths[index] || 40) *
       (this.state.windowWidth > this.tableWidth
@@ -310,13 +337,13 @@ const ShipInfoTableArea = connect(
                   fixedColumnCount={windowWidth > this.tableWidth ? 0 : 3}
                   fixedRowCount={1}
                   height={height}
+                  onSectionRendered={this.handleContentRendered}
                   overscanColumnCount={3}
                   overscanRowCount={10}
                   cellRenderer={this.cellRenderer}
                   rowCount={rows.length + 1}
                   rowHeight={40}
                   width={width}
-                  onScroll={this.handleMouseLeave}
                 />
               )}
 
