@@ -23,6 +23,10 @@ export const windowOptions = {
   y,
   width,
   height,
+  webPreferences: {
+    experimentalFeatures: true,
+    experimentalCanvasFeatures: true,
+  },
 }
 export const windowURL = `file://${__dirname}/index.html`
 export const useEnv = true

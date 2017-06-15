@@ -1,5 +1,6 @@
 *, body, h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
   font-family: "Ubuntu", "Helvetica Neue", "Helvetica", "Arial", "Heiti SC", "WenQuanYi Micro Hei", "Microsoft YaHei", sans-serif;
+  outline: none;
 }
 html {
   height: 100%;
@@ -57,7 +58,7 @@ body {
   white-space: nowrap;
   line-height: 40px;
   vertical-align: middle;
-  overflow: hidden;
+  overflow: visible;
   text-overflow: ellipsis;
 }
 .ship-info-cell.highlight{

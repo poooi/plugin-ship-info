@@ -56,10 +56,12 @@ const TitleCell = ({
   up,
   down,
   handleClickTitle,
+  onMouseOver,
 }) => (
   <div
     role="button"
     tabIndex={0}
+    onMouseOver={onMouseOver}
     style={{ ...style }}
     onClick={sortable ? handleClickTitle : ''}
     className={cls({
@@ -86,6 +88,7 @@ TitleCell.propTypes = {
   sorting: propTypes.bool.isRequired,
   up: propTypes.bool.isRequired,
   down: propTypes.bool.isRequired,
+  onMouseOver: propTypes.func.isRequired,
 }
 
 const ShipInfoTableArea = connect(
@@ -102,6 +105,8 @@ const ShipInfoTableArea = connect(
 
   state = {
     windowWidth: document.body.clientWidth,
+    activeColumn: -1,
+    activeRow: -1,
   }
 
   constructor(props) {
@@ -109,6 +114,8 @@ const ShipInfoTableArea = connect(
     this.tableWidth = sum(widths)
     this.updateWindowWidth = debounce(this.updateWindowWidth, 500)
     this.setRef = this.setRef.bind(this)
+    this.rowStopIndex = 0
+    this.columnStopIndex = 0
   }
 
   componentDidMount = () => {
@@ -157,12 +164,23 @@ const ShipInfoTableArea = connect(
   cellRenderer = ({ columnIndex, key, rowIndex, style }) => {
     const { rows, sortName, sortOrder } = this.props
     const { windowWidth } = this.state
+    const setState = this.setState.bind(this)
+    const onMouseOver = () => {
+      setState({
+        activeColumn: columnIndex,
+        activeRow: rowIndex,
+      })
+    }
+    const highlight = (columnIndex === this.state.activeColumn || rowIndex === this.state.activeRow)
+      && !(columnIndex === 0 && rowIndex !== this.state.activeRow)
     const props = {
       key,
       windowWidth,
+      onMouseOver,
       className: cls({
         'ship-info-cell': true,
         center: centerAligns[columnIndex - 1],
+        highlight,
       }),
     }
     let content
@@ -178,6 +196,25 @@ const ShipInfoTableArea = connect(
     }
 
     return content
+  }
+
+  handleMouseLeave = () => {
+    this.setState({
+      activeColumn: -1,
+      activeRow: -1,
+    })
+  }
+
+  handleContentRendered = (e) => {
+    const { rowStopIndex, columnStopIndex } = e
+    if (this.activeColumn !== -1 && this.activeRow !== -1) {
+      this.setState({
+        activeColumn: (this.state.activeColumn + columnStopIndex) - this.columnStopIndex,
+        activeRow: (this.state.activeRow + rowStopIndex) - this.rowStopIndex,
+      })
+    }
+    this.rowStopIndex = rowStopIndex
+    this.columnStopIndex = columnStopIndex
   }
 
   handleClickTitle = title => () => {
@@ -205,17 +242,19 @@ const ShipInfoTableArea = connect(
 
   render() {
     const { rows, sortName, sortOrder } = this.props
-    const { windowWidth } = this.state
+    const { windowWidth, activeRow, activeColumn } = this.state
 
     return (
       <div id="ship-info-show" style={{ display: 'flex', flexDirection: 'column' }}>
         <Divider text={__('Ship Girls Info')} icon={false} />
-        <div style={{ flex: 1 }}>
+        <div style={{ flex: 1 }} className="table-container" onMouseLeave={this.handleMouseLeave}>
           <AutoSizer>
             {
               ({ width, height }) => (
                 <MultiGrid
                   ref={this.setRef}
+                  activeRow={activeRow}
+                  activeColumn={activeColumn}
                   sortName={sortName}
                   sortOrder={sortOrder}
                   windowWidth={windowWidth}
@@ -224,14 +263,17 @@ const ShipInfoTableArea = connect(
                   estimatedRowSize={100}
                   fixedColumnCount={windowWidth > this.tableWidth ? 0 : 3}
                   fixedRowCount={1}
-                  height={height}
-                  overscanColumnCount={3}
+                  handleContentRendered={this.handleContentRendered}
+                  height={height - 10}
+                  overscanColumnCount={18}
                   overscanRowCount={10}
                   cellRenderer={this.cellRenderer}
                   rowCount={rows.length + 1}
                   rowHeight={40}
                   scrollToAlignment="start"
-                  width={width}
+                  width={width - 10}
+                  scrollToColumn={0}
+                  scrollToRow={0}
                 />
               )}
           </AutoSizer>
