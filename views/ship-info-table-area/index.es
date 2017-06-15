@@ -46,11 +46,19 @@ const widths = [
   180, 40,
 ]
 
-const TitleCell = ({ style, title, sortable, centerAlign, sorting, up, down, handleClickTitle, onMouseOver }) => (
+const TitleCell = ({
+  style,
+  title,
+  sortable,
+  centerAlign,
+  sorting,
+  up,
+  down,
+  handleClickTitle,
+}) => (
   <div
     role="button"
     tabIndex={0}
-    onMouseOver={onMouseOver}
     style={{ ...style }}
     onClick={sortable ? handleClickTitle : ''}
     className={cls({
@@ -77,27 +85,15 @@ const ShipInfoTableArea = connect(
     sortOrder: PropTypes.number.isRequired,
   }
 
+  state = {
+    windowWidth: document.body.clientWidth,
+  }
+
   constructor(props) {
     super(props)
-
     this.tableWidth = sum(widths)
-
-    const width = document.body.clientWidth
-
-    console.log(this.tableWidth, width)
-
     this.updateWindowWidth = debounce(this.updateWindowWidth, 500)
-
     this.setRef = this.setRef.bind(this)
-
-    this.rowStopIndex = 0
-    this.columnStopIndex = 0
-
-    this.state = {
-      activeRow: -1,
-      activeColumn: -1,
-      windowWidth: width,
-    }
   }
 
   componentDidMount = () => {
@@ -128,9 +124,7 @@ const ShipInfoTableArea = connect(
     if (columnIndex === 0) {
       return <div style={style} />
     }
-
     const index = columnIndex - 1
-
     return (
       <TitleCell
         {...props}
@@ -145,46 +139,30 @@ const ShipInfoTableArea = connect(
       />
     )
   }
-
   cellRenderer = ({ columnIndex, key, rowIndex, style }) => {
     const { rows, sortName, sortOrder } = this.props
     const { windowWidth } = this.state
-    const setState = this.setState.bind(this)
-
-    const onMouseOver = () => {
-      setState({
-        activeColumn: columnIndex,
-        activeRow: rowIndex,
-      })
+    const props = {
+      key,
+      windowWidth,
+      className: cls({
+        'ship-info-cell': true,
+        center: centerAligns[columnIndex - 1],
+      }),
     }
-
     let content
     if (rowIndex === 0) {
-      content = this.titleRenderer({ columnIndex, style, sortName, sortOrder })
+      content = this.titleRenderer({ columnIndex, style, sortName, sortOrder, ...props })
+    } else if (columnIndex === 0) {
+      content = <div style={style} key={key} {...props}>{rowIndex}</div>
     } else {
-      if (columnIndex === 0) {
-        content = <div style={style} key={key}>{rowIndex}</div>
-      } else {
-        const index = columnIndex - 1
-        const ship = rows[rowIndex - 1]
-        const Cell = ShipInfoCells[types[index]]
-        content = <Cell ship={ship} style={style} />
-      }
+      const index = columnIndex - 1
+      const ship = rows[rowIndex - 1]
+      const Cell = ShipInfoCells[types[index]]
+      content = <Cell ship={ship} style={style} {...props} />
     }
 
-    return React.cloneElement(
-      content,
-      {
-        key,
-        onMouseOver,
-        windowWidth,
-        className: cls({
-          'ship-info-cell': true,
-          center: centerAligns[columnIndex - 1],
-          highlight: columnIndex === this.state.activeColumn || rowIndex === this.state.activeRow,
-        }),
-      }
-    )
+    return content
   }
 
   handleClickTitle = title => () => {
@@ -194,25 +172,6 @@ const ShipInfoTableArea = connect(
     } else {
       this.saveSortRules(this.props.sortName, (this.props.sortOrder + 1) % 2)
     }
-  }
-
-  handleMouseLeave = () => {
-    this.setState({
-      activeColumn: -1,
-      activeRow: -1,
-    })
-  }
-
-  handleContentRendered = (e) => {
-    const { rowStopIndex, columnStopIndex } = e
-    if (this.activeColumn !== -1 && this.activeRow !== -1) {
-      this.setState({
-        activeColumn: (this.state.activeColumn + columnStopIndex) - this.columnStopIndex,
-        activeRow: (this.state.activeRow + rowStopIndex) - this.rowStopIndex,
-      })
-    }
-    this.rowStopIndex = rowStopIndex
-    this.columnStopIndex = columnStopIndex
   }
 
   getColumnWidth = ({ index }) => {
@@ -230,13 +189,13 @@ const ShipInfoTableArea = connect(
   }
 
   render() {
-    const { rows, sortName, sortOrder, pagedLayout } = this.props
-    const { activeRow, activeColumn, windowWidth } = this.state
+    const { rows, sortName, sortOrder } = this.props
+    const { windowWidth } = this.state
 
     return (
       <div id="ship-info-show" style={{ display: 'flex', flexDirection: 'column' }}>
         <Divider text={__('Ship Girls Info')} icon={false} />
-        <div style={{ flex: 1 }} onMouseLeave={this.handleMouseLeave}>
+        <div style={{ flex: 1 }}>
           <AutoSizer>
             {
               ({ width, height }) => (
@@ -244,25 +203,22 @@ const ShipInfoTableArea = connect(
                   ref={this.setRef}
                   sortName={sortName}
                   sortOrder={sortOrder}
-                  activeRow={activeRow}
                   windowWidth={windowWidth}
-                  activeColumn={activeColumn}
                   columnCount={18}
                   columnWidth={this.getColumnWidth}
                   estimatedRowSize={100}
                   fixedColumnCount={windowWidth > this.tableWidth ? 0 : 3}
                   fixedRowCount={1}
                   height={height}
-                  onSectionRendered={this.handleContentRendered}
                   overscanColumnCount={3}
                   overscanRowCount={10}
                   cellRenderer={this.cellRenderer}
                   rowCount={rows.length + 1}
                   rowHeight={40}
+                  scrollToAlignment="start"
                   width={width}
                 />
               )}
-
           </AutoSizer>
         </div>
       </div>
