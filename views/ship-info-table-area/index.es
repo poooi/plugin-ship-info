@@ -183,7 +183,6 @@ const ShipInfoTableArea = connect(
     const { windowWidth } = this.state
     const setState = this.setState.bind(this)
     const onMouseOver = (e) => {
-      e.persist()
       this.mouseX = e.clientX
       this.mouseY = e.clientY
       setState({
@@ -191,14 +190,12 @@ const ShipInfoTableArea = connect(
         activeRow: rowIndex,
       })
     }
-    const onMouseEnter = onMouseOver
     const highlight = (columnIndex === this.state.activeColumn || rowIndex === this.state.activeRow)
       && !(columnIndex === 0 && rowIndex !== this.state.activeRow)
     const props = {
       key,
       windowWidth,
       onMouseOver,
-      onMouseEnter,
       className: cls({
         'ship-info-cell': true,
         center: centerAligns[columnIndex - 1],
