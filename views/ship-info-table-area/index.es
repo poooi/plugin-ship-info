@@ -4,6 +4,7 @@ import { connect } from 'react-redux'
 import cls from 'classnames'
 import { MultiGrid, AutoSizer } from 'react-virtualized'
 import { sum, debounce, floor } from 'lodash'
+import { remote } from 'electron'
 
 import Divider from '../divider'
 import { shipInfoShape } from './utils'
@@ -113,6 +114,7 @@ const ShipInfoTableArea = connect(
     super(props)
     this.tableWidth = sum(widths)
     this.updateWindowWidth = debounce(this.updateWindowWidth, 500)
+    this.handleScroll = debounce(this.handleScroll, 200)
     this.setRef = this.setRef.bind(this)
     this.rowStopIndex = 0
     this.columnStopIndex = 0
@@ -121,10 +123,24 @@ const ShipInfoTableArea = connect(
   componentDidMount = () => {
     this.updateWindowWidth()
     window.addEventListener('resize', this.updateWindowWidth)
+    document.querySelectorAll('.ReactVirtualized__Grid').forEach((target) => {
+      target.addEventListener('scroll', this.handleScroll)
+    })
   }
 
   componentWillUnmount = () => {
     window.removeListener('resize', this.updateWindowWidth)
+    document.querySelectorAll('.ReactVirtualized__Grid').forEach((target) => {
+      target.removeEventListener('scroll', this.handleScroll)
+    })
+  }
+
+  handleScroll = () => {
+    remote.getCurrentWebContents().sendInputEvent({
+      type: 'mouseMove',
+      x: this.mouseX,
+      y: this.mouseY,
+    })
   }
 
   updateWindowWidth = () => {
@@ -161,22 +177,28 @@ const ShipInfoTableArea = connect(
       />
     )
   }
+
   cellRenderer = ({ columnIndex, key, rowIndex, style }) => {
     const { rows, sortName, sortOrder } = this.props
     const { windowWidth } = this.state
     const setState = this.setState.bind(this)
-    const onMouseOver = () => {
+    const onMouseOver = (e) => {
+      e.persist()
+      this.mouseX = e.clientX
+      this.mouseY = e.clientY
       setState({
         activeColumn: columnIndex,
         activeRow: rowIndex,
       })
     }
+    const onMouseEnter = onMouseOver
     const highlight = (columnIndex === this.state.activeColumn || rowIndex === this.state.activeRow)
       && !(columnIndex === 0 && rowIndex !== this.state.activeRow)
     const props = {
       key,
       windowWidth,
       onMouseOver,
+      onMouseEnter,
       className: cls({
         'ship-info-cell': true,
         center: centerAligns[columnIndex - 1],
