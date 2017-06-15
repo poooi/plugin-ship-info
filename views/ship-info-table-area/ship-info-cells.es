@@ -1,32 +1,25 @@
 import React from 'react'
 import { OverlayTrigger, Tooltip } from 'react-bootstrap'
 import FontAwesome from 'react-fontawesome'
+import propTypes from 'prop-types'
 
 import Slotitems from './slotitems'
 import SallyArea from './sally-area'
 import { sokuInterpretation, sokuStyles } from '../constants'
-import { getTimePerHP } from './utils'
+import { getTimePerHP, shipInfoShape } from './utils'
 
 const { __, resolveTime } = window
 
-const Cell = ({ children, ...props }) => (
+const Id = ({ ship, ...props }) => (
   <div
     {...props}
   >
-    { children }
+    { ship.id }
   </div>
 )
 
-const Id = ({ ship, ...props }) => (
-  <Cell
-    {...props}
-  >
-    { ship.id }
-  </Cell>
-)
-
 const Name = ({ className, ship, ...props }) => (
-  <Cell
+  <div
     {...props}
     className={`${className || ''} ship-name`}
   >
@@ -40,15 +33,20 @@ const Name = ({ className, ship, ...props }) => (
         </span>
       }
     </span>
-  </Cell>
+  </div>
 )
 
+Name.propTypes = {
+  ship: propTypes.shape(shipInfoShape).isRequired,
+  className: propTypes.string,
+}
+
 const Type = ({ ship, ...props }) => (
-  <Cell
+  <div
     {...props}
   >
     { window.i18n.resources.__(ship.type) }
-  </Cell>
+  </div>
 )
 
 const Soku = ({ className, ship, ...props }) => {
@@ -56,29 +54,29 @@ const Soku = ({ className, ship, ...props }) => {
   const sokuString = sokuInterpretation[soku] || 'Unknown'
   const sokuClass = sokuStyles[soku] || ''
   return (
-    <Cell
+    <div
       {...props}
       className={`${className} ${sokuClass}`}
     >
       <span>{__(sokuString)}</span>
-    </Cell>
+    </div>
   )
 }
 
 const Lv = ({ ship, ...props }) => (
-  <Cell
+  <div
     {...props}
   >
     { ship.lv }
-  </Cell>
+  </div>
 )
 
 const Cond = ({ ship, ...props }) => (
-  <Cell
+  <div
     {...props}
   >
     { ship.cond }
-  </Cell>
+  </div>
 )
 
 const Karyoku = ({ className, ship, ...props }) => {
@@ -90,7 +88,7 @@ const Karyoku = ({ className, ship, ...props }) => {
     ? 'MAX'
     : `+${karyokuMax - karyokuNow}`
   return (
-    <Cell
+    <div
       {...props}
       className={`${className || ''} ${karyokuClass}`}
     >
@@ -98,7 +96,7 @@ const Karyoku = ({ className, ship, ...props }) => {
         {`${karyoku}/`}
         <span style={{ fontSize: '80%' }}>{karyokuString}</span>
       </span>
-    </Cell>
+    </div>
   )
 }
 
@@ -111,7 +109,7 @@ const Raisou = ({ className, ship, ...props }) => {
     ? 'MAX'
     : `+${raisouMax - raisouNow}`
   return (
-    <Cell
+    <div
       {...props}
       className={`${className || ''} ${raisouClass}`}
     >
@@ -119,7 +117,7 @@ const Raisou = ({ className, ship, ...props }) => {
         {`${raisou}/`}
         <span style={{ fontSize: '80%' }}>{raisouString}</span>
       </span>
-    </Cell>
+    </div>
   )
 }
 
@@ -132,7 +130,7 @@ const Taiku = ({ className, ship, ...props }) => {
     ? 'MAX'
     : `+${taikuMax - taikuNow}`
   return (
-    <Cell
+    <div
       {...props}
       className={`${className || ''} ${taikuClass}`}
     >
@@ -140,7 +138,7 @@ const Taiku = ({ className, ship, ...props }) => {
         {`${taiku}/`}
         <span style={{ fontSize: '80%' }}>{taikuString}</span>
       </span>
-    </Cell>
+    </div>
   )
 }
 
@@ -153,7 +151,7 @@ const Soukou = ({ className, ship, ...props }) => {
     ? 'MAX'
     : `+${soukouMax - soukouNow}`
   return (
-    <Cell
+    <div
       {...props}
       className={`${className || ''} ${soukouClass}`}
     >
@@ -161,7 +159,7 @@ const Soukou = ({ className, ship, ...props }) => {
         {`${soukou}/`}
         <span style={{ fontSize: '80%' }}>{soukouString}</span>
       </span>
-    </Cell>
+    </div>
   )
 }
 
@@ -174,7 +172,7 @@ const Lucky = ({ className, ship, ...props }) => {
     ? 'MAX'
     : `+${luckyMax - luckyNow}`
   return (
-    <Cell
+    <div
       {...props}
       className={`${className || ''} ${luckyClass}`}
     >
@@ -182,32 +180,32 @@ const Lucky = ({ className, ship, ...props }) => {
         {`${lucky}/`}
         <span style={{ fontSize: '80%' }}>{luckyString}</span>
       </span>
-    </Cell>
+    </div>
   )
 }
 
 const Kaihi = ({ ship, ...props }) => (
-  <Cell
+  <div
     {...props}
   >
     { ship.kaihi }
-  </Cell>
+  </div>
 )
 
 const Taisen = ({ ship, ...props }) => (
-  <Cell
+  <div
     {...props}
   >
     { ship.taisen }
-  </Cell>
+  </div>
 )
 
 const Sakuteki = ({ ship, ...props }) => (
-  <Cell
+  <div
     {...props}
   >
     { ship.sakuteki }
-  </Cell>
+  </div>
 )
 
 const RepairTime = ({ className, ship, ...props }) => {
@@ -221,7 +219,7 @@ const RepairTime = ({ className, ship, ...props }) => {
     repairClass = 'repair-minor'
   }
   return (
-    <Cell
+    <div
       {...props}
       className={`${repairClass} ${className}`}
     >
@@ -238,27 +236,27 @@ const RepairTime = ({ className, ship, ...props }) => {
           </OverlayTrigger>
 
       }
-    </Cell>
+    </div>
   )
 }
 
 const Equipment = ({ ship, ...props }) => (
-  <Cell
+  <div
     {...props}
   >
     <Slotitems slot={ship.slot} exslot={ship.exslot} />
-  </Cell>
+  </div>
 )
 
 const Locke = ({ ship,...props }) => (
-  <Cell
+  <div
     {...props}
   >
     {ship.locked === 1 ? <FontAwesome name="lock" /> : ' '}
-  </Cell>
+  </div>
 )
 
-export default {
+const ShipIndoCells = {
   id: Id,
   name: Name,
   type: Type,
@@ -277,3 +275,6 @@ export default {
   equipment: Equipment,
   lock: Locke,
 }
+
+export default ShipIndoCells
+
