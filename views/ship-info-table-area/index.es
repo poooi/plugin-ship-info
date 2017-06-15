@@ -1,4 +1,5 @@
-import React, { Component, PropTypes } from 'react'
+import React, { Component } from 'react'
+import propTypes from 'prop-types'
 import { connect } from 'react-redux'
 import cls from 'classnames'
 import { MultiGrid, AutoSizer } from 'react-virtualized'
@@ -73,6 +74,20 @@ const TitleCell = ({
   </div>
 )
 
+TitleCell.propTypes = {
+  style: propTypes.shape({
+    height: propTypes.string,
+    width: propTypes.string,
+  }),
+  title: propTypes.string.isRequired,
+  sortable: propTypes.bool.isRequired,
+  handleClickTitle: propTypes.func.isRequired,
+  centerAlign: propTypes.bool.isRequired,
+  sorting: propTypes.bool.isRequired,
+  up: propTypes.bool.isRequired,
+  down: propTypes.bool.isRequired,
+}
+
 const ShipInfoTableArea = connect(
   state => ({
     rows: shipRowsSelector(state),
@@ -80,9 +95,9 @@ const ShipInfoTableArea = connect(
   })
 )(class ShipInfoTableArea extends Component {
   static propTypes = {
-    rows: PropTypes.arrayOf(PropTypes.shape(shipInfoShape)).isRequired,
-    sortName: PropTypes.string.isRequired,
-    sortOrder: PropTypes.number.isRequired,
+    rows: propTypes.arrayOf(propTypes.shape(shipInfoShape)).isRequired,
+    sortName: propTypes.string.isRequired,
+    sortOrder: propTypes.number.isRequired,
   }
 
   state = {

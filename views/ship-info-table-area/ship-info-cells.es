@@ -18,6 +18,11 @@ const Id = ({ ship, ...props }) => (
   </div>
 )
 
+Id.propTypes = {
+  ship: propTypes.shape(shipInfoShape).isRequired,
+  className: propTypes.string,
+}
+
 const Name = ({ className, ship, ...props }) => (
   <div
     {...props}
@@ -49,6 +54,11 @@ const Type = ({ ship, ...props }) => (
   </div>
 )
 
+Type.propTypes = {
+  ship: propTypes.shape(shipInfoShape).isRequired,
+  className: propTypes.string,
+}
+
 const Soku = ({ className, ship, ...props }) => {
   const { soku } = ship
   const sokuString = sokuInterpretation[soku] || 'Unknown'
@@ -63,6 +73,11 @@ const Soku = ({ className, ship, ...props }) => {
   )
 }
 
+Soku.propTypes = {
+  ship: propTypes.shape(shipInfoShape).isRequired,
+  className: propTypes.string,
+}
+
 const Lv = ({ ship, ...props }) => (
   <div
     {...props}
@@ -71,6 +86,11 @@ const Lv = ({ ship, ...props }) => (
   </div>
 )
 
+Lv.propTypes = {
+  ship: propTypes.shape(shipInfoShape).isRequired,
+  className: propTypes.string,
+}
+
 const Cond = ({ ship, ...props }) => (
   <div
     {...props}
@@ -78,6 +98,11 @@ const Cond = ({ ship, ...props }) => (
     { ship.cond }
   </div>
 )
+
+Cond.propTypes = {
+  ship: propTypes.shape(shipInfoShape).isRequired,
+  className: propTypes.string,
+}
 
 const Karyoku = ({ className, ship, ...props }) => {
   const { karyoku, karyokuMax, karyokuNow } = ship
@@ -98,6 +123,11 @@ const Karyoku = ({ className, ship, ...props }) => {
       </span>
     </div>
   )
+}
+
+Karyoku.propTypes = {
+  ship: propTypes.shape(shipInfoShape).isRequired,
+  className: propTypes.string,
 }
 
 const Raisou = ({ className, ship, ...props }) => {
@@ -121,6 +151,11 @@ const Raisou = ({ className, ship, ...props }) => {
   )
 }
 
+Raisou.propTypes = {
+  ship: propTypes.shape(shipInfoShape).isRequired,
+  className: propTypes.string,
+}
+
 const Taiku = ({ className, ship, ...props }) => {
   const { taiku, taikuMax, taikuNow } = ship
   const taikuClass = taikuNow >= taikuMax
@@ -140,6 +175,11 @@ const Taiku = ({ className, ship, ...props }) => {
       </span>
     </div>
   )
+}
+
+Taiku.propTypes = {
+  ship: propTypes.shape(shipInfoShape).isRequired,
+  className: propTypes.string,
 }
 
 const Soukou = ({ className, ship, ...props }) => {
@@ -163,6 +203,11 @@ const Soukou = ({ className, ship, ...props }) => {
   )
 }
 
+Soukou.propTypes = {
+  ship: propTypes.shape(shipInfoShape).isRequired,
+  className: propTypes.string,
+}
+
 const Lucky = ({ className, ship, ...props }) => {
   const { lucky, luckyMax, luckyNow } = ship
   const luckyClass = luckyNow >= luckyMax
@@ -184,6 +229,11 @@ const Lucky = ({ className, ship, ...props }) => {
   )
 }
 
+Lucky.propTypes = {
+  ship: propTypes.shape(shipInfoShape).isRequired,
+  className: propTypes.string,
+}
+
 const Kaihi = ({ ship, ...props }) => (
   <div
     {...props}
@@ -191,6 +241,11 @@ const Kaihi = ({ ship, ...props }) => (
     { ship.kaihi }
   </div>
 )
+
+Kaihi.propTypes = {
+  ship: propTypes.shape(shipInfoShape).isRequired,
+  className: propTypes.string,
+}
 
 const Taisen = ({ ship, ...props }) => (
   <div
@@ -200,6 +255,11 @@ const Taisen = ({ ship, ...props }) => (
   </div>
 )
 
+Taisen.propTypes = {
+  ship: propTypes.shape(shipInfoShape).isRequired,
+  className: propTypes.string,
+}
+
 const Sakuteki = ({ ship, ...props }) => (
   <div
     {...props}
@@ -207,6 +267,11 @@ const Sakuteki = ({ ship, ...props }) => (
     { ship.sakuteki }
   </div>
 )
+
+Sakuteki.propTypes = {
+  ship: propTypes.shape(shipInfoShape).isRequired,
+  className: propTypes.string,
+}
 
 const RepairTime = ({ className, ship, ...props }) => {
   const { nowhp, maxhp, repairtime, lv, typeId } = ship
@@ -240,6 +305,11 @@ const RepairTime = ({ className, ship, ...props }) => {
   )
 }
 
+RepairTime.propTypes = {
+  ship: propTypes.shape(shipInfoShape).isRequired,
+  className: propTypes.string,
+}
+
 const Equipment = ({ ship, ...props }) => (
   <div
     {...props}
@@ -248,7 +318,12 @@ const Equipment = ({ ship, ...props }) => (
   </div>
 )
 
-const Locke = ({ ship,...props }) => (
+Equipment.propTypes = {
+  ship: propTypes.shape(shipInfoShape).isRequired,
+  className: propTypes.string,
+}
+
+const Lock = ({ ship, ...props }) => (
   <div
     {...props}
   >
@@ -256,7 +331,12 @@ const Locke = ({ ship,...props }) => (
   </div>
 )
 
-const ShipIndoCells = {
+Lock.propTypes = {
+  ship: propTypes.shape(shipInfoShape).isRequired,
+  className: propTypes.string,
+}
+
+export default {
   id: Id,
   name: Name,
   type: Type,
@@ -273,8 +353,5 @@ const ShipIndoCells = {
   sakuteki: Sakuteki,
   repairtime: RepairTime,
   equipment: Equipment,
-  lock: Locke,
+  lock: Lock,
 }
-
-export default ShipIndoCells
-

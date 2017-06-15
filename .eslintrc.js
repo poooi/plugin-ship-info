@@ -26,6 +26,7 @@ module.exports = {
     'comma-dangle': ['error', 'always-multiline'],
     'camelcase': 'off',
     'no-confusing-arrow': 'off',
+    'react/require-default-props': 'off',
   },
   'settings': {
     'import/resolver': {
@@ -52,6 +53,7 @@ module.exports = {
       'i18n-2',
       'semver',
       'react-virtualized',
+      'prop-types',
     ],
   },
 }

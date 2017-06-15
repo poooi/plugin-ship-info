@@ -17,7 +17,6 @@ export const getTimePerHP = memoize((api_lv = 1, api_stype = 1) => {
 })
 
 export const getShipInfoData = (ship, $ship, equips, $shipTypes, fleetIdMap, rawValue = false) => {
-  if (!(typeof ship === 'object' && $ship && typeof ship === 'object' && ship)) return
   const shipInfo = {
     id: ship.api_id,
     typeId: $ship.api_stype,
@@ -189,7 +188,6 @@ export const shipInfoShape = {
   daihatsu: PropTypes.bool.isRequired,
 }
 
-const collator = new Intl.Collator()
 const jpCollator = new Intl.Collator('ja-JP')
 
 export const nameCompare = (a, b) => {
