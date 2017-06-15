@@ -58,6 +58,7 @@ const TitleCell = ({
   down,
   handleClickTitle,
   onMouseOver,
+  className,
 }) => (
   <div
     role="button"
@@ -65,7 +66,7 @@ const TitleCell = ({
     onMouseOver={onMouseOver}
     style={{ ...style }}
     onClick={sortable ? handleClickTitle : ''}
-    className={cls({
+    className={cls(className, {
       clickable: sortable,
       center: centerAlign,
       sorting,
@@ -90,6 +91,7 @@ TitleCell.propTypes = {
   up: propTypes.bool.isRequired,
   down: propTypes.bool.isRequired,
   onMouseOver: propTypes.func.isRequired,
+  className: propTypes.string.isRequired,
 }
 
 const ShipInfoTableArea = connect(
@@ -192,6 +194,7 @@ const ShipInfoTableArea = connect(
     }
     const highlight = (columnIndex === this.state.activeColumn || rowIndex === this.state.activeRow)
       && !(columnIndex === 0 && rowIndex !== this.state.activeRow)
+      && !(rowIndex === 0 && columnIndex !== this.state.activeColumn)
     const props = {
       key,
       windowWidth,
