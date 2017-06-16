@@ -57,13 +57,13 @@ const TitleCell = ({
   up,
   down,
   handleClickTitle,
-  onMouseOver,
+  onMouseEnter,
   className,
 }) => (
   <div
     role="button"
     tabIndex={0}
-    onMouseOver={onMouseOver}
+    onMouseEnter={onMouseEnter}
     style={{ ...style }}
     onClick={sortable ? handleClickTitle : ''}
     className={cls(className, {
@@ -90,7 +90,7 @@ TitleCell.propTypes = {
   sorting: propTypes.bool.isRequired,
   up: propTypes.bool.isRequired,
   down: propTypes.bool.isRequired,
-  onMouseOver: propTypes.func.isRequired,
+  onMouseEnter: propTypes.func.isRequired,
   className: propTypes.string.isRequired,
 }
 
@@ -118,6 +118,7 @@ const ShipInfoTableArea = connect(
     this.updateWindowWidth = debounce(this.updateWindowWidth, 500)
     this.handleScroll = debounce(this.handleScroll, 200)
     this.setRef = this.setRef.bind(this)
+    this.webContent = remote.getCurrentWebContents()
     this.rowStopIndex = 0
     this.columnStopIndex = 0
   }
@@ -138,10 +139,14 @@ const ShipInfoTableArea = connect(
   }
 
   handleScroll = () => {
-    remote.getCurrentWebContents().sendInputEvent({
+    if (this.activeColumn === -1 || this.activeRow === -1) {
+      return
+    }
+    const zf = config.get('poi.zoomLevel', 1)
+    this.webContent.sendInputEvent({
       type: 'mouseMove',
-      x: this.mouseX,
-      y: this.mouseY,
+      x: floor(this.mouseX * zf),
+      y: floor(this.mouseY * zf),
     })
   }
 
@@ -184,7 +189,7 @@ const ShipInfoTableArea = connect(
     const { rows, sortName, sortOrder } = this.props
     const { windowWidth } = this.state
     const setState = this.setState.bind(this)
-    const onMouseOver = (e) => {
+    const onMouseEnter = (e) => {
       this.mouseX = e.clientX
       this.mouseY = e.clientY
       setState({
@@ -198,7 +203,7 @@ const ShipInfoTableArea = connect(
     const props = {
       key,
       windowWidth,
-      onMouseOver,
+      onMouseEnter,
       className: cls({
         'ship-info-cell': true,
         center: centerAligns[columnIndex - 1],
