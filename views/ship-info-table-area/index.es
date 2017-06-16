@@ -80,12 +80,12 @@ const TitleCell = ({
 
 TitleCell.propTypes = {
   style: propTypes.shape({
-    height: propTypes.string,
-    width: propTypes.string,
+    height: propTypes.number,
+    width: propTypes.number,
   }),
   title: propTypes.string.isRequired,
   sortable: propTypes.bool.isRequired,
-  handleClickTitle: propTypes.func.isRequired,
+  handleClickTitle: propTypes.func,
   centerAlign: propTypes.bool.isRequired,
   sorting: propTypes.bool.isRequired,
   up: propTypes.bool.isRequired,
@@ -167,7 +167,7 @@ const ShipInfoTableArea = connect(
 
   titleRenderer = ({ columnIndex, style, sortName, sortOrder, ...props }) => {
     if (columnIndex === 0) {
-      return <div style={style} />
+      return <div style={style} {...props} />
     }
     const index = columnIndex - 1
     return (
@@ -178,16 +178,15 @@ const ShipInfoTableArea = connect(
         sortable={sortables[index]}
         centerAlign={centerAligns[index]}
         sorting={sortName === types[index]}
-        up={sortName === types[index] && sortOrder}
-        down={sortName === types[index] && !sortOrder}
-        handleClickTitle={sortables[index] && this.handleClickTitle(types[index])}
+        up={sortName === types[index] && Boolean(sortOrder)}
+        down={sortName === types[index] && Boolean(!sortOrder)}
+        handleClickTitle={this.handleClickTitle(types[index])}
       />
     )
   }
 
   cellRenderer = ({ columnIndex, key, rowIndex, style }) => {
     const { rows, sortName, sortOrder } = this.props
-    const { windowWidth } = this.state
     const setState = this.setState.bind(this)
     const onMouseEnter = (e) => {
       this.mouseX = e.clientX
@@ -202,7 +201,6 @@ const ShipInfoTableArea = connect(
       && !(rowIndex === 0 && columnIndex !== this.state.activeColumn)
     const props = {
       key,
-      windowWidth,
       onMouseEnter,
       className: cls({
         'ship-info-cell': true,
