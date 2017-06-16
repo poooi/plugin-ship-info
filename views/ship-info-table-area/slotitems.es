@@ -1,37 +1,36 @@
-import React, { Component } from 'react'
+import React from 'react'
 import { OverlayTrigger, Tooltip } from 'react-bootstrap'
 import Path from 'path'
 import { SlotitemIcon } from 'views/components/etc/icon'
-import { isEqual } from 'lodash'
+import { map, filter } from 'lodash'
 import { connect } from 'react-redux'
 
 import { equipDataSelectorFactory } from 'views/utils/selectors'
 
 const { ROOT } = window
 
-const getBackgroundStyle = () => {
-  return window.isDarkTheme
+const getBackgroundStyle = () =>
+  window.isDarkTheme
   ? { backgroundColor: 'rgba(33, 33, 33, 0.7)' }
   : { backgroundColor: 'rgba(256, 256, 256, 0.7)' }
-}
 
-const Slotitem = ({ _item, item, isEx = false }) =>
+const Slotitem = ({ item, isEx = false }) =>
   <div className="slotitem-container">
     <OverlayTrigger
       placement="top"
       overlay={
-        <Tooltip id={`item-${_item.api_id}`} className="info-tooltip">
+        <Tooltip id={`item-${item.api_id}`} className="info-tooltip">
           {window.i18n.resources.__(item.api_name)}
           {
             item.api_level > 0 ?
-              <strong style={{ color: '#45A9A5' }}>★+{_item.api_level}</strong>
+              <strong style={{ color: '#45A9A5' }}>★+{item.api_level}</strong>
             : ''
           }
           {
-            _item.api_alv && _item.api_alv <= 7 && _item.api_alv >= 1 ?
+            item.api_alv && item.api_alv <= 7 && item.api_alv >= 1 ?
               <img
                 className="alv-img"
-                src={Path.join(ROOT, 'assets', 'img', 'airplane', `alv${_item.api_alv}.png`)}
+                src={Path.join(ROOT, 'assets', 'img', 'airplane', `alv${item.api_alv}.png`)}
               />
             : ''
            }
@@ -51,74 +50,43 @@ const Slotitem = ({ _item, item, isEx = false }) =>
   </div>
 
 const Slotitems = connect(
-  (state, props) => {
-    const items = []
-    const _items = []
-    const exitems = []
-    const _exitems = []
-    const { slot = [], exslot = 0 } = props
-    slot.forEach((itemId) => {
-      const data = equipDataSelectorFactory(itemId)(state)
-      if (typeof data != 'undefined') {
-        _items.push(data[0])
-        items.push(data[1])
-      }
+  (state, { slot, exslot }) => {
+    const items = map(filter(slot, itemId => itemId > 0), (itemId) => {
+      const [item, $item] = equipDataSelectorFactory(itemId)(state)
+      return { ...$item, ...item }
     })
-    ;[exslot].forEach((itemId) => {
-      const data = equipDataSelectorFactory(itemId)(state)
-      if (typeof data != 'undefined') {
-        _exitems.push(data[0])
-        exitems.push(data[1])
-      }
-    })
-
-    return ({
-      _items,
+    let exitem
+    if (exslot > 0) {
+      const [item, $item] = equipDataSelectorFactory(exslot)(state)
+      exitem = { ...$item, ...item }
+    }
+    return {
       items,
-      _exitems,
-      exitems,
-    })
+      exitem,
+    }
   }
-)(class Slotitems extends Component {
-
-  shouldComponentUpdate = (nextProps, nextState) => {
-    return !isEqual(this.props._items, nextProps._items)
-  }
-
-  render() {
-    const { _items, items, _exitems, exitems } = this.props
-    return (
-      <div className="slotitem-container">
-        {
-        _items &&
-        _items.map((_item, i) => {
-          const item = items[i]
-          return (
-            <Slotitem
-              _item={item}
-              item={item}
-              key={_item.api_id || 0}
-            />
-          )
-        })
-        }
-        {
-        _exitems &&
-        _exitems.map((_item, i) => {
-          const item = exitems[i]
-          return (
-            <Slotitem
-              _item={item}
-              item={item}
-              key={_item.api_id || 0}
-              isEx
-            />
-          )
-        })
-      }
-      </div>
-    )
-  }
-})
+)(({ items, exitem }) => (
+  <div className="slotitem-container">
+    {
+      items &&
+      items.map(item =>
+        (
+          <Slotitem
+            item={item}
+            key={item.api_id || 0}
+          />
+        )
+      )
+    }
+    {
+      exitem &&
+        <Slotitem
+          item={exitem}
+          isEx
+        />
+    }
+  </div>
+  )
+)
 
 export default Slotitems
