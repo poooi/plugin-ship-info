@@ -1,4 +1,5 @@
 import React from 'react'
+import propTypes from 'prop-types'
 import { OverlayTrigger, Tooltip } from 'react-bootstrap'
 import Path from 'path'
 import { SlotitemIcon } from 'views/components/etc/icon'
@@ -14,7 +15,7 @@ const getBackgroundStyle = () =>
   ? { backgroundColor: 'rgba(33, 33, 33, 0.7)' }
   : { backgroundColor: 'rgba(256, 256, 256, 0.7)' }
 
-const Slotitem = ({ item, isEx = false }) =>
+const Slotitem = ({ item, isEx = false }) => (
   <div className="slotitem-container">
     <OverlayTrigger
       placement="top"
@@ -29,6 +30,7 @@ const Slotitem = ({ item, isEx = false }) =>
           {
             item.api_alv && item.api_alv <= 7 && item.api_alv >= 1 ?
               <img
+                alt="alv"
                 className="alv-img"
                 src={Path.join(ROOT, 'assets', 'img', 'airplane', `alv${item.api_alv}.png`)}
               />
@@ -48,6 +50,19 @@ const Slotitem = ({ item, isEx = false }) =>
       </span>
     </OverlayTrigger>
   </div>
+)
+
+const itemShape = {
+  api_name: propTypes.string.isRequired,
+  api_level: propTypes.number.isRequired,
+  api_alv: propTypes.number,
+  api_type: propTypes.arrayOf(propTypes.number).isRequired,
+}
+
+Slotitem.propTypes = {
+  item: propTypes.shape(itemShape),
+  isEx: propTypes.bool,
+}
 
 const Slotitems = connect(
   (state, { slot, exslot }) => {
@@ -88,5 +103,10 @@ const Slotitems = connect(
   </div>
   )
 )
+
+Slotitems.WrappedComponent.propTypes = {
+  items: propTypes.arrayOf(propTypes.object),
+  exitem: propTypes.shape(itemShape),
+}
 
 export default Slotitems

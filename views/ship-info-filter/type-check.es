@@ -1,8 +1,8 @@
 import React, { Component } from 'react'
+import propTypes from 'prop-types'
 import { Row, Col, Input, Button } from 'react-bootstrap'
 import { connect } from 'react-redux'
 import { get, isEqual, map, intersection } from 'lodash'
-import FontAwesome from 'react-fontawesome'
 import { shipSuperTypeMap } from '../constants'
 
 const { __, __r } = window
@@ -15,7 +15,7 @@ const TypeCheck = connect(
     const defaultChecked = map($shipTypes, type => type.api_id).fill(true)
 
     let checked = get(state.config, 'plugin.ShipInfo.shipTypeChecked', defaultChecked)
-    checked = defaultChecked.length == checked.length ? checked : defaultChecked
+    checked = defaultChecked.length === checked.length ? checked : defaultChecked
     const checkedAll = checked.reduce((a, b) => a && b, true)
 
     return ({
@@ -27,19 +27,22 @@ const TypeCheck = connect(
   }
 )(class TypeCheck extends Component {
 
-  shouldComponentUpdate = (nextProps, nextState) => {
-    return !isEqual(nextProps.checked, this.props.checked) || this.props.show != nextProps.show
+  static propTypes = {
+    show: propTypes.bool.isRequired,
+    checked: propTypes.arrayOf(propTypes.bool).isRequired,
+    checkedAll: propTypes.bool.isRequired,
+    $shipTypes: propTypes.objectOf(propTypes.object),
   }
 
-  getTypeArray = (checked, $shipTypes) => {
-    return checked.reduce((types, isChecked, index) => {
-      return isChecked && ((index + 1) in $shipTypes) ? types.concat([index + 1]) : types
-    }, [])
-  }
+  shouldComponentUpdate = nextProps =>
+    !isEqual(nextProps.checked, this.props.checked) || this.props.show !== nextProps.show
 
-  getArrayInclusion = (array, subArray) => {
-    return isEqual(intersection(array, subArray), subArray) && array.length > 0
-  }
+  getTypeArray = (checked, $shipTypes) =>
+    checked.reduce((types, isChecked, index) =>
+      isChecked && ((index + 1) in $shipTypes) ? types.concat([index + 1]) : types, [])
+
+  getArrayInclusion = (array, subArray) =>
+    isEqual(intersection(array, subArray), subArray) && array.length > 0
 
   handleClickSuperType = (checkedTypes, index) => () => {
     const checked = this.props.checked.slice()
@@ -61,7 +64,7 @@ const TypeCheck = connect(
     const checked = this.props.checked.slice()
     let { checkedAll } = this.props
 
-    if (index == -1) {
+    if (index === -1) {
       checkedAll = !checkedAll
       checked.fill(checkedAll)
     } else {
@@ -73,11 +76,12 @@ const TypeCheck = connect(
 
   render() {
     const { show, $shipTypes, checked, checkedAll } = this.props
-    const xs = window.language == 'en-US' ? 3 : 2
-    const checkedTypes = checked.reduce((types, isChecked, index) => {
-      return isChecked && ((index + 1) in $shipTypes) ? types.concat([index + 1]) : types
-    }, [])
-
+    const xs = window.language === 'en-US' ? 3 : 2
+    const checkedTypes = checked.reduce((types, isChecked, index) =>
+      isChecked && ((index + 1) in $shipTypes)
+      ? types.concat([index + 1])
+      : types, []
+    )
 
     return (
       <div className="filter-type">
@@ -108,14 +112,14 @@ const TypeCheck = connect(
             <Col xs={12}>
               {
               map($shipTypes, (type, key) =>
-                <Col xs={xs} key={key}>
+                (<Col xs={xs} key={key}>
                   <Input
                     type="checkbox"
                     label={__r(type.api_name)}
                     onChange={this.handleClickSingleBox(key - 1)}
                     checked={checked[key - 1]}
                   />
-                </Col>
+                </Col>)
               )
             }
             </Col>
@@ -125,7 +129,7 @@ const TypeCheck = connect(
           <Col xs={12} className="super-type">
             {
               shipSuperTypeMap.map((supertype, index) =>
-                <Button
+                (<Button
                   key={supertype.name}
                   className="filter-button"
                   onClick={this.handleClickSuperType(checkedTypes, index)}
@@ -135,7 +139,7 @@ const TypeCheck = connect(
                   }
                 >
                   {__(`Filter${supertype.name}`)}
-                </Button>
+                </Button>)
               )
             }
           </Col>

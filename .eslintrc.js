@@ -27,6 +27,7 @@ module.exports = {
     'camelcase': 'off',
     'no-confusing-arrow': 'off',
     'react/require-default-props': 'off',
+    'no-console': ['error', {allow: ['warn', 'error']}],
   },
   'settings': {
     'import/resolver': {

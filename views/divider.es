@@ -1,4 +1,5 @@
-import React, { Component } from 'react'
+import React from 'react'
+import propTypes from 'prop-types'
 import FontAwesome from 'react-fontawesome'
 
 const Divider = (props) => {
@@ -17,6 +18,12 @@ const Divider = (props) => {
       </h5>
     </div>
   )
+}
+
+Divider.propTypes = {
+  text: propTypes.string.isRequired,
+  icon: propTypes.bool,
+  show: propTypes.bool,
 }
 
 export default Divider

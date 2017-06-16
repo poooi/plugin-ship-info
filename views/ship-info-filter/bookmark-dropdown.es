@@ -1,8 +1,9 @@
 import React, { Component } from 'react'
+import propTypes from 'prop-types'
 import { Dropdown, MenuItem, FormControl, Button, Label } from 'react-bootstrap'
 import Fuse from 'fuse.js'
 import { connect } from 'react-redux'
-import { get, values, clone } from 'lodash'
+import { get, values } from 'lodash'
 import FontAwesome from 'react-fontawesome'
 import { observe } from 'redux-observers'
 
@@ -28,6 +29,13 @@ const BookmarkItem = ({ eventKey, onSelect, onClick, children }) =>
     </MenuItem>
   )
 
+BookmarkItem.propTypes = {
+  eventKey: propTypes.string.isRequired,
+  onSelect: propTypes.func.isRequired,
+  onClick: propTypes.func.isRequired,
+  children: propTypes.arrayOf(propTypes.element).isRequired,
+}
+
 const BookmarkMenu = connect(
   state => ({
     bookmarks: extensionSelectorFactory(PLUGIN_KEY)(state),
@@ -46,6 +54,11 @@ const BookmarkMenu = connect(
     }
   }
 
+  static propTypes = {
+    bookmarks: propTypes.objectOf(propTypes.object).isRequired,
+    children: propTypes.arrayOf(propTypes.element),
+  }
+
   componentDidMount = () => {
     this.unsubsribeObserver = observe(window.store, [bookmarksObserver])
   }
@@ -59,10 +72,9 @@ const BookmarkMenu = connect(
   componentWillReceiveProps = (nextProps) => {
     const bookmarks = values(nextProps.bookmarks)
     this.fuse.setCollection(bookmarks)
-    console.log(nextProps.bookmarks, bookmarks, this.fuse.list)
   }
 
-  onSelect = (eventKey = this.state.query, e) => {
+  onSelect = (eventKey = this.state.query) => {
     const settings = get(this.props.bookmarks, eventKey, {})
     Object.keys(settings).forEach(key => config.set(`plugin.ShipInfo.${key}`, settings[key]))
   }
@@ -94,7 +106,7 @@ const BookmarkMenu = connect(
 
     const result = query.length > 0
       ? Object.entries(this.fuse.search(query))
-        .map(([key, value]) => value)
+        .map(([key, value]) => value) // eslint-disable-line no-unused-vars
         .map(value => value.name)
       : Object.keys(this.props.bookmarks)
     return (

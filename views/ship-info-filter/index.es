@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import propTypes from 'prop-types'
 import { Grid, Row, Col, Button } from 'react-bootstrap'
 import { lvOptions, lockedOptions, expeditionOptions, modernizationOptions,
   remodelOptions, rawValueOptions, pagedLayoutOptions,
@@ -12,6 +13,9 @@ import BookmarkDropdown from './bookmark-dropdown'
 const { __, config } = window
 
 export default class ShipInfoFilter extends Component {
+  static propTypes = {
+    showDetails: propTypes.bool.isRequired,
+  }
 
   handleResetAll = () => {
     const { bounds } = config.get('plugin.ShipInfo', {})

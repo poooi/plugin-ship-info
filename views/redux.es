@@ -1,5 +1,5 @@
 import { observer } from 'redux-observers'
-import { isEqual } from 'lodash'
+import { isEqual, omit } from 'lodash'
 
 import { extensionSelectorFactory } from 'views/utils/selectors'
 
@@ -17,21 +17,20 @@ try {
 export const reducer = (state = initState, action) => {
   const { type, bookmark, settings } = action
   switch (type) {
-  case '@@poi-plugin-ship-info@update':
-    return {
-      ...state,
-      [bookmark]: {
-        ...settings,
-        name: bookmark,
-      },
+    case '@@poi-plugin-ship-info@update':
+      return {
+        ...state,
+        [bookmark]: {
+          ...settings,
+          name: bookmark,
+        },
+      }
+    case '@@poi-plugin-ship-info@delete': {
+      return omit(state, bookmark)
     }
-  case '@@poi-plugin-ship-info@delete': {
-    const newState = {}
-    Object.keys(state).filter(key => key != bookmark).forEach(key => newState[key] = state[key])
-    return newState
+    default:
+      return state
   }
-  }
-  return state
 }
 
 // actions

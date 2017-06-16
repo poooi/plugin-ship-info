@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
-import { Row, Col, Input } from 'react-bootstrap'
+import propTypes from 'prop-types'
+import { Col, Input } from 'react-bootstrap'
 import { connect } from 'react-redux'
 import { get } from 'lodash'
 
@@ -18,9 +19,14 @@ const RadioCheck = connect(
   })
 )(class RadioCheck extends Component {
 
-  shouldComponentUpdate = (nextProps, nextState) => {
-    return this.props.currentRadio != nextProps.currentRadio
+  propTypes = {
+    label: propTypes.string.isRequired,
+    options: propTypes.objectOf(propTypes.objectOf(propTypes.string)),
+    currentRadio: propTypes.number.isRequired,
+    configKey: propTypes.string.isRequired,
   }
+
+  shouldComponentUpdate = nextProps => this.props.currentRadio !== nextProps.currentRadio
 
   handleClickRadio = index => () => {
     config.set(`plugin.ShipInfo.${this.props.configKey}`, index)
@@ -34,14 +40,14 @@ const RadioCheck = connect(
           <div className="filter-span"><span>{__(label)}</span></div>
           {
           Object.keys(options).map(key =>
-            <div key={key}>
+            (<div key={key}>
               <Input
                 type="radio"
                 label={__(options[key])}
-                onChange={this.handleClickRadio(parseInt(key))}
-                checked={(key == currentRadio)}
+                onChange={this.handleClickRadio(parseInt(key, 10))}
+                checked={(parseInt(key, 10) === currentRadio)}
               />
-            </div>
+            </div>)
           )
         }
         </div>

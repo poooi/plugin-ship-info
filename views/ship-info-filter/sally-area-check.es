@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import propTypes from 'prop-types'
 import { Row, Col, Input, Label } from 'react-bootstrap'
 import { connect } from 'react-redux'
 import { get, isEqual } from 'lodash'
@@ -8,13 +9,13 @@ const __ = window.__
 // to ensure a downgrade compatibility, another config key is used
 // Sally area value starts from 1, 0 is used for non-tagged ships
 const SallyAreaCheck = connect(
-  (state, props) => {
+  (state) => {
     const mapname = get(state, 'fcd.shiptag.mapname', [])
     const defaultChecked = Array(mapname.length + 1).fill(true)
     let checked = get(state.config, 'plugin.ShipInfo.sallyAreaChecked', defaultChecked)
 
     // reset config values if updated
-    checked = (mapname.length + 1) == checked.length
+    checked = (mapname.length + 1) === checked.length
         ? checked
         : defaultChecked
     const checkedAll = checked.reduce((a, b) => a && b, true)
@@ -28,16 +29,22 @@ const SallyAreaCheck = connect(
   }
 )(class SallyAreaCheck extends Component {
 
-  shouldComponentUpdate = (nextProps, nextState) => {
-    return nextProps.mapname.length != this.props.mapname.length ||
-      !isEqual(nextProps.checked, this.props.checked)
+  static propTypes = {
+    checked: propTypes.arrayOf(propTypes.bool).isRequired,
+    checkedAll: propTypes.bool.isRequired,
+    mapname: propTypes.arrayOf(propTypes.string),
+    color: propTypes.arrayOf(propTypes.string),
   }
+
+  shouldComponentUpdate = nextProps =>
+    nextProps.mapname.length !== this.props.mapname.length ||
+      !isEqual(nextProps.checked, this.props.checked)
 
   handleClickBox = index => () => {
     const checked = this.props.checked.slice()
     let { checkedAll } = this.props
 
-    if (index == -1) {
+    if (index === -1) {
       checkedAll = !checkedAll
       checked.fill(checkedAll)
     } else {
@@ -73,8 +80,8 @@ const SallyAreaCheck = connect(
           </div>
           {
             mapname.map((name, idx) =>
-              <div key={name}>
-              
+              (<div key={name}>
+
                 <Input
                   type="checkbox"
                   label={<Label style={{ color: color[idx] }}>{__(name)}</Label>}
@@ -82,7 +89,7 @@ const SallyAreaCheck = connect(
                   checked={checked[idx + 1]}
                   style={{ color: color[idx] || '' }}
                 />
-              </div>
+              </div>)
             )
           }
         </Col>
