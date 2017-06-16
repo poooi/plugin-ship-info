@@ -2,6 +2,7 @@ import React from 'react'
 import { OverlayTrigger, Tooltip } from 'react-bootstrap'
 import FontAwesome from 'react-fontawesome'
 import propTypes from 'prop-types'
+import cls from 'classnames'
 
 import Slotitems from './slotitems'
 import SallyArea from './sally-area'
@@ -91,13 +92,26 @@ Lv.propTypes = {
   className: propTypes.string,
 }
 
-const Cond = ({ ship, ...props }) => (
-  <div
-    {...props}
-  >
-    { ship.cond }
-  </div>
-)
+const Cond = ({ className, ship, ...props }) => {
+  let condClass
+  const { cond } = ship
+  if (cond >= 0 && cond < 20) {
+    condClass = 'cond-danger'
+  } else if (cond < 30) {
+    condClass = 'cond-warning'
+  } else if (cond >= 50) {
+    condClass = 'cond-success'
+  }
+
+  return (
+    <div
+      className={cls(condClass, className)}
+      {...props}
+    >
+      { ship.cond }
+    </div>
+  )
+}
 
 Cond.propTypes = {
   ship: propTypes.shape(shipInfoShape).isRequired,

@@ -168,7 +168,7 @@ const ShipInfoTableArea = connect(
     return (
       <TitleCell
         {...props}
-        style={{ ...style }}
+        style={style}
         title={titles[index]}
         sortable={sortables[index]}
         centerAlign={centerAligns[index]}

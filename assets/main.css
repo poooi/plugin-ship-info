@@ -137,6 +137,24 @@ body {
 .repair-minor.highlight {
   background-color: rgba(255, 255, 0, 0.75);
 }
+.cond-danger {
+  background-color: rgba(255, 0, 0, 0.4);
+}
+.cond-danger.highlight {
+  background-color: rgba(255, 0, 0, 0.7);
+}
+.cond-warning {
+  background-color: rgba(255, 165, 0, 0.4);
+}
+.cond-warning.highlight {
+  background-color: rgba(255, 165, 0, 0.7);
+}
+.cond-success {
+  background-color: rgba(255, 255, 0, 0.4);
+}
+.cond-success.highlight {
+  background-color: rgba(255, 255, 0, 0.7);
+}
 clickable {
   filter: none;
   transition: 0.2s;
