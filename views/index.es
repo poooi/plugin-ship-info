@@ -5,8 +5,8 @@ import { Provider } from 'react-redux'
 import { store, extendReducer } from 'views/create-store'
 
 import { reducer, PLUGIN_KEY } from './redux'
-import ShipInfoTableArea from './ship-info-table-area'
-import ShipInfoCheckboxArea from './ship-info-checkbox-area'
+import TableView from './table-view'
+import SettingsView from './settings-view'
 
 const { $ } = window
 
@@ -15,8 +15,8 @@ $('#font-awesome').setAttribute('href', require.resolve('font-awesome/css/font-a
 const ShipInfoArea = () =>
   (
     <div className="ship-info-wrap">
-      <ShipInfoCheckboxArea />
-      <ShipInfoTableArea />
+      <SettingsView />
+      <TableView />
     </div>
   )
 

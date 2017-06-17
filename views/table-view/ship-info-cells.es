@@ -7,7 +7,7 @@ import cls from 'classnames'
 import Slotitems from './slotitems'
 import SallyArea from './sally-area'
 import { sokuInterpretation, sokuStyles } from '../constants'
-import { getTimePerHP, shipInfoShape } from './utils'
+import { getTimePerHP, shipInfoShape } from '../utils'
 
 const { __, resolveTime } = window
 

@@ -3,7 +3,7 @@ import { OverlayTrigger, Tooltip, Label } from 'react-bootstrap'
 import FontAwesome from 'react-fontawesome'
 import { connect } from 'react-redux'
 
-import { sallyAreaSelectorFactory } from './selectors'
+import { sallyAreaSelectorFactory } from '../selectors'
 
 const { __ } = window
 

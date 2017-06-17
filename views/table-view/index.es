@@ -7,8 +7,8 @@ import { sum, debounce, floor } from 'lodash'
 import { remote } from 'electron'
 
 import Divider from '../divider'
-import { shipInfoShape } from './utils'
-import { shipRowsSelector, shipInfoConfigSelector } from './selectors'
+import { shipInfoShape } from '../utils'
+import { shipRowsSelector, shipInfoConfigSelector } from '../selectors'
 import ShipInfoCells from './ship-info-cells'
 
 const { __ } = window
