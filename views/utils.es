@@ -208,3 +208,19 @@ export const katakanaToHiragana = str =>
 export const getKanaSortValues = str =>
   katakanaToHiragana(str).split('').map(s => s.charCodeAt())
 
+// following function is used to convert betweern array of booleans and int
+// leading true value is to ensure the bit length
+// 12 => '1100' => [true, true, false, false] => [true, false, false]
+// [true, false, false] => [true, true, false, false] => '1100' => 12
+export const intToBoolArray = (int = 0) => {
+  const boolArray = int.toString(2).split('').map(s => !!+s)
+  boolArray.shift()
+  return boolArray
+}
+
+export const boolArrayToInt = (boolArray = []) => {
+  const arr = boolArray.slice()
+  arr.unshift(true)
+  const str = arr.map(bool => +bool).join('')
+  return parseInt(str, 2)
+}

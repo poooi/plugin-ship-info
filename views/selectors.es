@@ -5,7 +5,7 @@ import fp from 'lodash/fp'
 
 import { constSelector, shipDataSelectorFactory, shipsSelector,
   configSelector, fcdSelector, shipEquipDataSelectorFactory, fleetShipsIdSelectorFactory, stateSelector } from 'views/utils/selectors'
-import { getShipInfoData, katakanaToHiragana } from './utils'
+import { getShipInfoData, katakanaToHiragana, intToBoolArray } from './utils'
 
 const { __ } = window
 
@@ -208,15 +208,18 @@ const getSortFunction = (sortName) => {
 const shipTypesSelecor = createSelector(
   [
     state => get(state, 'const.$shipTypes', {}),
-    state => get(state.config, 'plugin.ShipInfo.shipTypeChecked'),
-  ], ($shipTypes, shipTypeChecked) =>
-    (shipTypeChecked || Object.keys($shipTypes).slice().fill(true))
-    .reduce((types, checked, index) =>
-      checked && ((index + 1) in $shipTypes)
-        ? types.concat([index + 1])
-        : types, []
-      )
-)
+    state => get(state.config, 'plugin.ShipInfo.shipTypes'),
+  ], ($shipTypes, shipTypeChecked) => {
+  const checked = intToBoolArray(shipTypeChecked)
+  if (checked.length !== Object.keys($shipTypes).length) {
+    return Object.keys($shipTypes).map(s => +s)
+  }
+  return checked.reduce((types, check, index) =>
+    check && ((index + 1) in $shipTypes)
+      ? types.concat([index + 1])
+      : types
+    , [])
+})
 
 const expeditionShipsSelector = createSelector(
   [

@@ -3,7 +3,9 @@ import propTypes from 'prop-types'
 import { Row, Col, Input, Button } from 'react-bootstrap'
 import { connect } from 'react-redux'
 import { get, isEqual, map, intersection } from 'lodash'
+
 import { shipSuperTypeMap } from '../constants'
+import { intToBoolArray, boolArrayToInt } from '../utils'
 
 const { __, __r } = window
 
@@ -12,9 +14,9 @@ const { __, __r } = window
 const TypeCheck = connect(
   (state, props) => {
     const $shipTypes = get(state, 'const.$shipTypes')
-    const defaultChecked = map($shipTypes, type => type.api_id).fill(true)
+    const defaultChecked = Object.keys($shipTypes).slice().fill(true)
 
-    let checked = get(state.config, 'plugin.ShipInfo.shipTypeChecked', defaultChecked)
+    let checked = intToBoolArray(get(state.config, 'plugin.ShipInfo.shipTypes'))
     checked = defaultChecked.length === checked.length ? checked : defaultChecked
     const checkedAll = checked.reduce((a, b) => a && b, true)
 
@@ -57,7 +59,7 @@ const TypeCheck = connect(
       })
     }
 
-    config.set('plugin.ShipInfo.shipTypeChecked', checked)
+    config.set('plugin.ShipInfo.shipTypes', boolArrayToInt(checked))
   }
 
   handleClickSingleBox = index => () => {
@@ -71,7 +73,7 @@ const TypeCheck = connect(
       checked[index] = !checked[index]
     }
 
-    config.set('plugin.ShipInfo.shipTypeChecked', checked)
+    config.set('plugin.ShipInfo.shipTypes', boolArrayToInt(checked))
   }
 
   render() {
