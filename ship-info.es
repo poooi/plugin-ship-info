@@ -61,32 +61,6 @@ const rememberSize = debounce(() => {
   config.set('plugin.ShipInfo.bounds', b)
 }, 5000)
 
-// apply zoomLevel to webcontents
-const setZoom = (zoom) => {
-  window.shipInfoContents.setZoomFactor(zoom)
-}
-
-setZoom(config.get('poi.zoomLevel', 1))
-
-const handleConfig = (path, value) => {
-  switch (path) {
-    case 'poi.zoomLevel': {
-      const zoom = parseFloat(value)
-      if (!Number.isNaN(zoom)) {
-        setZoom(zoom)
-      }
-    }
-      break
-    default:
-  }
-}
-
-config.on('config.set', handleConfig)
-
-window.addEventListener('unload', () => {
-  config.removeListener('config.set', handleConfig)
-})
-
 window.shipInfoWindow.on('move', rememberSize)
 window.shipInfoWindow.on('resize', rememberSize)
 
