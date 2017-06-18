@@ -10,6 +10,7 @@ import { observe } from 'redux-observers'
 import { extensionSelectorFactory } from 'views/utils/selectors'
 
 import { onUpdate, onDelete, PLUGIN_KEY, bookmarksObserver } from '../redux'
+import { boolArrayToInt } from '../utils'
 
 const { __ } = window
 
@@ -76,6 +77,10 @@ const BookmarkMenu = connect(
 
   onSelect = (eventKey = this.state.query) => {
     const settings = get(this.props.bookmarks, eventKey, {})
+    // comvert old settings to new
+    if ('shipTypeChecked' in settings) {
+      settings.shipTypes = boolArrayToInt(settings.shipTypeChecked)
+    }
     Object.keys(settings).forEach(key => config.set(`plugin.ShipInfo.${key}`, settings[key]))
   }
 
