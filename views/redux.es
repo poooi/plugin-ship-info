@@ -21,7 +21,7 @@ export const reducer = (state = initState, action) => {
       return {
         ...state,
         [bookmark]: {
-          ...settings,
+          ...omit(settings, 'shipTypeChecked'),
           name: bookmark,
         },
       }
