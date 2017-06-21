@@ -1,10 +1,25 @@
 import React, { Component } from 'react'
 import propTypes from 'prop-types'
-import { Row, Col, Input, Label } from 'react-bootstrap'
+import { div, Label } from 'react-bootstrap'
 import { connect } from 'react-redux'
 import { get, isEqual } from 'lodash'
+import cls from 'classnames'
 
 const __ = window.__
+
+const hexToRGBA = (hex, opacity = 1) => {
+  if (/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)) {
+    let color = hex.substring(1)
+    if (color.length === 3) {
+      color = [color[0], color[0], color[1], color[1], color[2], color[2]]
+    }
+    const r = parseInt(color.slice(0, 2), 16)
+    const g = parseInt(color.slice(2, 4), 16)
+    const b = parseInt(color.slice(4, 6), 16)
+    return `rgba(${r}, ${g}, ${b}, ${opacity})`
+  }
+  return ''
+}
 
 // to ensure a downgrade compatibility, another config key is used
 // Sally area value starts from 1, 0 is used for non-tagged ships
@@ -58,42 +73,47 @@ const SallyAreaCheck = connect(
   render() {
     const { mapname, color, checked, checkedAll } = this.props
     return (
-      <Row>
-        <Col xs={8} className="radio-check">
+      <div>
+        <div className="radio-check">
           <div className="filter-span"><span>{__('Sally Area')}</span></div>
 
-          <div>
-            <Input
-              type="checkbox"
-              label={__('All')}
-              onChange={this.handleClickBox(-1)}
-              checked={checkedAll}
-            />
+          <div
+            role="button"
+            tabIndex="0"
+            onClick={this.handleClickBox(-1)}
+            className={cls('filter-option', { checked: checkedAll })}
+          >
+            {__('All')}
           </div>
-          <div>
-            <Input
-              type="checkbox"
-              label={__('Free')}
-              onChange={this.handleClickBox(0)}
-              checked={checked[0]}
-            />
+          <div
+            role="button"
+            tabIndex="0"
+            onClick={this.handleClickBox(0)}
+            className={cls('filter-option', { checked: checked[0] })}
+          >
+            {__('Free')}
           </div>
           {
             mapname.map((name, idx) =>
-              (<div key={name}>
-
-                <Input
-                  type="checkbox"
-                  label={<Label style={{ color: color[idx] }}>{__(name)}</Label>}
-                  onChange={this.handleClickBox(idx + 1)}
-                  checked={checked[idx + 1]}
-                  style={{ color: color[idx] || '' }}
-                />
-              </div>)
+              (
+                <div
+                  key={name}
+                  onClick={this.handleClickBox(idx + 1)}
+                  className={'filter-option'}
+                  role="button"
+                  tabIndex="0"
+                  style={{
+                    color: !checked[idx + 1] && color[idx],
+                    backgroundColor: checked[idx + 1] && hexToRGBA(color[idx], 0.75),
+                  }}
+                >
+                  {__(name)}
+                </div>
+              )
             )
           }
-        </Col>
-      </Row>
+        </div>
+      </div>
     )
   }
 })
