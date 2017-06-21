@@ -397,4 +397,11 @@ th {
   display: flex;
   align-items: center;
   padding-left: 1em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.super-type a {
+  min-width: 12em;
 }

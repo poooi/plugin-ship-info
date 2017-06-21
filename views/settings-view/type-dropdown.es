@@ -94,7 +94,10 @@ const TypeMenu = connect(
           <div className="super-type">
             <MenuItem
               onClick={this.handleClickSingleBox(-1)}
-              className={cls('supertype', { checked: checkedAll })}
+              className={cls('supertype', {
+                checked: checkedAll,
+                partial: checked.filter(Boolean).length > 0 && !checkedAll,
+              })}
             >
               {__('All')}
             </MenuItem>
