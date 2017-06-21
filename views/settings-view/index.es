@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Grid, Row, Col, Button } from 'react-bootstrap'
+import { Grid, Row, Col, Button, ButtonGroup, ButtonToolbar } from 'react-bootstrap'
 import { lvOptions, lockedOptions, expeditionOptions, modernizationOptions,
   remodelOptions, rawValueOptions, pagedLayoutOptions,
   inFleetOptions, sparkleOptions,
@@ -8,6 +8,8 @@ import Divider from '../divider'
 import TypeCheck from './type-check'
 import RadioCheck from './radio-check'
 import SallyAreaCheck from './sally-area-check'
+
+import TypeDropdown from './type-dropdown'
 import BookmarkDropdown from './bookmark-dropdown'
 
 const { __, config } = window
@@ -41,6 +43,23 @@ export default class ShipInfoCheckboxArea extends Component {
           <Divider text={__('Filter Setting')} icon show={this.state.filterShow} />
         </div>
         <div id="ship-info-filter" style={{ display: 'block' }}>
+          <Grid>
+            <ButtonToolbar>
+              <ButtonGroup>
+                <TypeDropdown />
+              </ButtonGroup>
+
+              <ButtonGroup>
+                <Button
+                  onClick={this.handleResetAll}
+                  id="reset-button"
+                >
+                  {__('Reset all Filters & Settings')}
+                </Button>
+                <BookmarkDropdown />
+              </ButtonGroup>
+            </ButtonToolbar>
+          </Grid>
           <Grid>
             <TypeCheck show={filterShow} />
             {

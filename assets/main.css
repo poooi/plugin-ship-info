@@ -320,7 +320,6 @@ th {
   margin-left: 0.5em;
 }
 
-li > a,
 .bookmark > a{
   display: flex !important;
   align-items: center;
@@ -361,4 +360,41 @@ li > a,
 
 .ReactVirtualized__Grid:focus {
   border: 0px;
+}
+
+.type-menu {
+  display: flex;
+  flex-direction: row;
+  height: 20.5em;
+  overflow: hidden;
+}
+
+.type-menu >div {
+  display: inline-flex;
+  writing-mode: vertical-lr;
+  align-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.type-menu li {
+  display: block;
+  writing-mode: horizontal-tb;
+  border-left: solid 1ex rgba(0, 0, 0, 0);
+}
+
+.type-menu li.checked {
+  border-left: solid 1ex rgba(0, 150, 136, 0.75);
+  color: rgb(0, 150, 136)
+}
+
+.type-menu li.partial {
+  border-left: solid 1ex rgba(255, 152, 0, 0.75);
+}
+
+.type-menu a {
+  min-width: 8em;
+  height: 2em;
+  display: flex;
+  align-items: center;
+  padding-left: 1em;
 }
