@@ -28,7 +28,7 @@
   "FilterCV": "航空母艦",
   "FilterSS": "潛水艦",
   "FilterOthers": "別的艦娘",
-  "Ship Type Setting": "艦種", 
+  "Ship Type Setting": "艦種",
   "Level": "等級",
   "Lv.1": "Lv.1",
   "Above Lv.2": "Lv.2及以上",
@@ -70,5 +70,7 @@
   "Create ": "創建 ",
   "Overwrite ": "覆蓋 ",
   "Search or create a bookmark": "搜索或創建書籤",
-  "Bookmarks": "書籤"
+  "Bookmarks": "書籤",
+  "Ship types": "艦娘類型",
+  "Options": "選項"
 }
