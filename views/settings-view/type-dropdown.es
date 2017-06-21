@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import propTypes from 'prop-types'
-import { Input, Button, Dropdown, MenuItem } from 'react-bootstrap'
+import { Dropdown, MenuItem } from 'react-bootstrap'
 import { connect } from 'react-redux'
 import { get, isEqual, map, intersection } from 'lodash'
 import cls from 'classnames'
@@ -142,7 +142,7 @@ const TypeDropdown = () =>
   (
     <Dropdown id="type-dropdown">
       <Dropdown.Toggle>
-        {__('Ship Types')}
+        {__('Ship types')}
       </Dropdown.Toggle>
       <TypeMenu bsRole="menu" />
     </Dropdown>

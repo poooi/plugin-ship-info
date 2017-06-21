@@ -3,12 +3,12 @@ import propTypes from 'prop-types'
 import FontAwesome from 'react-fontawesome'
 
 const Divider = (props) => {
-  const { text, icon, show } = props
+  const { text = '', icon, show } = props
   return (
     <div className="divider">
       <hr />
       <h5>
-        <span>{`${text}  `}</span>
+        <span>{`${text}`}</span>
         <span>
           {
               icon &&

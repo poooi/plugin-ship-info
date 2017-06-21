@@ -271,7 +271,7 @@ const ShipInfoTableArea = connect(
 
     return (
       <div id="ship-info-show" style={{ display: 'flex', flexDirection: 'column' }}>
-        <Divider text={__('Ship Girls Info')} icon={false} />
+        <Divider icon={false} />
         <div style={{ flex: 1 }} className="table-container" onMouseLeave={this.handleMouseLeave}>
           <AutoSizer>
             {

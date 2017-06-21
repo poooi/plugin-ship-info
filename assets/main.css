@@ -42,18 +42,6 @@ body {
 .divider hr {
   margin-bottom: 15.5px;
 }
-.filter-button {
-  margin-top: 10px;
-  margin-bottom: 10px;
-}
-.filter-button-all {
-  margin-top: 10px;
-  margin-bottom: 0px;
-}
-.filter-span {
-  font-weight: bold;
-  margin-top: 10px;
-}
 .ship-info-cell {
   white-space: nowrap;
   line-height: 40px;
@@ -281,13 +269,40 @@ th {
   margin-left: 0.25ex;
 }
 
+.config-menu {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.config-menu > div {
+  min-width: 16em;
+  flex: 1;
+}
+
 .radio-check {
   display: flex;
   flex-direction: row;
+  white-space: nowrap;
+  align-items: center;
+  height: 3em;
 }
 
-.radio-check>div {
+.filter-option {
+  flex: 0;
+  padding-left: 1ex;
+  padding-right: 1ex;
+  line-height: 160%;
+}
+
+.filter-option.checked {
+  background-color: rgba(105, 240, 174, 0.5);
+}
+
+.filter-span {
+  font-weight: bold;
   flex: 1;
+  padding-left: 1ex;
+  padding-right: 2em;
 }
 
 .title-row th {
@@ -351,7 +366,7 @@ th {
 
 .dropdown-menu {
   overflow-y: scroll;
-  max-height: 25em;
+  max-height: 35em;
 }
 
 .dropdown-menu::-webkit-scrollbar {
