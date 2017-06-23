@@ -30,6 +30,7 @@ export const shipInfoConfigSelector = createSelector(
     sparkleRadio: get(config, 'plugin.ShipInfo.sparkleRadio', 0),
     exSlotRadio: get(config, 'plugin.ShipInfo.exSlotRadio', 0),
     daihatsuRadio: get(config, 'plugin.ShipInfo.daihatsuRadio', 0),
+    rawValue: get(config, 'plugin.ShipInfo.rawValue', false),
   })
 )
 
