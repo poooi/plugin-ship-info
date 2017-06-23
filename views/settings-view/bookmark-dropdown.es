@@ -115,7 +115,7 @@ const BookmarkMenu = connect(
         .map(value => value.name)
       : Object.keys(this.props.bookmarks)
     return (
-      <ul className="dropdown-menu">
+      <ul className="dropdown-menu pull-right">
         <li className="bookmark-input-list">
           <a>
             <FormControl
@@ -156,8 +156,8 @@ const BookmarkDropdown = connect(
   state => ({
     bookmarks: extensionSelectorFactory(PLUGIN_KEY)(state),
   })
-)(({ bookmarks }) =>
-  (<Dropdown id="bookmark">
+)(({ bookmarks, open }) =>
+  (<Dropdown id="bookmark" pullRight open={open}>
     <Dropdown.Toggle>
       {__('Bookmarks')}
     </Dropdown.Toggle>

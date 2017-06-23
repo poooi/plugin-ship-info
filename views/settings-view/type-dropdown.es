@@ -81,7 +81,7 @@ const TypeMenu = connect(
   }
 
   render() {
-    const { show, $shipTypes, checked, checkedAll } = this.props
+    const { $shipTypes, checked, checkedAll } = this.props
     const checkedTypes = checked.reduce((types, isChecked, index) =>
       isChecked && ((index + 1) in $shipTypes)
       ? types.concat([index + 1])
@@ -144,14 +144,18 @@ const TypeMenu = connect(
   }
 })
 
-const TypeDropdown = () =>
+const TypeDropdown = ({ open }) =>
   (
-    <Dropdown id="type-dropdown">
+    <Dropdown id="type-dropdown" open={open}>
       <Dropdown.Toggle>
         {__('Ship types')}
       </Dropdown.Toggle>
       <TypeMenu bsRole="menu" />
     </Dropdown>
   )
+
+TypeDropdown.propTypes = {
+  open: propTypes.bool,
+}
 
 export default TypeDropdown

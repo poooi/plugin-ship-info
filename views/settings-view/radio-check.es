@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import propTypes from 'prop-types'
-import { div, Input } from 'react-bootstrap'
+import { div } from 'react-bootstrap'
 import { connect } from 'react-redux'
 import { get } from 'lodash'
 import cls from 'classnames'
@@ -36,25 +36,23 @@ const RadioCheck = connect(
   render() {
     const { label, options, currentRadio } = this.props
     return (
-      <div>
-        <div className="radio-check">
-          <div className="filter-span"><span>{__(label)}</span></div>
-          {
-          Object.keys(options).map(key =>
-            (
-              <div
-                key={key}
-                role="button"
-                tabIndex="0"
-                onClick={this.handleClickRadio(parseInt(key, 10))}
-                className={cls('filter-option', { checked: parseInt(key, 10) === currentRadio })}
-              >
-                {__(options[key])}
-              </div>
-            )
+      <div className="radio-check">
+        <div className="filter-span"><span>{__(label)}</span></div>
+        {
+        Object.keys(options).map(key =>
+          (
+            <div
+              key={key}
+              role="button"
+              tabIndex="0"
+              onClick={this.handleClickRadio(parseInt(key, 10))}
+              className={cls('filter-option', { checked: parseInt(key, 10) === currentRadio })}
+            >
+              {__(options[key])}
+            </div>
           )
-        }
-        </div>
+        )
+      }
       </div>
     )
   }

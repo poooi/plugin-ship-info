@@ -73,46 +73,44 @@ const SallyAreaCheck = connect(
   render() {
     const { mapname, color, checked, checkedAll } = this.props
     return (
-      <div>
-        <div className="radio-check">
-          <div className="filter-span"><span>{__('Sally Area')}</span></div>
+      <div className="radio-check">
+        <div className="filter-span"><span>{__('Sally Area')}</span></div>
 
-          <div
-            role="button"
-            tabIndex="0"
-            onClick={this.handleClickBox(-1)}
-            className={cls('filter-option', { checked: checkedAll })}
-          >
-            {__('All')}
-          </div>
-          <div
-            role="button"
-            tabIndex="0"
-            onClick={this.handleClickBox(0)}
-            className={cls('filter-option', { checked: checked[0] })}
-          >
-            {__('Free')}
-          </div>
-          {
-            mapname.map((name, idx) =>
-              (
-                <div
-                  key={name}
-                  onClick={this.handleClickBox(idx + 1)}
-                  className={'filter-option'}
-                  role="button"
-                  tabIndex="0"
-                  style={{
-                    color: !checked[idx + 1] && color[idx],
-                    backgroundColor: checked[idx + 1] && hexToRGBA(color[idx], 0.75),
-                  }}
-                >
-                  {__(name)}
-                </div>
-              )
-            )
-          }
+        <div
+          role="button"
+          tabIndex="0"
+          onClick={this.handleClickBox(-1)}
+          className={cls('filter-option', { checked: checkedAll })}
+        >
+          {__('All')}
         </div>
+        <div
+          role="button"
+          tabIndex="0"
+          onClick={this.handleClickBox(0)}
+          className={cls('filter-option', { checked: checked[0] })}
+        >
+          {__('Free')}
+        </div>
+        {
+          mapname.map((name, idx) =>
+            (
+              <div
+                key={name}
+                onClick={this.handleClickBox(idx + 1)}
+                className={'filter-option'}
+                role="button"
+                tabIndex="0"
+                style={{
+                  color: !checked[idx + 1] && color[idx],
+                  backgroundColor: checked[idx + 1] && hexToRGBA(color[idx], 0.75),
+                }}
+              >
+                {__(name)}
+              </div>
+            )
+          )
+        }
       </div>
     )
   }

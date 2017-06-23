@@ -1,6 +1,5 @@
 import React, { Component } from 'react'
 import { Grid, Button, ButtonGroup, ButtonToolbar } from 'react-bootstrap'
-import Divider from '../divider'
 
 import TypeDropdown from './type-dropdown'
 import BookmarkDropdown from './bookmark-dropdown'
@@ -28,7 +27,7 @@ export default class ShipInfoCheckboxArea extends Component {
       <div id="ship-info-settings">
         <div id="ship-info-filter" style={{ display: 'block' }}>
           <Grid>
-            <ButtonToolbar>
+            <ButtonToolbar id="settings-toolbar">
               <ButtonGroup>
                 <TypeDropdown />
                 <ConfigDropdown />

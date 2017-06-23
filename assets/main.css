@@ -271,12 +271,15 @@ th {
 
 .config-menu {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  margin-left: 1ex;
 }
 
 .config-menu > div {
-  min-width: 16em;
   flex: 1;
+  display: flex;
+  width: 45em;
+  flex-wrap: wrap;
 }
 
 .radio-check {
@@ -285,6 +288,18 @@ th {
   white-space: nowrap;
   align-items: center;
   height: 3em;
+}
+
+.dual-col .radio-check {
+  width: 21em;
+}
+
+.single-col .radio-check {
+  width: 45em;
+}
+
+.dual-col .radio-check:nth-child(odd) {
+  margin-right: 3em;
 }
 
 .filter-option {
@@ -351,10 +366,6 @@ th {
   flex-grow: 0;
 }
 
-#bookmark-input {
-  font-size: 120%;
-}
-
 .bookmark-input-list > a:hover,
 .bookmark-input-list > a:focus {
   background-color: transparent !important;
@@ -366,7 +377,7 @@ th {
 
 .dropdown-menu {
   overflow-y: scroll;
-  max-height: 35em;
+  max-height: 25em;
 }
 
 .dropdown-menu::-webkit-scrollbar {
