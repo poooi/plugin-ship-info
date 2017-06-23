@@ -13,7 +13,6 @@ import ShipInfoCells from './ship-info-cells'
 
 const { __ } = window
 
-const floor5 = num => floor(num / 5) * 5
 const types = [
   'id', 'name', 'type', 'soku', 'lv',
   'cond', 'karyoku', 'raisou', 'taiku', 'soukou',
@@ -41,7 +40,7 @@ const centerAligns = [
 
 // width will always unshift 1 extra element for row index
 const widths = [
-  30,
+  40,
   50, 160, 90, 40, 40,
   40, 60, 60, 60, 60,
   60, 40, 40, 40, 80,
@@ -213,7 +212,7 @@ const ShipInfoTableArea = connect(
     if (rowIndex === 0) {
       content = this.titleRenderer({ columnIndex, style, sortName, sortOrder, ...props })
     } else if (columnIndex === 0) {
-      content = <div style={style} key={key} {...props}>{rowIndex}</div>
+      content = <div style={{ ...style, paddingLeft: '10px' }} key={key} {...props}>{rowIndex}</div>
     } else {
       const index = columnIndex - 1
       const ship = rows[rowIndex - 1]
@@ -253,7 +252,7 @@ const ShipInfoTableArea = connect(
   }
 
   getColumnWidth = ({ index }) => {
-    const width = floor5((widths[index] || 40) *
+    const width = floor((widths[index] || 40) *
       (this.state.windowWidth > this.tableWidth
         ? (this.state.windowWidth / this.tableWidth)
         : 1
@@ -291,14 +290,14 @@ const ShipInfoTableArea = connect(
                   fixedColumnCount={windowWidth > this.tableWidth ? 0 : 3}
                   fixedRowCount={1}
                   handleContentRendered={this.handleContentRendered}
-                  height={height - 10}
-                  overscanColumnCount={18}
+                  height={height}
+                  overscanColumnCount={8}
                   overscanRowCount={10}
                   cellRenderer={this.cellRenderer}
                   rowCount={rows.length + 1}
                   rowHeight={40}
                   scrollToAlignment="start"
-                  width={width - 10}
+                  width={width}
                   scrollToColumn={0}
                   scrollToRow={0}
                 />

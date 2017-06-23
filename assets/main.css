@@ -9,6 +9,7 @@ body {
   font-size: 14px;
   height: 100%;
   zoom: 1 !important;
+  overflow-y: hidden;
 }
 #ship-info {
   height: 100%;
