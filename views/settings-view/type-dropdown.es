@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import propTypes from 'prop-types'
-import { Dropdown, MenuItem } from 'react-bootstrap'
+import { Dropdown } from 'react-bootstrap'
 import { connect } from 'react-redux'
 import { get, isEqual, map, intersection } from 'lodash'
 import cls from 'classnames'
@@ -92,7 +92,9 @@ const TypeMenu = connect(
       <ul className="dropdown-menu">
         <div className=" type-menu">
           <div className="super-type">
-            <MenuItem
+            <div
+              role="button"
+              tabIndex="0"
               onClick={this.handleClickSingleBox(-1)}
               className={cls('supertype', {
                 checked: checkedAll,
@@ -100,11 +102,13 @@ const TypeMenu = connect(
               })}
             >
               {__('All')}
-            </MenuItem>
+            </div>
             {
               shipSuperTypeMap.map((supertype, index) =>
                 (
-                  <MenuItem
+                  <div
+                    role="button"
+                    tabIndex="0"
                     key={supertype.name}
                     className={cls('supertype', {
                       checked: this.getArrayInclusion(checkedTypes, supertype.id),
@@ -113,7 +117,7 @@ const TypeMenu = connect(
                     onClick={this.handleClickSuperType(checkedTypes, index)}
                   >
                     {__(`Filter${supertype.name}`)}
-                  </MenuItem>
+                  </div>
                 ))
             }
           </div>
@@ -121,13 +125,15 @@ const TypeMenu = connect(
             {
               map($shipTypes, (type, key) =>
                 (
-                  <MenuItem
+                  <div
+                    role="button"
+                    tabIndex="0"
                     key={key}
                     onClick={this.handleClickSingleBox(key - 1)}
                     className={cls('shiptype', { checked: checked[key - 1] })}
                   >
                     {__r(type.api_name)}
-                  </MenuItem>
+                  </div>
                 )
               )
             }

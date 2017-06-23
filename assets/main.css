@@ -391,22 +391,10 @@ th {
   flex-wrap: wrap;
 }
 
-.type-menu li {
+.type-menu .supertype,
+.type-menu .shiptype {
   display: block;
   writing-mode: horizontal-tb;
-  border-left: solid 1ex rgba(0, 0, 0, 0);
-}
-
-.type-menu li.checked {
-  border-left: solid 1ex rgba(0, 150, 136, 0.75);
-  color: rgb(0, 150, 136)
-}
-
-.type-menu li.partial {
-  border-left: solid 1ex rgba(255, 152, 0, 0.75);
-}
-
-.type-menu a {
   min-width: 8em;
   height: 2em;
   display: flex;
@@ -417,6 +405,19 @@ th {
   white-space: nowrap;
 }
 
-.super-type a {
-  min-width: 12em;
+.type-menu .supertype.checked,
+.type-menu .shiptype.checked {
+  background-color: rgba(105, 240, 174, 0.5);
+}
+
+.type-menu .supertype.partial,
+.type-menu .shiptype.partial {
+  background-color: rgba(205,220,57,0.5);
+}
+
+.type-menu a {
+}
+
+.super-type {
+  margin-right: 2em;
 }
