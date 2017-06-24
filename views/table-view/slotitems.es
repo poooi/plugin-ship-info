@@ -40,7 +40,7 @@ const Slotitem = ({ item, isEx = false }) => (
         }
     >
       <span>
-        <SlotitemIcon slotitemId={item.api_type[3]} />
+        <SlotitemIcon alt={window.i18n.resources.__(item.api_name)} slotitemId={item.api_type[3]} />
         {
           isEx &&
           <span className="slotitem-onslot" style={getBackgroundStyle()} >

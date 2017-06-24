@@ -353,16 +353,7 @@ th {
 }
 
 .fleet-id-indicator {
-  font-weight: bolder;
-  color: white;
-  font-family: serif;
-  margin-left: 0.5em;
-  text-shadow:
-    -1px -1px 0 lightseagreen,
-    1px -1px 0 lightseagreen,
-    -1px 1px 0 lightseagreen,
-    1px 1px 0 lightseagreen;
-  -webkit-font-smoothing: antialiased;
+  height: 14px;
 }
 
 .sally-area-label {

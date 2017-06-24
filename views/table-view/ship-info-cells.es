@@ -3,6 +3,7 @@ import { OverlayTrigger, Tooltip } from 'react-bootstrap'
 import FontAwesome from 'react-fontawesome'
 import propTypes from 'prop-types'
 import cls from 'classnames'
+import path from 'path'
 
 import Slotitems from './slotitems'
 import SallyArea from './sally-area'
@@ -36,9 +37,11 @@ const Name = ({ className, ship, ...props }) => (
       {window.i18n.resources.__(ship.name)}</span>
     {
       ship.fleetId > -1 &&
-      <span className="fleet-id-indicator">
-        {`/${ship.fleetId + 1}`}
-      </span>
+        <img
+          className="fleet-id-indicator"
+          alt={`fleet: ${ship.fleetId + 1}`}
+          src={path.resolve(__dirname, `../../assets/svg/fleet-indicator-${ship.fleetId + 1}.svg`)}
+        />
     }
     <SallyArea area={ship.sallyArea} info_id={ship.id} />
   </div>
