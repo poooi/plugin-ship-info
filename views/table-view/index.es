@@ -125,16 +125,17 @@ const ShipInfoTableArea = connect(
   componentDidMount = () => {
     this.updateWindowWidth()
     window.addEventListener('resize', this.updateWindowWidth)
-    document.querySelectorAll('.ReactVirtualized__Grid').forEach((target) => {
-      target.addEventListener('scroll', this.handleScroll)
-    })
+    // console.log(document.querySelectorAll('.ReactVirtualized__Grid'))
+    // document.querySelectorAll('.ReactVirtualized__Grid').forEach((target) => {
+    //   target.addEventListener('scroll', this.handleScroll)
+    // })
   }
 
   componentWillUnmount = () => {
     window.removeListener('resize', this.updateWindowWidth)
-    document.querySelectorAll('.ReactVirtualized__Grid').forEach((target) => {
-      target.removeEventListener('scroll', this.handleScroll)
-    })
+    // document.querySelectorAll('.ReactVirtualized__Grid').forEach((target) => {
+    //   target.removeEventListener('scroll', this.handleScroll)
+    // })
   }
 
   handleScroll = () => {
@@ -290,6 +291,7 @@ const ShipInfoTableArea = connect(
                   height={height}
                   overscanColumnCount={8}
                   overscanRowCount={10}
+                  onScroll={this.handleScroll}
                   cellRenderer={this.cellRenderer}
                   rowCount={rows.length + 1}
                   rowHeight={40}
