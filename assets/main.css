@@ -199,9 +199,18 @@ clickable {
   background-color: #3d3d3d;
 }
 
-#ship-info-show .ship-info-table .ship-name {
-  justify-content: space-between;
+.ship-name {
   align-items: center;
+  display: flex;
+}
+
+.ship-name .name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.ship-name .fleet-id-indicator {
 }
 
 #ship-info-show .ship-info-table .status-label {

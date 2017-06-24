@@ -29,16 +29,18 @@ const Name = ({ className, ship, ...props }) => (
     {...props}
     className={`${className || ''} ship-name`}
   >
-    <span>
-      {window.i18n.resources.__(ship.name)}
-      <SallyArea area={ship.sallyArea} info_id={ship.id} />
-      {
-        ship.fleetId > -1 &&
-        <span className="fleet-id-indicator">
-          {`/${ship.fleetId + 1}`}
-        </span>
-      }
-    </span>
+    <span
+      className="name"
+      title={window.i18n.resources.__(ship.name)}
+    >
+      {window.i18n.resources.__(ship.name)}</span>
+    {
+      ship.fleetId > -1 &&
+      <span className="fleet-id-indicator">
+        {`/${ship.fleetId + 1}`}
+      </span>
+    }
+    <SallyArea area={ship.sallyArea} info_id={ship.id} />
   </div>
 )
 
