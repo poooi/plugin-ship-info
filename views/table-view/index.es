@@ -277,6 +277,7 @@ const ShipInfoTableArea = connect(
             {
               ({ width, height }) => (
                 <MultiGrid
+                  rows={rows}
                   ref={this.setRef}
                   activeRow={activeRow}
                   activeColumn={activeColumn}
