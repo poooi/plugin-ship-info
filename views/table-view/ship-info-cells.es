@@ -290,7 +290,7 @@ Sakuteki.propTypes = {
 }
 
 const RepairTime = ({ className, ship, ...props }) => {
-  const { nowhp, maxhp, repairtime, lv, typeId } = ship
+  const { nowhp, maxhp, repairtime, lv, typeId, inDock } = ship
   let repairClass = ''
   if (nowhp * 4 <= maxhp) {
     repairClass = 'repair-heavy'
@@ -313,7 +313,12 @@ const RepairTime = ({ className, ship, ...props }) => {
                 { `1HP : ${resolveTime(getTimePerHP(lv, typeId) / 1000)}` }
               </Tooltip>}
           >
-            <span>{resolveTime(repairtime)}</span>
+            <span>
+              {
+                inDock && <FontAwesome name="bath" />
+              }
+              {resolveTime(repairtime)}
+            </span>
           </OverlayTrigger>
 
       }

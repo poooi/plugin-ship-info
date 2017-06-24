@@ -4,7 +4,8 @@ import { get, mapValues, findIndex, includes } from 'lodash'
 import fp from 'lodash/fp'
 
 import { constSelector, shipDataSelectorFactory, shipsSelector,
-  configSelector, fcdSelector, shipEquipDataSelectorFactory, fleetShipsIdSelectorFactory, stateSelector } from 'views/utils/selectors'
+  configSelector, fcdSelector, shipEquipDataSelectorFactory, fleetShipsIdSelectorFactory,
+  stateSelector, inRepairShipsIdSelector } from 'views/utils/selectors'
 import { getShipInfoData, katakanaToHiragana, intToBoolArray } from './utils'
 
 const { __ } = window
@@ -57,9 +58,10 @@ export const shipTableDataSelectorFactory = memoize(shipId =>
       constSelector,
       shipFleetIdMapSelector,
       configSelector,
+      inRepairShipsIdSelector,
     ],
-    ([ship, $ship] = [], equips, { $shipTypes }, fleetIdMap, config) =>
-      getShipInfoData(ship, $ship, equips, $shipTypes, fleetIdMap, get(config, 'plugin.ShipInfo.rawValue', false))
+    ([ship, $ship] = [], equips, { $shipTypes }, fleetIdMap, config, repairs = []) =>
+      getShipInfoData(ship, $ship, equips, $shipTypes, fleetIdMap, get(config, 'plugin.ShipInfo.rawValue', false), repairs)
   )
 )
 

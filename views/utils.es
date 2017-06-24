@@ -16,7 +16,7 @@ export const getTimePerHP = memoize((api_lv = 1, api_stype = 1) => {
   return ((api_lv * 5) + ((Math.floor(Math.sqrt(api_lv - 11)) * 10) + 50)) * factor * 1000
 })
 
-export const getShipInfoData = (ship, $ship, equips, $shipTypes, fleetIdMap, rawValue = false) => {
+export const getShipInfoData = (ship, $ship, equips, $shipTypes, fleetIdMap, rawValue = false, repairs = []) => {
   const shipInfo = {
     id: ship.api_id,
     typeId: $ship.api_stype,
@@ -48,6 +48,7 @@ export const getShipInfoData = (ship, $ship, equips, $shipTypes, fleetIdMap, raw
     maxhp: ship.api_maxhp,
     losshp: ship.api_maxhp - ship.api_nowhp,
     repairtime: parseInt(ship.api_ndock_time / 1000.0, 10),
+    inDock: repairs.includes(ship.api_id),
     after: parseInt($ship.api_aftershipid, 10),
     sallyArea: ship.api_sally_area || 0,
     soku: ship.api_soku,
