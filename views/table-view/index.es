@@ -103,7 +103,6 @@ const ShipInfoTableArea = connect(
     rows: propTypes.arrayOf(propTypes.shape(shipInfoShape)).isRequired,
     sortName: propTypes.string.isRequired,
     sortOrder: propTypes.number.isRequired,
-    rawValue: propTypes.number.isRequired,
   }
 
   state = {
@@ -266,7 +265,7 @@ const ShipInfoTableArea = connect(
   }
 
   render() {
-    const { rows, sortName, sortOrder, rawValue } = this.props
+    const { rows } = this.props
     const { windowWidth, activeRow, activeColumn } = this.state
 
     return (
@@ -281,9 +280,6 @@ const ShipInfoTableArea = connect(
                   ref={this.setRef}
                   activeRow={activeRow}
                   activeColumn={activeColumn}
-                  sortName={sortName}
-                  sortOrder={sortOrder}
-                  rawValue={rawValue}
                   windowWidth={windowWidth}
                   columnCount={18}
                   columnWidth={this.getColumnWidth}

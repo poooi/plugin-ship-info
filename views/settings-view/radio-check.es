@@ -20,9 +20,9 @@ const RadioCheck = connect(
   })
 )(class RadioCheck extends Component {
 
-  propTypes = {
+  static propTypes = {
     label: propTypes.string.isRequired,
-    options: propTypes.objectOf(propTypes.objectOf(propTypes.string)),
+    options: propTypes.objectOf(propTypes.string),
     currentRadio: propTypes.number.isRequired,
     configKey: propTypes.string.isRequired,
   }

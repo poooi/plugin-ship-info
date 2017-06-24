@@ -32,9 +32,12 @@ const BookmarkItem = ({ eventKey, onSelect, onClick, children }) =>
 
 BookmarkItem.propTypes = {
   eventKey: propTypes.string.isRequired,
-  onSelect: propTypes.func.isRequired,
-  onClick: propTypes.func.isRequired,
-  children: propTypes.arrayOf(propTypes.element).isRequired,
+  onSelect: propTypes.func,
+  onClick: propTypes.func,
+  children: propTypes.oneOfType([
+    propTypes.arrayOf(propTypes.element),
+    propTypes.string,
+  ]).isRequired,
 }
 
 const BookmarkMenu = connect(

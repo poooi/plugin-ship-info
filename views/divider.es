@@ -21,7 +21,7 @@ const Divider = (props) => {
 }
 
 Divider.propTypes = {
-  text: propTypes.string.isRequired,
+  text: propTypes.string,
   icon: propTypes.bool,
   show: propTypes.bool,
 }
