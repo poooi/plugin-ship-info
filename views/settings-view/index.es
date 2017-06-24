@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Grid, Button, ButtonGroup, ButtonToolbar } from 'react-bootstrap'
+import { Button, ButtonGroup, ButtonToolbar } from 'react-bootstrap'
 
 import TypeDropdown from './type-dropdown'
 import BookmarkDropdown from './bookmark-dropdown'
@@ -25,26 +25,22 @@ export default class ShipInfoCheckboxArea extends Component {
   render() {
     return (
       <div id="ship-info-settings">
-        <div id="ship-info-filter" style={{ display: 'block' }}>
-          <Grid>
-            <ButtonToolbar id="settings-toolbar">
-              <ButtonGroup>
-                <TypeDropdown />
-                <ConfigDropdown />
-              </ButtonGroup>
+        <ButtonToolbar id="settings-toolbar">
+          <ButtonGroup>
+            <TypeDropdown />
+            <ConfigDropdown />
+          </ButtonGroup>
 
-              <ButtonGroup>
-                <Button
-                  onClick={this.handleResetAll}
-                  id="reset-button"
-                >
-                  {__('Reset all Filters & Settings')}
-                </Button>
-                <BookmarkDropdown />
-              </ButtonGroup>
-            </ButtonToolbar>
-          </Grid>
-        </div>
+          <ButtonGroup>
+            <Button
+              onClick={this.handleResetAll}
+              id="reset-button"
+            >
+              {__('Reset')}
+            </Button>
+            <BookmarkDropdown />
+          </ButtonGroup>
+        </ButtonToolbar>
       </div>
     )
   }

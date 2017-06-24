@@ -148,6 +148,12 @@ clickable {
   filter: none;
   transition: 0.2s;
 }
+
+#ship-info-settings {
+  padding-left: 8px;
+  padding-top: 1ex;
+}
+
 #ship-info-settings .filter-type .checkbox {
   margin-top: 1px;
   margin-bottom: 1px;
