@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import propTypes from 'prop-types'
-import { div, Label } from 'react-bootstrap'
+import { div } from 'react-bootstrap'
 import { connect } from 'react-redux'
 import { get, isEqual } from 'lodash'
 import cls from 'classnames'
