@@ -61,7 +61,7 @@
   "In Fleet": "艦隊編入",
   "Sparkle": "キラキラ",
   "Extra Slot": "補強増設",
-  "Reset all Filters & Settings": "フィルターと設定をリセットする",
+  "Reset": "設定を初期化する",
   "Single": "単",
   "Multiple": "多",
   "Unknown Area %s, data not updated": "未知の海域　%s、データが更新されていません",
@@ -70,5 +70,7 @@
   "Create ": "作成： ",
   "Overwrite ": "上書き：",
   "Search or create a bookmark": "ブックマークを検索 / 作成する",
-  "Bookmarks": "ブックマーク"
+  "Bookmarks": "ブックマーク",
+  "Ship types": "艦娘タイプ",
+  "Options": "オプション"
 }

@@ -28,7 +28,7 @@
   "FilterCV": "航空母舰",
   "FilterSS": "潜水舰",
   "FilterOthers": "别的舰娘",
-  "Ship Type Setting": "舰种",  
+  "Ship Type Setting": "舰种",
   "Level": "等级",
   "Lv.1": "Lv.1",
   "Above Lv.2": "Lv.2及以上",
@@ -61,7 +61,7 @@
   "In Fleet": "舰队编入",
   "Sparkle": "战意高昂",
   "Extra Slot": "补强增设",
-  "Reset all Filters & Settings": "重置所有过滤与设置",
+  "Reset": "重置设置",
   "Single": "单页",
   "Multiple": "多页",
   "Unknown Area %s, data not updated": "未知海域 %s，数据未更新",
@@ -70,5 +70,7 @@
   "Create ": "创建 ",
   "Overwrite ": "覆盖 ",
   "Search or create a bookmark": "搜索或创建书签",
-  "Bookmarks": "书签"
+  "Bookmarks": "书签",
+  "Ship types": "舰娘类型",
+  "Options": "选项"
 }

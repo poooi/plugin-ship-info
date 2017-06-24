@@ -23,6 +23,10 @@ export const windowOptions = {
   y,
   width,
   height,
+  webPreferences: {
+    experimentalFeatures: true,
+    experimentalCanvasFeatures: true,
+  },
 }
 export const windowURL = `file://${__dirname}/index.html`
 export const useEnv = true
@@ -31,7 +35,5 @@ export const useEnv = true
 // remove legacy config to tidy the config.cson
 // to be removed sometime
 export const pluginDidLoad = () => {
-  config.set('plugin.ShipInfo.shipTypeBoxes')
-  config.set('plugin.ShipInfo.sallyAreaBoxes')
-  config.set('plugin.ShipInfo.shipCheckedAll')
+  config.set('plugin.ShipInfo.shipTypeChecked')
 }

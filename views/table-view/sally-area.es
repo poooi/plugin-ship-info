@@ -1,10 +1,9 @@
-import React, { Component } from 'react'
+import React from 'react'
 import { OverlayTrigger, Tooltip, Label } from 'react-bootstrap'
 import FontAwesome from 'react-fontawesome'
-import { get } from 'lodash'
 import { connect } from 'react-redux'
 
-import { sallyAreaSelectorFactory } from './selectors'
+import { sallyAreaSelectorFactory } from '../selectors'
 
 const { __ } = window
 
@@ -29,7 +28,7 @@ const SallyArea = connect(
         </Tooltip>
       }
     >
-      <Label style={{ color: color }} className="sally-area-label" >
+      <Label style={{ color }} className="sally-area-label" >
         <FontAwesome name="tag" />
       </Label>
     </OverlayTrigger>

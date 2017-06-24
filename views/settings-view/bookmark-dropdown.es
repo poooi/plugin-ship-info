@@ -1,14 +1,16 @@
 import React, { Component } from 'react'
+import propTypes from 'prop-types'
 import { Dropdown, MenuItem, FormControl, Button, Label } from 'react-bootstrap'
 import Fuse from 'fuse.js'
 import { connect } from 'react-redux'
-import { get, values, clone } from 'lodash'
+import { get, values } from 'lodash'
 import FontAwesome from 'react-fontawesome'
 import { observe } from 'redux-observers'
 
 import { extensionSelectorFactory } from 'views/utils/selectors'
 
 import { onUpdate, onDelete, PLUGIN_KEY, bookmarksObserver } from '../redux'
+import { boolArrayToInt } from '../utils'
 
 const { __ } = window
 
@@ -28,6 +30,16 @@ const BookmarkItem = ({ eventKey, onSelect, onClick, children }) =>
     </MenuItem>
   )
 
+BookmarkItem.propTypes = {
+  eventKey: propTypes.string.isRequired,
+  onSelect: propTypes.func,
+  onClick: propTypes.func,
+  children: propTypes.oneOfType([
+    propTypes.arrayOf(propTypes.element),
+    propTypes.string,
+  ]).isRequired,
+}
+
 const BookmarkMenu = connect(
   state => ({
     bookmarks: extensionSelectorFactory(PLUGIN_KEY)(state),
@@ -46,6 +58,11 @@ const BookmarkMenu = connect(
     }
   }
 
+  static propTypes = {
+    bookmarks: propTypes.objectOf(propTypes.object).isRequired,
+    children: propTypes.arrayOf(propTypes.element),
+  }
+
   componentDidMount = () => {
     this.unsubsribeObserver = observe(window.store, [bookmarksObserver])
   }
@@ -59,11 +76,14 @@ const BookmarkMenu = connect(
   componentWillReceiveProps = (nextProps) => {
     const bookmarks = values(nextProps.bookmarks)
     this.fuse.setCollection(bookmarks)
-    console.log(nextProps.bookmarks, bookmarks, this.fuse.list)
   }
 
-  onSelect = (eventKey = this.state.query, e) => {
+  onSelect = (eventKey = this.state.query) => {
     const settings = get(this.props.bookmarks, eventKey, {})
+    // comvert old settings to new
+    if ('shipTypeChecked' in settings) {
+      settings.shipTypes = boolArrayToInt(settings.shipTypeChecked)
+    }
     Object.keys(settings).forEach(key => config.set(`plugin.ShipInfo.${key}`, settings[key]))
   }
 
@@ -94,11 +114,11 @@ const BookmarkMenu = connect(
 
     const result = query.length > 0
       ? Object.entries(this.fuse.search(query))
-        .map(([key, value]) => value)
+        .map(([key, value]) => value) // eslint-disable-line no-unused-vars
         .map(value => value.name)
       : Object.keys(this.props.bookmarks)
     return (
-      <ul className="dropdown-menu">
+      <ul className="dropdown-menu pull-right">
         <li className="bookmark-input-list">
           <a>
             <FormControl
@@ -139,8 +159,8 @@ const BookmarkDropdown = connect(
   state => ({
     bookmarks: extensionSelectorFactory(PLUGIN_KEY)(state),
   })
-)(({ bookmarks }) =>
-  (<Dropdown id="bookmark">
+)(({ bookmarks, open }) =>
+  (<Dropdown id="bookmark" pullRight open={open}>
     <Dropdown.Toggle>
       {__('Bookmarks')}
     </Dropdown.Toggle>

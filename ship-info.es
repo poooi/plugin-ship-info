@@ -5,7 +5,7 @@ import { join } from 'path-extra'
 import { remote } from 'electron'
 import { debounce } from 'lodash'
 
-const i18n = new i18n2({
+const i18n = new i18n2({ // eslint-disable-line new-cap
   locales: ['en-US', 'ja-JP', 'zh-CN', 'zh-TW', 'ko-KR'],
   defaultLocale: 'zh-CN',
   directory: join(__dirname, 'i18n'),
@@ -25,17 +25,17 @@ if (i18n.resources.translate == null) {
   i18n.resources.translate = (locale, str) => str
 }
 if (i18n.resources.setLocale == null) {
-  i18n.resources.setLocale = (str) => {}
+  i18n.resources.setLocale = () => {}
 }
 window.i18n = i18n
 try {
-  require('poi-plugin-translator').pluginDidLoad()
+  require('poi-plugin-translator').pluginDidLoad() // eslint-disable-line global-require
 } catch (error) {
   console.warn(error)
 }
 
 window.__ = i18n.__.bind(i18n)
-window.__r = i18n.resources.__.bind(i18n.resources)
+window.__r = i18n.resources.__.bind(i18n.resources) // eslint-disable-line no-underscore-dangle
 document.title = window.__('Ship Girls Info')
 
 // // augment font size with poi zoom level
@@ -60,32 +60,6 @@ const rememberSize = debounce(() => {
   const b = window.shipInfoWindow.getBounds()
   config.set('plugin.ShipInfo.bounds', b)
 }, 5000)
-
-// apply zoomLevel to webcontents
-const setZoom = (zoom) => {
-  window.shipInfoContents.setZoomFactor(zoom)
-}
-
-setZoom(config.get('poi.zoomLevel', 1))
-
-const handleConfig = (path, value) => {
-  switch (path) {
-    case 'poi.zoomLevel': {
-      const zoom = parseFloat(value)
-      if (!Number.isNaN(zoom)) {
-        setZoom(zoom)
-      }
-    }
-      break
-    default:
-  }
-}
-
-config.on('config.set', handleConfig)
-
-window.addEventListener('unload', () => {
-  config.removeListener('config.set', handleConfig)
-})
 
 window.shipInfoWindow.on('move', rememberSize)
 window.shipInfoWindow.on('resize', rememberSize)

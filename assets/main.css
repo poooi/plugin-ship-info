@@ -1,10 +1,30 @@
 *, body, h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
   font-family: "Ubuntu", "Helvetica Neue", "Helvetica", "Arial", "Heiti SC", "WenQuanYi Micro Hei", "Microsoft YaHei", sans-serif;
+  outline: none;
+}
+html {
+  height: 100%;
 }
 body {
-  margin-top: 15px;
   font-size: 14px;
+  height: 100%;
   zoom: 1 !important;
+  overflow-y: hidden;
+}
+#ship-info {
+  height: 100%;
+}
+.ship-info-wrap {
+  height: 100%;
+  display: flex;
+  flex-direction: column
+}
+#ship-info-show {
+  flex-grow: 1;
+}
+#ship-info-show ::-webkit-scrollbar{
+  width: 0;
+  height: 1em;
 }
 .center {
   text-align: center;
@@ -23,20 +43,19 @@ body {
 .divider hr {
   margin-bottom: 15.5px;
 }
-.filter-button {
-  margin-top: 10px;
-  margin-bottom: 10px;
-}
-.filter-button-all {
-  margin-top: 10px;
-  margin-bottom: 0px;
-}
-.filter-span {
-  font-weight: bold;
-  margin-top: 10px;
-}
-.table {
+.ship-info-cell {
   white-space: nowrap;
+  line-height: 40px;
+  vertical-align: middle;
+  overflow: visible;
+  text-overflow: ellipsis;
+  cursor: default;
+}
+.ship-info-cell.clickable {
+  cursor: pointer;
+}
+.ship-info-cell.highlight{
+  background-color: rgba(0, 150, 136, 0.75);
 }
 .td-karyoku {
   text-align: center;
@@ -45,12 +64,19 @@ body {
   text-align: center;
   background-color: rgba(245, 93, 93, 0.33);
 }
+.td-karyoku-max.highlight{
+  background-color: rgba(245, 93, 93, 0.75);
+}
 .td-raisou {
   text-align: center;
 }
 .td-raisou-max {
   text-align: center;
   background-color: rgba(162, 194, 230, 0.33);
+}
+.td-raisou-max.highlight {
+  text-align: center;
+  background-color: rgba(162, 194, 230, 0.75);
 }
 .td-taiku {
   text-align: center;
@@ -59,12 +85,20 @@ body {
   text-align: center;
   background-color: rgba(255, 176, 77, 0.33);
 }
+.td-taiku-max.highlight {
+  text-align: center;
+  background-color: rgba(255, 176, 77, 0.75);
+}
 .td-soukou {
   text-align: center;
 }
 .td-soukou-max {
   text-align: center;
   background-color: rgba(255, 219, 79, 0.33);
+}
+.td-soukou-max.highlight {
+  text-align: center;
+  background-color: rgba(255, 219, 79, 0.75);
 }
 .td-lucky {
   text-align: center;
@@ -73,15 +107,56 @@ body {
   text-align: center;
   background-color: rgba(125, 239, 94, 0.33);
 }
+.td-lucky-max.hightlight {
+  text-align: center;
+  background-color: rgba(125, 239, 94, 0.75);
+}
+.repair-heavy {
+  background-color: rgba(255, 0, 0, 0.4);
+}
+.repair-moderate {
+  background-color: rgba(255, 65, 0, 0.4);
+}
+.repair-minor {
+  background-color: rgba(255, 255, 0, 0.4);
+}
+.repair-heavy.highlight {
+  background-color: rgba(255, 0, 0, 0.75);
+}
+.repair-moderate.highlight {
+  background-color: rgba(255, 65, 0, 0.75);
+}
+.repair-minor.highlight {
+  background-color: rgba(255, 255, 0, 0.75);
+}
+.cond-danger {
+  background-color: rgba(255, 0, 0, 0.4);
+}
+.cond-danger.highlight {
+  background-color: rgba(255, 0, 0, 0.7);
+}
+.cond-warning {
+  background-color: rgba(255, 165, 0, 0.4);
+}
+.cond-warning.highlight {
+  background-color: rgba(255, 165, 0, 0.7);
+}
+.cond-success {
+  background-color: rgba(255, 255, 0, 0.4);
+}
+.cond-success.highlight {
+  background-color: rgba(255, 255, 0, 0.7);
+}
 clickable {
   filter: none;
   transition: 0.2s;
 }
-.clickable:hover {
-  cursor: pointer;
-  filter: drop-shadow(0px 0px 8px #2196F3);
-  transition: 0.2s;
+
+#ship-info-settings {
+  padding-left: 8px;
+  padding-top: 1ex;
 }
+
 #ship-info-settings .filter-type .checkbox {
   margin-top: 1px;
   margin-bottom: 1px;
@@ -102,7 +177,7 @@ clickable {
   width: inherit;
 }
 #ship-info-show .slotitem-container img {
-  height: 32px;
+  height: 30px;
 }
 
 #ship-info-show table tbody tr td {
@@ -133,9 +208,18 @@ clickable {
   background-color: #3d3d3d;
 }
 
-#ship-info-show .ship-info-table .ship-name {
-  justify-content: space-between;
+.ship-name {
   align-items: center;
+  display: flex;
+}
+
+.ship-name .name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.ship-name .fleet-id-indicator {
 }
 
 #ship-info-show .ship-info-table .status-label {
@@ -151,7 +235,7 @@ clickable {
 img.svg {
   width: 26px;
   height: 23px;
-  margin: 5px 3px 4px 3px;
+  margin: 0px 4px;
 }
 
 .sorting.up {
@@ -204,13 +288,55 @@ th {
   margin-left: 0.25ex;
 }
 
+.config-menu {
+  display: flex;
+  flex-direction: column;
+  margin-left: 1ex;
+}
+
+.config-menu > div {
+  flex: 1;
+  display: flex;
+  width: 45em;
+  flex-wrap: wrap;
+}
+
 .radio-check {
   display: flex;
   flex-direction: row;
+  white-space: nowrap;
+  align-items: center;
+  height: 3em;
 }
 
-.radio-check>div {
+.dual-col .radio-check {
+  width: 21em;
+}
+
+.single-col .radio-check {
+  width: 45em;
+}
+
+.dual-col .radio-check:nth-child(odd) {
+  margin-right: 3em;
+}
+
+.filter-option {
+  flex: 0;
+  padding-left: 1ex;
+  padding-right: 1ex;
+  line-height: 160%;
+}
+
+.filter-option.checked {
+  background-color: rgba(105, 240, 174, 0.5);
+}
+
+.filter-span {
+  font-weight: bold;
   flex: 1;
+  padding-left: 1ex;
+  padding-right: 2em;
 }
 
 .title-row th {
@@ -227,23 +353,13 @@ th {
 }
 
 .fleet-id-indicator {
-  font-weight: bolder;
-  color: white;
-  font-family: serif;
-  margin-left: 0.5em;
-  text-shadow:
-    -1px -1px 0 lightseagreen,
-    1px -1px 0 lightseagreen,
-    -1px 1px 0 lightseagreen,
-    1px 1px 0 lightseagreen;
-  -webkit-font-smoothing: antialiased;
+  height: 14px;
 }
 
 .sally-area-label {
   margin-left: 0.5em;
 }
 
-li > a,
 .bookmark > a{
   display: flex !important;
   align-items: center;
@@ -258,10 +374,6 @@ li > a,
 
 .bookmark-delete {
   flex-grow: 0;
-}
-
-#bookmark-input {
-  font-size: 120%;
 }
 
 .bookmark-input-list > a:hover,
@@ -280,4 +392,53 @@ li > a,
 
 .dropdown-menu::-webkit-scrollbar {
   width: 1em;
+}
+
+.ReactVirtualized__Grid:focus {
+  border: 0px;
+}
+
+.type-menu {
+  display: flex;
+  flex-direction: row;
+  height: 20.5em;
+  overflow: hidden;
+}
+
+.type-menu >div {
+  display: inline-flex;
+  writing-mode: vertical-lr;
+  align-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.type-menu .supertype,
+.type-menu .shiptype {
+  display: block;
+  writing-mode: horizontal-tb;
+  min-width: 8em;
+  height: 2em;
+  display: flex;
+  align-items: center;
+  padding-left: 1em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.type-menu .supertype.checked,
+.type-menu .shiptype.checked {
+  background-color: rgba(105, 240, 174, 0.5);
+}
+
+.type-menu .supertype.partial,
+.type-menu .shiptype.partial {
+  background-color: rgba(205,220,57,0.5);
+}
+
+.type-menu a {
+}
+
+.super-type {
+  margin-right: 2em;
 }

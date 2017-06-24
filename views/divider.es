@@ -1,13 +1,14 @@
-import React, { Component } from 'react'
+import React from 'react'
+import propTypes from 'prop-types'
 import FontAwesome from 'react-fontawesome'
 
 const Divider = (props) => {
-  const { text, icon, show } = props
+  const { text = '', icon, show } = props
   return (
     <div className="divider">
       <hr />
       <h5>
-        <span>{`${text}  `}</span>
+        <span>{`${text}`}</span>
         <span>
           {
               icon &&
@@ -17,6 +18,12 @@ const Divider = (props) => {
       </h5>
     </div>
   )
+}
+
+Divider.propTypes = {
+  text: propTypes.string,
+  icon: propTypes.bool,
+  show: propTypes.bool,
 }
 
 export default Divider
