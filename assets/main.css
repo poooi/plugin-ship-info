@@ -49,9 +49,12 @@ body {
   vertical-align: middle;
   overflow: visible;
   text-overflow: ellipsis;
+  cursor: default;
+}
+.ship-info-cell.clickable {
+  cursor: pointer;
 }
 .ship-info-cell.highlight{
-  cursor: default;
   background-color: rgba(0, 150, 136, 0.75);
 }
 .td-karyoku {
