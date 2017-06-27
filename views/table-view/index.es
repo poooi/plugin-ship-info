@@ -4,7 +4,6 @@ import { connect } from 'react-redux'
 import cls from 'classnames'
 import { MultiGrid, AutoSizer } from 'react-virtualized'
 import { sum, debounce, floor } from 'lodash'
-import { remote } from 'electron'
 
 import Divider from '../divider'
 import { shipInfoShape } from '../utils'
@@ -115,11 +114,7 @@ const ShipInfoTableArea = connect(
     super(props)
     this.tableWidth = sum(widths)
     this.updateWindowWidth = debounce(this.updateWindowWidth, 500)
-    this.handleScroll = debounce(this.handleScroll, 200)
     this.setRef = this.setRef.bind(this)
-    this.webContent = remote.getCurrentWebContents()
-    this.rowStopIndex = 0
-    this.columnStopIndex = 0
   }
 
   componentDidMount = () => {
@@ -136,18 +131,6 @@ const ShipInfoTableArea = connect(
     // document.querySelectorAll('.ReactVirtualized__Grid').forEach((target) => {
     //   target.removeEventListener('scroll', this.handleScroll)
     // })
-  }
-
-  handleScroll = () => {
-    if (this.activeColumn === -1 || this.activeRow === -1) {
-      return
-    }
-    const zf = config.get('poi.zoomLevel', 1)
-    this.webContent.sendInputEvent({
-      type: 'mouseMove',
-      x: floor(this.mouseX * zf),
-      y: floor(this.mouseY * zf),
-    })
   }
 
   updateWindowWidth = () => {
@@ -188,12 +171,12 @@ const ShipInfoTableArea = connect(
   cellRenderer = ({ columnIndex, key, rowIndex, style }) => {
     const { rows, sortName, sortOrder } = this.props
     const setState = this.setState.bind(this)
-    const onMouseEnter = (e) => {
-      this.mouseX = e.clientX
-      this.mouseY = e.clientY
+    const onClick = () => {
+      const { activeColumn, activeRow } = this.state
+      const off = activeColumn === columnIndex && activeRow === rowIndex
       setState({
-        activeColumn: columnIndex,
-        activeRow: rowIndex,
+        activeColumn: off ? -1 : columnIndex,
+        activeRow: off ? -1 : rowIndex,
       })
     }
     const highlight = (columnIndex === this.state.activeColumn || rowIndex === this.state.activeRow)
@@ -201,7 +184,7 @@ const ShipInfoTableArea = connect(
       && !(rowIndex === 0 && columnIndex !== this.state.activeColumn)
     const props = {
       key,
-      onMouseEnter,
+      onClick,
       className: cls({
         'ship-info-cell': true,
         center: centerAligns[columnIndex - 1],
@@ -221,13 +204,6 @@ const ShipInfoTableArea = connect(
     }
 
     return content
-  }
-
-  handleMouseLeave = () => {
-    this.setState({
-      activeColumn: -1,
-      activeRow: -1,
-    })
   }
 
   handleContentRendered = (e) => {
@@ -272,7 +248,7 @@ const ShipInfoTableArea = connect(
     return (
       <div id="ship-info-show" style={{ display: 'flex', flexDirection: 'column' }}>
         <Divider icon={false} />
-        <div style={{ flex: 1 }} className="table-container" onMouseLeave={this.handleMouseLeave}>
+        <div style={{ flex: 1 }} className="table-container">
           <AutoSizer>
             {
               ({ width, height }) => (
@@ -291,7 +267,6 @@ const ShipInfoTableArea = connect(
                   height={height}
                   overscanColumnCount={8}
                   overscanRowCount={10}
-                  onScroll={this.handleScroll}
                   cellRenderer={this.cellRenderer}
                   rowCount={rows.length + 1}
                   rowHeight={40}
