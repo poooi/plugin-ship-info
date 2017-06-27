@@ -118,7 +118,7 @@ const handleModernizationFilter = memoize((isCompleted, modernizationRadio) => {
 })
 
 const handleRemodelFilter = memoize((after, remodelRadio) => {
-  const remodelable = after !== '0'
+  const remodelable = after !== 0
   switch (remodelRadio) {
     case 1:
       return remodelable
