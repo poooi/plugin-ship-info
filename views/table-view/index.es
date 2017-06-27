@@ -193,6 +193,8 @@ const ShipInfoTableArea = connect(
         'ship-info-cell': true,
         center: centerAligns[columnIndex - 1],
         highlight,
+        'even-dark': rowIndex % 2 === 1 && window.isDarkTheme,
+        'even-light': rowIndex % 2 === 1 && !window.isDarkTheme,
       }),
     }
     let content

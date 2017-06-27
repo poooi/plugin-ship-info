@@ -51,100 +51,106 @@ body {
   text-overflow: ellipsis;
   cursor: default;
 }
+.ship-info-cell.even-dark {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+.ship-info-cell.even-light {
+  background-color: rgba(0, 0, 0, 0.1);
+}
 .ship-info-cell.clickable {
   cursor: pointer;
 }
 .ship-info-cell.highlight{
   background-color: rgba(0, 150, 136, 0.75);
 }
-.td-karyoku {
+.ship-info-cell.td-karyoku {
   text-align: center;
 }
-.td-karyoku-max {
+.ship-info-cell.td-karyoku-max {
   text-align: center;
   background-color: rgba(245, 93, 93, 0.33);
 }
-.td-karyoku-max.highlight{
+.ship-info-cell.td-karyoku-max.highlight{
   background-color: rgba(245, 93, 93, 0.75);
 }
-.td-raisou {
+.ship-info-cell.td-raisou {
   text-align: center;
 }
-.td-raisou-max {
+.ship-info-cell.td-raisou-max {
   text-align: center;
   background-color: rgba(162, 194, 230, 0.33);
 }
-.td-raisou-max.highlight {
+.ship-info-cell.td-raisou-max.highlight {
   text-align: center;
   background-color: rgba(162, 194, 230, 0.75);
 }
-.td-taiku {
+.ship-info-cell.td-taiku {
   text-align: center;
 }
-.td-taiku-max {
+.ship-info-cell.td-taiku-max {
   text-align: center;
   background-color: rgba(255, 176, 77, 0.33);
 }
-.td-taiku-max.highlight {
+.ship-info-cell.td-taiku-max.highlight {
   text-align: center;
   background-color: rgba(255, 176, 77, 0.75);
 }
-.td-soukou {
+.ship-info-cell.td-soukou {
   text-align: center;
 }
-.td-soukou-max {
+.ship-info-cell.td-soukou-max {
   text-align: center;
   background-color: rgba(255, 219, 79, 0.33);
 }
-.td-soukou-max.highlight {
+.ship-info-cell.td-soukou-max.highlight {
   text-align: center;
   background-color: rgba(255, 219, 79, 0.75);
 }
-.td-lucky {
+.ship-info-cell.td-lucky {
   text-align: center;
 }
-.td-lucky-max {
+.ship-info-cell.td-lucky-max {
   text-align: center;
   background-color: rgba(125, 239, 94, 0.33);
 }
-.td-lucky-max.hightlight {
+.ship-info-cell.td-lucky-max.hightlight {
   text-align: center;
   background-color: rgba(125, 239, 94, 0.75);
 }
-.repair-heavy {
+.ship-info-cell.repair-heavy {
   background-color: rgba(255, 0, 0, 0.4);
 }
-.repair-moderate {
+.ship-info-cell.repair-moderate {
   background-color: rgba(255, 65, 0, 0.4);
 }
-.repair-minor {
+.ship-info-cell.repair-minor {
   background-color: rgba(255, 255, 0, 0.4);
 }
-.repair-heavy.highlight {
+.ship-info-cell.repair-heavy.highlight {
   background-color: rgba(255, 0, 0, 0.75);
 }
-.repair-moderate.highlight {
+.ship-info-cell.repair-moderate.highlight {
   background-color: rgba(255, 65, 0, 0.75);
 }
-.repair-minor.highlight {
+.ship-info-cell.repair-minor.highlight {
   background-color: rgba(255, 255, 0, 0.75);
 }
-.cond-danger {
+.ship-info-cell.cond-danger {
   background-color: rgba(255, 0, 0, 0.4);
 }
-.cond-danger.highlight {
+.ship-info-cell.cond-danger.highlight {
   background-color: rgba(255, 0, 0, 0.7);
 }
-.cond-warning {
+.ship-info-cell.cond-warning {
   background-color: rgba(255, 165, 0, 0.4);
 }
-.cond-warning.highlight {
+.ship-info-cell.cond-warning.highlight {
   background-color: rgba(255, 165, 0, 0.7);
 }
-.cond-success {
+.ship-info-cell.cond-success {
   background-color: rgba(255, 255, 0, 0.4);
 }
-.cond-success.highlight {
+.ship-info-cell.cond-success.highlight {
   background-color: rgba(255, 255, 0, 0.7);
 }
 clickable {
