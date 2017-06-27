@@ -65,6 +65,18 @@ const TypeView = connect(
     config.set('plugin.ShipInfo.shipTypes', boolArrayToInt(checked))
   }
 
+  handleRightClickSuperType = index => () => {
+    const checked = this.props.checked.slice()
+    const keys = shipSuperTypeMap[index].id
+    checked.fill(false)
+
+    keys.forEach((key) => {
+      checked[key - 1] = true
+    })
+
+    config.set('plugin.ShipInfo.shipTypes', boolArrayToInt(checked))
+  }
+
   handleClickSingleBox = index => () => {
     const checked = this.props.checked.slice()
     let { checkedAll } = this.props
@@ -75,6 +87,14 @@ const TypeView = connect(
     } else {
       checked[index] = !checked[index]
     }
+
+    config.set('plugin.ShipInfo.shipTypes', boolArrayToInt(checked))
+  }
+
+  handleRightClickSingleBox = index => () => {
+    const checked = this.props.checked.slice()
+    checked.fill(false)
+    checked[index] = true
 
     config.set('plugin.ShipInfo.shipTypes', boolArrayToInt(checked))
   }
@@ -113,6 +133,7 @@ const TypeView = connect(
                     partial: this.getArrayIntersection(checkedTypes, supertype.id),
                   })}
                   onClick={this.handleClickSuperType(checkedTypes, index)}
+                  onContextMenu={this.handleRightClickSuperType(index)}
                 >
                   {__(`Filter${supertype.name}`)}
                 </div>
@@ -128,6 +149,7 @@ const TypeView = connect(
                   tabIndex="0"
                   key={key}
                   onClick={this.handleClickSingleBox(key - 1)}
+                  onContextMenu={this.handleRightClickSingleBox(key - 1)}
                   className={cls('shiptype', { checked: checked[key - 1] })}
                 >
                   {__r(type.api_name)}

@@ -55,13 +55,11 @@ const TitleCell = ({
   up,
   down,
   handleClickTitle,
-  onMouseEnter,
   className,
 }) => (
   <div
     role="button"
     tabIndex={0}
-    onMouseEnter={onMouseEnter}
     style={{ ...style }}
     onClick={sortable ? handleClickTitle : ''}
     className={cls(className, {
@@ -88,7 +86,6 @@ TitleCell.propTypes = {
   sorting: propTypes.bool.isRequired,
   up: propTypes.bool.isRequired,
   down: propTypes.bool.isRequired,
-  onMouseEnter: propTypes.func.isRequired,
   className: propTypes.string.isRequired,
 }
 
@@ -179,12 +176,19 @@ const ShipInfoTableArea = connect(
         activeRow: off ? -1 : rowIndex,
       })
     }
+    const onContextMenu = () => {
+      setState({
+        activeColumn: -1,
+        activeRow: -1,
+      })
+    }
     const highlight = (columnIndex === this.state.activeColumn || rowIndex === this.state.activeRow)
       && !(columnIndex === 0 && rowIndex !== this.state.activeRow)
       && !(rowIndex === 0 && columnIndex !== this.state.activeColumn)
     const props = {
       key,
       onClick,
+      onContextMenu,
       className: cls({
         'ship-info-cell': true,
         center: centerAligns[columnIndex - 1],
