@@ -1,7 +1,6 @@
 import React, { Component } from 'react'
 import { Button, ButtonGroup, ButtonToolbar } from 'react-bootstrap'
 
-import TypeDropdown from './type-dropdown'
 import BookmarkDropdown from './bookmark-dropdown'
 import ConfigDropdown from './config-dropdown'
 
@@ -27,7 +26,6 @@ export default class ShipInfoCheckboxArea extends Component {
       <div id="ship-info-settings">
         <ButtonToolbar id="settings-toolbar">
           <ButtonGroup>
-            <TypeDropdown />
             <ConfigDropdown />
           </ButtonGroup>
 

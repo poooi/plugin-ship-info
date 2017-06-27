@@ -118,7 +118,7 @@ const BookmarkMenu = connect(
         .map(value => value.name)
       : Object.keys(this.props.bookmarks)
     return (
-      <ul className="dropdown-menu pull-right">
+      <ul className="dropdown-menu">
         <li className="bookmark-input-list">
           <a>
             <FormControl

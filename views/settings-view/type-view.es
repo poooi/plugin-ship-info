@@ -1,6 +1,5 @@
 import React, { Component } from 'react'
 import propTypes from 'prop-types'
-import { Dropdown } from 'react-bootstrap'
 import { connect } from 'react-redux'
 import { get, isEqual, map, intersection } from 'lodash'
 import cls from 'classnames'
@@ -10,7 +9,7 @@ import { intToBoolArray, boolArrayToInt } from '../utils'
 
 const { __, __r } = window
 
-const TypeMenu = connect(
+const TypeView = connect(
   (state, props) => {
     const $shipTypes = get(state, 'const.$shipTypes')
     const defaultChecked = Object.keys($shipTypes).slice().fill(true)
@@ -26,7 +25,7 @@ const TypeMenu = connect(
       checkedAll,
     })
   }
-)(class TypeCheck extends Component {
+)(class TypeView extends Component {
 
   static propTypes = {
     show: propTypes.bool.isRequired,
@@ -89,73 +88,57 @@ const TypeMenu = connect(
     )
 
     return (
-      <ul className="dropdown-menu">
-        <div className=" type-menu">
-          <div className="super-type">
-            <div
-              role="button"
-              tabIndex="0"
-              onClick={this.handleClickSingleBox(-1)}
-              className={cls('supertype', {
-                checked: checkedAll,
-                partial: checked.filter(Boolean).length > 0 && !checkedAll,
-              })}
-            >
-              {__('All')}
-            </div>
-            {
-              shipSuperTypeMap.map((supertype, index) =>
-                (
-                  <div
-                    role="button"
-                    tabIndex="0"
-                    key={supertype.name}
-                    className={cls('supertype', {
-                      checked: this.getArrayInclusion(checkedTypes, supertype.id),
-                      partial: this.getArrayIntersection(checkedTypes, supertype.id),
-                    })}
-                    onClick={this.handleClickSuperType(checkedTypes, index)}
-                  >
-                    {__(`Filter${supertype.name}`)}
-                  </div>
-                ))
-            }
+      <div className=" type-menu">
+        <div className="super-type">
+          <div
+            role="button"
+            tabIndex="0"
+            onClick={this.handleClickSingleBox(-1)}
+            className={cls('supertype', {
+              checked: checkedAll,
+              partial: checked.filter(Boolean).length > 0 && !checkedAll,
+            })}
+          >
+            {__('All')}
           </div>
-          <div className="single-type">
-            {
-              map($shipTypes, (type, key) =>
-                (
-                  <div
-                    role="button"
-                    tabIndex="0"
-                    key={key}
-                    onClick={this.handleClickSingleBox(key - 1)}
-                    className={cls('shiptype', { checked: checked[key - 1] })}
-                  >
-                    {__r(type.api_name)}
-                  </div>
-                )
-              )
-            }
-          </div>
+          {
+            shipSuperTypeMap.map((supertype, index) =>
+              (
+                <div
+                  role="button"
+                  tabIndex="0"
+                  key={supertype.name}
+                  className={cls('supertype', {
+                    checked: this.getArrayInclusion(checkedTypes, supertype.id),
+                    partial: this.getArrayIntersection(checkedTypes, supertype.id),
+                  })}
+                  onClick={this.handleClickSuperType(checkedTypes, index)}
+                >
+                  {__(`Filter${supertype.name}`)}
+                </div>
+              ))
+          }
         </div>
-      </ul>
+        <div className="single-type">
+          {
+            map($shipTypes, (type, key) =>
+              (
+                <div
+                  role="button"
+                  tabIndex="0"
+                  key={key}
+                  onClick={this.handleClickSingleBox(key - 1)}
+                  className={cls('shiptype', { checked: checked[key - 1] })}
+                >
+                  {__r(type.api_name)}
+                </div>
+              )
+            )
+          }
+        </div>
+      </div>
     )
   }
 })
 
-const TypeDropdown = ({ open }) =>
-  (
-    <Dropdown id="type-dropdown" open={open}>
-      <Dropdown.Toggle>
-        {__('Ship types')}
-      </Dropdown.Toggle>
-      <TypeMenu bsRole="menu" />
-    </Dropdown>
-  )
-
-TypeDropdown.propTypes = {
-  open: propTypes.bool,
-}
-
-export default TypeDropdown
+export default TypeView

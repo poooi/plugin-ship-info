@@ -219,9 +219,6 @@ clickable {
   text-overflow: ellipsis;
 }
 
-.ship-name .fleet-id-indicator {
-}
-
 #ship-info-show .ship-info-table .status-label {
   display: inline-block;
   flex: none;
@@ -297,7 +294,7 @@ th {
 .config-menu > div {
   flex: 1;
   display: flex;
-  width: 45em;
+  width: 50em;
   flex-wrap: wrap;
 }
 
@@ -310,15 +307,15 @@ th {
 }
 
 .dual-col .radio-check {
-  width: 21em;
+  width: 23em;
 }
 
 .single-col .radio-check {
-  width: 45em;
+  width: 50em;
 }
 
 .dual-col .radio-check:nth-child(odd) {
-  margin-right: 3em;
+  margin-right: 4em;
 }
 
 .filter-option {
@@ -387,7 +384,12 @@ th {
 
 .dropdown-menu {
   overflow-y: scroll;
-  max-height: 25em;
+}
+
+@media (max-height: 450px) {
+  .dropdown-menu {
+    max-height: 25em;
+  }
 }
 
 .dropdown-menu::-webkit-scrollbar {
@@ -400,30 +402,40 @@ th {
 
 .type-menu {
   display: flex;
-  flex-direction: row;
-  height: 20.5em;
+  flex-direction: column;
   overflow: hidden;
+  padding: 0 1em;
 }
 
 .type-menu >div {
   display: inline-flex;
-  writing-mode: vertical-lr;
   align-content: flex-start;
   flex-wrap: wrap;
+}
+
+.super-type {
+  margin-bottom: 1em;
+  width: 48em;
 }
 
 .type-menu .supertype,
 .type-menu .shiptype {
   display: block;
-  writing-mode: horizontal-tb;
-  min-width: 8em;
   height: 2em;
   display: flex;
-  align-items: center;
   padding-left: 1em;
+  align-items: center;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.type-menu .supertype {
+  flex-grow: 1;
+}
+
+.type-menu .shiptype {
+  min-width: 8em;
 }
 
 .type-menu .supertype.checked,
@@ -436,9 +448,4 @@ th {
   background-color: rgba(205,220,57,0.5);
 }
 
-.type-menu a {
-}
 
-.super-type {
-  margin-right: 2em;
-}
