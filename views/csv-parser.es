@@ -4,22 +4,22 @@ const { __, _slotitems, $slotitems, $ships } = window
 
 const getItemName = index => (ship) => {
   const itemId = get(_slotitems, `${get(ship, `slot.${index}`)}.api_slotitem_id`)
-  return get($slotitems, `${itemId}.api_name`)
+  return get($slotitems, `${itemId}.api_name`, 'NA')
 }
 
 const getExItemName = (ship) => {
   const itemId = get(_slotitems, `${get(ship, 'exslot')}.api_slotitem_id`)
-  return get($slotitems, `${itemId}.api_name`)
+  return get($slotitems, `${itemId}.api_name`, 'NA')
 }
 
 const buildConstFields = key => ([
   {
     key,
-    value: ship => get(ship, `${key}.0`),
+    value: ship => get(ship, `${key}.0`, 'NA'),
   },
   {
     key: `${key}Max`,
-    value: ship => get(ship, `${key}.1`),
+    value: ship => get(ship, `${key}.1`, 'NA'),
   },
 ])
 
@@ -30,17 +30,17 @@ const buildSlotItemFields = index => ([
   },
   {
     key: `slot${index}Alv`,
-    value: ship => get(_slotitems, `${get(ship, `slot.${index}`)}.api_alv`),
+    value: ship => get(_slotitems, `${get(ship, `slot.${index}`)}.api_alv`, 'NA'),
   },
   {
     key: `slot${index}Level`,
-    value: ship => get(_slotitems, `${get(ship, `slot.${index}`)}.api_level`),
+    value: ship => get(_slotitems, `${get(ship, `slot.${index}`)}.api_level`, 'NA'),
   },
 ])
 
 const buildKyoukaFields = () => [0, 1, 2, 3, 4].map(index => ({
   key: `kyouka${index}`,
-  value: ship => get(ship, `kyouka.${index}`),
+  value: ship => get(ship, `kyouka.${index}`, 'NA'),
 }))
 
 export const fields = [
@@ -87,11 +87,11 @@ export const fields = [
   },
   {
     key: 'exslotAlv',
-    value: ship => get(_slotitems, `${get(ship, 'exslot')}.api_alv`),
+    value: ship => get(_slotitems, `${get(ship, 'exslot')}.api_alv`, 'NA'),
   },
   {
     key: 'exslotLevel',
-    value: ship => get(_slotitems, `${get(ship, 'exslot')}.api_level`),
+    value: ship => get(_slotitems, `${get(ship, 'exslot')}.api_level`, 'NA'),
   },
   'locked',
   'nowhp',
@@ -101,7 +101,7 @@ export const fields = [
   'inDock',
   {
     key: 'after',
-    value: ship => get($ships, `${ship.after}.api_name`),
+    value: ship => get($ships, `${ship.after}.api_name`, 'NA'),
   },
 ]
 
