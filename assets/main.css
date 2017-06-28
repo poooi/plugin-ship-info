@@ -457,4 +457,22 @@ th {
   background-color: rgba(205,220,57,0.5);
 }
 
+#settings-toolbar > :first-child .dropdown-menu {
+  opacity: 0.5;
+  transition: .3s;
+}
 
+#settings-toolbar > :first-child .dropdown-menu > * {
+  opacity: 0;
+  transition: .3s;
+}
+
+#settings-toolbar > :first-child:hover .dropdown-menu,
+#settings-toolbar > :first-child:focus .dropdown-menu {
+  opacity: 1;
+}
+
+#settings-toolbar > :first-child:hover .dropdown-menu > *,
+#settings-toolbar > :first-child:focus .dropdown-menu > * {
+  opacity: 1;
+}
