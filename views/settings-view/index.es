@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import { Button, ButtonGroup, ButtonToolbar, Collapse } from 'react-bootstrap'
 
 import BookmarkDropdown from './bookmark-dropdown'
-import ConfigMenu from './config-dropdown'
+import ConfigMenu from './config-menu'
 
 const { __, config } = window
 

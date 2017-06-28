@@ -81,17 +81,12 @@ const ConfigView = () => (
   </div>
 )
 
-// dropdown menu should accept a ref, we cannot use the stateless component
-class ConfigMenu extends PureComponent { // eslint-disable-line react/prefer-stateless-function
 
-  render() {
-    return (
-      <div className="filter-menu">
-        <TypeView />
-        <ConfigView />
-      </div>
-    )
-  }
-}
+const ConfigMenu = () => (
+  <div className="filter-menu">
+    <TypeView />
+    <ConfigView />
+  </div>
+)
 
 export default ConfigMenu

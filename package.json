@@ -43,5 +43,6 @@
     "eslint-plugin-jsx-a11y": "^5.0.3",
     "eslint-plugin-react": "^7.0.1",
     "poi-util-transpile": "~7.6.0"
-  }
+  },
+  "dependencies": {}
 }
