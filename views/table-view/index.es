@@ -245,9 +245,9 @@ const ShipInfoTableArea = connect(
 
   handleScroll = ({ scrollTop }) => {
     if (scrollTop === 0) {
-      window.dispatchEvent(new Event('collapse-in'))
+      window.dispatchEvent(new Event('scroll-top'))
     } else {
-      window.dispatchEvent(new Event('collapse-out'))
+      window.dispatchEvent(new Event('scroll-down'))
     }
   }
 

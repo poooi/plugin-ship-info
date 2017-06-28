@@ -8,18 +8,18 @@ const { __, config } = window
 
 export default class ShipInfoCheckboxArea extends Component {
   state = {
-    filterShow: false,
+    scrollDown: false,
     menuShow: true,
   }
 
   componentDidMount = () => {
-    window.addEventListener('collapse-in', this.handleColllapseInEvent)
-    window.addEventListener('collapse-out', this.handleColllapseOutEvent)
+    window.addEventListener('scroll-top', this.handleScrollTopEvent)
+    window.addEventListener('scroll-down', this.handleScrollDownEvent)
   }
 
   componentWillUnmount = () => {
-    window.removeEventListener('collapse-in', this.handleColllapseInEvent)
-    window.removeEventListener('collapse-out', this.handleColllapseOutEvent)
+    window.removeEventListener('scroll-top', this.handleScrollTopEvent)
+    window.removeEventListener('scroll-down', this.handleScrollDownEvent)
   }
 
   handleResetAll = () => {
@@ -34,22 +34,30 @@ export default class ShipInfoCheckboxArea extends Component {
     this.setState({ menuShow })
   }
 
-  handleColllapseInEvent = () => {
-    this.handleMenuOpen(true)
+  handleScrollTopEvent = () => {
+    this.setState({
+      scrollDown: false,
+    })
   }
 
-  handleColllapseOutEvent = () => {
-    this.handleMenuOpen(false)
+  handleScrollDownEvent = () => {
+    this.setState({
+      scrollDown: true,
+    })
   }
 
   render() {
+    const { menuShow, scrollDown } = this.state
     return (
       <div id="ship-info-settings">
         <div>
           <ButtonToolbar id="settings-toolbar">
             <ButtonGroup>
-              <Button onClick={() => this.handleMenuOpen(!this.state.menuShow)}>
-                {__('Options')}
+              <Button
+                onClick={() => this.handleMenuOpen(!menuShow)}
+                bsStyle={menuShow ? 'success' : 'default'}
+              >
+                {__('Filter Setting')}
               </Button>
             </ButtonGroup>
 
@@ -65,7 +73,7 @@ export default class ShipInfoCheckboxArea extends Component {
           </ButtonToolbar>
         </div>
         <div>
-          <Collapse in={this.state.menuShow}>
+          <Collapse in={menuShow && !scrollDown}>
             <div>
               <ConfigMenu />
             </div>
