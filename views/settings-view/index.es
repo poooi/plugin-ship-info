@@ -1,8 +1,10 @@
 import React, { Component } from 'react'
 import { Button, ButtonGroup, ButtonToolbar, Collapse } from 'react-bootstrap'
+import FA from 'react-fontawesome'
 
 import BookmarkDropdown from './bookmark-dropdown'
 import ConfigMenu from './config-menu'
+import ExportDropdown from './export-dropdown'
 
 const { __, config } = window
 
@@ -57,7 +59,7 @@ export default class ShipInfoCheckboxArea extends Component {
                 onClick={() => this.handleMenuOpen(!menuShow)}
                 bsStyle={menuShow ? 'success' : 'default'}
               >
-                {__('Filter Setting')}
+                <FA name="filter" />{__('Filter Setting')}
               </Button>
             </ButtonGroup>
 
@@ -66,9 +68,12 @@ export default class ShipInfoCheckboxArea extends Component {
                 onClick={this.handleResetAll}
                 id="reset-button"
               >
-                {__('Reset')}
+                <FA name="undo" />{__('Reset')}
               </Button>
               <BookmarkDropdown />
+            </ButtonGroup>
+            <ButtonGroup>
+              <ExportDropdown />
             </ButtonGroup>
           </ButtonToolbar>
         </div>
