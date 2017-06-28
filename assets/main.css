@@ -22,10 +22,10 @@ body {
 #ship-info-show {
   flex-grow: 1;
 }
-#ship-info-show ::-webkit-scrollbar{
+/*#ship-info-show ::-webkit-scrollbar{
   width: 0;
   height: 1em;
-}
+}*/
 .center {
   text-align: center;
 }
