@@ -1,6 +1,6 @@
 import { get, map } from 'lodash'
 
-const { _slotitems, $slotitems, $ships } = window
+const { __, _slotitems, $slotitems, $ships } = window
 
 const getItemName = index => (ship) => {
   const itemId = get(_slotitems, `${get(ship, `slot.${index}`)}.api_slotitem_id`)
@@ -38,7 +38,7 @@ const buildSlotItemFields = index => ([
   },
 ])
 
-const buildKyoukaFields = () => [0, 1, 2, 3].map(index => ({
+const buildKyoukaFields = () => [0, 1, 2, 3, 4].map(index => ({
   key: `kyouka${index}`,
   value: ship => get(ship, `kyouka.${index}`),
 }))
@@ -114,7 +114,7 @@ export const parseCsv = (rows, sep = ',', end = '\n') => {
     )
   )
 
-  const titles = map(fields, field => field.key || field)
+  const titles = map(fields, field => __(field.key || field))
 
   entries.unshift(titles)
   return map(entries, entry => entry.join(sep)).join(end)
