@@ -33,7 +33,7 @@ const ExportDropdown = connect(
 )(({ rows }) => (
   <Dropdown id="export" pullRight>
     <Dropdown.Toggle>
-      <FontAwesome name="export" />{__('Export Data')}
+      <FontAwesome name="download" style={{ marginRight: '1ex' }} />{__('Export Data')}
     </Dropdown.Toggle>
     <ExportMenu bsRole="menu" rows={rows} />
   </Dropdown>

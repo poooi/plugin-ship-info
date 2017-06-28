@@ -59,7 +59,7 @@ export default class ShipInfoCheckboxArea extends Component {
                 onClick={() => this.handleMenuOpen(!menuShow)}
                 bsStyle={menuShow ? 'success' : 'default'}
               >
-                <FA name="filter" />{__('Filter Setting')}
+                <FA name="filter" style={{ marginRight: '1ex' }} />{__('Filter Setting')}
               </Button>
             </ButtonGroup>
 
@@ -68,7 +68,7 @@ export default class ShipInfoCheckboxArea extends Component {
                 onClick={this.handleResetAll}
                 id="reset-button"
               >
-                <FA name="undo" />{__('Reset')}
+                <FA name="undo" style={{ marginRight: '1ex' }} />{__('Reset')}
               </Button>
               <BookmarkDropdown />
             </ButtonGroup>

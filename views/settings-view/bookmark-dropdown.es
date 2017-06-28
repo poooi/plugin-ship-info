@@ -162,7 +162,7 @@ const BookmarkDropdown = connect(
 )(({ bookmarks, open }) =>
   (<Dropdown id="bookmark" pullRight open={open}>
     <Dropdown.Toggle>
-      <FontAwesome name="tags" />{__('Bookmarks')}
+      <FontAwesome name="tags" style={{ marginRight: '1ex' }} />{__('Bookmarks')}
     </Dropdown.Toggle>
     <BookmarkMenu bsRole="menu">
       {
