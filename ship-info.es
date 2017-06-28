@@ -3,7 +3,6 @@ import 'views/env'
 import i18n2 from 'i18n-2'
 import { join } from 'path-extra'
 import { remote } from 'electron'
-import { debounce } from 'lodash'
 
 const i18n = new i18n2({ // eslint-disable-line new-cap
   locales: ['en-US', 'ja-JP', 'zh-CN', 'zh-TW', 'ko-KR'],
@@ -56,13 +55,9 @@ document.title = window.__('Ship Girls Info')
 window.shipInfoWindow = remote.getCurrentWindow()
 window.shipInfoContents = remote.getCurrentWebContents()
 
-const rememberSize = debounce(() => {
+remote.getCurrentWindow().on('close', () => {
   const b = window.shipInfoWindow.getBounds()
-  config.set('plugin.ShipInfo.bounds', b)
-}, 5000)
-
-window.shipInfoWindow.on('move', rememberSize)
-window.shipInfoWindow.on('resize', rememberSize)
-
+  window.config.set('plugin.ShipInfo.bounds', b)
+})
 
 require('./views')

@@ -1,7 +1,6 @@
 import { screen } from 'electron'
 
 const { workArea } = screen.getPrimaryDisplay()
-let { x, y, width, height } = config.get('plugin.ShipInfo.bounds', workArea)
 const validate = (n, min, range) => (n != null && n >= min && n < min + range)
 const withinDisplay = (d) => {
   const wa = d.workArea
