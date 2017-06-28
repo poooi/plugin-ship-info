@@ -1,4 +1,11 @@
 {
+  "FilterDD": "DD",
+  "FilterCL": "CL",
+  "FilterCA": "CA",
+  "FilterBB": "BB",
+  "FilterCV": "CV",
+  "FilterSS": "SS",
+  "FilterOthers": "Others",
   "id": "ID",
   "name": "Name",
   "yomi": "Kana",
