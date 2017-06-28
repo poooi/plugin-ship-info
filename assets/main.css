@@ -413,7 +413,7 @@ th {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  padding: 0 1em;
+  padding: 1em 1em 0 1em;
 }
 
 .type-menu >div {
@@ -457,22 +457,7 @@ th {
   background-color: rgba(205,220,57,0.5);
 }
 
-#settings-toolbar > :first-child .dropdown-menu {
-  opacity: 0.5;
-  transition: .3s;
-}
-
-#settings-toolbar > :first-child .dropdown-menu > * {
-  opacity: 0;
-  transition: .3s;
-}
-
-#settings-toolbar > :first-child:hover .dropdown-menu,
-#settings-toolbar > :first-child:focus .dropdown-menu {
-  opacity: 1;
-}
-
-#settings-toolbar > :first-child:hover .dropdown-menu > *,
-#settings-toolbar > :first-child:focus .dropdown-menu > * {
-  opacity: 1;
+.filter-menu {
+  max-height: calc(100vh - 200px);
+  overflow: scroll;
 }

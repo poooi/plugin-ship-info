@@ -1,17 +1,25 @@
 import React, { Component } from 'react'
-import { Button, ButtonGroup, ButtonToolbar } from 'react-bootstrap'
+import { Button, ButtonGroup, ButtonToolbar, Collapse } from 'react-bootstrap'
 
 import BookmarkDropdown from './bookmark-dropdown'
-import ConfigDropdown from './config-dropdown'
+import ConfigMenu from './config-dropdown'
 
 const { __, config } = window
 
 export default class ShipInfoCheckboxArea extends Component {
-  constructor() {
-    super()
-    this.state = {
-      filterShow: false,
-    }
+  state = {
+    filterShow: false,
+    menuShow: true,
+  }
+
+  componentDidMount = () => {
+    window.addEventListener('collapse-in', this.handleColllapseInEvent)
+    window.addEventListener('collapse-out', this.handleColllapseOutEvent)
+  }
+
+  componentWillUnmount = () => {
+    window.removeEventListener('collapse-in', this.handleColllapseInEvent)
+    window.removeEventListener('collapse-out', this.handleColllapseOutEvent)
   }
 
   handleResetAll = () => {
@@ -21,24 +29,48 @@ export default class ShipInfoCheckboxArea extends Component {
     })
   }
 
+  handleMenuOpen = (menuShow) => {
+    if (menuShow === this.state.menuShow) return
+    this.setState({ menuShow })
+  }
+
+  handleColllapseInEvent = () => {
+    this.handleMenuOpen(true)
+  }
+
+  handleColllapseOutEvent = () => {
+    this.handleMenuOpen(false)
+  }
+
   render() {
     return (
       <div id="ship-info-settings">
-        <ButtonToolbar id="settings-toolbar">
-          <ButtonGroup>
-            <ConfigDropdown />
-          </ButtonGroup>
+        <div>
+          <ButtonToolbar id="settings-toolbar">
+            <ButtonGroup>
+              <Button onClick={() => this.handleMenuOpen(!this.state.menuShow)}>
+                {__('Options')}
+              </Button>
+            </ButtonGroup>
 
-          <ButtonGroup>
-            <Button
-              onClick={this.handleResetAll}
-              id="reset-button"
-            >
-              {__('Reset')}
-            </Button>
-            <BookmarkDropdown />
-          </ButtonGroup>
-        </ButtonToolbar>
+            <ButtonGroup>
+              <Button
+                onClick={this.handleResetAll}
+                id="reset-button"
+              >
+                {__('Reset')}
+              </Button>
+              <BookmarkDropdown />
+            </ButtonGroup>
+          </ButtonToolbar>
+        </div>
+        <div>
+          <Collapse in={this.state.menuShow}>
+            <div>
+              <ConfigMenu />
+            </div>
+          </Collapse>
+        </div>
       </div>
     )
   }

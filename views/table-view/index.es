@@ -243,6 +243,14 @@ const ShipInfoTableArea = connect(
     return width
   }
 
+  handleScroll = ({ scrollTop }) => {
+    if (scrollTop === 0) {
+      window.dispatchEvent(new Event('collapse-in'))
+    } else {
+      window.dispatchEvent(new Event('collapse-out'))
+    }
+  }
+
   setRef = (ref) => {
     this.grid = ref
   }
@@ -280,6 +288,7 @@ const ShipInfoTableArea = connect(
                   width={width}
                   scrollToColumn={0}
                   scrollToRow={0}
+                  onScroll={this.handleScroll}
                 />
               )}
           </AutoSizer>

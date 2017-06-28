@@ -1,6 +1,4 @@
 import React, { PureComponent } from 'react'
-import { Dropdown } from 'react-bootstrap'
-import propTypes from 'prop-types'
 
 import RadioCheck from './radio-check'
 import SallyAreaCheck from './sally-area-check'
@@ -10,8 +8,6 @@ import { lvOptions, lockedOptions, expeditionOptions, modernizationOptions,
   exSlotOptions, daihatsuOptions } from '../constants'
 
 import TypeView from './type-view'
-
-const { __ } = window
 
 const ConfigView = () => (
   <div className="config-menu">
@@ -90,26 +86,12 @@ class ConfigMenu extends PureComponent { // eslint-disable-line react/prefer-sta
 
   render() {
     return (
-      <ul className="dropdown-menu">
+      <div className="filter-menu">
         <TypeView />
         <ConfigView />
-      </ul>
+      </div>
     )
   }
 }
 
-const ConfigDropdown = ({ open }) =>
-  (
-    <Dropdown id="config-dropdown" open={open}>
-      <Dropdown.Toggle>
-        {__('Options')}
-      </Dropdown.Toggle>
-      <ConfigMenu bsRole="menu" />
-    </Dropdown>
-  )
-
-ConfigDropdown.propTypes = {
-  open: propTypes.bool,
-}
-
-export default ConfigDropdown
+export default ConfigMenu
