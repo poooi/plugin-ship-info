@@ -46,7 +46,11 @@ const RadioCheck = connect(
               role="button"
               tabIndex="0"
               onClick={this.handleClickRadio(parseInt(key, 10))}
-              className={cls('filter-option', { checked: parseInt(key, 10) === currentRadio })}
+              className={cls('filter-option', {
+                checked: parseInt(key, 10) === currentRadio,
+                dark: window.isDarkTheme,
+                light: !window.isDarkTheme,
+              })}
             >
               {__(options[key])}
             </div>

@@ -61,7 +61,7 @@ body {
   cursor: pointer;
 }
 .ship-info-cell.highlight{
-  background-color: rgba(0, 150, 136, 0.75);
+  background-color: rgba(105, 240, 174, 0.5);
 }
 .ship-info-cell.td-karyoku {
   text-align: center;
@@ -300,7 +300,7 @@ th {
 .config-menu > div {
   flex: 1;
   display: flex;
-  width: 50em;
+  min-width: 50em;
   flex-wrap: wrap;
 }
 
@@ -313,22 +313,31 @@ th {
 }
 
 .dual-col .radio-check {
-  width: 23em;
+  width: 46%;
 }
 
 .single-col .radio-check {
-  width: 50em;
+  width: 100%;
 }
 
 .dual-col .radio-check:nth-child(odd) {
-  margin-right: 4em;
+  margin-right: 8%;
 }
 
 .filter-option {
   flex: 0;
-  padding-left: 1ex;
-  padding-right: 1ex;
+  padding-left: 2vw;
+  padding-right: 2vw;
   line-height: 160%;
+  transition: 0.2s;
+}
+
+.filter-option.dark {
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.filter-option.light {
+  border: 1px solid rgba(0, 0, 0, 0.5);
 }
 
 .filter-option.checked {

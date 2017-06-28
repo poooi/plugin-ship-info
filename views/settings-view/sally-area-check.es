@@ -80,7 +80,11 @@ const SallyAreaCheck = connect(
           role="button"
           tabIndex="0"
           onClick={this.handleClickBox(-1)}
-          className={cls('filter-option', { checked: checkedAll })}
+          className={cls('filter-option', {
+            checked: checkedAll,
+            dark: window.isDarkTheme,
+            light: !window.isDarkTheme,
+          })}
         >
           {__('All')}
         </div>
@@ -88,7 +92,11 @@ const SallyAreaCheck = connect(
           role="button"
           tabIndex="0"
           onClick={this.handleClickBox(0)}
-          className={cls('filter-option', { checked: checked[0] })}
+          className={cls('filter-option', {
+            checked: checked[0],
+            dark: window.isDarkTheme,
+            light: !window.isDarkTheme,
+          })}
         >
           {__('Free')}
         </div>
@@ -98,7 +106,10 @@ const SallyAreaCheck = connect(
               <div
                 key={name}
                 onClick={this.handleClickBox(idx + 1)}
-                className={'filter-option'}
+                className={cls('filter-option', {
+                  dark: window.isDarkTheme,
+                  light: !window.isDarkTheme,
+                })}
                 role="button"
                 tabIndex="0"
                 style={{
