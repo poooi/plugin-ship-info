@@ -240,15 +240,21 @@ const expeditionShipsSelector = createSelector(
   ], (...ids) => [].concat(...ids)
 )
 
-export const shipRowsSelector = createSelector(
+export const allShipRowsSelector = createSelector(
   [
     shipsSelector,
     stateSelector,
+  ], (ships, state) =>
+  fp.map(ship => shipTableDataSelectorFactory(ship.api_id)(state))(ships)
+)
+
+export const shipRowsSelector = createSelector(
+  [
+    allShipRowsSelector,
     shipTypesSelecor,
     expeditionShipsSelector,
     shipInfoConfigSelector,
   ], (ships,
-    state,
     shipTypes,
     expeditionShips,
     {
@@ -267,7 +273,6 @@ export const shipRowsSelector = createSelector(
     }
   ) =>
     fp.flow(
-      fp.map(ship => shipTableDataSelectorFactory(ship.api_id)(state)),
       fp.filter(ship =>
         handleTypeFilter(ship.typeId, shipTypes) &&
         handleLvFilter(ship.lv, lvRadio) &&

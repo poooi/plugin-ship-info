@@ -1,12 +1,18 @@
 import React, { Component } from 'react'
 import propTypes from 'prop-types'
+import { remote, clipboard } from 'electron'
 import { Dropdown, Button } from 'react-bootstrap'
 import { connect } from 'react-redux'
-import FontAwesome from 'react-fontawesome'
+import FA from 'react-fontawesome'
 import cls from 'classnames'
+import fs from 'fs-extra'
+import { promisify } from 'bluebird'
 
-import { shipRowsSelector } from '../selectors'
+import { allShipRowsSelector, shipRowsSelector } from '../selectors'
 import { parseCsv } from '../csv-parser'
+
+const { dialog } = remote
+const outputFile = promisify(fs.outputFile)
 
 const { __ } = window
 
@@ -82,7 +88,7 @@ class ExportMenu extends Component {
     this.state = {
       sep: ',',
       end: isWin ? '\r\n' : '\n',
-      selection: 'all',
+      selection: 'current',
     }
   }
 
@@ -92,15 +98,37 @@ class ExportMenu extends Component {
     })
   }
 
-  handleExport = () => {
-    const { sep, end } = this.state
-    console.log(parseCsv(this.props.rows, sep, end))
+  handleExportToClipboard = () => {
+    const { sep, end, selection } = this.state
+    const rows = selection === 'current' ? this.props.rows : this.props.allRows
+    clipboard.writeText(parseCsv(rows, sep, end))
+  }
+
+  handleExportToFile = () => {
+    const bw = remote.getCurrentWindow()
+    dialog.showSaveDialog(bw, {
+      title: __('Position the file to save into'),
+      filters: [{
+        name: 'CSV file',
+        extensions: ['csv'],
+      }],
+    }, async (filename) => {
+      if (filename) {
+        const { sep, end, selection } = this.state
+        const rows = selection === 'current' ? this.props.rows : this.props.allRows
+        try {
+          await outputFile(filename, parseCsv(rows, sep, end))
+        } catch (e) {
+          console.error(e)
+        }
+      }
+    })
   }
 
   render() {
     const { sep, end, selection } = this.state
     return (
-      <ul className="dropdown-menu">
+      <ul className="dropdown-menu pull-right">
         <div className="single-col">
           <RadioCheck
             label="Data"
@@ -121,8 +149,13 @@ class ExportMenu extends Component {
             onChange={this.handleChange('end')}
           />
         </div>
-        <div>
-          <Button onClick={this.handleExport}>Download</Button>
+        <div style={{ display: 'flex', paddingLeft: '10px' }}>
+          <Button onClick={this.handleExportToClipboard} style={{ flex: 1 }}>
+            <FA name="clipboard" style={{ marginRight: '1ex' }} />{__('Copy To Clipboard')}
+          </Button>
+          <Button onClick={this.handleExportToFile} style={{ flex: 1 }}>
+            <FA name="file-text" style={{ marginRight: '1ex' }} />{__('Export to file')}
+          </Button>
         </div>
       </ul>
     )
@@ -132,14 +165,15 @@ class ExportMenu extends Component {
 
 const ExportDropdown = connect(
   state => ({
+    allRows: allShipRowsSelector(state),
     rows: shipRowsSelector(state),
   })
-)(({ rows }) => (
+)(({ allRows, rows }) => (
   <Dropdown id="export" pullRight>
     <Dropdown.Toggle>
-      <FontAwesome name="download" style={{ marginRight: '1ex' }} />{__('Export Data')}
+      <FA name="download" style={{ marginRight: '1ex' }} />{__('Export Data')}
     </Dropdown.Toggle>
-    <ExportMenu bsRole="menu" rows={rows} />
+    <ExportMenu bsRole="menu" allRows={allRows} rows={rows} />
   </Dropdown>
 ))
 
