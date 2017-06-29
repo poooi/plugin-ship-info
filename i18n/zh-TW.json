@@ -131,5 +131,15 @@
   "inDock": "入渠",
   "after": "後續改造",
   "sallyArea": "出擊海域",
-  "soku": "速力"
+  "soku": "速力",
+  "Export Data": "導出數據",
+  "Data": "數據",
+  "Current list": "當前列表",
+  "Separator": "分隔符",
+  "comma": "逗號",
+  "semicolon": "分號",
+  "tab": "製表符",
+  "Line break": "換行符",
+  "Copy to clipboard": "複製到剪貼板",
+  "Export to file": "導出到文件"
 }

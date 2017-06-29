@@ -75,7 +75,7 @@
   "Options": "オプション",
   "id": "ID",
   "name": "艦名",
-  "yomi": "假名",
+  "yomi": "仮名",
   "type": "艦種",
   "fleetId": "艦隊",
   "lv": "レベル",
@@ -131,5 +131,15 @@
   "inDock": "入渠",
   "after": "改造",
   "sallyArea": "出擊限定",
-  "soku": "速力"
+  "soku": "速力",
+  "Export Data": "デエタ輸出",
+  "Data": "デエタ",
+  "Current list": "現在のリスト",
+  "Separator": "区切り",
+  "comma": "カンマ",
+  "semicolon": "セミコロン",
+  "tab": "タブ",
+  "Line break": "改行",
+  "Copy to clipboard": "クリップボードえコピー",
+  "Export to file": "ファイルを輸出する"
 }

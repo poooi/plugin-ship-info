@@ -151,7 +151,7 @@ class ExportMenu extends Component {
         </div>
         <div style={{ display: 'flex', paddingLeft: '10px' }}>
           <Button onClick={this.handleExportToClipboard} style={{ flex: 1 }}>
-            <FA name="clipboard" style={{ marginRight: '1ex' }} />{__('Copy To Clipboard')}
+            <FA name="clipboard" style={{ marginRight: '1ex' }} />{__('Copy to clipboard')}
           </Button>
           <Button onClick={this.handleExportToFile} style={{ flex: 1 }}>
             <FA name="file-text" style={{ marginRight: '1ex' }} />{__('Export to file')}
