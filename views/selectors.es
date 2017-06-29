@@ -4,8 +4,8 @@ import { get, mapValues, findIndex, includes } from 'lodash'
 import fp from 'lodash/fp'
 
 import { constSelector, shipDataSelectorFactory, shipsSelector,
-  configSelector, fcdSelector, shipEquipDataSelectorFactory, fleetShipsIdSelectorFactory,
-  stateSelector, inRepairShipsIdSelector } from 'views/utils/selectors'
+  configSelector, fcdSelector, shipEquipDataSelectorFactory, fleetInExpeditionSelectorFactory,
+  fleetShipsIdSelectorFactory, stateSelector, inRepairShipsIdSelector } from 'views/utils/selectors'
 import { getShipInfoData, katakanaToHiragana, intToBoolArray } from './utils'
 
 const { __ } = window
@@ -224,12 +224,19 @@ const shipTypesSelecor = createSelector(
     , [])
 })
 
+const fleetShipsInExpeditionSelectorFactory = memoize(fleetId =>
+  createSelector([
+    fleetInExpeditionSelectorFactory(fleetId),
+    fleetShipsIdSelectorFactory(fleetId),
+  ], (inExpedition, id) => inExpedition ? id : [])
+)
+
 const expeditionShipsSelector = createSelector(
   [
-    state => fleetShipsIdSelectorFactory(0)(state),
-    state => fleetShipsIdSelectorFactory(1)(state),
-    state => fleetShipsIdSelectorFactory(2)(state),
-    state => fleetShipsIdSelectorFactory(3)(state),
+    state => fleetShipsInExpeditionSelectorFactory(0)(state),
+    state => fleetShipsInExpeditionSelectorFactory(1)(state),
+    state => fleetShipsInExpeditionSelectorFactory(2)(state),
+    state => fleetShipsInExpeditionSelectorFactory(3)(state),
   ], (...ids) => [].concat(...ids)
 )
 
