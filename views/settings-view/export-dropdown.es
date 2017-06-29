@@ -10,6 +10,8 @@ import { parseCsv } from '../csv-parser'
 
 const { __ } = window
 
+const isWin = process.platform === 'win32'
+
 const RadioCheck = ({ label, options, value: currentValue, onChange }) => (
   <div className="radio-check">
     <div className="filter-span"><span>{__(label)}</span></div>
@@ -79,19 +81,20 @@ class ExportMenu extends Component {
 
     this.state = {
       sep: ',',
-      end: process.platform === 'win32' ? '\r\n' : '\n',
+      end: isWin ? '\r\n' : '\n',
       selection: 'all',
     }
   }
 
-  handleChange = name => (value) => {
+  handleChange = name => value => () => {
     this.setState({
       [name]: value,
     })
   }
 
   handleExport = () => {
-    console.log(parseCsv(this.props.rows))
+    const { sep, end } = this.state
+    console.log(parseCsv(this.props.rows, sep, end))
   }
 
   render() {
@@ -112,7 +115,7 @@ class ExportMenu extends Component {
             onChange={this.handleChange('sep')}
           />
           <RadioCheck
-            label="Line end"
+            label="Line break"
             options={endOptions}
             value={end}
             onChange={this.handleChange('end')}
