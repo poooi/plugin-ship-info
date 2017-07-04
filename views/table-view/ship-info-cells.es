@@ -5,12 +5,13 @@ import propTypes from 'prop-types'
 import cls from 'classnames'
 import path from 'path'
 
+import { resolveTime } from 'views/utils/tools'
 import Slotitems from './slotitems'
 import SallyArea from './sally-area'
 import { sokuInterpretation, sokuStyles } from '../constants'
 import { getTimePerHP, shipInfoShape } from '../utils'
 
-const { __, resolveTime } = window
+const { __ } = window
 
 const Id = ({ ship, ...props }) => (
   <div
