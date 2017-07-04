@@ -3,18 +3,22 @@ import { clone } from 'lodash'
 import memoize from 'fast-memoize'
 import { repairFactor } from './constants'
 
-export const getTimePerHP = memoize((api_lv = 1, api_stype = 1) => {
+export const getTimePerHP = (api_lv = 1, api_stype = 1) => {
   let factor = 0
-  if (repairFactor[api_stype] != null) factor = repairFactor[api_stype].factor || 0
+  if (repairFactor[api_stype] != null) {
+    factor = repairFactor[api_stype].factor || 0
+  }
 
-  if (factor === 0) return 0
+  if (factor === 0) {
+    return 0
+  }
 
   if (api_lv < 12) {
     return api_lv * 10 * factor * 1000
   }
 
   return ((api_lv * 5) + ((Math.floor(Math.sqrt(api_lv - 11)) * 10) + 50)) * factor * 1000
-})
+}
 
 export const getShipInfoData = (
   ship,

@@ -109,7 +109,7 @@ export const daihatsuOptions = {
 }
 
 export const repairFactor = {
-  1: { api_id: 1, api_name: '海防艦', factor: 0 },
+  1: { api_id: 1, api_name: '海防艦', factor: 0.5 },
   2: { api_id: 2, api_name: '駆逐艦', factor: 1 },
   3: { api_id: 3, api_name: '軽巡洋艦', factor: 1 },
   4: { api_id: 4, api_name: '重雷装巡洋艦', factor: 1 },
