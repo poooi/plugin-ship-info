@@ -116,7 +116,7 @@ export const repairFactor = {
   5: { api_id: 5, api_name: '重巡洋艦', factor: 1.5 },
   6: { api_id: 6, api_name: '航空巡洋艦', factor: 1.5 },
   7: { api_id: 7, api_name: '軽空母', factor: 1.5 },
-  8: { api_id: 8, api_name: '戦艦', factor: 2 },
+  8: { api_id: 8, api_name: '戦艦', factor: 1.5 },
   9: { api_id: 9, api_name: '戦艦', factor: 2 },
   10: { api_id: 10, api_name: '航空戦艦', factor: 2 },
   11: { api_id: 11, api_name: '正規空母', factor: 2 },
