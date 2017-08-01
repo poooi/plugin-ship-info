@@ -59,6 +59,11 @@ export default class ShipInfoCheckboxArea extends Component {
                 onClick={() => this.handleMenuOpen(!menuShow)}
                 bsStyle={menuShow ? 'success' : 'default'}
               >
+                <FA name={menuShow ? 'toggle-on' : 'toggle-off'} />
+              </Button>
+              <Button
+                onClick={() => this.handleMenuOpen(!menuShow)}
+              >
                 <FA name="filter" style={{ marginRight: '1ex' }} />{__('Filter Setting')}
               </Button>
             </ButtonGroup>
