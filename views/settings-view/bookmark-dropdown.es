@@ -9,7 +9,7 @@ import { observe } from 'redux-observers'
 
 import { extensionSelectorFactory } from 'views/utils/selectors'
 
-import { onUpdate, onDelete, PLUGIN_KEY, bookmarksObserver } from '../redux'
+import { onUpdate, onDelete, PLUGIN_KEY, ShipInfoObserver } from '../redux'
 import { boolArrayToInt } from '../utils'
 
 const { __ } = window
@@ -42,11 +42,12 @@ BookmarkItem.propTypes = {
 
 const BookmarkMenu = connect(
   state => ({
-    bookmarks: extensionSelectorFactory(PLUGIN_KEY)(state),
+    bookmarks: extensionSelectorFactory(PLUGIN_KEY)(state).bookmark || {},
   })
 )(class BookmarkMenu extends Component {
   constructor(props) {
     super(props)
+    console.log(props.bookmarks)
     const bookmarks = values(props.bookmarks)
     this.fuse = new Fuse(bookmarks, {
       keys: ['name'],
@@ -63,15 +64,15 @@ const BookmarkMenu = connect(
     children: propTypes.arrayOf(propTypes.element),
   }
 
-  componentDidMount = () => {
-    this.unsubsribeObserver = observe(window.store, [bookmarksObserver])
-  }
+  // componentDidMount = () => {
+  //   this.unsubsribeObserver = observe(window.store, [ShipInfoObserver])
+  // }
 
-  componentWillUnmount = () => {
-    if (this.unsubsribeObserver) {
-      this.unsubsribeObserver()
-    }
-  }
+  // componentWillUnmount = () => {
+  //   if (this.unsubsribeObserver) {
+  //     this.unsubsribeObserver()
+  //   }
+  // }
 
   componentWillReceiveProps = (nextProps) => {
     const bookmarks = values(nextProps.bookmarks)
@@ -157,7 +158,7 @@ const BookmarkMenu = connect(
 
 const BookmarkDropdown = connect(
   state => ({
-    bookmarks: extensionSelectorFactory(PLUGIN_KEY)(state),
+    bookmarks: extensionSelectorFactory(PLUGIN_KEY)(state).bookmark || {},
   })
 )(({ bookmarks, open }) =>
   (<Dropdown id="bookmark" pullRight open={open}>
