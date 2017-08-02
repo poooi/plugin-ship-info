@@ -130,7 +130,24 @@ export const getShipInfoData = (
   // Verniy = 147, Kawakaze Kai 2 = 469
   // Nagato Kai 2 = 541
   // Yura Kai 2 = 488
-  if ([200, 487, 418, 434, 435, 464, 470, 199, 468, 490, 147, 469, 541, 488].includes($ship.api_id)) {
+  // Fumitsuki Kai 2 = 548
+  if ([
+    200,
+    487,
+    418,
+    434,
+    435,
+    464,
+    470,
+    199,
+    468,
+    490,
+    147,
+    469,
+    541,
+    488,
+    548,
+  ].includes($ship.api_id)) {
     daihatsu = true
   }
 
