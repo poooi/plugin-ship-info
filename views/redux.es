@@ -9,6 +9,9 @@ let initState = {}
 
 try {
   initState = JSON.parse(localStorage.getItem(PLUGIN_KEY)) || {}
+  if ('bookmark' in initState && 'planner' in initState) {
+    initState = initState.bookmark
+  }
 } catch (e) {
   console.error(e.stack)
 }
