@@ -9,8 +9,8 @@ export const PLUGIN_KEY = 'poi-plugin-ship-info'
 let bookmarkInitState = {}
 
 const plannerInitState = {
-  dpCurrent: [],
-  dpBookmarks: {},
+  current: [],
+  archive: {},
 }
 
 const uiInitState = {
@@ -21,7 +21,7 @@ try {
   const initState = JSON.parse(localStorage.getItem(PLUGIN_KEY)) || {}
   if ('planner' in initState && 'bookmark' in initState) {
     bookmarkInitState = initState.bookmark || {}
-    plannerInitState.dpCurrent = get(initState, 'planner.dpCurrent', [])
+    plannerInitState.current = get(initState, 'planner.current', [])
   } else {
     bookmarkInitState = initState
   }
@@ -48,7 +48,7 @@ const bookmarkReducer = (state = bookmarkInitState, action) => {
   }
 }
 
-// dpCurrent: [[ship ids in the area ] for area in fcd ] current deck planner's profile,
+// current: [[ship ids in the area ] for area in fcd ] current deck planner's profile,
 // it depends on the fcd name, so only ship ids are stored
 // TODO dpBookmarks: historical data, we must make sure it is independent of fcd
 // {
@@ -64,7 +64,7 @@ const bookmarkReducer = (state = bookmarkInitState, action) => {
 
 const plannerReducer = (state = plannerInitState, action) => {
   const { type, mapname, shipId, areaIndex, fromAreaIndex, toAreaIndex, data } = action
-  const current = state.dpCurrent
+  const current = state.current
   switch (type) {
     case `@@${PLUGIN_KEY}@loadData`: {
       return {
@@ -77,13 +77,13 @@ const plannerReducer = (state = plannerInitState, action) => {
         const len = mapname.length - current.length
         return {
           ...state,
-          dpCurrent: [...current, ...new Array(len).fill([])],
+          current: [...current, ...new Array(len).fill([])],
         }
       } else if (current.length > mapname.length) {
         const newCurrent = current.slice(0, mapname.length)
         return {
           ...state,
-          dpCurrent: newCurrent,
+          current: newCurrent,
         }
       }
       break
@@ -94,7 +94,7 @@ const plannerReducer = (state = plannerInitState, action) => {
         newCurrent[areaIndex] = [...newCurrent[areaIndex], shipId]
         return {
           ...state,
-          dpCurrent: newCurrent,
+          current: newCurrent,
         }
       }
       break
@@ -105,7 +105,7 @@ const plannerReducer = (state = plannerInitState, action) => {
         newCurrent[areaIndex] = newCurrent[areaIndex].filter(id => id !== shipId)
         return {
           ...state,
-          dpCurrent: newCurrent,
+          current: newCurrent,
         }
       }
       break
@@ -117,7 +117,7 @@ const plannerReducer = (state = plannerInitState, action) => {
         newCurrent[toAreaIndex] = [...newCurrent[toAreaIndex], shipId]
         return {
           ...state,
-          dpCurrent: newCurrent,
+          current: newCurrent,
         }
       }
       break
