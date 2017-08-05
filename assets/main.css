@@ -470,3 +470,65 @@ th {
   max-height: calc(100vh - 200px);
   overflow: scroll;
 }
+
+.area {
+  margin: 1em 0;
+}
+
+.area .header {
+  display: flex;
+  align-items: center;
+}
+
+.area .header .area-name {
+  flex: 1;
+  text-align: left;
+}
+
+.area .planned .pool {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-content: flex-start;
+  min-height: 6em;
+  padding-top: .5em;
+}
+
+.area .planned .lane {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-content: flex-start;
+}
+
+.area .planned .lane:not(:first-child) {
+  margin-top: 1em;
+}
+
+.ship-chip {
+  margin: .25em .5em;
+  padding-left: 1em;
+  padding-right: 1em;
+  border-radius: 2em;
+  flex: 0;
+  height: 2em;
+  display: flex;
+  align-items: center;
+}
+
+.ship-chip .ship-type {
+  margin-right: 1ex;
+}
+
+.ship-chip .ship-name {
+  line-height: initial;
+}
+
+.ship-chip .displace .fa,
+.ship-chip .remove .fa{
+  padding-left: .5em;
+  padding-right: 0;
+  font-size: 120%;
+}

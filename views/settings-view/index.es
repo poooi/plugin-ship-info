@@ -9,6 +9,7 @@ import { extensionSelectorFactory } from 'views/utils/selectors'
 import BookmarkDropdown from './bookmark-dropdown'
 import ConfigMenu from './config-menu'
 import ExportDropdown from './export-dropdown'
+import PlannerDropdown from './planner-dropdown'
 
 const { __, config } = window
 
@@ -74,6 +75,9 @@ const ShipInfoCheckboxArea = connect(
             </ButtonGroup>
             <ButtonGroup>
               <ExportDropdown />
+            </ButtonGroup>
+            <ButtonGroup>
+              <PlannerDropdown />
             </ButtonGroup>
           </ButtonToolbar>
         </div>
