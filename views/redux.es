@@ -14,7 +14,7 @@ const plannerInitState = {
 }
 
 const uiInitState = {
-  scrollTop: 0,
+  toTop: true,
 }
 
 try {
@@ -129,11 +129,11 @@ const plannerReducer = (state = plannerInitState, action) => {
 }
 
 const uiReducer = (state = uiInitState, action) => {
-  const { type, scrollTop } = action
+  const { type, toTop } = action
   if (type === `@@${PLUGIN_KEY}@scroll`) {
     return {
       ...state,
-      scrollTop,
+      toTop,
     }
   }
   return state

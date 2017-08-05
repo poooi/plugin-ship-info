@@ -1,6 +1,10 @@
 import React, { Component } from 'react'
+import { connect } from 'react-redux'
 import { Button, ButtonGroup, ButtonToolbar, Collapse } from 'react-bootstrap'
 import FA from 'react-fontawesome'
+import { get } from 'lodash'
+
+import { extensionSelectorFactory } from 'views/utils/selectors'
 
 import BookmarkDropdown from './bookmark-dropdown'
 import ConfigMenu from './config-menu'
@@ -8,20 +12,14 @@ import ExportDropdown from './export-dropdown'
 
 const { __, config } = window
 
-export default class ShipInfoCheckboxArea extends Component {
+const ShipInfoCheckboxArea = connect(
+  state => ({
+    toTop: get(extensionSelectorFactory('poi-plugin-ship-info')(state), 'ui.toTop', 0),
+  })
+)(class ShipInfoCheckboxArea extends Component {
   state = {
-    scrollDown: false,
-    menuShow: true,
-  }
-
-  componentDidMount = () => {
-    window.addEventListener('scroll-top', this.handleScrollTopEvent)
-    window.addEventListener('scroll-down', this.handleScrollDownEvent)
-  }
-
-  componentWillUnmount = () => {
-    window.removeEventListener('scroll-top', this.handleScrollTopEvent)
-    window.removeEventListener('scroll-down', this.handleScrollDownEvent)
+    menuShow: false,
+    autoShow: true,
   }
 
   handleResetAll = () => {
@@ -31,38 +29,35 @@ export default class ShipInfoCheckboxArea extends Component {
     })
   }
 
-  handleMenuOpen = (menuShow) => {
-    if (menuShow === this.state.menuShow) return
-    this.setState({ menuShow })
-  }
-
-  handleScrollTopEvent = () => {
+  handleMenuOpen = () => {
     this.setState({
-      scrollDown: false,
+      menuShow: !this.state.menuShow,
     })
   }
 
-  handleScrollDownEvent = () => {
+  handleAutoShow = () => {
     this.setState({
-      scrollDown: true,
+      autoShow: !this.state.autoShow,
     })
   }
 
   render() {
-    const { menuShow, scrollDown } = this.state
+    const { menuShow, autoShow } = this.state
+    const { toTop } = this.props
     return (
       <div id="ship-info-settings">
         <div>
           <ButtonToolbar id="settings-toolbar">
             <ButtonGroup>
               <Button
-                onClick={() => this.handleMenuOpen(!menuShow)}
-                bsStyle={menuShow ? 'success' : 'default'}
+                onClick={this.handleAutoShow}
+                bsStyle={autoShow ? 'success' : 'default'}
               >
-                <FA name={menuShow ? 'toggle-on' : 'toggle-off'} />
+                <FA name={autoShow ? 'unlock' : 'lock'} />
               </Button>
               <Button
-                onClick={() => this.handleMenuOpen(!menuShow)}
+                onClick={this.handleMenuOpen}
+                bsStyle={menuShow ? 'success' : 'default'}
               >
                 <FA name="filter" style={{ marginRight: '1ex' }} />{__('Filter Setting')}
               </Button>
@@ -83,7 +78,7 @@ export default class ShipInfoCheckboxArea extends Component {
           </ButtonToolbar>
         </div>
         <div>
-          <Collapse in={menuShow && !scrollDown}>
+          <Collapse in={menuShow || (toTop && autoShow)}>
             <div>
               <ConfigMenu />
             </div>
@@ -92,4 +87,6 @@ export default class ShipInfoCheckboxArea extends Component {
       </div>
     )
   }
-}
+})
+
+export default ShipInfoCheckboxArea

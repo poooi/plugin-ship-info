@@ -3,7 +3,9 @@ import propTypes from 'prop-types'
 import { connect } from 'react-redux'
 import cls from 'classnames'
 import { MultiGrid, AutoSizer } from 'react-virtualized'
-import { sum, debounce, floor } from 'lodash'
+import { sum, debounce, floor, get } from 'lodash'
+
+import { extensionSelectorFactory } from 'views/utils/selectors'
 
 import Divider from '../divider'
 import { shipInfoShape } from '../utils'
@@ -93,6 +95,7 @@ const ShipInfoTableArea = connect(
   state => ({
     rows: shipRowsSelector(state),
     ...shipInfoConfigSelector(state),
+    toTop: get(extensionSelectorFactory('poi-plugin-ship-info')(state), 'ui.toTop', 0),
   })
 )(class ShipInfoTableArea extends Component {
   static propTypes = {
@@ -244,10 +247,11 @@ const ShipInfoTableArea = connect(
   }
 
   handleScroll = ({ scrollTop }) => {
-    if (scrollTop === 0) {
-      window.dispatchEvent(new Event('scroll-top'))
-    } else {
-      window.dispatchEvent(new Event('scroll-down'))
+    if (this.props.toTop !== !scrollTop) {
+      this.props.dispatch({
+        type: '@@poi-plugin-ship-info@scroll',
+        toTop: !scrollTop,
+      })
     }
   }
 
