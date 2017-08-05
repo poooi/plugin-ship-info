@@ -98,7 +98,7 @@ const PlannerDropdown = connect(
 )(({ activeDropdown, handleToggle }) =>
   (<Dropdown id="planner" pullRight open={activeDropdown === 'planner'} onToggle={handleToggle}>
     <Dropdown.Toggle>
-      <FontAwesome name="tags" style={{ marginRight: '1ex' }} />{__('Planner')}<sup>BETA</sup>
+      <FontAwesome name="tags" style={{ marginRight: '1ex' }} />{__('Deck Planner')} <sup>BETA</sup>
     </Dropdown.Toggle>
     <DeckPlannerView bsRole="menu" open={activeDropdown === 'planner'} />
   </Dropdown>)
