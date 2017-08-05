@@ -156,12 +156,20 @@ const BookmarkMenu = connect(
   }
 })
 
+const handleToggleAction = () => ({
+  type: '@@poi-plugin-ship-info@active-dropdown',
+  activeDropdown: 'bookmark',
+})
+
+
 const BookmarkDropdown = connect(
   state => ({
     bookmarks: extensionSelectorFactory(PLUGIN_KEY)(state).bookmark || {},
-  })
-)(({ bookmarks, open }) =>
-  (<Dropdown id="bookmark" pullRight open={open}>
+    activeDropdown: get(extensionSelectorFactory('poi-plugin-ship-info')(state), 'ui.activeDropdown', 0),
+  }),
+  { handleToggle: handleToggleAction },
+)(({ bookmarks, activeDropdown, handleToggle }) =>
+  (<Dropdown id="bookmark" pullRight open={activeDropdown === 'bookmark'} onToggle={handleToggle}>
     <Dropdown.Toggle>
       <FontAwesome name="tags" style={{ marginRight: '1ex' }} />{__('Bookmarks')}
     </Dropdown.Toggle>

@@ -15,6 +15,7 @@ const plannerInitState = {
 
 const uiInitState = {
   toTop: true,
+  activeDropdown: '',
 }
 
 try {
@@ -129,11 +130,16 @@ const plannerReducer = (state = plannerInitState, action) => {
 }
 
 const uiReducer = (state = uiInitState, action) => {
-  const { type, toTop } = action
+  const { type, toTop, activeDropdown } = action
   if (type === `@@${PLUGIN_KEY}@scroll`) {
     return {
       ...state,
       toTop,
+    }
+  } else if (type === `@@${PLUGIN_KEY}@active-dropdown`) {
+    return {
+      ...state,
+      activeDropdown: activeDropdown === state.activeDropdown ? '' : activeDropdown,
     }
   }
   return state
