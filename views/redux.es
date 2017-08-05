@@ -13,6 +13,10 @@ const plannerInitState = {
   dpBookmarks: {},
 }
 
+const uiInitState = {
+  scrollTop: 0,
+}
+
 try {
   const initState = JSON.parse(localStorage.getItem(PLUGIN_KEY)) || {}
   if ('planner' in initState && 'bookmark' in initState) {
@@ -124,9 +128,21 @@ const plannerReducer = (state = plannerInitState, action) => {
   return state
 }
 
+const uiReducer = (state = uiInitState, action) => {
+  const { type, scrollTop } = action
+  if (type === `@@${PLUGIN_KEY}@scroll`) {
+    return {
+      ...state,
+      scrollTop,
+    }
+  }
+  return state
+}
+
 export const reducer = combineReducers({
   bookmark: bookmarkReducer,
   planner: plannerReducer,
+  ui: uiReducer,
 })
 
 export const onDPInit = ({ color, mapname }) =>
