@@ -35,6 +35,7 @@ const DeckPlannerView = connect(
         ships: [],
         areaIndex: index,
       })),
+      left: 0,
     }
   }
 
@@ -48,10 +49,24 @@ const DeckPlannerView = connect(
     }
   }
 
+  componentWillReceiveProps = (nextProps) => {
+    if (!this.props.open && nextProps.open) {
+      const toolbar = document.querySelector('#settings-toolbar')
+      const planner = document.querySelector('#planner')
+      if (toolbar && planner) {
+        const { left: outerLeft } = toolbar.getBoundingClientRect()
+        const { left: innerLeft } = planner.getBoundingClientRect()
+        this.setState({
+          left: Math.round(outerLeft - innerLeft),
+        })
+      }
+    }
+  }
+
   render() {
-    const { areas } = this.state
+    const { areas, left } = this.state
     return (
-      <ul className="dropdown-menu" style={{ width: '100vw', height: '80vh' }}>
+      <ul className="dropdown-menu" style={{ width: '100vw', height: '90vh', left }}>
         <div>
           {
             areas.map(area => (
@@ -85,7 +100,7 @@ const PlannerDropdown = connect(
     <Dropdown.Toggle>
       <FontAwesome name="tags" style={{ marginRight: '1ex' }} />{__('Planner')}<sup>BETA</sup>
     </Dropdown.Toggle>
-    <DeckPlannerView bsRole="menu" />
+    <DeckPlannerView bsRole="menu" open={activeDropdown === 'planner'} />
   </Dropdown>)
 )
 export default PlannerDropdown

@@ -51,7 +51,7 @@ class ShipMenu extends Component {
     const { typeIndex } = this.state
 
     return (
-      <ul className="dropdown-menu add-ship-menu">
+      <ul className="dropdown-menu add-ship-menu pull-right">
         {
           typeIndex >= 0 &&
             <MenuItem onSelect={this.handleGoBack}>{__('return to ship types')}</MenuItem>
@@ -61,7 +61,7 @@ class ShipMenu extends Component {
           ?
             React.Children.toArray(children)
               .filter(child => get(shipSuperTypeMap, `${typeIndex}.id`, []).includes(child.props.typeId))
-              .filter(child => [0, areaIndex + 1].includes(child.props.area))
+              .filter(child => [0, areaIndex + 1].includes(child.props.area || 0))
           :
             map(shipSuperTypeMap, (type, index) => (
               <Item key={type.name} eventKey={index} onSelect={this.handleTypeSelect(index)}>
@@ -82,7 +82,7 @@ const AddShipDropdown = connect(
     color: get(state, 'fcd.shiptag.color', []),
   })
 )(({ shipItems, areaIndex, allShipIds, color, onSelect }) =>
-  (<Dropdown id={`add-ship-dropdown-${areaIndex}`}>
+  (<Dropdown id={`add-ship-dropdown-${areaIndex}`} pullRight>
     <Dropdown.Toggle bsStyle="link">
       <FontAwesome name="plus" />
     </Dropdown.Toggle>
