@@ -1,15 +1,14 @@
 import React, { Component } from 'react'
 import propTypes from 'prop-types'
-import { Dropdown, MenuItem, FormControl, Button, Label } from 'react-bootstrap'
+import { Dropdown, MenuItem, FormControl, InputGroup, Button, Label } from 'react-bootstrap'
 import Fuse from 'fuse.js'
 import { connect } from 'react-redux'
 import { get, values } from 'lodash'
 import FontAwesome from 'react-fontawesome'
-import { observe } from 'redux-observers'
 
 import { extensionSelectorFactory } from 'views/utils/selectors'
 
-import { onUpdate, onDelete, PLUGIN_KEY, bookmarksObserver } from '../redux'
+import { onUpdate, onDelete, PLUGIN_KEY } from '../redux'
 import { boolArrayToInt } from '../utils'
 
 const { __ } = window
@@ -42,7 +41,7 @@ BookmarkItem.propTypes = {
 
 const BookmarkMenu = connect(
   state => ({
-    bookmarks: extensionSelectorFactory(PLUGIN_KEY)(state),
+    bookmarks: extensionSelectorFactory(PLUGIN_KEY)(state).bookmark || {},
   })
 )(class BookmarkMenu extends Component {
   constructor(props) {
@@ -63,15 +62,15 @@ const BookmarkMenu = connect(
     children: propTypes.arrayOf(propTypes.element),
   }
 
-  componentDidMount = () => {
-    this.unsubsribeObserver = observe(window.store, [bookmarksObserver])
-  }
+  // componentDidMount = () => {
+  //   this.unsubsribeObserver = observe(window.store, [ShipInfoObserver])
+  // }
 
-  componentWillUnmount = () => {
-    if (this.unsubsribeObserver) {
-      this.unsubsribeObserver()
-    }
-  }
+  // componentWillUnmount = () => {
+  //   if (this.unsubsribeObserver) {
+  //     this.unsubsribeObserver()
+  //   }
+  // }
 
   componentWillReceiveProps = (nextProps) => {
     const bookmarks = values(nextProps.bookmarks)
@@ -108,6 +107,13 @@ const BookmarkMenu = connect(
 
   handleInput = e => this.setState({ query: e.target.value })
 
+  handleClearInput = () => {
+    if (this.queryForm) {
+      this.queryForm.focus()
+    }
+    this.setState({ query: '' })
+  }
+
   render() {
     const { children } = this.props
     const { query } = this.state
@@ -121,13 +127,19 @@ const BookmarkMenu = connect(
       <ul className="dropdown-menu">
         <li className="bookmark-input-list">
           <a>
-            <FormControl
-              type="text"
-              value={query}
-              placeholder={__('Search or create a bookmark')}
-              onChange={this.handleInput}
-              id="bookmark-input"
-            />
+            <InputGroup>
+              <FormControl
+                inputRef={(ref) => { this.queryForm = ref }}
+                type="text"
+                value={query}
+                placeholder={__('Search or create a bookmark')}
+                onChange={this.handleInput}
+                id="bookmark-input"
+              />
+              <InputGroup.Addon onClick={this.handleClearInput}>
+                <FontAwesome name="times" />
+              </InputGroup.Addon>
+            </InputGroup>
           </a>
         </li>
 
@@ -155,12 +167,20 @@ const BookmarkMenu = connect(
   }
 })
 
+const handleToggleAction = () => ({
+  type: '@@poi-plugin-ship-info@active-dropdown',
+  activeDropdown: 'bookmark',
+})
+
+
 const BookmarkDropdown = connect(
   state => ({
-    bookmarks: extensionSelectorFactory(PLUGIN_KEY)(state),
-  })
-)(({ bookmarks, open }) =>
-  (<Dropdown id="bookmark" pullRight open={open}>
+    bookmarks: extensionSelectorFactory(PLUGIN_KEY)(state).bookmark || {},
+    activeDropdown: get(extensionSelectorFactory('poi-plugin-ship-info')(state), 'ui.activeDropdown', 0),
+  }),
+  { handleToggle: handleToggleAction },
+)(({ bookmarks, activeDropdown, handleToggle }) =>
+  (<Dropdown id="bookmark" pullRight open={activeDropdown === 'bookmark'} onToggle={handleToggle}>
     <Dropdown.Toggle>
       <FontAwesome name="tags" style={{ marginRight: '1ex' }} />{__('Bookmarks')}
     </Dropdown.Toggle>

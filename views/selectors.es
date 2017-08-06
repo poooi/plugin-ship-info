@@ -1,12 +1,14 @@
 import memoize from 'fast-memoize'
 import { createSelector } from 'reselect'
-import { get, mapValues, findIndex, includes } from 'lodash'
+import { get, mapValues, findIndex, includes, flatten } from 'lodash'
 import fp from 'lodash/fp'
 
 import { constSelector, shipDataSelectorFactory, shipsSelector,
   configSelector, fcdSelector, shipEquipDataSelectorFactory, fleetInExpeditionSelectorFactory,
-  fleetShipsIdSelectorFactory, stateSelector, inRepairShipsIdSelector } from 'views/utils/selectors'
-import { getShipInfoData, katakanaToHiragana, intToBoolArray } from './utils'
+  fleetShipsIdSelectorFactory, stateSelector, inRepairShipsIdSelector, extensionSelectorFactory } from 'views/utils/selectors'
+
+import { PLUGIN_KEY } from './redux'
+import { getShipInfoData, katakanaToHiragana, intToBoolArray, reverseSuperTypeMap } from './utils'
 
 const { __ } = window
 
@@ -301,3 +303,51 @@ export const sallyAreaSelectorFactory = memoize(area => createSelector(
     color: get(fcd, `shiptag.color.${area - 1}`, ''),
   })
 ))
+
+export const ShipItemSelectorFactory = memoize(shipId =>
+  createSelector([
+    shipDataSelectorFactory(shipId),
+  ], ([ship, $ship] = []) =>
+    !!ship && !!$ship
+    ? ({
+      id: ship.api_id,
+      typeId: $ship.api_stype,
+      name: $ship.api_name,
+      lv: ship.api_lv,
+      area: ship.api_sally_area,
+      superTypeIndex: reverseSuperTypeMap[$ship.api_stype] || 0,
+    })
+    : undefined
+  )
+)
+
+export const shipMenuDataSelector = createSelector(
+  [
+    shipsSelector,
+    state => state,
+  ], (_ships, state) =>
+    fp.flow(
+      fp.map(ship => ship.api_id),
+      fp.map(shipId => ShipItemSelectorFactory(shipId)(state)),
+    )(_ships)
+)
+
+export const deckPlannerCurrentSelector = createSelector(
+  [
+    extensionSelectorFactory(PLUGIN_KEY),
+  ], state => state.planner.current
+)
+
+export const deckPlannerAreaSelectorFactory = memoize(areaIndex =>
+  createSelector(
+    [
+      deckPlannerCurrentSelector,
+    ], current => current[areaIndex] || []
+  )
+)
+
+export const deckPlannerAllShipIdsSelector = createSelector(
+  [
+    deckPlannerCurrentSelector,
+  ], current => flatten(current)
+)

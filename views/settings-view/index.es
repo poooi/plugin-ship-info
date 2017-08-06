@@ -1,27 +1,55 @@
 import React, { Component } from 'react'
+import { connect } from 'react-redux'
 import { Button, ButtonGroup, ButtonToolbar, Collapse } from 'react-bootstrap'
 import FA from 'react-fontawesome'
+import { get } from 'lodash'
+import { observe } from 'redux-observers'
+import { readJson } from 'fs-extra'
+import { promisify } from 'bluebird'
+
+import { extensionSelectorFactory } from 'views/utils/selectors'
 
 import BookmarkDropdown from './bookmark-dropdown'
 import ConfigMenu from './config-menu'
 import ExportDropdown from './export-dropdown'
+import PlannerDropdown from './planner-dropdown'
+
+import { dataObserver, DATA_PATH } from '../redux'
 
 const { __, config } = window
 
-export default class ShipInfoCheckboxArea extends Component {
+const ShipInfoCheckboxArea = connect(
+  state => ({
+    toTop: get(extensionSelectorFactory('poi-plugin-ship-info')(state), 'ui.toTop', 0),
+  })
+)(class ShipInfoCheckboxArea extends Component {
   state = {
-    scrollDown: false,
-    menuShow: true,
+    menuShow: false,
+    autoShow: true,
   }
 
-  componentDidMount = () => {
-    window.addEventListener('scroll-top', this.handleScrollTopEvent)
-    window.addEventListener('scroll-down', this.handleScrollDownEvent)
+  componentDidMount = async () => {
+    try {
+      const data = await promisify(readJson)(DATA_PATH)
+      this.props.dispatch({
+        type: '@@poi-plugin-ship-info@init',
+        data,
+      })
+    } catch (e) {
+      console.error(e.stack)
+    } finally {
+      this.props.dispatch({
+        type: '@@poi-plugin-ship-info@ready',
+      })
+    }
+
+    this.unsubscribeObserver = observe(window.store, [dataObserver])
   }
 
   componentWillUnmount = () => {
-    window.removeEventListener('scroll-top', this.handleScrollTopEvent)
-    window.removeEventListener('scroll-down', this.handleScrollDownEvent)
+    if (this.unsubscribeObserver) {
+      this.unsubscribeObserver()
+    }
   }
 
   handleResetAll = () => {
@@ -31,32 +59,34 @@ export default class ShipInfoCheckboxArea extends Component {
     })
   }
 
-  handleMenuOpen = (menuShow) => {
-    if (menuShow === this.state.menuShow) return
-    this.setState({ menuShow })
-  }
-
-  handleScrollTopEvent = () => {
+  handleMenuOpen = () => {
     this.setState({
-      scrollDown: false,
+      menuShow: !this.state.menuShow,
     })
   }
 
-  handleScrollDownEvent = () => {
+  handleAutoShow = () => {
     this.setState({
-      scrollDown: true,
+      autoShow: !this.state.autoShow,
     })
   }
 
   render() {
-    const { menuShow, scrollDown } = this.state
+    const { menuShow, autoShow } = this.state
+    const { toTop } = this.props
     return (
       <div id="ship-info-settings">
         <div>
           <ButtonToolbar id="settings-toolbar">
             <ButtonGroup>
               <Button
-                onClick={() => this.handleMenuOpen(!menuShow)}
+                onClick={this.handleAutoShow}
+                bsStyle={autoShow ? 'success' : 'default'}
+              >
+                <FA name={autoShow ? 'unlock' : 'lock'} />
+              </Button>
+              <Button
+                onClick={this.handleMenuOpen}
                 bsStyle={menuShow ? 'success' : 'default'}
               >
                 <FA name="filter" style={{ marginRight: '1ex' }} />{__('Filter Setting')}
@@ -75,10 +105,13 @@ export default class ShipInfoCheckboxArea extends Component {
             <ButtonGroup>
               <ExportDropdown />
             </ButtonGroup>
+            <ButtonGroup>
+              <PlannerDropdown />
+            </ButtonGroup>
           </ButtonToolbar>
         </div>
         <div>
-          <Collapse in={menuShow && !scrollDown}>
+          <Collapse in={menuShow || (toTop && autoShow)}>
             <div>
               <ConfigMenu />
             </div>
@@ -87,4 +120,6 @@ export default class ShipInfoCheckboxArea extends Component {
       </div>
     )
   }
-}
+})
+
+export default ShipInfoCheckboxArea

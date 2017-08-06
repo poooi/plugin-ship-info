@@ -11,7 +11,7 @@ const { __, __r } = window
 
 const TypeView = connect(
   (state, props) => {
-    const $shipTypes = get(state, 'const.$shipTypes')
+    const $shipTypes = get(state, 'const.$shipTypes', {})
     const defaultChecked = Object.keys($shipTypes).slice().fill(true)
 
     let checked = intToBoolArray(get(state.config, 'plugin.ShipInfo.shipTypes'))

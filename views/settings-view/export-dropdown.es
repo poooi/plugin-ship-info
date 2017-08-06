@@ -7,6 +7,8 @@ import FA from 'react-fontawesome'
 import cls from 'classnames'
 import fs from 'fs-extra'
 import { promisify } from 'bluebird'
+import { extensionSelectorFactory } from 'views/utils/selectors'
+import { get } from 'lodash'
 
 import { allShipRowsSelector, shipRowsSelector } from '../selectors'
 import { parseCsv } from '../csv-parser'
@@ -162,14 +164,20 @@ class ExportMenu extends Component {
   }
 }
 
+const handleToggleAction = () => ({
+  type: '@@poi-plugin-ship-info@active-dropdown',
+  activeDropdown: 'export',
+})
 
 const ExportDropdown = connect(
   state => ({
     allRows: allShipRowsSelector(state),
     rows: shipRowsSelector(state),
-  })
-)(({ allRows, rows }) => (
-  <Dropdown id="export" pullRight>
+    activeDropdown: get(extensionSelectorFactory('poi-plugin-ship-info')(state), 'ui.activeDropdown', 0),
+  }),
+  { handleToggle: handleToggleAction },
+)(({ allRows, rows, activeDropdown, handleToggle }) => (
+  <Dropdown id="export" pullRight open={activeDropdown === 'export'} onToggle={handleToggle}>
     <Dropdown.Toggle>
       <FA name="download" style={{ marginRight: '1ex' }} />{__('Export Data')}
     </Dropdown.Toggle>
