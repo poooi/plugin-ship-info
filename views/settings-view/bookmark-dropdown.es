@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import propTypes from 'prop-types'
-import { Dropdown, MenuItem, FormControl, Button, Label } from 'react-bootstrap'
+import { Dropdown, MenuItem, FormControl, InputGroup, Button, Label } from 'react-bootstrap'
 import Fuse from 'fuse.js'
 import { connect } from 'react-redux'
 import { get, values } from 'lodash'
@@ -107,6 +107,13 @@ const BookmarkMenu = connect(
 
   handleInput = e => this.setState({ query: e.target.value })
 
+  handleClearInput = () => {
+    if (this.queryForm) {
+      this.queryForm.focus()
+    }
+    this.setState({ query: '' })
+  }
+
   render() {
     const { children } = this.props
     const { query } = this.state
@@ -120,13 +127,19 @@ const BookmarkMenu = connect(
       <ul className="dropdown-menu">
         <li className="bookmark-input-list">
           <a>
-            <FormControl
-              type="text"
-              value={query}
-              placeholder={__('Search or create a bookmark')}
-              onChange={this.handleInput}
-              id="bookmark-input"
-            />
+            <InputGroup>
+              <FormControl
+                inputRef={(ref) => { this.queryForm = ref }}
+                type="text"
+                value={query}
+                placeholder={__('Search or create a bookmark')}
+                onChange={this.handleInput}
+                id="bookmark-input"
+              />
+              <InputGroup.Addon onClick={this.handleClearInput}>
+                <FontAwesome name="times" />
+              </InputGroup.Addon>
+            </InputGroup>
           </a>
         </li>
 
