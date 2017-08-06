@@ -313,7 +313,7 @@ each(shipSuperTypeMap, ({ id }, index) => each(id, typeId => reverseSuperTypeMap
 
 
 export const shipTypes = {
-  1: __('PF'),
+  1: __('DE'),
   2: __('DD'),
   3: __('CL'),
   4: __('CLT'),
