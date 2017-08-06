@@ -66,7 +66,15 @@ const DeckPlannerView = connect(
   render() {
     const { areas, left } = this.state
     return (
-      <ul className="dropdown-menu" style={{ width: '100vw', height: '90vh', left }}>
+      <ul
+        className="dropdown-menu"
+        style={{
+          width: '100vw',
+          height: '90vh',
+          left,
+          background: 'rgba(51, 51, 51, 0.95)',
+        }}
+      >
         <div>
           {
             areas.map(area => (
