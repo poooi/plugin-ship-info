@@ -78,7 +78,7 @@ const plannerReducer = (state = plannerInitState, action) => {
     case `@@${PLUGIN_KEY}@init`: {
       return {
         ...state,
-        ...data.bookmark,
+        ...data.planner,
       }
     }
     case `@@${PLUGIN_KEY}@dp-init`: {
