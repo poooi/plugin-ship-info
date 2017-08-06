@@ -5,11 +5,10 @@ import Fuse from 'fuse.js'
 import { connect } from 'react-redux'
 import { get, values } from 'lodash'
 import FontAwesome from 'react-fontawesome'
-import { observe } from 'redux-observers'
 
 import { extensionSelectorFactory } from 'views/utils/selectors'
 
-import { onUpdate, onDelete, PLUGIN_KEY, ShipInfoObserver } from '../redux'
+import { onUpdate, onDelete, PLUGIN_KEY } from '../redux'
 import { boolArrayToInt } from '../utils'
 
 const { __ } = window
@@ -47,7 +46,6 @@ const BookmarkMenu = connect(
 )(class BookmarkMenu extends Component {
   constructor(props) {
     super(props)
-    console.log(props.bookmarks)
     const bookmarks = values(props.bookmarks)
     this.fuse = new Fuse(bookmarks, {
       keys: ['name'],

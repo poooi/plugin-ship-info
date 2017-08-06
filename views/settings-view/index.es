@@ -3,6 +3,9 @@ import { connect } from 'react-redux'
 import { Button, ButtonGroup, ButtonToolbar, Collapse } from 'react-bootstrap'
 import FA from 'react-fontawesome'
 import { get } from 'lodash'
+import { observe } from 'redux-observers'
+import { readJson } from 'fs-extra'
+import { promisify } from 'bluebird'
 
 import { extensionSelectorFactory } from 'views/utils/selectors'
 
@@ -10,6 +13,8 @@ import BookmarkDropdown from './bookmark-dropdown'
 import ConfigMenu from './config-menu'
 import ExportDropdown from './export-dropdown'
 import PlannerDropdown from './planner-dropdown'
+
+import { dataObserver, DATA_PATH } from '../redux'
 
 const { __, config } = window
 
@@ -21,6 +26,30 @@ const ShipInfoCheckboxArea = connect(
   state = {
     menuShow: false,
     autoShow: true,
+  }
+
+  componentDidMount = async () => {
+    try {
+      const data = await promisify(readJson)(DATA_PATH)
+      this.props.dispatch({
+        type: '@@poi-plugin-ship-info@init',
+        data,
+      })
+    } catch (e) {
+      console.error(e.stack)
+    } finally {
+      this.props.dispatch({
+        type: '@@poi-plugin-ship-info@ready',
+      })
+    }
+
+    this.unsubscribeObserver = observe(window.store, [dataObserver])
+  }
+
+  componentWillUnmount = () => {
+    if (this.unsubscribeObserver) {
+      this.unsubscribeObserver()
+    }
   }
 
   handleResetAll = () => {

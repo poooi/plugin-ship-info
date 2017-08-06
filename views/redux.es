@@ -1,10 +1,17 @@
 import { observer } from 'redux-observers'
 import { isEqual, omit, get } from 'lodash'
 import { combineReducers } from 'redux'
+import path from 'path'
 
 import { extensionSelectorFactory } from 'views/utils/selectors'
 
+import FileWriter from './file-writer'
+
 export const PLUGIN_KEY = 'poi-plugin-ship-info'
+
+const { APPDATA_PATH } = window
+
+export const DATA_PATH = path.join(APPDATA_PATH, `${PLUGIN_KEY}.json`)
 
 let bookmarkInitState = {}
 
@@ -20,18 +27,13 @@ const uiInitState = {
 
 try {
   const initState = JSON.parse(localStorage.getItem(PLUGIN_KEY)) || {}
-  if ('planner' in initState && 'bookmark' in initState) {
-    bookmarkInitState = initState.bookmark || {}
-    plannerInitState.current = get(initState, 'planner.current', [])
-  } else {
-    bookmarkInitState = initState
-  }
+  bookmarkInitState = initState
 } catch (e) {
   console.error(e.stack)
 }
 
 const bookmarkReducer = (state = bookmarkInitState, action) => {
-  const { type, bookmark, settings } = action
+  const { type, bookmark, settings, data } = action
   switch (type) {
     case '@@poi-plugin-ship-info@update':
       return {
@@ -43,6 +45,12 @@ const bookmarkReducer = (state = bookmarkInitState, action) => {
       }
     case '@@poi-plugin-ship-info@delete': {
       return omit(state, bookmark)
+    }
+    case '@@poi-plugin-ship-info@init': {
+      return {
+        ...state,
+        ...data.bookmark,
+      }
     }
     default:
       return state
@@ -67,10 +75,10 @@ const plannerReducer = (state = plannerInitState, action) => {
   const { type, mapname, shipId, areaIndex, fromAreaIndex, toAreaIndex, data } = action
   const current = state.current
   switch (type) {
-    case `@@${PLUGIN_KEY}@loadData`: {
+    case `@@${PLUGIN_KEY}@init`: {
       return {
         ...state,
-        ...data,
+        ...data.bookmark,
       }
     }
     case `@@${PLUGIN_KEY}@dp-init`: {
@@ -145,10 +153,19 @@ const uiReducer = (state = uiInitState, action) => {
   return state
 }
 
+const readyReducer = (state = false, action) => {
+  const { type } = action
+  if (type === `@@${PLUGIN_KEY}@ready`) {
+    return true
+  }
+  return state
+}
+
 export const reducer = combineReducers({
   bookmark: bookmarkReducer,
   planner: plannerReducer,
   ui: uiReducer,
+  ready: readyReducer,
 })
 
 export const onDPInit = ({ color, mapname }) =>
@@ -201,13 +218,15 @@ export const onDelete = ({ bookmark }) => ({
   bookmark,
 })
 
+const fileWriter = new FileWriter()
+
 // observers
-export const ShipInfoObserver = observer(
+export const dataObserver = observer(
   extensionSelectorFactory(PLUGIN_KEY),
   (dispatch, current = {}, previous) => {
     // avoid initial state overwrites file
-    if (!isEqual(current, previous) && Object.keys(current).length > 0) {
-      localStorage.setItem(PLUGIN_KEY, JSON.stringify(current))
+    if (current.ready) {
+      fileWriter.write(DATA_PATH, current)
     }
   }
 )
