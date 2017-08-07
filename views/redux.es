@@ -1,5 +1,5 @@
 import { observer } from 'redux-observers'
-import { isEqual, omit, get } from 'lodash'
+import { omit } from 'lodash'
 import { combineReducers } from 'redux'
 import path from 'path'
 

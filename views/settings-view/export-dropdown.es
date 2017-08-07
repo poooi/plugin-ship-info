@@ -45,6 +45,13 @@ const RadioCheck = ({ label, options, value: currentValue, onChange }) => (
   </div>
 )
 
+RadioCheck.propTypes = {
+  label: propTypes.string,
+  options: propTypes.arrayOf(propTypes.object),
+  value: propTypes.string,
+  onChange: propTypes.func,
+}
+
 const sepOptions = [
   {
     name: 'comma',
@@ -83,6 +90,10 @@ const selectionOptions = [
 ]
 
 class ExportMenu extends Component {
+  static propTypes = {
+    rows: propTypes.arrayOf(propTypes.object),
+    allRows: propTypes.arrayOf(propTypes.object),
+  }
 
   constructor(props) {
     super(props)

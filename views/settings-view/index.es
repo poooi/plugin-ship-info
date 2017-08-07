@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import propTypes from 'prop-types'
 import { connect } from 'react-redux'
 import { Button, ButtonGroup, ButtonToolbar, Collapse } from 'react-bootstrap'
 import FA from 'react-fontawesome'
@@ -20,9 +21,14 @@ const { __, config } = window
 
 const ShipInfoCheckboxArea = connect(
   state => ({
-    toTop: get(extensionSelectorFactory('poi-plugin-ship-info')(state), 'ui.toTop', 0),
+    toTop: get(extensionSelectorFactory('poi-plugin-ship-info')(state), 'ui.toTop', true),
   })
 )(class ShipInfoCheckboxArea extends Component {
+  static propTypes = {
+    toTop: propTypes.bool,
+    dispatch: propTypes.func,
+  }
+
   state = {
     menuShow: false,
     autoShow: true,

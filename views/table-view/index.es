@@ -102,6 +102,8 @@ const ShipInfoTableArea = connect(
     rows: propTypes.arrayOf(propTypes.shape(shipInfoShape)).isRequired,
     sortName: propTypes.string.isRequired,
     sortOrder: propTypes.number.isRequired,
+    toTop: propTypes.bool,
+    dispatch: propTypes.func,
   }
 
   state = {

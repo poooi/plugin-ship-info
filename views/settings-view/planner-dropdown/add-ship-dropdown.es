@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import propTypes from 'prop-types'
 import { Dropdown, MenuItem, Label } from 'react-bootstrap'
 import { connect } from 'react-redux'
 import { get, map } from 'lodash'
@@ -21,7 +22,21 @@ const Item = ({ eventKey, onSelect, children }) =>
     </MenuItem>
   )
 
+Item.propTypes = {
+  eventKey: propTypes.number,
+  onSelect: propTypes.func,
+  children: propTypes.oneOfType([
+    propTypes.array,
+    propTypes.string,
+  ]),
+}
+
 class ShipMenu extends Component {
+  static propTypes = {
+    children: propTypes.arrayOf(propTypes.element),
+    areaIndex: propTypes.number,
+  }
+
   constructor(props) {
     super(props)
 
@@ -36,7 +51,7 @@ class ShipMenu extends Component {
     })
   }
 
-  handleShipSelect = (eventKey, e) => {
+  handleShipSelect = (eventKey) => {
     console.log(eventKey)
   }
 
@@ -47,7 +62,7 @@ class ShipMenu extends Component {
   }
 
   render() {
-    const { shipItems, children, areaIndex } = this.props
+    const { children, areaIndex } = this.props
     const { typeIndex } = this.state
 
     return (

@@ -1,4 +1,5 @@
 import React, { Component, PureComponent } from 'react'
+import propTypes from 'prop-types'
 import { Label, Dropdown, MenuItem } from 'react-bootstrap'
 import FA from 'react-fontawesome'
 import { get, groupBy, keyBy } from 'lodash'
@@ -27,6 +28,11 @@ const hexToRGBA = (hex, opacity = 1) => {
 }
 
 class DisplaceToggle extends PureComponent {
+  static propTypes = {
+    onClick: propTypes.func,
+    children: propTypes.element,
+  }
+
   handleClick = (e) => {
     e.preventDefault()
 
@@ -48,6 +54,17 @@ const ShipChip = connect(
     color: get(state, 'fcd.shiptag.color', []),
   })
 )(class ShipChip extends PureComponent {
+  static propTypes = {
+    id: propTypes.number,
+    typeId: propTypes.number,
+    name: propTypes.string,
+    lv: propTypes.number,
+    area: propTypes.number,
+    color: propTypes.arrayOf(propTypes.string),
+    others: propTypes.arrayOf(propTypes.object),
+    onRemove: propTypes.func,
+    onDisplace: propTypes.func,
+  }
 
   constructor(props) {
     super(props)
@@ -73,7 +90,7 @@ const ShipChip = connect(
   }
 
   render() {
-    const { id, typeId, name, lv, area, color, mapname, others, onRemove, onDisplace } = this.props
+    const { id, typeId, name, lv, area, color, others, onRemove, onDisplace } = this.props
     const { hover } = this.state
 
     return (
@@ -91,11 +108,11 @@ const ShipChip = connect(
             <DisplaceToggle bsRole="toggle"><a className="ship-name">{`${name} Lv.${lv}`}</a></DisplaceToggle>
             <Dropdown.Menu>
               {
-                others.map(_area =>
+                others.map(_area => (
                   <MenuItem eventKey={_area.areaIndex} key={_area.name} onSelect={onDisplace}>
                     {__('Move to ')} <Label style={{ color: _area.color }}><FA name="tag" />{_area.name}</Label>
                   </MenuItem>
-                )
+                ))
               }
             </Dropdown.Menu>
           </Dropdown>
@@ -121,8 +138,16 @@ const Area = connect(
     shipIds: deckPlannerAreaSelectorFactory(props.index)(state),
   })
 )(class Area extends Component {
+  static propTypes = {
+    dispatch: propTypes.func,
+    index: propTypes.number,
+    area: propTypes.object,
+    others: propTypes.arrayOf(propTypes.object),
+    ships: propTypes.arrayOf(propTypes.object),
+    shipIds: propTypes.arrayOf(propTypes.number),
+  }
 
-  handleAddShip = (eventKey, e) => {
+  handleAddShip = (eventKey) => {
     this.props.dispatch(onAddShip({
       shipId: eventKey,
       areaIndex: this.props.index,
@@ -136,7 +161,7 @@ const Area = connect(
     }))
   }
 
-  handleDisplace = id => (eventKey, e) => {
+  handleDisplace = id => (eventKey) => {
     this.props.dispatch(onDisplaceShip({
       shipId: id,
       fromAreaIndex: this.props.index,

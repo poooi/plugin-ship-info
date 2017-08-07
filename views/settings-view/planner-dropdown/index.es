@@ -4,24 +4,31 @@ import { Dropdown } from 'react-bootstrap'
 import { connect } from 'react-redux'
 import { get } from 'lodash'
 import FontAwesome from 'react-fontawesome'
-import { createSelector } from 'reselect'
 
 import { extensionSelectorFactory } from 'views/utils/selectors'
 
-import { PLUGIN_KEY, onDPInit } from '../../redux'
+import { onDPInit } from '../../redux'
 import { deckPlannerCurrentSelector } from '../../selectors'
 import Area from './area'
 
 const { __ } = window
 
 const DeckPlannerView = connect(
-  (state) => ({
+  state => ({
     color: get(state, 'fcd.shiptag.color', []),
     mapname: get(state, 'fcd.shiptag.mapname', []),
     current: deckPlannerCurrentSelector(state),
     vibrant: get(state, 'config.poi.vibrant'),
   })
 )(class DeckPlannerView extends Component {
+  static propTypes = {
+    color: propTypes.arrayOf(propTypes.string),
+    mapname: propTypes.arrayOf(propTypes.string),
+    current: propTypes.arrayOf(propTypes.array),
+    vibrant: propTypes.number,
+    open: propTypes.bool,
+    dispatch: propTypes.func,
+  }
 
   constructor(props) {
     super(props)
@@ -113,4 +120,5 @@ const PlannerDropdown = connect(
     <DeckPlannerView bsRole="menu" open={activeDropdown === 'planner'} />
   </Dropdown>)
 )
+
 export default PlannerDropdown
