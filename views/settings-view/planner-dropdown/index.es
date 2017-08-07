@@ -19,6 +19,7 @@ const DeckPlannerView = connect(
     color: get(state, 'fcd.shiptag.color', []),
     mapname: get(state, 'fcd.shiptag.mapname', []),
     current: deckPlannerCurrentSelector(state),
+    vibrant: get(state, 'config.poi.vibrant'),
   })
 )(class DeckPlannerView extends Component {
 
@@ -65,6 +66,7 @@ const DeckPlannerView = connect(
 
   render() {
     const { areas, left } = this.state
+    const { vibrant } = this.props
     return (
       <ul
         className="dropdown-menu"
@@ -72,7 +74,7 @@ const DeckPlannerView = connect(
           width: '100vw',
           height: '90vh',
           left,
-          background: 'rgba(51, 51, 51, 0.95)',
+          background: `rgba(51, 51, 51, ${vibrant ? 0.95 : 1})`,
         }}
       >
         <div>
