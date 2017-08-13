@@ -15,7 +15,7 @@ import ConfigMenu from './config-menu'
 import ExportDropdown from './export-dropdown'
 import PlannerDropdown from './planner-dropdown'
 
-import { dataObserver, DATA_PATH } from '../redux'
+import { dataObserver, initStore, DATA_PATH } from '../redux'
 
 const { __, config } = window
 
@@ -35,20 +35,7 @@ const ShipInfoCheckboxArea = connect(
   }
 
   componentDidMount = async () => {
-    try {
-      const data = await promisify(readJson)(DATA_PATH)
-      this.props.dispatch({
-        type: '@@poi-plugin-ship-info@init',
-        data,
-      })
-    } catch (e) {
-      console.error(e.stack)
-    } finally {
-      this.props.dispatch({
-        type: '@@poi-plugin-ship-info@ready',
-      })
-    }
-
+    await this.props.dispatch(initStore)
     this.unsubscribeObserver = observe(window.store, [dataObserver])
   }
 

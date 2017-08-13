@@ -1,7 +1,9 @@
 import { observer } from 'redux-observers'
-import { omit } from 'lodash'
+import { omit, get } from 'lodash'
 import { combineReducers } from 'redux'
 import path from 'path'
+import { promisify } from 'bluebird'
+import { readJson } from 'fs-extra'
 
 import { extensionSelectorFactory } from 'views/utils/selectors'
 
@@ -217,6 +219,35 @@ export const onDelete = ({ bookmark }) => ({
   type: '@@poi-plugin-ship-info@delete',
   bookmark,
 })
+
+export const initStore = () => async (dispatch, getState) => {
+  try {
+    const data = await promisify(readJson)(DATA_PATH)
+
+    const mapname = get(getState(), 'fcd.shbiptag.mapname', [])
+
+    const { planner = [] } = data
+
+    if (planner.length < mapname.length) {
+      const len = mapname.length - planner.length
+      data.planner = [...planner, ...new Array(len).fill([])]
+    } else if (planner.length > mapname.length) {
+      const newCurrent = planner.slice(0, mapname.length)
+      data.planner = newCurrent
+    }
+
+    dispatch({
+      type: '@@poi-plugin-ship-info@init',
+      data,
+    })
+  } catch (e) {
+    console.error(e.stack)
+  } finally {
+    dispatch({
+      type: '@@poi-plugin-ship-info@ready',
+    })
+  }
+}
 
 const fileWriter = new FileWriter()
 
