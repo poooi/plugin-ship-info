@@ -538,3 +538,8 @@ th {
   left: initial;
   max-height: 15em;
 }
+
+/* Ensure the height is always enough */
+.ReactVirtualized__Grid__innerScrollContainer {
+    min-height: 100vh;
+}
