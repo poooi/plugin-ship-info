@@ -259,10 +259,10 @@ const ShipInfoTableArea = connect(
   handleScroll = ({ scrollTop }) => {
     const before = this.state.topBefore
     this.handleTopBefore(scrollTop)
-    if (this.props.toTop !== !scrollTop && scrollTop >= 800 || this.props.toTop !== !scrollTop && before > 800 ) {
+    if (this.props.toTop !== !scrollTop && scrollTop >= 800 || this.props.toTop !== !scrollTop && before >= 800 ) {
       this.props.dispatch({
-      type: '@@poi-plugin-ship-info@scroll',
-      toTop: !scrollTop,
+        type: '@@poi-plugin-ship-info@scroll',
+        toTop: !scrollTop,
       })
       this.setState({topBefore: 0})
     }
