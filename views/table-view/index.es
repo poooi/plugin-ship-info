@@ -110,7 +110,6 @@ const ShipInfoTableArea = connect(
     windowWidth: document.body.clientWidth,
     activeColumn: -1,
     activeRow: -1,
-    topBefore: 0,
   }
 
   constructor(props) {
@@ -250,15 +249,15 @@ const ShipInfoTableArea = connect(
   }
 
   handleTopBefore = (top) => {
-    let topTemp = this.state.topBefore
+    let topTemp = this.topBefore || 0
     if (topTemp < top) {
-      this.setState({topBefore: top})
+      this.topBefore = top
     }
   }
 
   handleScroll = ({ scrollTop }) => {
-    const before = this.state.topBefore
     this.handleTopBefore(scrollTop)
+    const before = this.topBefore
     if (this.props.toTop !== !scrollTop && scrollTop >= 800 || this.props.toTop !== !scrollTop && before >= 800 ) {
       this.props.dispatch({
         type: '@@poi-plugin-ship-info@scroll',
