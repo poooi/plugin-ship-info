@@ -263,8 +263,6 @@ const ShipInfoTableArea = connect(
     this.handleTopBefore(scrollTop)
     const before = this.topBefore
     const safeZone = this.getSafeZone()
-    console.log('safezone', safeZone)
-    console.log('before', before)
     if (this.props.toTop !== !scrollTop && scrollTop >= safeZone || this.props.toTop !== !scrollTop && before >= safeZone ) {
       this.props.dispatch({
         type: '@@poi-plugin-ship-info@scroll',
