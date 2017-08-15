@@ -1,3 +1,4 @@
+import { remote } from 'electron'
 import React, { Component } from 'react'
 import propTypes from 'prop-types'
 import { connect } from 'react-redux'
@@ -255,15 +256,21 @@ const ShipInfoTableArea = connect(
     }
   }
 
+  getSafeZone = () =>
+    remote.getCurrentWindow().getSize()[1]
+
   handleScroll = ({ scrollTop }) => {
     this.handleTopBefore(scrollTop)
     const before = this.topBefore
-    if (this.props.toTop !== !scrollTop && scrollTop >= 800 || this.props.toTop !== !scrollTop && before >= 800 ) {
+    const safeZone = this.getSafeZone()
+    console.log('safezone', safeZone)
+    console.log('before', before)
+    if (this.props.toTop !== !scrollTop && scrollTop >= safeZone || this.props.toTop !== !scrollTop && before >= safeZone ) {
       this.props.dispatch({
         type: '@@poi-plugin-ship-info@scroll',
         toTop: !scrollTop,
       })
-      this.setState({topBefore: 0})
+      this.topBefore = 0
     }
   }
 
