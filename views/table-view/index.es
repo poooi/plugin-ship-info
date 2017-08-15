@@ -48,6 +48,8 @@ const widths = [
   180, 40,
 ]
 
+const ROW_HEIGHT = 40
+
 const TitleCell = ({
   style,
   title,
@@ -115,14 +117,13 @@ const ShipInfoTableArea = connect(
   constructor(props) {
     super(props)
     this.tableWidth = sum(widths)
-    this.updateWindowWidth = debounce(this.updateWindowWidth, 500)
+    this.updateWindowSize = debounce(this.updateWindowSize, 500)
     this.setRef = this.setRef.bind(this)
-    this.topBefore = 0
   }
 
   componentDidMount = () => {
-    this.updateWindowWidth()
-    window.addEventListener('resize', this.updateWindowWidth)
+    this.updateWindowSize()
+    window.addEventListener('resize', this.updateWindowSize)
     // console.log(document.querySelectorAll('.ReactVirtualized__Grid'))
     // document.querySelectorAll('.ReactVirtualized__Grid').forEach((target) => {
     //   target.addEventListener('scroll', this.handleScroll)
@@ -130,20 +131,21 @@ const ShipInfoTableArea = connect(
   }
 
   componentWillUnmount = () => {
-    window.removeListener('resize', this.updateWindowWidth)
+    window.removeListener('resize', this.updateWindowSize)
     // document.querySelectorAll('.ReactVirtualized__Grid').forEach((target) => {
     //   target.removeEventListener('scroll', this.handleScroll)
     // })
   }
 
-  updateWindowWidth = () => {
+  updateWindowSize = () => {
     this.setState({
       windowWidth: document.body.clientWidth,
+    }, () => {
+      if (this.grid) {
+        this.grid.recomputeGridSize()
+        this.grid.forceUpdateGrids()
+      }
     })
-    if (this.grid) {
-      this.grid.recomputeGridSize()
-      this.grid.forceUpdateGrids()
-    }
   }
 
   saveSortRules = (name, order) => {
@@ -250,17 +252,13 @@ const ShipInfoTableArea = connect(
   }
 
   handleScroll = ({ scrollTop }) => {
-    if (this.topBefore < scrollTop) {
-      this.topBefore = scrollTop
-    }
-    const before = this.topBefore
-    const safeZone = document.body.clientHeight
-    if (this.props.toTop !== !scrollTop && (scrollTop >= safeZone || before >= safeZone)) {
+    const { rows } = this.props
+    const contentHeight = rows.length * ROW_HEIGHT
+    if (this.props.toTop !== !scrollTop && contentHeight > document.body.clientHeight) {
       this.props.dispatch({
         type: '@@poi-plugin-ship-info@scroll',
         toTop: !scrollTop,
       })
-      this.topBefore = 0
     }
   }
 
@@ -296,7 +294,7 @@ const ShipInfoTableArea = connect(
                   overscanRowCount={5}
                   cellRenderer={this.cellRenderer}
                   rowCount={rows.length + 1}
-                  rowHeight={40}
+                  rowHeight={ROW_HEIGHT}
                   scrollToAlignment="start"
                   width={width}
                   scrollToColumn={0}
