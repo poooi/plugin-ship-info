@@ -255,7 +255,7 @@ const ShipInfoTableArea = connect(
     }
     const before = this.topBefore
     const safeZone = document.body.clientHeight
-    if (this.props.toTop !== !scrollTop && scrollTop >= safeZone || this.props.toTop !== !scrollTop && before >= safeZone) {
+    if (this.props.toTop !== !scrollTop && (scrollTop >= safeZone || before >= safeZone)) {
       this.props.dispatch({
         type: '@@poi-plugin-ship-info@scroll',
         toTop: !scrollTop,
