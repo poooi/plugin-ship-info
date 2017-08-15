@@ -117,6 +117,7 @@ const ShipInfoTableArea = connect(
     this.tableWidth = sum(widths)
     this.updateWindowWidth = debounce(this.updateWindowWidth, 500)
     this.setRef = this.setRef.bind(this)
+    this.topBefore = 0
   }
 
   componentDidMount = () => {
