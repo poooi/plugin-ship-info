@@ -172,7 +172,7 @@ const Area = connect(
   render() {
     const { area, index, others, ships, shipIds } = this.props
     const keyShips = keyBy(ships, 'id')
-    const groupShipIds = groupBy(shipIds, id => keyShips[id].superTypeIndex)
+    const groupShipIds = groupBy(shipIds, id => (keyShips[id] || {}).superTypeIndex)
     return (
       <div style={{ border: `solid 1px ${hexToRGBA(area.color, 0.5)}` }} className="area">
         <div className="header">
