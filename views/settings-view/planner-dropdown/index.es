@@ -78,7 +78,7 @@ const DeckPlannerView = connect(
       <ul
         className="dropdown-menu"
         style={{
-          width: '100vw',
+          width: '99vw',
           height: '90vh',
           left,
           background: `rgba(51, 51, 51, ${vibrant ? 0.95 : 1})`,
