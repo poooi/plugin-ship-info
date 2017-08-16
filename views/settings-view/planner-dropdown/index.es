@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import propTypes from 'prop-types'
-import { Dropdown } from 'react-bootstrap'
+import { Dropdown, Button, ButtonGroup, ButtonToolbar } from 'react-bootstrap'
 import { connect } from 'react-redux'
 import { get } from 'lodash'
 import FontAwesome from 'react-fontawesome'
@@ -10,6 +10,7 @@ import { extensionSelectorFactory } from 'views/utils/selectors'
 import { onDPInit } from '../../redux'
 import { deckPlannerCurrentSelector } from '../../selectors'
 import Area from './area'
+import ShipGrid from './ship-grid'
 
 const { __ } = window
 
@@ -44,6 +45,7 @@ const DeckPlannerView = connect(
         areaIndex: index,
       })),
       left: 0,
+      view: 'area',
     }
   }
 
@@ -79,7 +81,7 @@ const DeckPlannerView = connect(
   }
 
   render() {
-    const { areas, left } = this.state
+    const { areas, left, view } = this.state
     const { vibrant } = this.props
     return (
       <ul
@@ -91,18 +93,37 @@ const DeckPlannerView = connect(
           background: `rgba(51, 51, 51, ${vibrant ? 0.95 : 1})`,
         }}
       >
-        <div>
-          {
-            areas.map(area => (
-              <Area
-                key={area.name}
-                area={area}
-                index={area.areaIndex}
-                others={areas.filter(({ areaIndex }) => areaIndex !== area.areaIndex)}
-              />
-            ))
-          }
+        <div className="radio-check">
+          <ButtonToolbar>
+            <ButtonGroup>
+              <Button bsStyle={view === 'area' ? 'success' : 'default'} onClick={() => this.setState({ view: 'area' })}>
+                {__('Area View')}
+              </Button>
+              <Button bsStyle={view === 'ship' ? 'success' : 'default'} onClick={() => this.setState({ view: 'ship' })}>
+                {__('Ship Grid')}
+              </Button>
+            </ButtonGroup>
+          </ButtonToolbar>
         </div>
+        {
+          view === 'area' &&
+          <div>
+            {
+              areas.map(area => (
+                <Area
+                  key={area.name}
+                  area={area}
+                  index={area.areaIndex}
+                  others={areas.filter(({ areaIndex }) => areaIndex !== area.areaIndex)}
+                />
+              ))
+            }
+          </div>
+        }
+        {
+          view === 'ship' &&
+          <ShipGrid />
+        }
       </ul>
     )
   }
