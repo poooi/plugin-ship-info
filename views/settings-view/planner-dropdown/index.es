@@ -69,6 +69,13 @@ const DeckPlannerView = connect(
         })
       }
     }
+    const { mapname, color, current } = nextProps
+    if (current.length !== mapname.length) {
+      this.props.dispatch(onDPInit({
+        color,
+        mapname,
+      }))
+    }
   }
 
   render() {
