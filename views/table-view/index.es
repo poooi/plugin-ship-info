@@ -119,7 +119,6 @@ const ShipInfoTableArea = connect(
     this.tableWidth = sum(widths)
     this.updateWindowSize = debounce(this.updateWindowSize, 500)
     this.setRef = this.setRef.bind(this)
-    this.maxHeight = window.innerHeight
   }
 
   componentDidMount = () => {
@@ -139,7 +138,6 @@ const ShipInfoTableArea = connect(
   }
 
   updateWindowSize = () => {
-    this.maxHeight = Math.max(this.maxHeight, window.innerHeight)
     this.setState({
       windowWidth: window.innerWidth,
     }, () => {
@@ -256,7 +254,7 @@ const ShipInfoTableArea = connect(
   handleScroll = ({ scrollTop }) => {
     const { rows } = this.props
     const contentHeight = rows.length * ROW_HEIGHT
-    const safeZone = Math.floor(this.maxHeight * 1.2)
+    const safeZone = Math.round(window.screen.height / config.get('poi.zoomLevel', 1))
     if (this.props.toTop !== !scrollTop && contentHeight > safeZone) {
       this.props.dispatch({
         type: '@@poi-plugin-ship-info@scroll',
