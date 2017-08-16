@@ -34,8 +34,8 @@ const ShipInfoCheckboxArea = connect(
     autoShow: true,
   }
 
-  componentDidMount = async () => {
-    await this.props.dispatch(initStore)
+  componentDidMount = () => {
+    this.props.dispatch(initStore)
     this.unsubscribeObserver = observe(window.store, [dataObserver])
   }
 

@@ -220,7 +220,7 @@ export const onDelete = ({ bookmark }) => ({
   bookmark,
 })
 
-export const initStore = () => async (dispatch, getState) => {
+export const initStore = async (dispatch, getState) => {
   try {
     const data = await promisify(readJson)(DATA_PATH)
 
