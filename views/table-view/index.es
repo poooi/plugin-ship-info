@@ -109,7 +109,7 @@ const ShipInfoTableArea = connect(
   }
 
   state = {
-    windowWidth: document.body.clientWidth,
+    windowWidth: window.innerWidth,
     activeColumn: -1,
     activeRow: -1,
   }
@@ -119,7 +119,7 @@ const ShipInfoTableArea = connect(
     this.tableWidth = sum(widths)
     this.updateWindowSize = debounce(this.updateWindowSize, 500)
     this.setRef = this.setRef.bind(this)
-    this.maxHeight = document.body.clientHeight
+    this.maxHeight = window.innerHeight
   }
 
   componentDidMount = () => {
@@ -139,9 +139,9 @@ const ShipInfoTableArea = connect(
   }
 
   updateWindowSize = () => {
-    this.maxHeight = Math.max(this.maxHeight, document.body.clientHeight)
+    this.maxHeight = Math.max(this.maxHeight, window.innerHeight)
     this.setState({
-      windowWidth: document.body.clientWidth,
+      windowWidth: window.innerWidth,
     }, () => {
       if (this.grid) {
         this.grid.recomputeGridSize()
