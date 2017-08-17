@@ -9,7 +9,7 @@ import cls from 'classnames'
 import { extensionSelectorFactory } from 'views/utils/selectors'
 
 import { hexToRGBA } from '../../utils'
-import { onDPInit, onAddShip } from '../../redux'
+import { onDPInit, onAddShip, onDisplaceShip } from '../../redux'
 import { deckPlannerCurrentSelector, shipMenuDataSelector, deckPlannerShipMapSelector } from '../../selectors'
 import Area from './area'
 import ShipGrid from './ship-grid'
@@ -22,11 +22,19 @@ const reorderShips = (dispatch, getState) => {
   const planMap = deckPlannerShipMapSelector(state)
 
   each(ships, (ship) => {
-    if (ship.area > 0 && !(ship.id in planMap)) {
-      dispatch(onAddShip({
-        shipId: ship.id,
-        areaIndex: ship.area - 1,
-      }))
+    if (ship.area > 0) {
+      if (!(ship.id in planMap)) {
+        dispatch(onAddShip({
+          shipId: ship.id,
+          areaIndex: ship.area - 1,
+        }))
+      } else if (ship.area - 1 !== planMap[ship.id]) {
+        dispatch(onDisplaceShip({
+          shipId: ship.id,
+          fromAreaIndex: planMap[ship.id],
+          toAreaIndex: ship.area - 1,
+        }))
+      }
     }
   })
 }
@@ -157,7 +165,7 @@ const DeckPlannerView = connect(
                 role="button"
                 tabIndex="0"
               >
-                {__('Reorder')}
+                {__('Refresh')}
               </div>
             </div>
           }

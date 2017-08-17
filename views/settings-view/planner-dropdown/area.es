@@ -122,7 +122,7 @@ const ShipChip = connect(
         </span>
         <span>
           {
-            area > 0 && <FA name="tag" style={{ marginLeft: '1ex' }} />
+            area > 0 && <FA name="tag" style={{ marginLeft: '1ex', color: color[area - 1] }} />
           }
         </span>
         <span>
