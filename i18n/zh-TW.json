@@ -166,5 +166,10 @@
   "AR": "工",
   "AS": "潛水母艦",
   "CT": "練巡",
-  "Move to ": "移動到 "
+  "Move to ": "移動到 ",
+  "Refresh": "刷新",
+  "Area View": "海域一覽",
+  "Ship Grid": "艦娘一覽",
+  "Palette": "計劃海域",
+  "None": "無計劃"
 }
