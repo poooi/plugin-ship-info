@@ -50,6 +50,8 @@ const ShipChip = connect(
     others: propTypes.arrayOf(propTypes.object),
     onRemove: propTypes.func,
     onDisplace: propTypes.func,
+    planArea: propTypes.number,
+    dispatch: propTypes.func,
   }
 
   constructor(props) {
@@ -73,6 +75,17 @@ const ShipChip = connect(
     this.setState({
       hover: false,
     })
+  }
+
+  componentWillReceiveProps = (nextProps) => {
+    const { area, planArea, id } = nextProps
+    if (area > 0 && area - 1 !== planArea) {
+      this.props.dispatch(onDisplaceShip({
+        shipId: id,
+        fromAreaIndex: planArea,
+        toAreaIndex: area - 1,
+      }))
+    }
   }
 
   render() {
@@ -105,7 +118,7 @@ const ShipChip = connect(
         </span>
         <span>
           {
-            area > 0 && <FA name="tag" style={{ color: color[area - 1] }} />
+            area > 0 && <FA name="tag" style={{ marginLeft: '1ex' }} />
           }
         </span>
         <span>
@@ -180,6 +193,7 @@ const Area = connect(
                             onDisplace={this.handleDisplace(id)}
                             others={others}
                             key={id}
+                            planArea={index}
                           />
                         )
                       )(groupShipIds[idx])
