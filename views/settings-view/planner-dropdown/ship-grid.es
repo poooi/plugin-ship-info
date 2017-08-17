@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import fp from 'lodash/fp'
 import { get } from 'lodash'
+import FA from 'react-fontawesome'
 
 import { shipSuperTypeMap, hexToRGBA } from '../../utils'
 import { onAddShip, onRemoveShip, onDisplaceShip } from '../../redux'
@@ -9,7 +10,6 @@ import { shipMenuDataSelector, deckPlannerShipMapSelector } from '../../selector
 
 const getDPAction = (shipId, fill) => (dispatch, getState) => {
   const planMap = deckPlannerShipMapSelector(getState())
-  console.log(planMap, shipId, fill, shipId in planMap)
 
   if (fill === planMap[shipId] || (fill === -1 && !(shipId in planMap))) {
     return
@@ -47,7 +47,9 @@ const ShipItem = connect(
     mapname: get(state, 'fcd.shiptag.mapname', []),
   }),
 )(({ ship, planMap, color, mapname, onClick, onContextmenu }) => {
-  const bgColor = String(ship.id) in planMap && hexToRGBA(color[planMap[ship.id]], 0.75)
+  const bgColor = ship.area > 0
+    ? hexToRGBA(color[ship.area - 1], 0.75)
+    : (String(ship.id) in planMap && hexToRGBA(color[planMap[ship.id]], 0.75))
   return (
     <div
       role="button"
@@ -55,11 +57,12 @@ const ShipItem = connect(
       className="ship-grid-cell"
       style={{
         backgroundColor: bgColor,
+        cursor: ship.area > 0 ? 'not-allowed' : 'copy',
       }}
-      onClick={onClick}
-      onContextMenu={onContextmenu}
+      onClick={!(ship.area > 0) && onClick}
+      onContextMenu={!(ship.area > 0) && onContextmenu}
     >
-      <span className="ship-name">{ship.name}</span>
+      <span className="ship-name">{ship.area > 0 && <FA name="tag" />}{ship.name}</span>
       <span className="ship-level"><sup>Lv.{ship.lv}</sup></span>
     </div>
   )
