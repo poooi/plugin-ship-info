@@ -2,19 +2,34 @@ import React, { Component } from 'react'
 import propTypes from 'prop-types'
 import { Dropdown, Button, ButtonGroup, ButtonToolbar } from 'react-bootstrap'
 import { connect } from 'react-redux'
-import { get } from 'lodash'
+import { get, each } from 'lodash'
 import FontAwesome from 'react-fontawesome'
 import cls from 'classnames'
 
 import { extensionSelectorFactory } from 'views/utils/selectors'
 
 import { hexToRGBA } from '../../utils'
-import { onDPInit } from '../../redux'
-import { deckPlannerCurrentSelector } from '../../selectors'
+import { onDPInit, onAddShip } from '../../redux'
+import { deckPlannerCurrentSelector, shipMenuDataSelector, deckPlannerShipMapSelector } from '../../selectors'
 import Area from './area'
 import ShipGrid from './ship-grid'
 
 const { __ } = window
+
+const reorderShips = (dispatch, getState) => {
+  const state = getState()
+  const ships = shipMenuDataSelector(state)
+  const planMap = deckPlannerShipMapSelector(state)
+
+  each(ships, (ship) => {
+    if (ship.area > 0 && !(ship.id in planMap)) {
+      dispatch(onAddShip({
+        shipId: ship.id,
+        areaIndex: ship.area - 1,
+      }))
+    }
+  })
+}
 
 const DeckPlannerView = connect(
   state => ({
@@ -130,6 +145,22 @@ const DeckPlannerView = connect(
               {__('Ship Grid')}
             </div>
           </div>
+          {
+            view === 'area' &&
+            <div className="radio-check">
+              <div
+                onClick={() => this.props.dispatch(reorderShips)}
+                className={cls('filter-option', {
+                  dark: window.isDarkTheme,
+                  light: !window.isDarkTheme,
+                })}
+                role="button"
+                tabIndex="0"
+              >
+                {__('Reorder')}
+              </div>
+            </div>
+          }
           {
             view === 'ship' &&
             <div className="radio-check">
