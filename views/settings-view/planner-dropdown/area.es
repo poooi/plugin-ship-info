@@ -97,7 +97,7 @@ const ShipChip = connect(
         className="ship-chip"
         onMouseOver={this.handleMouseOver}
         onMouseLeave={this.handleMouseLeave}
-        onContextMenu={onRemove}
+        onContextMenu={!(area > 0) && onRemove}
       >
         <span className="ship-type">
           {shipTypes[typeId]}{' | '}
