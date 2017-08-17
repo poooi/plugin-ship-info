@@ -125,6 +125,7 @@ const DeckPlannerView = connect(
             position: 'sticky',
             top: '-5px',
             background: `rgba(51, 51, 51, ${vibrant ? 0.95 : 1})`,
+            zIndex: 1,
           }}
         >
           <div className="radio-check" style={{ marginRight: '4em' }}>
