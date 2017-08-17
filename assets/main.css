@@ -593,5 +593,5 @@ th {
 }
 
 .ship-grid-cell .ship-level {
-
+  opacity: 0.5;
 }
