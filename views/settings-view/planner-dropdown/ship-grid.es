@@ -4,7 +4,39 @@ import fp from 'lodash/fp'
 import { get } from 'lodash'
 
 import { shipSuperTypeMap, hexToRGBA } from '../../utils'
+import { onAddShip, onRemoveShip, onDisplaceShip } from '../../redux'
 import { shipMenuDataSelector, deckPlannerShipMapSelector } from '../../selectors'
+
+const getDPAction = (shipId, fill) => (dispatch, getState) => {
+  const planMap = deckPlannerShipMapSelector(getState())
+  console.log(planMap, shipId, fill, shipId in planMap)
+
+  if (fill === planMap[shipId] || (fill === -1 && !(shipId in planMap))) {
+    return
+  }
+
+  if (fill === -1) {
+    dispatch(onRemoveShip({
+      shipId,
+      areaIndex: planMap[shipId],
+    }))
+    return
+  }
+
+  if (!(shipId in planMap)) {
+    dispatch(onAddShip({
+      shipId,
+      areaIndex: fill,
+    }))
+    return
+  }
+
+  dispatch(onDisplaceShip({
+    shipId,
+    fromAreaIndex: planMap[shipId],
+    toAreaIndex: fill,
+  }))
+}
 
 const { __ } = window
 
@@ -14,17 +46,21 @@ const ShipItem = connect(
     color: get(state, 'fcd.shiptag.color', []),
     mapname: get(state, 'fcd.shiptag.mapname', []),
   }),
-)(({ ship, planMap, color, mapname }) => {
+)(({ ship, planMap, color, mapname, onClick, onContextmenu }) => {
   const bgColor = String(ship.id) in planMap && hexToRGBA(color[planMap[ship.id]], 0.75)
   return (
     <div
+      role="button"
+      tabIndex="0"
       className="ship-grid-cell"
       style={{
         backgroundColor: bgColor,
       }}
+      onClick={onClick}
+      onContextMenu={onContextmenu}
     >
       <span className="ship-name">{ship.name}</span>
-      <span className="ship-level">Lv.{ship.lv}</span>
+      <span className="ship-level"><sup>Lv.{ship.lv}</sup></span>
     </div>
   )
 })
@@ -34,6 +70,15 @@ const ShipGrid = connect(
     ships: shipMenuDataSelector(state),
   })
 )(class ShipGrid extends Component {
+
+  handleClick = shipId => () => {
+    this.props.dispatch(getDPAction(shipId, this.props.fill))
+  }
+
+  handleContextmenu = shipId => () => {
+    this.props.dispatch(getDPAction(shipId, -1))
+  }
+
   render() {
     const { ships } = this.props
     return (
@@ -47,7 +92,14 @@ const ShipGrid = connect(
                   fp.flow(
                     fp.filter(ship => stype.id.includes(ship.typeId)),
                     fp.sortBy([ship => -ship.lv, ship => ship.id]),
-                    fp.map(ship => <ShipItem ship={ship} key={ship.id} />),
+                    fp.map(ship => (
+                      <ShipItem
+                        ship={ship}
+                        key={ship.id}
+                        onClick={this.handleClick(ship.id)}
+                        onContextmenu={this.handleContextmenu(ship.id)}
+                      />
+                    )),
                   )(ships)
                 }
               </div>
