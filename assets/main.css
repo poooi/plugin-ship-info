@@ -529,10 +529,17 @@ th {
 
 .ship-chip .ship-type {
   margin-right: 1ex;
+  line-height: 14px;
 }
 
 .ship-chip .ship-name {
-  line-height: initial;
+  line-height: 14px;
+  font-size: 12px;
+}
+
+.ship-chip .ship-level {
+  font-size: 80%;
+  margin-left: 1ex;
 }
 
 .ship-chip .displace .fa,
