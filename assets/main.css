@@ -568,7 +568,7 @@ th {
 }
 
 .ship-grid-cell:hover {
-  background-color: rgba(255, 255, 255, 0.3);
+  background-color: rgba(255, 255, 255, 0.2);
 }
 
 .ship-grid-cell .ship-name {
