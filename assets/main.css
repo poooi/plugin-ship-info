@@ -333,14 +333,20 @@ th {
   padding-right: 2vw;
   line-height: 160%;
   transition: 0.2s;
+  border-width: 1px;
+  border-style: solid;
+}
+
+.filter-option:not(:last-child) {
+  border-right-width: 0;
 }
 
 .filter-option.dark {
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-color: rgba(255, 255, 255, 0.5);
 }
 
 .filter-option.light {
-  border: 1px solid rgba(0, 0, 0, 0.5);
+  border-color: rgba(0, 0, 0, 0.5);
 }
 
 .filter-option.checked {
@@ -549,13 +555,20 @@ th {
 }
 
 .ship-grid-cell {
-  width: 8em;
+  width: calc(100% / 7 - 4px);
+  min-width: 6em;
+  max-width: 20em;
   display: flex;
   padding-left: .5ex;
   padding-right: .5ex;
   line-height: 250%;
   transition: 0.2s;
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  margin: 2px;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.ship-grid-cell:hover {
+  background-color: rgba(255, 255, 255, 0.3);
 }
 
 .ship-grid-cell .ship-name {
