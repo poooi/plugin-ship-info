@@ -18,11 +18,13 @@ const ShipItem = connect(
   const bgColor = String(ship.id) in planMap && hexToRGBA(color[planMap[ship.id]], 0.75)
   return (
     <div
+      className="ship-grid-cell"
       style={{
         backgroundColor: bgColor,
       }}
     >
-      {ship.name}
+      <span className="ship-name">{ship.name}</span>
+      <span className="ship-level">Lv.{ship.lv}</span>
     </div>
   )
 })
@@ -40,7 +42,7 @@ const ShipGrid = connect(
           shipSuperTypeMap.map(stype => (
             <div key={stype.name}>
               <h2>{__(stype.name)}</h2>
-              <div>
+              <div className="ship-grid">
                 {
                   fp.flow(
                     fp.filter(ship => stype.id.includes(ship.typeId)),

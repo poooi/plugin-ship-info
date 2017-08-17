@@ -5,6 +5,9 @@
 html {
   height: 100%;
 }
+h2 {
+  font-size: 2rem;
+}
 body {
   font-size: 14px;
   height: 100%;
@@ -539,9 +542,30 @@ th {
   max-height: 15em;
 }
 
-/* Ensure the height is always enough */
-/*
-.ReactVirtualized__Grid__innerScrollContainer {
-    min-height: 100vh;
+.ship-grid {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
 }
-*/
+
+.ship-grid-cell {
+  width: 8em;
+  display: flex;
+  padding-left: .5ex;
+  padding-right: .5ex;
+  line-height: 250%;
+  transition: 0.2s;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.ship-grid-cell .ship-name {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  flex-grow: 1;
+  display: block;
+}
+
+.ship-grid-cell .ship-level {
+
+}

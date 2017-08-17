@@ -4,9 +4,11 @@ import { Dropdown, Button, ButtonGroup, ButtonToolbar } from 'react-bootstrap'
 import { connect } from 'react-redux'
 import { get } from 'lodash'
 import FontAwesome from 'react-fontawesome'
+import cls from 'classnames'
 
 import { extensionSelectorFactory } from 'views/utils/selectors'
 
+import { hexToRGBA } from '../../utils'
 import { onDPInit } from '../../redux'
 import { deckPlannerCurrentSelector } from '../../selectors'
 import Area from './area'
@@ -46,6 +48,7 @@ const DeckPlannerView = connect(
       })),
       left: 0,
       view: 'area',
+      fill: -1,
     }
   }
 
@@ -81,7 +84,7 @@ const DeckPlannerView = connect(
   }
 
   render() {
-    const { areas, left, view } = this.state
+    const { areas, left, view, fill } = this.state
     const { vibrant } = this.props
     return (
       <ul
@@ -93,17 +96,79 @@ const DeckPlannerView = connect(
           background: `rgba(51, 51, 51, ${vibrant ? 0.95 : 1})`,
         }}
       >
-        <div className="radio-check">
-          <ButtonToolbar>
-            <ButtonGroup>
-              <Button bsStyle={view === 'area' ? 'success' : 'default'} onClick={() => this.setState({ view: 'area' })}>
-                {__('Area View')}
-              </Button>
-              <Button bsStyle={view === 'ship' ? 'success' : 'default'} onClick={() => this.setState({ view: 'ship' })}>
-                {__('Ship Grid')}
-              </Button>
-            </ButtonGroup>
-          </ButtonToolbar>
+        <div
+          style={{
+            display: 'flex',
+            position: 'sticky',
+            top: '-5px',
+            background: `rgba(51, 51, 51, ${vibrant ? 0.95 : 1})`,
+          }}
+        >
+          <div className="radio-check" style={{ marginRight: '4em' }}>
+            <div
+              onClick={() => this.setState({ view: 'area' })}
+              className={cls('filter-option', {
+                checked: view === 'area',
+                dark: window.isDarkTheme,
+                light: !window.isDarkTheme,
+              })}
+              role="button"
+              tabIndex="0"
+            >
+              {__('Area View')}
+            </div>
+            <div
+              onClick={() => this.setState({ view: 'ship' })}
+              className={cls('filter-option', {
+                checked: view === 'ship',
+                dark: window.isDarkTheme,
+                light: !window.isDarkTheme,
+              })}
+              role="button"
+              tabIndex="0"
+            >
+              {__('Ship Grid')}
+            </div>
+          </div>
+          {
+            view === 'ship' &&
+            <div className="radio-check">
+              <div className="filter-span"><span>{__('Palette')}</span></div>
+              <div
+                onClick={() => this.setState({ fill: -1 })}
+                className={cls('filter-option', {
+                  checked: fill === -1,
+                  dark: window.isDarkTheme,
+                  light: !window.isDarkTheme,
+                })}
+                role="button"
+                tabIndex="0"
+              >
+                {__('None')}
+              </div>
+              {
+                areas.map(area => (
+                  <div
+                    key={area.name}
+                    onClick={() => this.setState({ fill: area.areaIndex })}
+                    className={cls('filter-option', {
+                      checked: fill === area.areaIndex,
+                      dark: window.isDarkTheme,
+                      light: !window.isDarkTheme,
+                    })}
+                    style={{
+                      color: fill !== area.areaIndex && area.color,
+                      backgroundColor: fill === area.areaIndex && hexToRGBA(area.color, 0.75),
+                    }}
+                    role="button"
+                    tabIndex="0"
+                  >
+                    {area.name}
+                  </div>
+                ))
+              }
+            </div>
+          }
         </div>
         {
           view === 'area' &&
@@ -122,7 +187,7 @@ const DeckPlannerView = connect(
         }
         {
           view === 'ship' &&
-          <ShipGrid />
+          <ShipGrid fill={fill} />
         }
       </ul>
     )
