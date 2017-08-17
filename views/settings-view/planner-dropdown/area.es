@@ -103,18 +103,22 @@ const ShipChip = connect(
           {shipTypes[typeId]}{' | '}
         </span>
         <span>
-          <Dropdown id={`displace-${id}`}>
-            <DisplaceToggle bsRole="toggle"><a className="ship-name">{`${name} Lv.${lv}`}</a></DisplaceToggle>
-            <Dropdown.Menu>
-              {
-                others.map(_area => (
-                  <MenuItem eventKey={_area.areaIndex} key={_area.name} onSelect={onDisplace}>
-                    {__('Move to ')} <Label style={{ color: _area.color }}><FA name="tag" />{_area.name}</Label>
-                  </MenuItem>
-                ))
-              }
-            </Dropdown.Menu>
-          </Dropdown>
+          {
+            area > 0
+            ? <a className="ship-name">{`${name} Lv.${lv}`}</a>
+            : <Dropdown id={`displace-${id}`}>
+              <DisplaceToggle bsRole="toggle"><a className="ship-name">{`${name} Lv.${lv}`}</a></DisplaceToggle>
+              <Dropdown.Menu>
+                {
+                  others.map(_area => (
+                    <MenuItem eventKey={_area.areaIndex} key={_area.name} onSelect={onDisplace}>
+                      {__('Move to ')} <Label style={{ color: _area.color }}><FA name="tag" />{_area.name}</Label>
+                    </MenuItem>
+                  ))
+                }
+              </Dropdown.Menu>
+            </Dropdown>
+          }
         </span>
         <span>
           {
@@ -123,7 +127,7 @@ const ShipChip = connect(
         </span>
         <span>
           {
-            hover && <a onClick={onRemove} className="remove"><FA name="times-circle" /></a>
+            !(area > 0) && hover && <a role="button" tabIndex="0" onClick={onRemove} className="remove"><FA name="times-circle" /></a>
           }
         </span>
       </Label>
