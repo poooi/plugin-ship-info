@@ -336,3 +336,17 @@ export const shipTypes = {
   21: __('CT'),
   22: __('AO'),
 }
+
+export const hexToRGBA = (hex, opacity = 1) => {
+  if (/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)) {
+    let color = hex.substring(1)
+    if (color.length === 3) {
+      color = [color[0], color[0], color[1], color[1], color[2], color[2]]
+    }
+    const r = parseInt(color.slice(0, 2), 16)
+    const g = parseInt(color.slice(2, 4), 16)
+    const b = parseInt(color.slice(4, 6), 16)
+    return `rgba(${r}, ${g}, ${b}, ${opacity})`
+  }
+  return ''
+}

@@ -9,23 +9,9 @@ import { connect } from 'react-redux'
 import { onAddShip, onRemoveShip, onDisplaceShip } from '../../redux'
 import AddShipDropdown from './add-ship-dropdown'
 import { shipMenuDataSelector, ShipItemSelectorFactory, deckPlannerAreaSelectorFactory } from '../../selectors'
-import { shipTypes } from '../../utils'
+import { shipTypes, hexToRGBA } from '../../utils'
 
 const { __ } = window
-
-const hexToRGBA = (hex, opacity = 1) => {
-  if (/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)) {
-    let color = hex.substring(1)
-    if (color.length === 3) {
-      color = [color[0], color[0], color[1], color[1], color[2], color[2]]
-    }
-    const r = parseInt(color.slice(0, 2), 16)
-    const g = parseInt(color.slice(2, 4), 16)
-    const b = parseInt(color.slice(4, 6), 16)
-    return `rgba(${r}, ${g}, ${b}, ${opacity})`
-  }
-  return ''
-}
 
 class DisplaceToggle extends PureComponent {
   static propTypes = {
