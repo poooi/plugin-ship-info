@@ -109,7 +109,7 @@ const ShipGrid = connect(
                 {
                   fp.flow(
                     fp.filter(ship => stype.id.includes(ship.typeId)),
-                    fp.sortBy([ship => -ship.lv, ship => ship.id]),
+                    fp.sortBy([ship => -ship.lv, ship => -ship.id]),
                     fp.map(ship => (
                       <ShipItem
                         ship={ship}

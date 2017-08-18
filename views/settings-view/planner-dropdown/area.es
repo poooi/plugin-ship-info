@@ -189,17 +189,20 @@ const Area = connect(
                 Object.keys(groupShipIds).map(idx => (
                   <div className="lane" key={idx}>
                     {
-                      fp.map(
-                        id => (
-                          <ShipChip
-                            shipId={id}
-                            onRemove={this.handleRemoveShip(id)}
-                            onDisplace={this.handleDisplace(id)}
-                            others={others}
-                            key={id}
-                            planArea={index}
-                          />
-                        )
+                      fp.flow(
+                        fp.sortBy([id => -get(keyShips[id], 'lv', 0), id => -id]),
+                        fp.map(
+                          id => (
+                            <ShipChip
+                              shipId={id}
+                              onRemove={this.handleRemoveShip(id)}
+                              onDisplace={this.handleDisplace(id)}
+                              others={others}
+                              key={id}
+                              planArea={index}
+                            />
+                          )
+                        ),
                       )(groupShipIds[idx])
                     }
                   </div>
