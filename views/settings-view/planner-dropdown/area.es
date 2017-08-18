@@ -9,23 +9,9 @@ import { connect } from 'react-redux'
 import { onAddShip, onRemoveShip, onDisplaceShip } from '../../redux'
 import AddShipDropdown from './add-ship-dropdown'
 import { shipMenuDataSelector, ShipItemSelectorFactory, deckPlannerAreaSelectorFactory } from '../../selectors'
-import { shipTypes } from '../../utils'
+import { shipTypes, hexToRGBA } from '../../utils'
 
 const { __ } = window
-
-const hexToRGBA = (hex, opacity = 1) => {
-  if (/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)) {
-    let color = hex.substring(1)
-    if (color.length === 3) {
-      color = [color[0], color[0], color[1], color[1], color[2], color[2]]
-    }
-    const r = parseInt(color.slice(0, 2), 16)
-    const g = parseInt(color.slice(2, 4), 16)
-    const b = parseInt(color.slice(4, 6), 16)
-    return `rgba(${r}, ${g}, ${b}, ${opacity})`
-  }
-  return ''
-}
 
 class DisplaceToggle extends PureComponent {
   static propTypes = {
@@ -64,6 +50,8 @@ const ShipChip = connect(
     others: propTypes.arrayOf(propTypes.object),
     onRemove: propTypes.func,
     onDisplace: propTypes.func,
+    planArea: propTypes.number,
+    dispatch: propTypes.func,
   }
 
   constructor(props) {
@@ -89,6 +77,17 @@ const ShipChip = connect(
     })
   }
 
+  componentWillReceiveProps = (nextProps) => {
+    const { area, planArea, id } = nextProps
+    if (area > 0 && area - 1 !== planArea) {
+      this.props.dispatch(onDisplaceShip({
+        shipId: id,
+        fromAreaIndex: planArea,
+        toAreaIndex: area - 1,
+      }))
+    }
+  }
+
   render() {
     const { id, typeId, name, lv, area, color, others, onRemove, onDisplace } = this.props
     const { hover } = this.state
@@ -98,33 +97,37 @@ const ShipChip = connect(
         className="ship-chip"
         onMouseOver={this.handleMouseOver}
         onMouseLeave={this.handleMouseLeave}
-        onContextMenu={onRemove}
+        onContextMenu={!(area > 0) && onRemove}
       >
         <span className="ship-type">
           {shipTypes[typeId]}{' | '}
         </span>
         <span>
-          <Dropdown id={`displace-${id}`}>
-            <DisplaceToggle bsRole="toggle"><a className="ship-name">{`${name} Lv.${lv}`}</a></DisplaceToggle>
-            <Dropdown.Menu>
-              {
-                others.map(_area => (
-                  <MenuItem eventKey={_area.areaIndex} key={_area.name} onSelect={onDisplace}>
-                    {__('Move to ')} <Label style={{ color: _area.color }}><FA name="tag" />{_area.name}</Label>
-                  </MenuItem>
-                ))
-              }
-            </Dropdown.Menu>
-          </Dropdown>
-        </span>
-        <span>
           {
-            area > 0 && <FA name="tag" style={{ color: color[area - 1] }} />
+            area > 0
+            ? <a className="ship-name">{name}<span className="ship-level">Lv.{lv}</span></a>
+            : <Dropdown id={`displace-${id}`}>
+              <DisplaceToggle bsRole="toggle"><a className="ship-name">{name}<span className="ship-level">Lv.{lv}</span></a></DisplaceToggle>
+              <Dropdown.Menu>
+                {
+                  others.map(_area => (
+                    <MenuItem eventKey={_area.areaIndex} key={_area.name} onSelect={onDisplace}>
+                      {__('Move to ')} <Label style={{ color: _area.color }}><FA name="tag" />{_area.name}</Label>
+                    </MenuItem>
+                  ))
+                }
+              </Dropdown.Menu>
+            </Dropdown>
           }
         </span>
         <span>
           {
-            hover && <a onClick={onRemove} className="remove"><FA name="times-circle" /></a>
+            area > 0 && <FA name="tag" style={{ marginLeft: '1ex', color: color[area - 1] }} />
+          }
+        </span>
+        <span>
+          {
+            !(area > 0) && hover && <a role="button" tabIndex="0" onClick={onRemove} className="remove"><FA name="times-circle" /></a>
           }
         </span>
       </Label>
@@ -194,6 +197,7 @@ const Area = connect(
                             onDisplace={this.handleDisplace(id)}
                             others={others}
                             key={id}
+                            planArea={index}
                           />
                         )
                       )(groupShipIds[idx])

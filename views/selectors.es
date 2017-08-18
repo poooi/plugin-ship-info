@@ -1,6 +1,6 @@
 import memoize from 'fast-memoize'
 import { createSelector } from 'reselect'
-import { get, mapValues, findIndex, includes, flatten } from 'lodash'
+import { get, mapValues, findIndex, includes, flatten, fromPairs, flatMap } from 'lodash'
 import fp from 'lodash/fp'
 
 import { constSelector, shipDataSelectorFactory, shipsSelector,
@@ -350,4 +350,12 @@ export const deckPlannerAllShipIdsSelector = createSelector(
   [
     deckPlannerCurrentSelector,
   ], current => flatten(current)
+)
+
+export const deckPlannerShipMapSelector = createSelector(
+  [
+    deckPlannerCurrentSelector,
+  ], current => fromPairs(
+    flatMap(current, (ships, areaIndex) => ships.map(id => ([id, areaIndex])))
+  )
 )

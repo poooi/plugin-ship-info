@@ -5,6 +5,9 @@
 html {
   height: 100%;
 }
+h2 {
+  font-size: 2rem;
+}
 body {
   font-size: 14px;
   height: 100%;
@@ -330,14 +333,20 @@ th {
   padding-right: 2vw;
   line-height: 160%;
   transition: 0.2s;
+  border-width: 1px;
+  border-style: solid;
+}
+
+.filter-option:not(:last-child) {
+  border-right-width: 0;
 }
 
 .filter-option.dark {
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-color: rgba(255, 255, 255, 0.5);
 }
 
 .filter-option.light {
-  border: 1px solid rgba(0, 0, 0, 0.5);
+  border-color: rgba(0, 0, 0, 0.5);
 }
 
 .filter-option.checked {
@@ -520,10 +529,17 @@ th {
 
 .ship-chip .ship-type {
   margin-right: 1ex;
+  line-height: 14px;
 }
 
 .ship-chip .ship-name {
-  line-height: initial;
+  line-height: 14px;
+  font-size: 12px;
+}
+
+.ship-chip .ship-level {
+  font-size: 80%;
+  margin-left: 1ex;
 }
 
 .ship-chip .displace .fa,
@@ -539,9 +555,43 @@ th {
   max-height: 15em;
 }
 
-/* Ensure the height is always enough */
-/*
-.ReactVirtualized__Grid__innerScrollContainer {
-    min-height: 100vh;
+.ship-grid {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
 }
-*/
+
+.ship-grid-cell {
+  width: calc(100% / 7 - 4px);
+  min-width: 6em;
+  max-width: 16em;
+  display: flex;
+  padding-left: .5ex;
+  padding-right: .5ex;
+  line-height: 250%;
+  transition: 0.2s;
+  margin: 2px;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+@media (min-width: 1440px) {
+  .ship-grid-cell {
+    width: calc(100% / 10 - 4px);
+  }
+}
+
+.ship-grid-cell:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.ship-grid-cell .ship-name {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  flex-grow: 1;
+  display: block;
+}
+
+.ship-grid-cell .ship-level {
+  opacity: 0.5;
+}

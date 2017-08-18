@@ -1,17 +1,43 @@
 import React, { Component } from 'react'
 import propTypes from 'prop-types'
-import { Dropdown } from 'react-bootstrap'
+import { Dropdown, Button, ButtonGroup, ButtonToolbar } from 'react-bootstrap'
 import { connect } from 'react-redux'
-import { get } from 'lodash'
+import { get, each } from 'lodash'
 import FontAwesome from 'react-fontawesome'
+import cls from 'classnames'
 
 import { extensionSelectorFactory } from 'views/utils/selectors'
 
-import { onDPInit } from '../../redux'
-import { deckPlannerCurrentSelector } from '../../selectors'
+import { hexToRGBA } from '../../utils'
+import { onDPInit, onAddShip, onDisplaceShip } from '../../redux'
+import { deckPlannerCurrentSelector, shipMenuDataSelector, deckPlannerShipMapSelector } from '../../selectors'
 import Area from './area'
+import ShipGrid from './ship-grid'
 
 const { __ } = window
+
+const reorderShips = (dispatch, getState) => {
+  const state = getState()
+  const ships = shipMenuDataSelector(state)
+  const planMap = deckPlannerShipMapSelector(state)
+
+  each(ships, (ship) => {
+    if (ship.area > 0) {
+      if (!(ship.id in planMap)) {
+        dispatch(onAddShip({
+          shipId: ship.id,
+          areaIndex: ship.area - 1,
+        }))
+      } else if (ship.area - 1 !== planMap[ship.id]) {
+        dispatch(onDisplaceShip({
+          shipId: ship.id,
+          fromAreaIndex: planMap[ship.id],
+          toAreaIndex: ship.area - 1,
+        }))
+      }
+    }
+  })
+}
 
 const DeckPlannerView = connect(
   state => ({
@@ -44,6 +70,8 @@ const DeckPlannerView = connect(
         areaIndex: index,
       })),
       left: 0,
+      view: 'area',
+      fill: -1,
     }
   }
 
@@ -79,7 +107,7 @@ const DeckPlannerView = connect(
   }
 
   render() {
-    const { areas, left } = this.state
+    const { areas, left, view, fill } = this.state
     const { vibrant } = this.props
     return (
       <ul
@@ -91,18 +119,116 @@ const DeckPlannerView = connect(
           background: `rgba(51, 51, 51, ${vibrant ? 0.95 : 1})`,
         }}
       >
-        <div>
+        <div
+          style={{
+            display: 'flex',
+            position: 'sticky',
+            top: '-5px',
+            background: `rgba(51, 51, 51, ${vibrant ? 0.95 : 1})`,
+            zIndex: 1,
+          }}
+        >
+          <div className="radio-check" style={{ marginRight: '4em' }}>
+            <div
+              onClick={() => this.setState({ view: 'area' })}
+              className={cls('filter-option', {
+                checked: view === 'area',
+                dark: window.isDarkTheme,
+                light: !window.isDarkTheme,
+              })}
+              role="button"
+              tabIndex="0"
+            >
+              {__('Area View')}
+            </div>
+            <div
+              onClick={() => this.setState({ view: 'ship' })}
+              className={cls('filter-option', {
+                checked: view === 'ship',
+                dark: window.isDarkTheme,
+                light: !window.isDarkTheme,
+              })}
+              role="button"
+              tabIndex="0"
+            >
+              {__('Ship Grid')}
+            </div>
+          </div>
           {
-            areas.map(area => (
-              <Area
-                key={area.name}
-                area={area}
-                index={area.areaIndex}
-                others={areas.filter(({ areaIndex }) => areaIndex !== area.areaIndex)}
-              />
-            ))
+            view === 'area' &&
+            <div className="radio-check">
+              <div
+                onClick={() => this.props.dispatch(reorderShips)}
+                className={cls('filter-option', {
+                  dark: window.isDarkTheme,
+                  light: !window.isDarkTheme,
+                })}
+                role="button"
+                tabIndex="0"
+              >
+                {__('Refresh')}
+              </div>
+            </div>
+          }
+          {
+            view === 'ship' &&
+            <div className="radio-check">
+              <div className="filter-span"><span>{__('Palette')}</span></div>
+              <div
+                onClick={() => this.setState({ fill: -1 })}
+                className={cls('filter-option', {
+                  checked: fill === -1,
+                  dark: window.isDarkTheme,
+                  light: !window.isDarkTheme,
+                })}
+                role="button"
+                tabIndex="0"
+              >
+                {__('None')}
+              </div>
+              {
+                areas.map(area => (
+                  <div
+                    key={area.name}
+                    onClick={() => this.setState({ fill: area.areaIndex })}
+                    className={cls('filter-option', {
+                      checked: fill === area.areaIndex,
+                      dark: window.isDarkTheme,
+                      light: !window.isDarkTheme,
+                    })}
+                    style={{
+                      color: fill !== area.areaIndex && area.color,
+                      backgroundColor: fill === area.areaIndex && hexToRGBA(area.color, 0.75),
+                    }}
+                    role="button"
+                    tabIndex="0"
+                  >
+                    {area.name}
+                  </div>
+                ))
+              }
+            </div>
           }
         </div>
+        {
+          view === 'area' &&
+          <div>
+            {
+              areas.map(area => (
+                <Area
+                  key={area.name}
+                  area={area}
+                  index={area.areaIndex}
+                  others={areas.filter(({ areaIndex }) => areaIndex !== area.areaIndex)}
+                />
+              ))
+            }
+          </div>
+        }
+        {
+          view === 'ship' &&
+          <ShipGrid fill={fill} />
+        }
       </ul>
     )
   }
