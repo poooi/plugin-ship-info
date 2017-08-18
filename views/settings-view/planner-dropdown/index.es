@@ -2,14 +2,14 @@ import React, { Component } from 'react'
 import propTypes from 'prop-types'
 import { Dropdown, Button, ButtonGroup, ButtonToolbar } from 'react-bootstrap'
 import { connect } from 'react-redux'
-import { get, each } from 'lodash'
+import { get, each, findIndex } from 'lodash'
 import FontAwesome from 'react-fontawesome'
 import cls from 'classnames'
 
 import { extensionSelectorFactory } from 'views/utils/selectors'
 
 import { hexToRGBA } from '../../utils'
-import { onDPInit, onAddShip, onDisplaceShip } from '../../redux'
+import { onDPInit, onAddShip, onDisplaceShip, onRemoveShip } from '../../redux'
 import { deckPlannerCurrentSelector, shipMenuDataSelector, deckPlannerShipMapSelector } from '../../selectors'
 import Area from './area'
 import ShipGrid from './ship-grid'
@@ -35,6 +35,15 @@ const reorderShips = (dispatch, getState) => {
           toAreaIndex: ship.area - 1,
         }))
       }
+    }
+  })
+
+  each(Object.keys(planMap), (shipId) => {
+    if (findIndex(ships, ship => ship.id === (+shipId)) < 0) {
+      dispatch(onRemoveShip({
+        shipId: +shipId,
+        areaIndex: planMap[shipId],
+      }))
     }
   })
 }
