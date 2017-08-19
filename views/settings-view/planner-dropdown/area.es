@@ -5,10 +5,11 @@ import FA from 'react-fontawesome'
 import { get, groupBy, keyBy } from 'lodash'
 import fp from 'lodash/fp'
 import { connect } from 'react-redux'
+import path from 'path'
 
 import { onAddShip, onRemoveShip, onDisplaceShip } from '../../redux'
 import AddShipDropdown from './add-ship-dropdown'
-import { shipMenuDataSelector, ShipItemSelectorFactory, deckPlannerAreaSelectorFactory } from '../../selectors'
+import { shipMenuDataSelector, ShipItemSelectorFactory, deckPlannerAreaSelectorFactory, shipFleetIdSelectorFactory } from '../../selectors'
 import { shipTypes, hexToRGBA } from '../../utils'
 
 const { __ } = window
@@ -38,6 +39,7 @@ const ShipChip = connect(
   (state, props) => ({
     ...ShipItemSelectorFactory(props.shipId)(state),
     color: get(state, 'fcd.shiptag.color', []),
+    fleetId: shipFleetIdSelectorFactory(props.shipId)(state),
   })
 )(class ShipChip extends PureComponent {
   static propTypes = {
@@ -52,6 +54,7 @@ const ShipChip = connect(
     onDisplace: propTypes.func,
     planArea: propTypes.number,
     dispatch: propTypes.func,
+    fleetId: propTypes.number,
   }
 
   constructor(props) {
@@ -89,7 +92,7 @@ const ShipChip = connect(
   }
 
   render() {
-    const { id, typeId, name, lv, area, color, others, onRemove, onDisplace } = this.props
+    const { id, typeId, name, lv, area, color, others, onRemove, onDisplace, fleetId } = this.props
     const { hover } = this.state
 
     return (
@@ -123,6 +126,17 @@ const ShipChip = connect(
         <span>
           {
             area > 0 && <FA name="tag" style={{ marginLeft: '1ex', color: color[area - 1] }} />
+          }
+        </span>
+        <span>
+          {
+            fleetId > -1 &&
+              <img
+                className="fleet-id-indicator"
+                style={{ height: '10px' }}
+                alt={`fleet: ${fleetId + 1}`}
+                src={path.resolve(__dirname, `../../../assets/svg/fleet-indicator-${fleetId + 1}.svg`)}
+              />
           }
         </span>
         <span>

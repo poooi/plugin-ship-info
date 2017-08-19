@@ -52,6 +52,12 @@ export const shipFleetIdMapSelector = createSelector(
     mapValues(ships, ship => findIndex(fleetIds, fleetId => includes(fleetId, ship.api_id)))
 )
 
+export const shipFleetIdSelectorFactory = memoize(shipId =>
+  createSelector([
+    shipFleetIdMapSelector,
+  ], fleetIdMap => fleetIdMap[shipId]
+))
+
 export const shipTableDataSelectorFactory = memoize(shipId =>
   createSelector(
     [
