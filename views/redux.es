@@ -260,7 +260,7 @@ const fileWriter = new FileWriter()
 // observers
 export const dataObserver = observer(
   extensionSelectorFactory(PLUGIN_KEY),
-  (dispatch, current = {}, previous) => {
+  (dispatch, current = {}) => {
     // avoid initial state overwrites file
     if (current.ready) {
       fileWriter.write(DATA_PATH, current)
