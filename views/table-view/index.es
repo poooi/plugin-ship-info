@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import propTypes from 'prop-types'
 import { connect } from 'react-redux'
 import cls from 'classnames'
-import { MultiGrid, AutoSizer } from 'react-virtualized'
+import { MultiGrid } from 'react-virtualized'
 import { sum, debounce, floor, get } from 'lodash'
 
 import { extensionSelectorFactory } from 'views/utils/selectors'
@@ -98,6 +98,7 @@ const ShipInfoTableArea = connect(
     rows: shipRowsSelector(state),
     ...shipInfoConfigSelector(state),
     toTop: get(extensionSelectorFactory('poi-plugin-ship-info')(state), 'ui.toTop', 0),
+    isExtend: get(extensionSelectorFactory('poi-plugin-ship-info')(state), 'ui.isExtend', true),
   })
 )(class ShipInfoTableArea extends Component {
   static propTypes = {
@@ -105,11 +106,13 @@ const ShipInfoTableArea = connect(
     sortName: propTypes.string.isRequired,
     sortOrder: propTypes.number.isRequired,
     toTop: propTypes.bool,
+    isExtend: propTypes.bool,
     dispatch: propTypes.func,
   }
 
   state = {
     windowWidth: window.innerWidth,
+    windowHeight: window.innerHeight,
     activeColumn: -1,
     activeRow: -1,
   }
@@ -140,6 +143,7 @@ const ShipInfoTableArea = connect(
   updateWindowSize = () => {
     this.setState({
       windowWidth: window.innerWidth,
+      windowHeight: window.innerHeight,
     }, () => {
       if (this.grid) {
         this.grid.recomputeGridSize()
@@ -268,42 +272,37 @@ const ShipInfoTableArea = connect(
   }
 
   render() {
-    const { rows } = this.props
-    const { windowWidth, activeRow, activeColumn } = this.state
-
+    const { rows, isExtend } = this.props
+    const { windowWidth, windowHeight, activeRow, activeColumn } = this.state
+    const height = Math.max(windowHeight - (isExtend ? 526 : 85), 115)
     return (
       <div id="ship-info-show" style={{ display: 'flex', flexDirection: 'column' }}>
         <Divider icon={false} />
         <div style={{ flex: 1 }} className="table-container">
-          <AutoSizer>
-            {
-              ({ width, height }) => (
-                <MultiGrid
-                  rows={rows}
-                  ref={this.setRef}
-                  activeRow={activeRow}
-                  activeColumn={activeColumn}
-                  windowWidth={windowWidth}
-                  columnCount={18}
-                  columnWidth={this.getColumnWidth}
-                  estimatedRowSize={100}
-                  fixedColumnCount={windowWidth > this.tableWidth ? 0 : 0}
-                  fixedRowCount={1}
-                  handleContentRendered={this.handleContentRendered}
-                  height={height}
-                  overscanColumnCount={10}
-                  overscanRowCount={5}
-                  cellRenderer={this.cellRenderer}
-                  rowCount={rows.length + 1}
-                  rowHeight={ROW_HEIGHT}
-                  scrollToAlignment="start"
-                  width={width}
-                  scrollToColumn={0}
-                  scrollToRow={0}
-                  onScroll={this.handleScroll}
-                />
-              )}
-          </AutoSizer>
+          <MultiGrid
+            rows={rows}
+            ref={this.setRef}
+            activeRow={activeRow}
+            activeColumn={activeColumn}
+            windowWidth={windowWidth}
+            columnCount={18}
+            columnWidth={this.getColumnWidth}
+            estimatedRowSize={100}
+            fixedColumnCount={windowWidth > this.tableWidth ? 0 : 0}
+            fixedRowCount={1}
+            handleContentRendered={this.handleContentRendered}
+            height={height}
+            overscanColumnCount={10}
+            overscanRowCount={5}
+            cellRenderer={this.cellRenderer}
+            rowCount={rows.length + 1}
+            rowHeight={ROW_HEIGHT}
+            scrollToAlignment="start"
+            width={windowWidth - 16}
+            scrollToColumn={0}
+            scrollToRow={0}
+            onScroll={this.handleScroll}
+          />
         </div>
       </div>
     )

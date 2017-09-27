@@ -25,6 +25,9 @@ body {
 #ship-info-show {
   flex-grow: 1;
 }
+#ship-info-show .table-container {
+  padding-left: 8px;
+}
 /*#ship-info-show ::-webkit-scrollbar{
   width: 0;
   height: 1em;

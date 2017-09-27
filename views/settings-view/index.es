@@ -5,8 +5,6 @@ import { Button, ButtonGroup, ButtonToolbar, Collapse } from 'react-bootstrap'
 import FA from 'react-fontawesome'
 import { get } from 'lodash'
 import { observe } from 'redux-observers'
-import { readJson } from 'fs-extra'
-import { promisify } from 'bluebird'
 
 import { extensionSelectorFactory } from 'views/utils/selectors'
 
@@ -15,7 +13,7 @@ import ConfigMenu from './config-menu'
 import ExportDropdown from './export-dropdown'
 import PlannerDropdown from './planner-dropdown'
 
-import { dataObserver, initStore, DATA_PATH } from '../redux'
+import { dataObserver, initStore } from '../redux'
 
 const { __, config } = window
 
@@ -64,6 +62,12 @@ const ShipInfoCheckboxArea = connect(
     })
   }
 
+  updateCollapseComponentExtended = isExtend =>
+  this.props.dispatch({
+    type: '@@poi-plugin-ship-info@extend',
+    isExtend,
+  })
+
   render() {
     const { menuShow, autoShow } = this.state
     const { toTop } = this.props
@@ -104,7 +108,12 @@ const ShipInfoCheckboxArea = connect(
           </ButtonToolbar>
         </div>
         <div>
-          <Collapse in={menuShow || (toTop && autoShow)}>
+          <Collapse
+            in={menuShow || (toTop && autoShow)}
+            timeout={750}
+            onEntered={() => this.updateCollapseComponentExtended(true)}
+            onExit={() => this.updateCollapseComponentExtended(false)}
+          >
             <div>
               <ConfigMenu />
             </div>
