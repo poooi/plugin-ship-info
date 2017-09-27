@@ -161,9 +161,13 @@ clickable {
   transition: 0.2s;
 }
 
+#settings-toolbar {
+  height: 36px;
+  overflow: hidden;
+}
 #ship-info-settings {
   padding-left: 8px;
-  padding-top: 1ex;
+  padding-top: 8px;
 }
 
 #ship-info-settings .filter-type .checkbox {
