@@ -25,6 +25,9 @@ body {
 #ship-info-show {
   flex-grow: 1;
 }
+#ship-info-show .table-container {
+  padding-left: 8px;
+}
 /*#ship-info-show ::-webkit-scrollbar{
   width: 0;
   height: 1em;
@@ -161,9 +164,13 @@ clickable {
   transition: 0.2s;
 }
 
+#settings-toolbar {
+  height: 36px;
+  overflow: hidden;
+}
 #ship-info-settings {
   padding-left: 8px;
-  padding-top: 1ex;
+  padding-top: 8px;
 }
 
 #ship-info-settings .filter-type .checkbox {

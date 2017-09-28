@@ -25,6 +25,7 @@ const plannerInitState = {
 const uiInitState = {
   toTop: true,
   activeDropdown: '',
+  isExtend: true,
 }
 
 try {
@@ -140,7 +141,7 @@ const plannerReducer = (state = plannerInitState, action) => {
 }
 
 const uiReducer = (state = uiInitState, action) => {
-  const { type, toTop, activeDropdown } = action
+  const { isExtend, type, toTop, activeDropdown } = action
   if (type === `@@${PLUGIN_KEY}@scroll`) {
     return {
       ...state,
@@ -150,6 +151,11 @@ const uiReducer = (state = uiInitState, action) => {
     return {
       ...state,
       activeDropdown: activeDropdown === state.activeDropdown ? '' : activeDropdown,
+    }
+  } else if (type === `@@${PLUGIN_KEY}@extend`) {
+    return {
+      ...state,
+      isExtend,
     }
   }
   return state
@@ -254,7 +260,7 @@ const fileWriter = new FileWriter()
 // observers
 export const dataObserver = observer(
   extensionSelectorFactory(PLUGIN_KEY),
-  (dispatch, current = {}, previous) => {
+  (dispatch, current = {}) => {
     // avoid initial state overwrites file
     if (current.ready) {
       fileWriter.write(DATA_PATH, current)

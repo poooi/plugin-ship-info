@@ -41,6 +41,7 @@ module.exports = {
       'react',
       'react-dom',
       'react-redux',
+      'redux',
       'redux-observers',
       'reselect',
       'react-bootstrap',
