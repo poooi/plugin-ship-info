@@ -246,9 +246,10 @@ const ShipInfoTableArea = connect(
   }
 
   getColumnWidth = ({ index }) => {
+    // 20: magic number, seems it need to be greater than 16
     const width = floor((widths[index] || 40) *
-      (this.state.windowWidth > this.tableWidth
-        ? (this.state.windowWidth / this.tableWidth)
+      (this.state.windowWidth - 20 > this.tableWidth
+        ? ((this.state.windowWidth - 20) / this.tableWidth)
         : 1
       ),
     )
@@ -274,6 +275,7 @@ const ShipInfoTableArea = connect(
   render() {
     const { rows, isExtend } = this.props
     const { windowWidth, windowHeight, activeRow, activeColumn } = this.state
+    // 526, 85, 115: magic numbers for layout dimensions
     const height = Math.max(windowHeight - (isExtend ? 526 : 85), 115)
     return (
       <div id="ship-info-show" style={{ display: 'flex', flexDirection: 'column' }}>
@@ -298,7 +300,7 @@ const ShipInfoTableArea = connect(
             rowCount={rows.length + 1}
             rowHeight={ROW_HEIGHT}
             scrollToAlignment="start"
-            width={windowWidth - 16}
+            width={windowWidth - 16} // 16: left and right padding (8 + 8)
             scrollToColumn={0}
             scrollToRow={0}
             onScroll={this.handleScroll}
