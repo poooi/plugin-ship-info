@@ -65,7 +65,7 @@ const TitleCell = ({
     role="button"
     tabIndex={0}
     style={{ ...style }}
-    onClick={sortable ? handleClickTitle : ''}
+    onClick={sortable ? handleClickTitle : () => {}}
     className={cls(className, {
       clickable: sortable,
       center: centerAlign,

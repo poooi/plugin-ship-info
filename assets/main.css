@@ -164,10 +164,10 @@ clickable {
   transition: 0.2s;
 }
 
-#settings-toolbar {
+#settings-toolbar .btn-group>.btn {
   height: 36px;
-  overflow: hidden;
 }
+
 #ship-info-settings {
   padding-left: 8px;
   padding-top: 8px;
