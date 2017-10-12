@@ -9,7 +9,7 @@ import { resolveTime } from 'views/utils/tools'
 import Slotitems from './slotitems'
 import SallyArea from './sally-area'
 import { sokuInterpretation, sokuStyles } from '../constants'
-import { getTimePerHP, shipInfoShape } from '../utils'
+import { getTimePerHP, shipInfoShape, shipTypes } from '../utils'
 
 const { __ } = window
 
@@ -57,7 +57,10 @@ const Type = ({ ship, ...props }) => (
   <div
     {...props}
   >
-    { window.i18n.resources.__(ship.type) }
+    { window.language === 'en-US'
+      ? shipTypes[ship.typeId]
+      : window.i18n.resources.__(ship.type)
+    }
   </div>
 )
 

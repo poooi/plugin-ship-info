@@ -5,7 +5,7 @@ import { get, isEqual, map, intersection } from 'lodash'
 import cls from 'classnames'
 
 import { shipSuperTypeMap } from '../constants'
-import { intToBoolArray, boolArrayToInt } from '../utils'
+import { intToBoolArray, boolArrayToInt, shipTypes } from '../utils'
 
 const { __, __r } = window
 
@@ -152,7 +152,7 @@ const TypeView = connect(
                   onContextMenu={this.handleRightClickSingleBox(key - 1)}
                   className={cls('shiptype', { checked: checked[key - 1] })}
                 >
-                  {__r(type.api_name)}
+                  {window.language === 'en-US' ? shipTypes[type.api_id] : __r(type.api_name)}
                 </div>
               )
             )

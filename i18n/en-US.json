@@ -64,5 +64,8 @@
   "inDock": "In Dock",
   "after": "Remodel",
   "sallyArea": "Sally Area",
-  "soku": "Speed"
+  "soku": "Speed",
+  "Firepower": "Fire.",
+  "Torpedo": "Torp.",
+  "Evasion": "Ev."
 }
