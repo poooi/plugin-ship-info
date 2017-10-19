@@ -6,7 +6,7 @@
   "FilterCV": "CV",
   "FilterSS": "SS",
   "FilterOthers": "Others",
-  "id": "ID",
+  "id": "Ship ID",
   "name": "Name",
   "yomi": "Kana",
   "type": "Type",
