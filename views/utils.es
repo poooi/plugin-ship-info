@@ -128,7 +128,7 @@ export const getShipInfoData = (
   // Abukuma Kai 2 = 200, Kinu Kai 2 = 487
   // Satsuki Kai 2 = 418 , Mutsuki Kai 2 = 434, Kisaragi Kai 2 = 435
   // Kasumi Kai 2 = 464, Kasumi Kai 2 B = 470, Ooshio Kai 2 = 199,
-  //   Asashio Kai 2 D = 468, Arashio Kai 2 = 490
+  //   Asashio Kai 2 D = 468, Arashio Kai 2 = 490, Michishio Kai 2 = 489
   // Verniy = 147, Kawakaze Kai 2 = 469
   // Nagato Kai 2 = 541
   // Yura Kai 2 = 488
@@ -144,6 +144,7 @@ export const getShipInfoData = (
     199,
     468,
     490,
+    489,
     147,
     469,
     541,
