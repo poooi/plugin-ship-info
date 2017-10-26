@@ -1,6 +1,6 @@
 import memoize from 'fast-memoize'
 import { createSelector } from 'reselect'
-import { get, mapValues, findIndex, includes, flatten, fromPairs, flatMap } from 'lodash'
+import _, { get, mapValues, findIndex, includes, flatten, fromPairs, flatMap, each, uniq } from 'lodash'
 import fp from 'lodash/fp'
 
 import { constSelector, shipDataSelectorFactory, shipsSelector,
@@ -317,6 +317,7 @@ export const ShipItemSelectorFactory = memoize(shipId =>
     !!ship && !!$ship
     ? ({
       id: ship.api_id,
+      shipId: $ship.api_id,
       typeId: $ship.api_stype,
       name: $ship.api_name,
       lv: ship.api_lv,
@@ -365,3 +366,29 @@ export const deckPlannerShipMapSelector = createSelector(
     flatMap(current, (ships, areaIndex) => ships.map(id => ([id, areaIndex])))
   )
 )
+
+export const sameShipMapSelector = createSelector(
+  [
+    constSelector,
+  ], ({ $ships = {} } = {}) => {
+  const sameMap = _($ships).map(
+    (ship) => {
+      let current = ship
+      let next = +(ship.api_aftershipid || 0)
+      let same = [ship.api_id]
+      while (!same.includes(next) && next > 0) {
+        same = [...same, next]
+        current = $ships[next] || {}
+        next = +(current.api_aftershipid || 0)
+      }
+      return [ship.api_id, same]
+    }
+  ).fromPairs().value()
+
+  each(sameMap, ids =>
+    each(ids, (id) => {
+      sameMap[id] = uniq([...sameMap[id], ...ids, ...flatMap(ids, s => sameMap[s])])
+    })
+  )
+  return sameMap
+})
