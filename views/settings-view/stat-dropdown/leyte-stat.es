@@ -10,6 +10,8 @@ import { shipMenuDataSelector, sameShipMapSelector } from '../../selectors'
 
 const { __, __r } = window
 
+const MAX_LEVEL = 165
+
 const LeyteStat = connect(
   state => ({
     $ships: get(state, 'const.$ships', {}),
@@ -25,9 +27,12 @@ const LeyteStat = connect(
           <div className="ship-grid">
             {
               fp.flow(
-                fp.sortBy(shipId => -get($ships, [shipId, 'api_stype'], 0)),
+                fp.sortBy([
+                  shipId => -get($ships, [shipId, 'api_stype'], 0),
+                  shipId => -get($ships, [shipId, 'api_ctype'], 0),
+                ]),
                 fp.map(shipId => (
-                  <div className="ship-grid-container">
+                  <div className="ship-grid-container" key={shipId}>
                     <div className="ship-grid-cell ship-grid-header" key={shipId}>
                       {__r(get($ships, [shipId, 'api_name'], __('Unknown')))}
                     </div>
@@ -36,7 +41,13 @@ const LeyteStat = connect(
                         fp.filter(ship => (sameShipMap[shipId] || []).includes(ship.shipId)),
                         fp.sortBy([ship => -ship.lv]),
                         fp.map(ship => (
-                          <div key={ship.id} className="ship-grid-cell">
+                          <div
+                            style={{
+                              background: `hsla(210, ${Math.min(Math.round((ship.lv * 100) / MAX_LEVEL), 100)}%, 40%, 0.75)`,
+                            }}
+                            key={ship.id}
+                            className="ship-grid-cell"
+                          >
                             <span className="ship-name">{ship.area > 0 && <FA name="tag" />}{__r(ship.name)}</span>
                             <span className="ship-level"><sup>Lv.{ship.lv}</sup></span>
                           </div>

@@ -12,7 +12,6 @@ import LeyteStat from './leyte-stat'
 
 const { __ } = window
 
-
 const StatView = connect(
   state => ({
     color: get(state, 'fcd.shiptag.color', []),
