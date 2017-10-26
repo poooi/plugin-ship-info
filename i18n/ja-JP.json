@@ -170,5 +170,13 @@
   "Area View": "海域リスト",
   "Ship Grid": "艦娘リスト",
   "Palette": "海域パレット",
-  "None": "計画なし"
+  "None": "計画なし",
+  "Statistics": "統計",
+  "Leyte Gulf": "レイテ沖海戦",
+  "IJN Mobile Force (Ozawa)": "旧日本海軍 機動部隊本隊（小沢）",
+  "IJN First Striking First Section (Kurita)": "旧日本海軍 第一遊撃部隊 第一部隊（栗田）",
+  "IJN First Striking Second Section (Suzuki)": "旧日本海軍 第一遊撃部隊 第二部隊（鈴木）",
+  "IJN First Striking Third Section (Nishimura)": "旧日本海軍 第一遊撃部隊 第三部隊（西村）",
+  "IJN Second Striking Force (Shima)": "旧日本海軍 第二遊撃部隊（志摩）",
+  "USN Task Force 38 Fast Carrier Force": "連合軍 第 38 任務部隊"
 }
