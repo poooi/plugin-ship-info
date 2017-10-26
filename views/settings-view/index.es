@@ -12,6 +12,7 @@ import BookmarkDropdown from './bookmark-dropdown'
 import ConfigMenu from './config-menu'
 import ExportDropdown from './export-dropdown'
 import PlannerDropdown from './planner-dropdown'
+import StatDropdown from './stat-dropdown'
 
 import { dataObserver, initStore } from '../redux'
 
@@ -104,6 +105,9 @@ const ShipInfoCheckboxArea = connect(
             </ButtonGroup>
             <ButtonGroup>
               <PlannerDropdown />
+            </ButtonGroup>
+            <ButtonGroup>
+              <StatDropdown />
             </ButtonGroup>
           </ButtonToolbar>
         </div>

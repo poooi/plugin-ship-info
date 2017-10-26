@@ -38,7 +38,7 @@ const getDPAction = (shipId, fill) => (dispatch, getState) => {
   }))
 }
 
-const { __ } = window
+const { __, __r } = window
 
 const ShipItem = connect(
   state => ({
@@ -76,7 +76,7 @@ const ShipItem = connect(
         onMouseEnter={this.handleMouseEnter}
         onMouseLeave={this.handleMouseLeave}
       >
-        <span className="ship-name">{ship.area > 0 && <FA name="tag" />}{ship.name}</span>
+        <span className="ship-name">{ship.area > 0 && <FA name="tag" />}{__r(ship.name)}</span>
         <span className="ship-level"><sup>Lv.{ship.lv}</sup></span>
       </div>
     )

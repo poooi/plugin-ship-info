@@ -581,12 +581,6 @@ th {
   background-color: rgba(255, 255, 255, 0.1);
 }
 
-@media (min-width: 1440px) {
-  .ship-grid-cell {
-    width: calc(100% / 10 - 4px);
-  }
-}
-
 .ship-grid-cell:hover {
   background-color: rgba(255, 255, 255, 0.2);
 }
@@ -601,4 +595,29 @@ th {
 
 .ship-grid-cell .ship-level {
   opacity: 0.5;
+}
+
+.ship-grid-container {
+  width: calc(100% / 7 - 4px);
+  margin: 2px;
+}
+
+.ship-grid-container .ship-grid-cell {
+  width: 100%
+}
+
+.ship-grid-container .ship-grid-header {
+  background: none;
+  font-weight: bold;
+  line-height: 1.5rem;
+  font-size: 120%;
+}
+
+@media (min-width: 1440px) {
+  .ship-grid-cell {
+    width: calc(100% / 10 - 4px);
+  }
+  .ship-grid-container {
+    width: calc(100% / 15 - 4px);
+  }
 }
