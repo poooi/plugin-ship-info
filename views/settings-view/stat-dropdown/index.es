@@ -2,11 +2,14 @@ import React, { Component } from 'react'
 import propTypes from 'prop-types'
 import { Dropdown, Button, ButtonGroup, ButtonToolbar } from 'react-bootstrap'
 import { connect } from 'react-redux'
-import { get, each, findIndex } from 'lodash'
+import { get, each, findIndex, ceil } from 'lodash'
 import FontAwesome from 'react-fontawesome'
 import cls from 'classnames'
+import { remote } from 'electron'
 
 import { extensionSelectorFactory } from 'views/utils/selectors'
+
+import html2canvas from '../../../lib/html2canvas'
 
 import LeyteStat from './leyte-stat'
 
@@ -30,6 +33,7 @@ const StatView = connect(
     this.state = {
       view: 'leyte',
       left: 0,
+      extend: false,
     }
   }
 
@@ -47,8 +51,24 @@ const StatView = connect(
     }
   }
 
+  handleCaptureRect = async () => {
+    const rect = document.querySelector('#rect')
+    if (!rect) {
+      return
+    }
+    await this.setState({ extend: true })
+    const { width, height } = rect.getBoundingClientRect()
+    const canvas = await html2canvas(rect, {
+      background: '#333',
+      width: ceil(width, 16),
+      height: ceil(height, 16),
+    })
+    remote.getCurrentWebContents().downloadURL(canvas.toDataURL('image/png'))
+    this.setState({ extend: false })
+  }
+
   render() {
-    const { left, view } = this.state
+    const { left, view, extend } = this.state
     const { vibrant } = this.props
     return (
       <ul
@@ -58,6 +78,7 @@ const StatView = connect(
           height: '95vh',
           left,
           background: `rgba(51, 51, 51, ${vibrant ? 0.95 : 1})`,
+          overflowY: extend && 'visible',
         }}
       >
         <div
@@ -83,11 +104,22 @@ const StatView = connect(
               {__('Leyte Gulf')}
             </div>
           </div>
+          <div className="radio-check" style={{ marginRight: '4em' }}>
+            <div
+              onClick={this.handleCaptureRect}
+              role="button"
+              tabIndex="0"
+            >
+              {__('Save to image')}
+            </div>
+          </div>
         </div>
-        {
-          view === 'leyte' &&
-          <LeyteStat />
-        }
+        <div id="rect" style={{ padding: extend && '1em' }}>
+          {
+            view === 'leyte' &&
+            <LeyteStat />
+          }
+        </div>
       </ul>
     )
   }
