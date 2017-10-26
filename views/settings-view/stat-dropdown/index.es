@@ -13,13 +13,13 @@ import LeyteStat from './leyte-stat'
 const { __ } = window
 
 
-const DeckPlannerView = connect(
+const StatView = connect(
   state => ({
     color: get(state, 'fcd.shiptag.color', []),
     mapname: get(state, 'fcd.shiptag.mapname', []),
     vibrant: get(state, 'config.poi.vibrant'),
   })
-)(class DeckPlannerView extends Component {
+)(class StatView extends Component {
   static propTypes = {
     vibrant: propTypes.number,
     open: propTypes.bool,
@@ -110,7 +110,7 @@ const PlannerDropdown = connect(
     <Dropdown.Toggle>
       <FontAwesome name="line-chart" style={{ marginRight: '1ex' }} />{__('Statistics')} <sup>BETA</sup>
     </Dropdown.Toggle>
-    <DeckPlannerView bsRole="menu" open={activeDropdown === 'stat'} />
+    <StatView bsRole="menu" open={activeDropdown === 'stat'} />
   </Dropdown>)
 )
 
