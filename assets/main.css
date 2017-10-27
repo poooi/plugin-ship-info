@@ -628,11 +628,12 @@ th {
   line-height: 25px;
   text-align: center;
   font-size: 20px;
+  font-weight: 500;
 }
 
 /* this prvents font fallback */
 #rect * {
-  font-family: Helvetica, Arial, 'Source Han Sans', 'Hiragino Sans GB', 'WQY michohei', sans-serif;
+  font-family: Helvetica, Arial, 'Segoe UI', Segoe, 'Source Han Sans', 'Noto Sans CJK', 'PingFang', 'Hiragino Sans GB', 'WQY michohei', 'Microsoft Yahei UI', 'Microsoft Yahei', sans-serif;
 }
 
 @media (min-width: 1440px) {
