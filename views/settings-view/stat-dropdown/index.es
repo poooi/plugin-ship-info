@@ -12,6 +12,7 @@ import { extensionSelectorFactory } from 'views/utils/selectors'
 import html2canvas from '../../../lib/html2canvas'
 
 import LeyteStat from './leyte-stat'
+import CollectionProgress from './collection-progress'
 
 const { __ } = window
 
@@ -103,6 +104,20 @@ const StatView = connect(
             >
               {__('Leyte Gulf')}
             </div>
+            <div className="radio-check" style={{ marginRight: '4em' }}>
+              <div
+                onClick={() => this.setState({ view: 'collection' })}
+                className={cls('filter-option', {
+                  checked: view === 'collection',
+                  dark: window.isDarkTheme,
+                  light: !window.isDarkTheme,
+                })}
+                role="button"
+                tabIndex="0"
+              >
+                {__('Collection')}
+              </div>
+            </div>
           </div>
           <div className="radio-check" style={{ marginRight: '4em' }}>
             <div
@@ -118,6 +133,10 @@ const StatView = connect(
           {
             view === 'leyte' &&
             <LeyteStat />
+          }
+          {
+            view === 'collection' &&
+            <CollectionProgress />
           }
         </div>
       </ul>

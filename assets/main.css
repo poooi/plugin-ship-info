@@ -613,6 +613,28 @@ th {
   font-size: 120%;
 }
 
+.name-cube {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  height: 50px;
+  width: 50px;
+  margin: 2px;
+}
+
+.name-cube .letter-cube {
+  width: 25px;
+  height: 25px;
+  line-height: 25px;
+  text-align: center;
+  font-size: 20px;
+}
+
+/* this prvents font fallback */
+#rect * {
+  font-family: Helvetica, Arial, 'Source Han Sans', 'Hiragino Sans GB', 'WQY michohei', sans-serif;
+}
+
 @media (min-width: 1440px) {
   .ship-grid-cell {
     width: calc(100% / 10 - 4px);

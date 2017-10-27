@@ -1,6 +1,6 @@
 import memoize from 'fast-memoize'
 import { createSelector } from 'reselect'
-import _, { get, mapValues, findIndex, includes, flatten, fromPairs, flatMap, each, uniq } from 'lodash'
+import _, { get, mapValues, findIndex, includes, flatten, fromPairs, flatMap, each, uniq, values, isEqual } from 'lodash'
 import fp from 'lodash/fp'
 
 import { constSelector, shipDataSelectorFactory, shipsSelector,
@@ -392,3 +392,38 @@ export const sameShipMapSelector = createSelector(
   )
   return sameMap
 })
+
+export const uniqueShipSelector = createSelector(
+  [
+    sameShipMapSelector,
+    constSelector,
+  ], (sameMap, { $ships = {} } = {}) =>
+    fp.flow(
+      fp.uniqBy(shipIds => Math.min(...shipIds)),
+      fp.map(shipIds => fp.sortBy([
+        shipId => get($ships, [shipId, 'api_name', 'length']),
+        shipId => shipId,
+      ])(shipIds)),
+      fp.map(shipIds => shipIds[0]),
+      fp.filter(shipId => shipId < 1000), // we only want our girls
+    )(values(sameMap))
+)
+
+export const kai2ShipSelector = createSelector(
+  [
+    uniqueShipSelector,
+    sameShipMapSelector,
+  ], (ships, sameMap) => fp.flow(
+    fp.filter(shipId => sameMap[shipId].length > 3),
+  )(ships)
+)
+
+export const uniqueShipCountSelector = createSelector(
+  [
+    uniqueShipSelector,
+    sameShipMapSelector,
+    shipMenuDataSelector,
+  ], (uniqs, sameMap, ships) => mapValues(sameMap,
+    shipIds => fp.filter(ship => shipIds.includes(ship.shipId))(ships).length
+  )
+)
