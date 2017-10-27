@@ -1,6 +1,6 @@
 import memoize from 'fast-memoize'
 import { createSelector } from 'reselect'
-import _, { get, mapValues, findIndex, includes, flatten, fromPairs, flatMap, each, uniq, values, isEqual } from 'lodash'
+import _, { get, mapValues, findIndex, includes, flatten, fromPairs, flatMap, each, uniq, values, keyBy } from 'lodash'
 import fp from 'lodash/fp'
 
 import { constSelector, shipDataSelectorFactory, shipsSelector,
@@ -11,6 +11,12 @@ import { PLUGIN_KEY } from './redux'
 import { getShipInfoData, katakanaToHiragana, intToBoolArray, reverseSuperTypeMap } from './utils'
 
 const { __ } = window
+
+export const graphSelector = createSelector(
+  [
+    constSelector,
+  ], ({ $shipgraph } = {}) => keyBy($shipgraph, 'api_id')
+)
 
 export const shipInfoConfigSelector = createSelector(
   [

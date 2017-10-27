@@ -6,7 +6,7 @@ import { get } from 'lodash'
 import fp from 'lodash/fp'
 
 import { leyteFleets } from '../../utils'
-import { shipMenuDataSelector, sameShipMapSelector } from '../../selectors'
+import { shipMenuDataSelector, sameShipMapSelector, graphSelector } from '../../selectors'
 
 const { __, __r } = window
 
@@ -15,10 +15,11 @@ const MAX_LEVEL = 165
 const LeyteStat = connect(
   state => ({
     $ships: get(state, 'const.$ships', {}),
+    $graph: graphSelector(state),
     ships: shipMenuDataSelector(state),
     sameShipMap: sameShipMapSelector(state),
   })
-)(({ $ships, ships, sameShipMap }) => (
+)(({ $ships, $graph, ships, sameShipMap }) => (
   <div>
     {
       leyteFleets.map(fleet => (
@@ -30,6 +31,7 @@ const LeyteStat = connect(
                 fp.sortBy([
                   shipId => -get($ships, [shipId, 'api_stype'], 0),
                   shipId => -get($ships, [shipId, 'api_ctype'], 0),
+                  shipId => get($graph, [shipId, 'api_sortno']),
                 ]),
                 fp.map(shipId => (
                   <div className="ship-grid-container" key={shipId}>

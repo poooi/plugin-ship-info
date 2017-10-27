@@ -6,7 +6,7 @@ import { get, times } from 'lodash'
 import fp from 'lodash/fp'
 
 import { shipSuperTypeMap } from '../../utils'
-import { uniqueShipSelector, uniqueShipCountSelector } from '../../selectors'
+import { uniqueShipSelector, uniqueShipCountSelector, graphSelector } from '../../selectors'
 
 const { __, __r } = window
 
@@ -60,10 +60,11 @@ const NameCube = ({ name, count, ctype }) => {
 const CollectionProgress = connect(
   state => ({
     $ships: get(state, 'const.$ships', {}),
+    $graph: graphSelector(state),
     ships: uniqueShipSelector(state),
     count: uniqueShipCountSelector(state),
   })
-)(({ $ships, ships, count }) => {
+)(({ $ships, $graph, ships, count }) => {
   const typeShips = fp.flow(
     fp.map(({ id }) =>
       fp.filter(
@@ -84,7 +85,7 @@ const CollectionProgress = connect(
                   fp.filter(shipId => id.includes(get($ships, [shipId, 'api_stype']))),
                   fp.sortBy([
                     shipId => -get($ships, [shipId, 'api_ctype']),
-                    shipId => -shipId,
+                    shipId => get($graph, [shipId, 'api_sortno']),
                   ]),
                   fp.map(shipId => (
                     <NameCube name={get($ships, [shipId, 'api_name'])} count={count[shipId]} ctype={get($ships, [shipId, 'api_ctype'])} />
