@@ -51,7 +51,7 @@ body {
 }
 .ship-info-cell {
   white-space: nowrap;
-  line-height: 40px;
+  line-height: 35px;
   vertical-align: middle;
   overflow: visible;
   text-overflow: ellipsis;
