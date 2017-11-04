@@ -48,7 +48,7 @@ const widths = [
   180, 40,
 ]
 
-const ROW_HEIGHT = 40
+const ROW_HEIGHT = 35
 
 const TitleCell = ({
   style,
