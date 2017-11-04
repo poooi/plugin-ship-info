@@ -373,6 +373,16 @@ export const deckPlannerShipMapSelector = createSelector(
   )
 )
 
+const beforeShipMapSelector = createSelector(
+  [
+    constSelector,
+  ], ({ $ships = {} } = {}) => _($ships)
+    .filter(ship => +(ship.api_aftershipid || 0) > 0)
+    .map(ship => ([ship.api_aftershipid, ship.api_id]))
+    .fromPairs()
+    .value()
+)
+
 export const sameShipMapSelector = createSelector(
   [
     constSelector,
@@ -403,14 +413,11 @@ export const uniqueShipSelector = createSelector(
   [
     sameShipMapSelector,
     constSelector,
-  ], (sameMap, { $ships = {} } = {}) =>
+    beforeShipMapSelector,
+  ], (sameMap, { $ships = {} } = {}, beforeShipMap) =>
     fp.flow(
       fp.uniqBy(shipIds => Math.min(...shipIds)),
-      fp.map(shipIds => fp.sortBy([
-        shipId => get($ships, [shipId, 'api_name', 'length']),
-        shipId => shipId,
-      ])(shipIds)),
-      fp.map(shipIds => shipIds[0]),
+      fp.map(shipIds => _(shipIds).find(id => !(id in beforeShipMap))),
       fp.filter(shipId => shipId < 1000), // we only want our girls
     )(values(sameMap))
 )
