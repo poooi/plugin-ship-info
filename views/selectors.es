@@ -373,70 +373,91 @@ export const deckPlannerShipMapSelector = createSelector(
   )
 )
 
-const beforeShipMapSelector = createSelector(
+const ourShipsSelector = createSelector(
   [
     constSelector,
   ], ({ $ships = {} } = {}) => _($ships)
+    .pickBy(({ api_sortno }) => Boolean(api_sortno))
+    .value()
+)
+
+const beforeShipMapSelector = createSelector(
+  [
+    ourShipsSelector,
+  ], $ships => _($ships)
     .filter(ship => +(ship.api_aftershipid || 0) > 0)
     .map(ship => ([ship.api_aftershipid, ship.api_id]))
     .fromPairs()
     .value()
 )
 
-export const sameShipMapSelector = createSelector(
+// the chain starts from each ship, thus incomplete if the ship is not the starting one
+// the adjustedRemodelChainsSelector will return complete chains for all ships
+const remodelChainsSelector = createSelector(
   [
-    constSelector,
-  ], ({ $ships = {} } = {}) => {
-  const sameMap = _($ships).map(
-    (ship) => {
-      let current = ship
-      let next = +(ship.api_aftershipid || 0)
-      let same = [ship.api_id]
+    ourShipsSelector,
+  ], $ships => _($ships)
+    .mapValues(({ api_id: shipId }) => {
+      let current = $ships[shipId]
+      let next = +(current.api_aftershipid || 0)
+      let same = [shipId]
       while (!same.includes(next) && next > 0) {
         same = [...same, next]
         current = $ships[next] || {}
         next = +(current.api_aftershipid || 0)
       }
-      return [ship.api_id, same]
-    }
-  ).fromPairs().value()
-
-  each(sameMap, ids =>
-    each(ids, (id) => {
-      sameMap[id] = uniq([...sameMap[id], ...ids, ...flatMap(ids, s => sameMap[s])])
+      return same
     })
-  )
-  return sameMap
-})
-
-export const uniqueShipSelector = createSelector(
-  [
-    sameShipMapSelector,
-    constSelector,
-    beforeShipMapSelector,
-  ], (sameMap, { $ships = {} } = {}, beforeShipMap) =>
-    fp.flow(
-      fp.uniqBy(shipIds => Math.min(...shipIds)),
-      fp.map(shipIds => _(shipIds).find(id => !(id in beforeShipMap))),
-      fp.filter(shipId => shipId < 1000), // we only want our girls
-    )(values(sameMap))
+    .value()
 )
+
+export const uniqueShipIdsSelector = createSelector(
+  [
+    ourShipsSelector,
+    beforeShipMapSelector,
+  ], ($ships, beforeShipMap) => _($ships)
+    .filter(({ api_id }) => !(api_id in beforeShipMap))
+    .map(({ api_id }) => api_id)
+    .value()
+)
+
+export const shipUniqueMapSelector = createSelector(
+  [
+    uniqueShipIdsSelector,
+    remodelChainsSelector,
+  ], (shipIds, chains) => _(shipIds)
+    .flatMap(shipId =>
+      _(chains[shipId]).map(id => ([id, shipId])).value()
+    )
+    .fromPairs()
+    .value()
+)
+
+export const adjustedRemodelChainsSelector = createSelector(
+  [
+    remodelChainsSelector,
+    shipUniqueMapSelector,
+  ], (remodelChains, uniqueMap) => _(uniqueMap)
+    .mapValues(uniqueId => remodelChains[uniqueId])
+    .value()
+)
+
 
 export const kai2ShipSelector = createSelector(
   [
-    uniqueShipSelector,
-    sameShipMapSelector,
-  ], (ships, sameMap) => fp.flow(
-    fp.filter(shipId => sameMap[shipId].length > 3),
+    uniqueShipIdsSelector,
+    adjustedRemodelChainsSelector,
+  ], (ships, remodelChains) => fp.flow(
+    fp.filter(shipId => remodelChains[shipId].length > 3),
   )(ships)
 )
 
 export const uniqueShipCountSelector = createSelector(
   [
-    uniqueShipSelector,
-    sameShipMapSelector,
+    uniqueShipIdsSelector,
+    adjustedRemodelChainsSelector,
     shipMenuDataSelector,
-  ], (uniqs, sameMap, ships) => mapValues(sameMap,
+  ], (uniqs, remodelChains, ships) => mapValues(remodelChains,
     shipIds => fp.filter(ship => shipIds.includes(ship.shipId))(ships).length
   )
 )

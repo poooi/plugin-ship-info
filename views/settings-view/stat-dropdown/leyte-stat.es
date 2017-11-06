@@ -6,7 +6,7 @@ import { get } from 'lodash'
 import fp from 'lodash/fp'
 
 import { leyteFleets } from '../../utils'
-import { shipMenuDataSelector, sameShipMapSelector, graphSelector } from '../../selectors'
+import { shipMenuDataSelector, adjustedRemodelChainsSelector, graphSelector } from '../../selectors'
 
 const { __, __r } = window
 
@@ -17,7 +17,7 @@ const LeyteStat = connect(
     $ships: get(state, 'const.$ships', {}),
     $graph: graphSelector(state),
     ships: shipMenuDataSelector(state),
-    sameShipMap: sameShipMapSelector(state),
+    sameShipMap: adjustedRemodelChainsSelector(state),
   })
 )(({ $ships, $graph, ships, sameShipMap }) => (
   <div>

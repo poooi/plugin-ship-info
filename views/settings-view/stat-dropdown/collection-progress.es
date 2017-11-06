@@ -6,7 +6,7 @@ import { get, times } from 'lodash'
 import fp from 'lodash/fp'
 
 import { shipSuperTypeMap } from '../../utils'
-import { uniqueShipSelector, uniqueShipCountSelector, graphSelector } from '../../selectors'
+import { uniqueShipIdsSelector, uniqueShipCountSelector, graphSelector } from '../../selectors'
 
 const { __, __r } = window
 
@@ -61,7 +61,7 @@ const CollectionProgress = connect(
   state => ({
     $ships: get(state, 'const.$ships', {}),
     $graph: graphSelector(state),
-    ships: uniqueShipSelector(state),
+    ships: uniqueShipIdsSelector(state),
     count: uniqueShipCountSelector(state),
   })
 )(({ $ships, $graph, ships, count }) => {
