@@ -204,6 +204,9 @@ clickable {
 }
 #ship-info-show .slotitem-container img {
   height: 30px;
+  z-index: 1;
+  display: inline-block;
+  position: relative;
 }
 
 #ship-info-show table tbody tr td {
@@ -298,6 +301,7 @@ th {
   padding-left: 2px;
   padding-right: 2px;
   vertical-align: middle;
+  z-index: 2;
 }
 
 .slotitem-container {
@@ -309,6 +313,16 @@ th {
 
 .slotitem-container:not(:first-child) {
   margin-left: 0.25ex;
+}
+
+.slotitem-background {
+  font-size: 30px;
+  line-height: 0px;
+  position: absolute;
+  top: -2px;
+  left: 3px;
+  z-index: 0;
+  color: black;
 }
 
 .config-menu {

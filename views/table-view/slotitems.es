@@ -40,7 +40,12 @@ const Slotitem = ({ item, isEx = false }) => (
         }
     >
       <span>
-        <SlotitemIcon alt={window.i18n.resources.__(item.api_name)} slotitemId={item.api_type[3]} />
+        <span className="slotitem-background">&#x2B22;</span>
+        <SlotitemIcon
+          alt={window.i18n.resources.__(item.api_name)}
+          slotitemId={item.api_type[3]}
+          style={{ zIndex: 1 }}
+        />
         {
           isEx &&
           <span className="slotitem-onslot" style={getBackgroundStyle()} >
