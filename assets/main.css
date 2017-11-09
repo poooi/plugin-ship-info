@@ -1,3 +1,7 @@
+:root {
+  --color-primary: hsl(210, 50%, 40%);
+}
+
 *, body, h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
   font-family: "Ubuntu", "Helvetica Neue", "Helvetica", "Arial", "Heiti SC", "WenQuanYi Micro Hei", "Microsoft YaHei", sans-serif;
   outline: none;
@@ -67,50 +71,50 @@ body {
   cursor: pointer;
 }
 .ship-info-cell.highlight{
-  background-color: rgba(105, 240, 174, 0.5);
+  background-color: var(--color-primary);
 }
 .ship-info-cell.td-karyoku {
   text-align: center;
 }
 .ship-info-cell.td-karyoku-max {
   text-align: center;
-  background-color: rgba(245, 93, 93, 0.33);
+  background-color: hsl(0, 50%, 40%);
 }
 .ship-info-cell.td-karyoku-max.highlight{
-  background-color: rgba(245, 93, 93, 0.75);
+  background-color: hsl(0, 50%, 70%);
 }
 .ship-info-cell.td-raisou {
   text-align: center;
 }
 .ship-info-cell.td-raisou-max {
   text-align: center;
-  background-color: rgba(162, 194, 230, 0.33);
+  background-color: hsl(190, 50%, 40%);
 }
 .ship-info-cell.td-raisou-max.highlight {
   text-align: center;
-  background-color: rgba(162, 194, 230, 0.75);
+  background-color: hsl(190, 50%, 70%);
 }
 .ship-info-cell.td-taiku {
   text-align: center;
 }
 .ship-info-cell.td-taiku-max {
   text-align: center;
-  background-color: rgba(255, 176, 77, 0.33);
+  background-color: hsl(60, 50%, 40%);
 }
 .ship-info-cell.td-taiku-max.highlight {
   text-align: center;
-  background-color: rgba(255, 176, 77, 0.75);
+  background-color: hsl(60, 50%, 70%);
 }
 .ship-info-cell.td-soukou {
   text-align: center;
 }
 .ship-info-cell.td-soukou-max {
   text-align: center;
-  background-color: rgba(255, 219, 79, 0.33);
+  background-color: hsl(30, 50%, 40%);
 }
 .ship-info-cell.td-soukou-max.highlight {
   text-align: center;
-  background-color: rgba(255, 219, 79, 0.75);
+  background-color: hsl(30, 50%, 70%);
 }
 .ship-info-cell.td-lucky {
   text-align: center;
@@ -124,40 +128,46 @@ body {
   background-color: rgba(125, 239, 94, 0.75);
 }
 .ship-info-cell.repair-heavy {
-  background-color: rgba(255, 0, 0, 0.4);
+  background-color: hsl(0, 50%, 40%);
 }
 .ship-info-cell.repair-moderate {
-  background-color: rgba(255, 65, 0, 0.4);
+  background-color: hsl(30, 50%, 40%);
 }
 .ship-info-cell.repair-minor {
-  background-color: rgba(255, 255, 0, 0.4);
+  background-color: hsl(60, 50%, 40%);
 }
 .ship-info-cell.repair-heavy.highlight {
-  background-color: rgba(255, 0, 0, 0.75);
+  background-color: hsl(0, 50%, 70%);
 }
 .ship-info-cell.repair-moderate.highlight {
-  background-color: rgba(255, 65, 0, 0.75);
+  background-color: hsl(30, 50%, 70%);
 }
 .ship-info-cell.repair-minor.highlight {
-  background-color: rgba(255, 255, 0, 0.75);
+  background-color: hsl(60, 50%, 70%);
 }
 .ship-info-cell.cond-danger {
-  background-color: rgba(255, 0, 0, 0.4);
+  color: hsl(0, 100%, 40%);
+  font-weight: bold;
 }
 .ship-info-cell.cond-danger.highlight {
-  background-color: rgba(255, 0, 0, 0.7);
+  color: hsl(0, 100%, 70%);
+  font-weight: bold;
 }
 .ship-info-cell.cond-warning {
-  background-color: rgba(255, 165, 0, 0.4);
+  color: hsl(30, 100%, 40%);
+  font-weight: bold;
 }
 .ship-info-cell.cond-warning.highlight {
-  background-color: rgba(255, 165, 0, 0.7);
+  color: hsl(30, 100%, 70%);
+  font-weight: bold;
 }
 .ship-info-cell.cond-success {
-  background-color: rgba(255, 255, 0, 0.4);
+  color: hsl(60, 100%, 40%);
+  font-weight: bold;
 }
 .ship-info-cell.cond-success.highlight {
-  background-color: rgba(255, 255, 0, 0.7);
+  color: hsl(60, 50%, 70%);
+  font-weight: bold;
 }
 clickable {
   filter: none;
@@ -252,11 +262,11 @@ img.svg {
 }
 
 .sorting.up {
-  background: linear-gradient(to top, rgba(255, 82, 82, 0.5), rgba(0, 0, 0, 0));
+  background: hsl(0, 50%, 40%)
 }
 
 .sorting.down {
-  background: linear-gradient(to top, rgba(105, 240, 174, 0.5), rgba(0, 0, 0, 0));
+  background: hsl(120, 50%, 40%);
 }
 
 th {
@@ -357,7 +367,7 @@ th {
 }
 
 .filter-option.checked {
-  background-color: rgba(105, 240, 174, 0.5);
+  background-color: var(--color-primary);
 }
 
 .filter-span {
@@ -474,7 +484,7 @@ th {
 
 .type-menu .supertype.checked,
 .type-menu .shiptype.checked {
-  background-color: rgba(105, 240, 174, 0.5);
+  background-color: var(--color-primary);
 }
 
 .type-menu .supertype.partial,
