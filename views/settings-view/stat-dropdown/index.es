@@ -112,6 +112,7 @@ const StatView = connect(
               onClick={this.handleCaptureRect}
               role="button"
               tabIndex="0"
+              className="filter-option dark"
             >
               {__('Save to image')}
             </div>

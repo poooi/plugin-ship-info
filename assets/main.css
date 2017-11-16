@@ -366,13 +366,37 @@ th {
 }
 
 .filter-option {
-  flex: 0;
   padding-left: 2vw;
   padding-right: 2vw;
   line-height: 160%;
   transition: 0.2s;
   border-width: 1px;
   border-style: solid;
+  transform: translate3d(0, 0, 0);
+  overflow: hidden;
+}
+
+.filter-option:after {
+  content: "";
+  display: block;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle, #fff 10%, transparent 10.01%);
+  background-repeat: no-repeat;
+  background-position: 50%;
+  transform: scale(10, 10);
+  opacity: 0;
+  transition: transform .5s, opacity 1s;
+}
+
+.filter-option:active:after {
+  transform: scale(0, 0);
+  opacity: .2;
+  transition: 0s;
 }
 
 .filter-option:not(:last-child) {
