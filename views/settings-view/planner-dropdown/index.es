@@ -81,6 +81,7 @@ const DeckPlannerView = connect(
       left: 0,
       view: 'area',
       fill: -1,
+      extend: false,
     }
   }
 
@@ -115,8 +116,14 @@ const DeckPlannerView = connect(
     }
   }
 
+  handleCaptureImage = async () => {
+    await this.setState({ extend: true })
+    window.captureRect('#planner-rect')
+    this.setState({ extend: false })
+  }
+
   render() {
-    const { areas, left, view, fill } = this.state
+    const { areas, left, view, fill, extend } = this.state
     const { vibrant } = this.props
     return (
       <ul
@@ -126,6 +133,7 @@ const DeckPlannerView = connect(
           height: '90vh',
           left,
           background: `rgba(51, 51, 51, ${vibrant ? 0.95 : 1})`,
+          overflowY: extend && 'visible',
         }}
       >
         <div
@@ -137,7 +145,7 @@ const DeckPlannerView = connect(
             zIndex: 1,
           }}
         >
-          <div className="radio-check" style={{ marginRight: '4em' }}>
+          <div className="radio-check" style={{ marginRight: '2em' }}>
             <div
               onClick={() => this.setState({ view: 'area' })}
               className={cls('filter-option', {
@@ -164,24 +172,8 @@ const DeckPlannerView = connect(
             </div>
           </div>
           {
-            view === 'area' &&
-            <div className="radio-check">
-              <div
-                onClick={() => this.props.dispatch(reorderShips)}
-                className={cls('filter-option', {
-                  dark: window.isDarkTheme,
-                  light: !window.isDarkTheme,
-                })}
-                role="button"
-                tabIndex="0"
-              >
-                {__('Refresh')}
-              </div>
-            </div>
-          }
-          {
             view === 'ship' &&
-            <div className="radio-check">
+            <div className="radio-check" style={{ marginRight: '2em' }}>
               <div className="filter-span"><span>{__('Palette')}</span></div>
               <div
                 onClick={() => this.setState({ fill: -1 })}
@@ -218,26 +210,52 @@ const DeckPlannerView = connect(
               }
             </div>
           }
-        </div>
-        {
-          view === 'area' &&
-          <div>
-            {
-              areas.map(area => (
-                <Area
-                  key={area.name}
-                  area={area}
-                  index={area.areaIndex}
-                  others={areas.filter(({ areaIndex }) => areaIndex !== area.areaIndex)}
-                />
-              ))
-            }
+          <div className="radio-check">
+            <div
+              onClick={() => this.props.dispatch(reorderShips)}
+              className={cls('filter-option', {
+                dark: window.isDarkTheme,
+                light: !window.isDarkTheme,
+              })}
+              role="button"
+              tabIndex="0"
+            >
+              {__('Refresh')}
+            </div>
+            <div
+              onClick={this.handleCaptureImage}
+              className={cls('filter-option', {
+                dark: window.isDarkTheme,
+                light: !window.isDarkTheme,
+              })}
+              role="button"
+              tabIndex="0"
+            >
+              {__('Save to image')}
+            </div>
           </div>
-        }
-        {
-          view === 'ship' &&
-          <ShipGrid fill={fill} />
-        }
+        </div>
+        <div id="planner-rect">
+          {
+            view === 'area' &&
+            <div>
+              {
+                areas.map(area => (
+                  <Area
+                    key={area.name}
+                    area={area}
+                    index={area.areaIndex}
+                    others={areas.filter(({ areaIndex }) => areaIndex !== area.areaIndex)}
+                  />
+                ))
+              }
+            </div>
+          }
+          {
+            view === 'ship' &&
+            <ShipGrid fill={fill} />
+          }
+        </div>
       </ul>
     )
   }

@@ -3,6 +3,9 @@ import 'views/env'
 import i18n2 from 'i18n-2'
 import { join } from 'path-extra'
 import { remote } from 'electron'
+import { ceil } from 'lodash'
+
+import html2canvas from './lib/html2canvas'
 
 const i18n = new i18n2({ // eslint-disable-line new-cap
   locales: ['en-US', 'ja-JP', 'zh-CN', 'zh-TW', 'ko-KR'],
@@ -59,5 +62,19 @@ remote.getCurrentWindow().on('close', () => {
   const b = window.shipInfoWindow.getBounds()
   window.config.set('plugin.ShipInfo.bounds', b)
 })
+
+window.captureRect = async (query) => {
+  const rect = document.querySelector(query)
+  if (!rect) {
+    return
+  }
+  const { width, height } = rect.getBoundingClientRect()
+  const canvas = await html2canvas(rect, {
+    background: '#333',
+    width: ceil(width, 16),
+    height: ceil(height, 16),
+  })
+  remote.getCurrentWebContents().downloadURL(canvas.toDataURL('image/png'))
+}
 
 require('./views')

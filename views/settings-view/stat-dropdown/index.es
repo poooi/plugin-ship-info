@@ -9,8 +9,6 @@ import { remote } from 'electron'
 
 import { extensionSelectorFactory } from 'views/utils/selectors'
 
-import html2canvas from '../../../lib/html2canvas'
-
 import LeyteStat from './leyte-stat'
 import CollectionProgress from './collection-progress'
 
@@ -53,18 +51,8 @@ const StatView = connect(
   }
 
   handleCaptureRect = async () => {
-    const rect = document.querySelector('#rect')
-    if (!rect) {
-      return
-    }
     await this.setState({ extend: true })
-    const { width, height } = rect.getBoundingClientRect()
-    const canvas = await html2canvas(rect, {
-      background: '#333',
-      width: ceil(width, 16),
-      height: ceil(height, 16),
-    })
-    remote.getCurrentWebContents().downloadURL(canvas.toDataURL('image/png'))
+    await window.captureRect('#stat-rect')
     this.setState({ extend: false })
   }
 
@@ -124,12 +112,13 @@ const StatView = connect(
               onClick={this.handleCaptureRect}
               role="button"
               tabIndex="0"
+              className="filter-option dark"
             >
               {__('Save to image')}
             </div>
           </div>
         </div>
-        <div id="rect" style={{ padding: extend && '1em' }}>
+        <div id="stat-rect" style={{ padding: extend && '1em' }}>
           {
             view === 'leyte' &&
             <LeyteStat />
