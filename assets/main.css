@@ -6,6 +6,13 @@
   font-family: "Ubuntu", "Helvetica Neue", "Helvetica", "Arial", "Heiti SC", "WenQuanYi Micro Hei", "Microsoft YaHei", sans-serif;
   outline: none;
 }
+
+/* this prvents font fallback */
+#stat-rect *,
+#planner-rect * {
+  font-family: FontAwesome, Helvetica, Arial, 'Segoe UI', Segoe, 'Source Han Sans', 'Noto Sans CJK', 'PingFang', 'Hiragino Sans GB', 'WQY michohei', 'Microsoft Yahei UI', 'Microsoft Yahei', sans-serif;
+}
+
 html {
   height: 100%;
 }
@@ -523,6 +530,7 @@ th {
 .area .header .area-name {
   flex: 1;
   text-align: left;
+  font-size: 18px;
 }
 
 .area .planned .pool {
@@ -564,8 +572,8 @@ th {
 }
 
 .ship-chip .ship-name {
-  line-height: 14px;
-  font-size: 12px;
+  line-height: 16px;
+  font-size: 14px;
 }
 
 .ship-chip .ship-level {
@@ -653,11 +661,6 @@ th {
   text-align: center;
   font-size: 20px;
   font-weight: 500;
-}
-
-/* this prvents font fallback */
-#rect * {
-  font-family: Helvetica, Arial, 'Segoe UI', Segoe, 'Source Han Sans', 'Noto Sans CJK', 'PingFang', 'Hiragino Sans GB', 'WQY michohei', 'Microsoft Yahei UI', 'Microsoft Yahei', sans-serif;
 }
 
 @media (min-width: 1440px) {
