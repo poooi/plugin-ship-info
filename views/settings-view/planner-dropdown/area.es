@@ -12,7 +12,7 @@ import AddShipDropdown from './add-ship-dropdown'
 import { shipMenuDataSelector, ShipItemSelectorFactory, deckPlannerAreaSelectorFactory, shipFleetIdSelectorFactory } from '../../selectors'
 import { shipTypes, hexToRGBA } from '../../utils'
 
-const { __ } = window
+const { __, __r } = window
 
 class DisplaceToggle extends PureComponent {
   static propTypes = {
@@ -108,7 +108,7 @@ const ShipChip = connect(
         <span>
           {
             area > 0
-            ? <a className="ship-name">{name}<span className="ship-level">Lv.{lv}</span></a>
+            ? <a className="ship-name">{__r(name)}<span className="ship-level">Lv.{lv}</span></a>
             : <Dropdown id={`displace-${id}`}>
               <DisplaceToggle bsRole="toggle"><a className="ship-name">{name}<span className="ship-level">Lv.{lv}</span></a></DisplaceToggle>
               <Dropdown.Menu>

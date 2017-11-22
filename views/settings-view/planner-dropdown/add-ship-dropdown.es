@@ -9,7 +9,7 @@ import FontAwesome from 'react-fontawesome'
 import { shipMenuDataSelector, deckPlannerAllShipIdsSelector } from '../../selectors'
 import { shipSuperTypeMap } from '../../utils'
 
-const { __ } = window
+const { __, __r } = window
 
 const Item = ({ eventKey, onSelect, children }) =>
   (
@@ -114,7 +114,7 @@ const AddShipDropdown = connect(
               typeId={ship.typeId}
               area={ship.area}
             >
-              <span>{`${ship.name} Lv.${ship.lv}`}</span>
+              <span>{`Lv.${ship.lv} ${__r(ship.name)}`}</span>
               {!!ship.area && <Label><FontAwesome name="tag" style={{ color: color[ship.area - 1] }} /></Label>}
             </Item>
           ))
