@@ -110,7 +110,7 @@ const ShipChip = connect(
             area > 0
             ? <a className="ship-name">{__r(name)}<span className="ship-level">Lv.{lv}</span></a>
             : <Dropdown id={`displace-${id}`}>
-              <DisplaceToggle bsRole="toggle"><a className="ship-name">{name}<span className="ship-level">Lv.{lv}</span></a></DisplaceToggle>
+              <DisplaceToggle bsRole="toggle"><a className="ship-name">{__r(name)}<span className="ship-level">Lv.{lv}</span></a></DisplaceToggle>
               <Dropdown.Menu>
                 {
                   others.map(_area => (
