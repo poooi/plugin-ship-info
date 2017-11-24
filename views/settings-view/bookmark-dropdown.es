@@ -3,7 +3,7 @@ import propTypes from 'prop-types'
 import { Dropdown, MenuItem, FormControl, InputGroup, Button, Label } from 'react-bootstrap'
 import Fuse from 'fuse.js'
 import { connect } from 'react-redux'
-import { get, values } from 'lodash'
+import { get, values, isEqual } from 'lodash'
 import FontAwesome from 'react-fontawesome'
 
 import { extensionSelectorFactory } from 'views/utils/selectors'
@@ -75,8 +75,9 @@ const BookmarkMenu = connect(
   // }
 
   componentWillReceiveProps = (nextProps) => {
-    const bookmarks = values(nextProps.bookmarks)
-    this.fuse.setCollection(bookmarks)
+    if (!isEqual(this.props.bookmarks, nextProps.bookmarks)) {
+      this.fuse.list = values(nextProps.bookmarks)
+    }
   }
 
   onSelect = (eventKey = this.state.query) => {
