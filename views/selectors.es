@@ -1,6 +1,6 @@
 import memoize from 'fast-memoize'
 import { createSelector } from 'reselect'
-import _, { get, mapValues, findIndex, includes, flatten, fromPairs, flatMap, each, uniq, values, keyBy } from 'lodash'
+import _, { get, mapValues, findIndex, includes, flatten, fromPairs, flatMap, keyBy } from 'lodash'
 import fp from 'lodash/fp'
 
 import { constSelector, shipDataSelectorFactory, shipsSelector,
@@ -62,7 +62,7 @@ export const shipFleetIdSelectorFactory = memoize(shipId =>
   createSelector([
     shipFleetIdMapSelector,
   ], fleetIdMap => fleetIdMap[shipId]
-))
+  ))
 
 export const shipTableDataSelectorFactory = memoize(shipId =>
   createSelector(
@@ -147,7 +147,7 @@ const handleRemodelFilter = memoize((after, remodelRadio) => {
 const handleSallyAreaFilter = memoize((sallyArea, sallyAreaChecked) => {
   const checkedAll = (sallyAreaChecked || []).reduce((all, checked) =>
     all && checked
-  , true)
+    , true)
   if (checkedAll) return true
   return typeof sallyArea !== 'undefined'
     ? (sallyAreaChecked || [])[sallyArea || 0]
@@ -227,16 +227,16 @@ const shipTypesSelecor = createSelector(
     state => get(state, 'const.$shipTypes', {}),
     state => get(state.config, 'plugin.ShipInfo.shipTypes'),
   ], ($shipTypes, shipTypeChecked) => {
-  const checked = intToBoolArray(shipTypeChecked)
-  if (checked.length !== Object.keys($shipTypes).length) {
-    return Object.keys($shipTypes).map(s => +s)
-  }
-  return checked.reduce((types, check, index) =>
-    check && ((index + 1) in $shipTypes)
-      ? types.concat([index + 1])
-      : types
-    , [])
-})
+    const checked = intToBoolArray(shipTypeChecked)
+    if (checked.length !== Object.keys($shipTypes).length) {
+      return Object.keys($shipTypes).map(s => +s)
+    }
+    return checked.reduce((types, check, index) =>
+      check && ((index + 1) in $shipTypes)
+        ? types.concat([index + 1])
+        : types
+      , [])
+  })
 
 const fleetShipsInExpeditionSelectorFactory = memoize(fleetId =>
   createSelector([
@@ -259,7 +259,7 @@ export const allShipRowsSelector = createSelector(
     shipsSelector,
     stateSelector,
   ], (ships, state) =>
-  fp.map(ship => shipTableDataSelectorFactory(ship.api_id)(state))(ships)
+    fp.map(ship => shipTableDataSelectorFactory(ship.api_id)(state))(ships)
 )
 
 export const shipRowsSelector = createSelector(
@@ -321,16 +321,16 @@ export const ShipItemSelectorFactory = memoize(shipId =>
     shipDataSelectorFactory(shipId),
   ], ([ship, $ship] = []) =>
     !!ship && !!$ship
-    ? ({
-      id: ship.api_id,
-      shipId: $ship.api_id,
-      typeId: $ship.api_stype,
-      name: $ship.api_name,
-      lv: ship.api_lv,
-      area: ship.api_sally_area,
-      superTypeIndex: reverseSuperTypeMap[$ship.api_stype] || 0,
-    })
-    : undefined
+      ? ({
+        id: ship.api_id,
+        shipId: $ship.api_id,
+        typeId: $ship.api_stype,
+        name: $ship.api_name,
+        lv: ship.api_lv,
+        area: ship.api_sally_area,
+        superTypeIndex: reverseSuperTypeMap[$ship.api_stype] || 0,
+      })
+      : undefined
   )
 )
 

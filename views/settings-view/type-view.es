@@ -26,7 +26,6 @@ const TypeView = connect(
     })
   }
 )(class TypeView extends Component {
-
   static propTypes = {
     show: propTypes.bool.isRequired,
     checked: propTypes.arrayOf(propTypes.bool).isRequired,
@@ -103,8 +102,8 @@ const TypeView = connect(
     const { $shipTypes, checked, checkedAll } = this.props
     const checkedTypes = checked.reduce((types, isChecked, index) =>
       isChecked && ((index + 1) in $shipTypes)
-      ? types.concat([index + 1])
-      : types, []
+        ? types.concat([index + 1])
+        : types, []
     )
 
     return (

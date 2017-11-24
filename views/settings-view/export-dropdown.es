@@ -20,7 +20,9 @@ const { __ } = window
 
 const isWin = process.platform === 'win32'
 
-const RadioCheck = ({ label, options, value: currentValue, onChange }) => (
+const RadioCheck = ({
+  label, options, value: currentValue, onChange,
+}) => (
   <div className="radio-check">
     <div className="filter-span"><span>{__(label)}</span></div>
     {
@@ -187,7 +189,9 @@ const ExportDropdown = connect(
     activeDropdown: get(extensionSelectorFactory('poi-plugin-ship-info')(state), 'ui.activeDropdown', 0),
   }),
   { handleToggle: handleToggleAction },
-)(({ allRows, rows, activeDropdown, handleToggle }) => (
+)(({
+  allRows, rows, activeDropdown, handleToggle,
+}) => (
   <Dropdown id="export" pullRight open={activeDropdown === 'export'} onToggle={handleToggle}>
     <Dropdown.Toggle>
       <FA name="download" style={{ marginRight: '1ex' }} />{__('Export Data')}

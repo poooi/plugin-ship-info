@@ -92,7 +92,9 @@ const ShipChip = connect(
   }
 
   render() {
-    const { id, typeId, name, lv, area, color, others, onRemove, onDisplace, fleetId } = this.props
+    const {
+      id, typeId, name, lv, area, color, others, onRemove, onDisplace, fleetId,
+    } = this.props
     const { hover } = this.state
 
     return (
@@ -120,7 +122,7 @@ const ShipChip = connect(
                   ))
                 }
               </Dropdown.Menu>
-            </Dropdown>
+              </Dropdown>
           }
         </span>
         <span>
@@ -187,7 +189,9 @@ const Area = connect(
   }
 
   render() {
-    const { area, index, others, ships, shipIds } = this.props
+    const {
+      area, index, others, ships, shipIds,
+    } = this.props
     const keyShips = keyBy(ships, 'id')
     const groupShipIds = groupBy(shipIds, id => (keyShips[id] || {}).superTypeIndex)
     return (

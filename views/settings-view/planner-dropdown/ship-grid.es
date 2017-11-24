@@ -56,7 +56,9 @@ const ShipItem = connect(
   handleMouseLeave = () => this.setState({ hover: false })
 
   render() {
-    const { ship, planMap, color, mapname, onClick, onContextmenu } = this.props
+    const {
+      ship, planMap, color, mapname, onClick, onContextmenu,
+    } = this.props
     const { hover } = this.state
     const alpha = hover ? 0.85 : 0.75
     const bgColor = ship.area > 0
@@ -84,11 +86,10 @@ const ShipItem = connect(
 })
 
 const ShipGrid = connect(
-  (state) => ({
+  state => ({
     ships: shipMenuDataSelector(state),
   })
 )(class ShipGrid extends Component {
-
   handleClick = shipId => () => {
     this.props.dispatch(getDPAction(shipId, this.props.fill))
   }

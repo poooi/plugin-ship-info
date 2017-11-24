@@ -64,10 +64,10 @@ const ShipInfoCheckboxArea = connect(
   }
 
   updateCollapseComponentExtended = isExtend =>
-  this.props.dispatch({
-    type: '@@poi-plugin-ship-info@extend',
-    isExtend,
-  })
+    this.props.dispatch({
+      type: '@@poi-plugin-ship-info@extend',
+      isExtend,
+    })
 
   render() {
     const { menuShow, autoShow } = this.state

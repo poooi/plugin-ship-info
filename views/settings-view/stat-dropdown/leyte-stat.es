@@ -19,7 +19,9 @@ const LeyteStat = connect(
     ships: shipMenuDataSelector(state),
     sameShipMap: adjustedRemodelChainsSelector(state),
   })
-)(({ $ships, $graph, ships, sameShipMap }) => (
+)(({
+  $ships, $graph, ships, sameShipMap,
+}) => (
   <div>
     {
       leyteFleets.map(fleet => (

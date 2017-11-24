@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react'
+import React from 'react'
 
 import RadioCheck from './radio-check'
 import SallyAreaCheck from './sally-area-check'

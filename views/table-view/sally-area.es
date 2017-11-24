@@ -18,7 +18,9 @@ const SallyArea = connect(
       info_id: props.info_id || 0,
     })
   }
-)(({ area, mapname, color, info_id }) =>
+)(({
+  area, mapname, color, info_id,
+}) =>
   area > 0 &&
     <OverlayTrigger
       placement="top"
@@ -27,7 +29,7 @@ const SallyArea = connect(
           {__('Ship tag: %s', mapname)}
         </Tooltip>
       }
-    >
+      >
       <Label style={{ color }} className="sally-area-label" >
         <FontAwesome name="tag" />
       </Label>

@@ -157,7 +157,9 @@ const ShipInfoTableArea = connect(
     config.set('plugin.ShipInfo.sortOrder', order)
   }
 
-  titleRenderer = ({ columnIndex, style, sortName, sortOrder, ...props }) => {
+  titleRenderer = ({
+    columnIndex, style, sortName, sortOrder, ...props
+  }) => {
     if (columnIndex === 0) {
       return <div style={style} {...props} />
     }
@@ -177,7 +179,9 @@ const ShipInfoTableArea = connect(
     )
   }
 
-  cellRenderer = ({ columnIndex, key, rowIndex, style }) => {
+  cellRenderer = ({
+    columnIndex, key, rowIndex, style,
+  }) => {
     const { rows, sortName, sortOrder } = this.props
     const setState = this.setState.bind(this)
     const onClick = () => {
@@ -211,7 +215,9 @@ const ShipInfoTableArea = connect(
     }
     let content
     if (rowIndex === 0) {
-      content = this.titleRenderer({ columnIndex, style, sortName, sortOrder, ...props })
+      content = this.titleRenderer({
+        columnIndex, style, sortName, sortOrder, ...props,
+      })
     } else if (columnIndex === 0) {
       content = <div style={{ ...style, paddingLeft: '10px' }} key={key} {...props}>{rowIndex}</div>
     } else {
@@ -274,7 +280,9 @@ const ShipInfoTableArea = connect(
 
   render() {
     const { rows, isExtend } = this.props
-    const { windowWidth, windowHeight, activeRow, activeColumn } = this.state
+    const {
+      windowWidth, windowHeight, activeRow, activeColumn,
+    } = this.state
     // 526, 85, 115: magic numbers for layout dimensions
     const height = Math.max(windowHeight - (isExtend ? 526 : 85), 115)
     return (

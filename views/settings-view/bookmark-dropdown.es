@@ -15,7 +15,9 @@ const { __ } = window
 
 // const bookmarks = ['test', 'foo', 'bar']
 
-const BookmarkItem = ({ eventKey, onSelect, onClick, children }) =>
+const BookmarkItem = ({
+  eventKey, onSelect, onClick, children,
+}) =>
   (
     <MenuItem eventKey={eventKey} onSelect={onSelect} className="bookmark">
       <span className="bookmark-content">
@@ -191,6 +193,6 @@ const BookmarkDropdown = connect(
         )
       }
     </BookmarkMenu>
-  </Dropdown>)
+   </Dropdown>)
 )
 export default BookmarkDropdown

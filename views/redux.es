@@ -36,7 +36,9 @@ try {
 }
 
 const bookmarkReducer = (state = bookmarkInitState, action) => {
-  const { type, bookmark, settings, data } = action
+  const {
+    type, bookmark, settings, data,
+  } = action
   switch (type) {
     case '@@poi-plugin-ship-info@update':
       return {
@@ -75,8 +77,10 @@ const bookmarkReducer = (state = bookmarkInitState, action) => {
 // }
 
 const plannerReducer = (state = plannerInitState, action) => {
-  const { type, mapname, shipId, areaIndex, fromAreaIndex, toAreaIndex, data } = action
-  const current = state.current
+  const {
+    type, mapname, shipId, areaIndex, fromAreaIndex, toAreaIndex, data,
+  } = action
+  const { current } = state
   switch (type) {
     case `@@${PLUGIN_KEY}@init`: {
       return {
@@ -141,7 +145,9 @@ const plannerReducer = (state = plannerInitState, action) => {
 }
 
 const uiReducer = (state = uiInitState, action) => {
-  const { isExtend, type, toTop, activeDropdown } = action
+  const {
+    isExtend, type, toTop, activeDropdown,
+  } = action
   if (type === `@@${PLUGIN_KEY}@scroll`) {
     return {
       ...state,

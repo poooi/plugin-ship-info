@@ -1,6 +1,8 @@
 import { get, map } from 'lodash'
 
-const { __, _slotitems, $slotitems, $ships } = window
+const {
+  __, _slotitems, $slotitems, $ships,
+} = window
 
 const getItemName = index => (ship) => {
   const itemId = get(_slotitems, `${get(ship, `slot.${index}`)}.api_slotitem_id`)
@@ -105,8 +107,8 @@ export const parseCsv = (rows, sep = ',', end = '\n') => {
   const entries = map(rows, row =>
     map(fields, field =>
       field.key
-      ? field.value(row)
-      : get(row, field)
+        ? field.value(row)
+        : get(row, field)
     )
   )
 

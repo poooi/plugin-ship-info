@@ -6,7 +6,7 @@ import { get } from 'lodash'
 import cls from 'classnames'
 
 
-const __ = window.__
+const { __ } = window
 
 // single option check
 // props:
@@ -19,7 +19,6 @@ const RadioCheck = connect(
     currentRadio: get(state.config, `plugin.ShipInfo.${props.configKey}`, props.default || 0),
   })
 )(class RadioCheck extends Component {
-
   static propTypes = {
     label: propTypes.string.isRequired,
     options: propTypes.objectOf(propTypes.string),

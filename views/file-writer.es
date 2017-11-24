@@ -40,5 +40,4 @@ export default class FileWriter {
     }
     this.writing = false
   }
-
 }

@@ -96,8 +96,10 @@ const AddShipDropdown = connect(
     allShipIds: deckPlannerAllShipIdsSelector(state),
     color: get(state, 'fcd.shiptag.color', []),
   })
-)(({ shipItems, areaIndex, allShipIds, color, onSelect }) =>
-  (<Dropdown id={`add-ship-dropdown-${areaIndex}`} pullRight>
+)(({
+  shipItems, areaIndex, allShipIds, color, onSelect,
+}) => (
+  <Dropdown id={`add-ship-dropdown-${areaIndex}`} pullRight>
     <Dropdown.Toggle bsStyle="link">
       <FontAwesome name="plus" />
     </Dropdown.Toggle>
@@ -121,7 +123,7 @@ const AddShipDropdown = connect(
         )(shipItems)
       }
     </ShipMenu>
-  </Dropdown>)
-)
+  </Dropdown>
+))
 
 export default AddShipDropdown

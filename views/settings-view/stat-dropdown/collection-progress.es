@@ -1,6 +1,5 @@
 import React from 'react'
 import { connect } from 'react-redux'
-import FA from 'react-fontawesome'
 
 import { get, times } from 'lodash'
 import fp from 'lodash/fp'
@@ -8,7 +7,7 @@ import fp from 'lodash/fp'
 import { shipSuperTypeMap } from '../../utils'
 import { uniqueShipIdsSelector, uniqueShipCountSelector, graphSelector } from '../../selectors'
 
-const { __, __r } = window
+const { __ } = window
 
 const RANDOM_COLORS = times(200, () => `hsla(${Math.floor(Math.random() * 360)}, 60%, 70%, 0.6)`)
 
@@ -16,7 +15,11 @@ const NameCube = ({ name, count, ctype }) => {
   if (name.length === 1) {
     return (
       <div className="name-cube" style={{ background: count > 0 && RANDOM_COLORS[ctype] }}>
-        <div style={{ width: '50px', textAlign: 'center', lineHeight: '50px', fontSize: '20px' }}>{name}</div>
+        <div style={{
+ width: '50px', textAlign: 'center', lineHeight: '50px', fontSize: '20px',
+}}
+        >{name}
+        </div>
       </div>
     )
   }
@@ -64,7 +67,9 @@ const CollectionProgress = connect(
     ships: uniqueShipIdsSelector(state),
     count: uniqueShipCountSelector(state),
   })
-)(({ $ships, $graph, ships, count }) => {
+)(({
+  $ships, $graph, ships, count,
+}) => {
   const typeShips = fp.flow(
     fp.map(({ id }) =>
       fp.filter(

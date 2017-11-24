@@ -35,7 +35,8 @@ const Name = ({ className, ship, ...props }) => (
       className="name"
       title={window.i18n.resources.__(ship.name)}
     >
-      {window.i18n.resources.__(ship.name)}</span>
+      {window.i18n.resources.__(ship.name)}
+    </span>
     {
       ship.fleetId > -1 &&
         <img
@@ -297,7 +298,9 @@ Sakuteki.propTypes = {
 }
 
 const RepairTime = ({ className, ship, ...props }) => {
-  const { nowhp, maxhp, repairtime, lv, typeId, inDock } = ship
+  const {
+    nowhp, maxhp, repairtime, lv, typeId, inDock,
+  } = ship
   let repairClass = ''
   if (nowhp * 4 <= maxhp) {
     repairClass = 'repair-heavy'

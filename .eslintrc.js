@@ -28,6 +28,8 @@ module.exports = {
     'no-confusing-arrow': 'off',
     'react/require-default-props': 'off',
     'no-console': ['error', {allow: ['warn', 'error']}],
+    'function-paren-newline': 'off',
+    'jsx-a11y/click-events-have-key-events': 'off',
   },
   'settings': {
     'import/resolver': {

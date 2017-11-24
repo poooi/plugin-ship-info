@@ -12,8 +12,8 @@ const { ROOT } = window
 
 const getBackgroundStyle = () =>
   window.isDarkTheme
-  ? { backgroundColor: 'rgba(33, 33, 33, 0.7)' }
-  : { backgroundColor: 'rgba(256, 256, 256, 0.7)' }
+    ? { backgroundColor: 'rgba(33, 33, 33, 0.7)' }
+    : { backgroundColor: 'rgba(256, 256, 256, 0.7)' }
 
 const Slotitem = ({ item, isEx = false }) => (
   <div className="slotitem-container">
@@ -106,7 +106,7 @@ const Slotitems = connect(
         />
     }
   </div>
-  )
+)
 )
 
 Slotitems.WrappedComponent.propTypes = {

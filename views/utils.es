@@ -29,7 +29,7 @@ export const getShipInfoData = (
   fleetIdMap,
   rawValue = false,
   repairs = [],
-  ) => {
+) => {
   const shipInfo = {
     id: ship.api_id,
     typeId: $ship.api_stype,

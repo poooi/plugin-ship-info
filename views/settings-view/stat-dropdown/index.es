@@ -1,11 +1,10 @@
 import React, { Component } from 'react'
 import propTypes from 'prop-types'
-import { Dropdown, Button, ButtonGroup, ButtonToolbar } from 'react-bootstrap'
+import { Dropdown } from 'react-bootstrap'
 import { connect } from 'react-redux'
-import { get, each, findIndex, ceil } from 'lodash'
+import { get } from 'lodash'
 import FontAwesome from 'react-fontawesome'
 import cls from 'classnames'
-import { remote } from 'electron'
 
 import { extensionSelectorFactory } from 'views/utils/selectors'
 

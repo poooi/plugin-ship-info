@@ -5,7 +5,7 @@ import { connect } from 'react-redux'
 import { get, isEqual } from 'lodash'
 import cls from 'classnames'
 
-const __ = window.__
+const { __ } = window
 
 const hexToRGBA = (hex, opacity = 1) => {
   if (/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)) {
@@ -31,8 +31,8 @@ const SallyAreaCheck = connect(
 
     // reset config values if updated
     checked = (mapname.length + 1) === checked.length
-        ? checked
-        : defaultChecked
+      ? checked
+      : defaultChecked
     const checkedAll = checked.reduce((a, b) => a && b, true)
 
     return ({
@@ -43,7 +43,6 @@ const SallyAreaCheck = connect(
     })
   }
 )(class SallyAreaCheck extends Component {
-
   static propTypes = {
     checked: propTypes.arrayOf(propTypes.bool).isRequired,
     checkedAll: propTypes.bool.isRequired,
@@ -71,7 +70,9 @@ const SallyAreaCheck = connect(
   }
 
   render() {
-    const { mapname, color, checked, checkedAll } = this.props
+    const {
+      mapname, color, checked, checkedAll,
+    } = this.props
     return (
       <div className="radio-check">
         <div className="filter-span"><span>{__('Sally Area')}</span></div>

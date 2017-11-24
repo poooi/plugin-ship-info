@@ -123,7 +123,9 @@ const DeckPlannerView = connect(
   }
 
   render() {
-    const { areas, left, view, fill, extend } = this.state
+    const {
+      areas, left, view, fill, extend,
+    } = this.state
     const { vibrant } = this.props
     return (
       <ul
@@ -272,13 +274,13 @@ const PlannerDropdown = connect(
     activeDropdown: get(extensionSelectorFactory('poi-plugin-ship-info')(state), 'ui.activeDropdown', 0),
   }),
   { handleToggle: handleToggleAction },
-)(({ activeDropdown, handleToggle }) =>
-  (<Dropdown id="planner" pullRight open={activeDropdown === 'planner'} onToggle={handleToggle}>
+)(({ activeDropdown, handleToggle }) => (
+  <Dropdown id="planner" pullRight open={activeDropdown === 'planner'} onToggle={handleToggle}>
     <Dropdown.Toggle>
       <FontAwesome name="tags" style={{ marginRight: '1ex' }} />{__('Deck Planner')} <sup>BETA</sup>
     </Dropdown.Toggle>
     <DeckPlannerView bsRole="menu" open={activeDropdown === 'planner'} />
-  </Dropdown>)
-)
+  </Dropdown>
+))
 
 export default PlannerDropdown
