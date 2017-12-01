@@ -3,7 +3,7 @@ import propTypes from 'prop-types'
 import { OverlayTrigger, Tooltip } from 'react-bootstrap'
 import Path from 'path'
 import { SlotitemIcon } from 'views/components/etc/icon'
-import { map, filter } from 'lodash'
+import { map, filter, get } from 'lodash'
 import { connect } from 'react-redux'
 
 import { equipDataSelectorFactory } from 'views/utils/selectors'
@@ -21,7 +21,7 @@ const Slotitem = ({ item, isEx = false }) => (
       placement="top"
       overlay={
         <Tooltip id={`item-${item.api_id}`} className="info-tooltip">
-          {window.i18n.resources.__(item.api_name)}
+          {window.i18n.resources.__(item.api_name || '')}
           {
             item.api_level > 0 ?
               <strong style={{ color: '#45A9A5' }}>★+{item.api_level}</strong>
@@ -42,8 +42,8 @@ const Slotitem = ({ item, isEx = false }) => (
       <span>
         <span className="slotitem-background">&#x2B22;</span>
         <SlotitemIcon
-          alt={window.i18n.resources.__(item.api_name)}
-          slotitemId={item.api_type[3]}
+          alt={window.i18n.resources.__(item.api_name || '')}
+          slotitemId={get(item, 'api_type.3', -1)}
           style={{ zIndex: 1 }}
         />
         {
@@ -72,12 +72,12 @@ Slotitem.propTypes = {
 const Slotitems = connect(
   (state, { slot, exslot }) => {
     const items = map(filter(slot, itemId => itemId > 0), (itemId) => {
-      const [item, $item] = equipDataSelectorFactory(itemId)(state)
+      const [item = {}, $item = {}] = equipDataSelectorFactory(itemId)(state) || []
       return { ...$item, ...item }
     })
     let exitem
     if (exslot > 0) {
-      const [item, $item] = equipDataSelectorFactory(exslot)(state)
+      const [item = {}, $item = {}] = equipDataSelectorFactory(exslot)(state) || []
       exitem = { ...$item, ...item }
     }
     return {
