@@ -21,6 +21,53 @@ export const getTimePerHP = (api_lv = 1, api_stype = 1) => {
   return ((api_lv * 5) + ((Math.floor(Math.sqrt(api_lv - 11)) * 10) + 50)) * factor * 1000
 }
 
+// check if ship can equip daihatsu
+export const checkDaihatsu = ($ship) => {
+  // AV=16, LHA=17, AO=22
+  if ([16, 17, 22].includes($ship.api_stype)) {
+    return true
+  }
+
+  // excluding Akitsushima(445) and Hayasui(352)
+  if ([445, 460].includes($ship.api_id)) {
+    return false
+  }
+
+
+  // Abukuma Kai 2 = 200, Kinu Kai 2 = 487
+  // Satsuki Kai 2 = 418 , Mutsuki Kai 2 = 434, Kisaragi Kai 2 = 435
+  // Kasumi Kai 2 = 464, Kasumi Kai 2 B = 470, Ooshio Kai 2 = 199,
+  //   Asashio Kai 2 D = 468, Arashio Kai 2 = 490, Michishio Kai 2 = 489
+  // Verniy = 147, Kawakaze Kai 2 = 469
+  // Nagato Kai 2 = 541
+  // Yura Kai 2 = 488
+  // Fumitsuki Kai 2 = 548
+  // Tama Kai 2 = 547
+  if ([
+    200,
+    487,
+    418,
+    434,
+    435,
+    464,
+    470,
+    199,
+    468,
+    490,
+    489,
+    147,
+    469,
+    541,
+    488,
+    548,
+    547,
+  ].includes($ship.api_id)) {
+    return true
+  }
+
+  return false
+}
+
 export const getShipInfoData = (
   ship,
   $ship,
@@ -112,46 +159,7 @@ export const getShipInfoData = (
     })
   }
 
-  // check if ship can equip daihatsu
-  let daihatsu = false
-  // AV=16, LHA=17, AO=22
-  if ([16, 17, 22].includes($ship.api_stype)) {
-    daihatsu = true
-  }
-
-  // excluding Akitsushima(445) and Hayasui(352)
-  if ([445, 460].includes($ship.api_id)) {
-    daihatsu = false
-  }
-
-  // Abukuma Kai 2 = 200, Kinu Kai 2 = 487
-  // Satsuki Kai 2 = 418 , Mutsuki Kai 2 = 434, Kisaragi Kai 2 = 435
-  // Kasumi Kai 2 = 464, Kasumi Kai 2 B = 470, Ooshio Kai 2 = 199,
-  //   Asashio Kai 2 D = 468, Arashio Kai 2 = 490, Michishio Kai 2 = 489
-  // Verniy = 147, Kawakaze Kai 2 = 469
-  // Nagato Kai 2 = 541
-  // Yura Kai 2 = 488
-  // Fumitsuki Kai 2 = 548
-  if ([
-    200,
-    487,
-    418,
-    434,
-    435,
-    464,
-    470,
-    199,
-    468,
-    490,
-    489,
-    147,
-    469,
-    541,
-    488,
-    548,
-  ].includes($ship.api_id)) {
-    daihatsu = true
-  }
+  const daihatsu = checkDaihatsu($ship)
 
   return ({
     ...shipInfo,
