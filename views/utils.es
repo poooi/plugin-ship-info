@@ -4,6 +4,13 @@ import { repairFactor } from './constants'
 
 const { __ } = window
 
+// Ship initial (lv 1) kaihi stat
+// for kaihi correction free from equipment effects
+const shipKaih = {
+  547: 43,
+  146: 45,
+}
+
 export const getTimePerHP = (api_lv = 1, api_stype = 1) => {
   let factor = 0
   if (repairFactor[api_stype] != null) {
@@ -156,6 +163,12 @@ export const getShipInfoData = (
       kaihi -= $equip.api_houk || 0
       taisen -= $equip.api_tais || 0
       sakuteki -= $equip.api_saku || 0
+
+      if ($ship.api_id in shipKaih) {
+        const kaihiMax = ship.api_kaihi[1]
+        const kaih = shipKaih[$ship.api_id]
+        kaihi = Math.floor((kaihiMax - kaih) * (ship.api_lv / 99)) + kaih
+      }
     })
   }
 
