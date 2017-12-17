@@ -128,6 +128,21 @@ Cond.propTypes = {
   className: propTypes.string,
 }
 
+const Hp = ({ ship, ...props }) => (
+  <div
+    {...props}
+  >
+    <span>
+      { ship.taik[0] }
+      { ship.maxhp - ship.taik[0] > 0 && <sup>+{ship.maxhp - ship.taik[0]}</sup> }
+    </span>
+  </div>
+)
+
+Hp.propTypes = {
+  ship: propTypes.shape(shipInfoShape).isRequired,
+}
+
 const Karyoku = ({ className, ship, ...props }) => {
   const { karyoku, karyokuMax, karyokuNow } = ship
   const karyokuClass = karyokuNow >= karyokuMax
@@ -275,7 +290,10 @@ const Taisen = ({ ship, ...props }) => (
   <div
     {...props}
   >
-    { ship.taisen }
+    <span>
+      { ship.taisen - ship.kyouka[6] }
+      { ship.kyouka[6] > 0 && <sup>+{ship.kyouka[6]}</sup> }
+    </span>
   </div>
 )
 
@@ -374,6 +392,7 @@ export default {
   soku: Soku,
   lv: Lv,
   cond: Cond,
+  hp: Hp,
   karyoku: Karyoku,
   raisou: Raisou,
   taiku: Taiku,

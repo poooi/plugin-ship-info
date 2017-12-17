@@ -99,6 +99,7 @@ export const getShipInfoData = (
   const tyku = $ship.api_tyku
   const souk = $ship.api_souk
   const luck = $ship.api_luck
+  const taik = $ship.api_taik
   const kyouka = ship.api_kyouka
 
   const slot = clone(ship.api_slot)
@@ -221,6 +222,7 @@ export const getShipInfoData = (
     _lucky,
     isCompleted,
     daihatsu,
+    taik,
   })
 }
 

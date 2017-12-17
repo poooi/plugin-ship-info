@@ -223,6 +223,8 @@ const getSortFunction = (sortName) => {
       return [ship => ship.lv, ship => -ship.sortno, ship => -ship.id]
     case 'type':
       return [ship => ship.typeId, ship => -ship.sortno, ship => ship.lv, ship => -ship.id]
+    case 'hp':
+      return [ship => ship.maxhp, ship => -ship.sortno, ship => -ship.id]
     default:
       return [ship => ship[sortName], ship => ship.sortno, ship => -ship.id]
   }

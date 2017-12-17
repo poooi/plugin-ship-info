@@ -16,36 +16,36 @@ const { __ } = window
 
 const types = [
   'id', 'name', 'type', 'soku', 'lv',
-  'cond', 'karyoku', 'raisou', 'taiku', 'soukou',
-  'lucky', 'kaihi', 'taisen', 'sakuteki', 'repairtime',
-  'equipment', 'lock',
+  'cond', 'hp', 'karyoku', 'raisou', 'taiku',
+  'soukou', 'lucky', 'kaihi', 'taisen', 'sakuteki',
+  'repairtime', 'equipment', 'lock',
 ]
 const titles = [
   'ID', 'Name', 'Class', 'Speed', 'Level',
-  'Cond', 'Firepower', 'Torpedo', 'AA', 'Armor',
-  'Luck', 'Evasion', 'ASW', 'LOS', 'Repair',
-  'Equipment', 'Lock',
+  'Cond', 'HP', 'Firepower', 'Torpedo', 'AA',
+  'Armor', 'Luck', 'Evasion', 'ASW', 'LOS',
+  'Repair', 'Equipment', 'Lock',
 ]
 const sortables = [
   true, true, true, true, true,
   true, true, true, true, true,
   true, true, true, true, true,
-  false, false,
+  true, false, false,
 ]
 const centerAligns = [
   false, false, false, false, true,
   true, true, true, true, true,
   true, true, true, true, true,
-  false, true,
+  true, false, true,
 ]
 
 // width will always unshift 1 extra element for row index
 const widths = [
   40,
   50, 160, 90, 40, 40,
-  40, 60, 60, 60, 60,
-  60, 40, 40, 40, 80,
-  180, 40,
+  40, 40, 60, 60, 60,
+  60, 60, 40, 40, 40,
+  80, 180, 40,
 ]
 
 const ROW_HEIGHT = 35
