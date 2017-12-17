@@ -1,5 +1,5 @@
 import propTypes from 'prop-types'
-import { clone, each } from 'lodash'
+import _, { clone } from 'lodash'
 import { repairFactor } from './constants'
 
 const { __ } = window
@@ -84,76 +84,71 @@ export const getShipInfoData = (
   rawValue = false,
   repairs = [],
 ) => {
-  const shipInfo = {
-    id: ship.api_id,
-    typeId: $ship.api_stype,
-    fleetId: fleetIdMap[ship.api_id],
-    type: ($shipTypes[$ship.api_stype] || {}).api_name,
-    name: $ship.api_name,
-    yomi: $ship.api_yomi,
-    sortno: $ship.api_sortno,
-    lv: ship.api_lv,
-    cond: ship.api_cond,
-    karyoku: ship.api_karyoku,
-    houg: $ship.api_houg,
-    raisou: ship.api_raisou,
-    raig: $ship.api_raig,
-    taiku: ship.api_taiku,
-    tyku: $ship.api_tyku,
-    soukou: ship.api_soukou,
-    souk: $ship.api_souk,
-    lucky: ship.api_lucky,
-    luck: $ship.api_luck,
-    kyouka: ship.api_kyouka,
-    kaihi: ship.api_kaihi[0],
-    taisen: ship.api_taisen[0],
-    sakuteki: ship.api_sakuteki[0],
-    slot: clone(ship.api_slot),
-    exslot: ship.api_slot_ex,
-    locked: ship.api_locked,
-    nowhp: ship.api_nowhp,
-    maxhp: ship.api_maxhp,
-    losshp: ship.api_maxhp - ship.api_nowhp,
-    repairtime: parseInt(ship.api_ndock_time / 1000.0, 10),
-    inDock: repairs.includes(ship.api_id),
-    after: parseInt($ship.api_aftershipid, 10),
-    sallyArea: ship.api_sally_area || 0,
-    soku: ship.api_soku,
-  }
+  const id = ship.api_id
+  const typeId = $ship.api_stype
+  const fleetId = fleetIdMap[ship.api_id]
+  const type = ($shipTypes[$ship.api_stype] || {}).api_name
+  const name = $ship.api_name
+  const yomi = $ship.api_yomi
+  const sortno = $ship.api_sortno
+  const lv = ship.api_lv
 
-  // Attention, this will overwrite some original properties
-  const karyokuNow = shipInfo.houg[0] + shipInfo.kyouka[0]
-  const karyokuMax = shipInfo.karyoku[1]
-  const karyoku = rawValue ? karyokuNow : shipInfo.karyoku[0]
-  const _karyoku = shipInfo.karyoku[0]
+  const cond = ship.api_cond
+  const houg = $ship.api_houg
+  const raig = $ship.api_raig
+  const tyku = $ship.api_tyku
+  const souk = $ship.api_souk
+  const luck = $ship.api_luck
+  const kyouka = ship.api_kyouka
 
-  const raisouNow = shipInfo.raig[0] + shipInfo.kyouka[1]
-  const raisouMax = shipInfo.raisou[1]
-  const raisou = rawValue ? raisouNow : shipInfo.raisou[0]
-  const _raisou = shipInfo.raisou[0]
+  const slot = clone(ship.api_slot)
+  const exslot = ship.api_slot_ex
+  const locked = ship.api_locked
+  const nowhp = ship.api_nowhp
+  const maxhp = ship.api_maxhp
+  const losshp = ship.api_maxhp - ship.api_nowhp
+  const repairtime = parseInt(ship.api_ndock_time / 1000.0, 10)
+  const inDock = repairs.includes(ship.api_id)
+  const after = parseInt($ship.api_aftershipid, 10)
+  const sallyArea = ship.api_sally_area || 0
+  const soku = ship.api_soku
 
-  const taikuNow = shipInfo.tyku[0] + shipInfo.kyouka[2]
-  const taikuMax = shipInfo.taiku[1]
-  const taiku = rawValue ? taikuNow : shipInfo.taiku[0]
-  const _taiku = shipInfo.taiku[0]
+  // Attention this will overwrite some original properties
+  const karyokuNow = houg[0] + kyouka[0]
+  const karyokuMax = ship.api_karyoku[1]
+  const karyoku = rawValue ? karyokuNow : ship.api_karyoku[0]
+  const _karyoku = ship.api_karyoku[0]
 
-  const soukouNow = shipInfo.souk[0] + shipInfo.kyouka[3]
-  const soukouMax = shipInfo.soukou[1]
-  const soukou = rawValue ? soukouNow : shipInfo.soukou[0]
-  const _soukou = shipInfo.soukou[0]
+  const raisouNow = raig[0] + kyouka[1]
+  const raisouMax = ship.api_raisou[1]
+  const raisou = rawValue ? raisouNow : ship.api_raisou[0]
+  const _raisou = ship.api_raisou[0]
 
-  const luckyNow = shipInfo.luck[0] + shipInfo.kyouka[4]
-  const luckyMax = shipInfo.lucky[1]
-  const lucky = rawValue ? luckyNow : shipInfo.lucky[0]
-  const _lucky = shipInfo.lucky[0]
+  const taikuNow = tyku[0] + kyouka[2]
+  const taikuMax = ship.api_taiku[1]
+  const taiku = rawValue ? taikuNow : ship.api_taiku[0]
+  const _taiku = ship.api_taiku[0]
+
+  const soukouNow = souk[0] + kyouka[3]
+  const soukouMax = ship.api_soukou[1]
+  const soukou = rawValue ? soukouNow : ship.api_soukou[0]
+  const _soukou = ship.api_soukou[0]
+
+  const luckyNow = luck[0] + kyouka[4]
+  const luckyMax = ship.api_lucky[1]
+  const lucky = rawValue ? luckyNow : ship.api_lucky[0]
+  const _lucky = ship.api_lucky[0]
 
   const isCompleted = karyokuNow >= karyokuMax &&
-            raisouNow >= raisouMax &&
-            taikuNow >= taikuMax &&
-            soukouNow >= soukouMax
+    raisouNow >= raisouMax &&
+    taikuNow >= taikuMax &&
+    soukouNow >= soukouMax
 
-  let { kaihi, taisen, sakuteki } = shipInfo
   // get raw kaihi, taisen and sakuteki value by substracting effects of equipments
+  let kaihi = ship.api_kaihi[0]
+  let taisen = ship.api_taisen[0]
+  let sakuteki = ship.api_sakuteki[0]
+
   if (rawValue) {
     equips.forEach((equip) => {
       if (typeof equip === 'undefined') {
@@ -175,31 +170,56 @@ export const getShipInfoData = (
   const daihatsu = checkDaihatsu($ship)
 
   return ({
-    ...shipInfo,
-    karyokuNow,
-    karyokuMax,
+    id,
+    typeId,
+    fleetId,
+    type,
+    name,
+    yomi,
+    sortno,
+    lv,
+    cond,
     karyoku,
-    _karyoku,
-    raisouNow,
-    raisouMax,
+    houg,
     raisou,
-    _raisou,
-    taikuNow,
-    taikuMax,
+    raig,
     taiku,
-    _taiku,
-    soukouNow,
-    soukouMax,
+    tyku,
     soukou,
-    _soukou,
-    luckyNow,
-    luckyMax,
+    souk,
     lucky,
-    _lucky,
-    isCompleted,
+    luck,
+    kyouka,
     kaihi,
     taisen,
     sakuteki,
+    slot,
+    exslot,
+    locked,
+    nowhp,
+    maxhp,
+    losshp,
+    repairtime,
+    inDock,
+    after,
+    sallyArea,
+    soku,
+    karyokuNow,
+    karyokuMax,
+    _karyoku,
+    raisouNow,
+    raisouMax,
+    _raisou,
+    taikuNow,
+    taikuMax,
+    _taiku,
+    soukouNow,
+    soukouMax,
+    _soukou,
+    luckyNow,
+    luckyMax,
+    _lucky,
+    isCompleted,
     daihatsu,
   })
 }
@@ -328,10 +348,10 @@ export const shipSuperTypeMap = [
   },
 ]
 
-export const reverseSuperTypeMap = {}
-
-each(shipSuperTypeMap, ({ id }, index) => each(id, typeId => reverseSuperTypeMap[typeId] = index))
-
+export const reverseSuperTypeMap = _(shipSuperTypeMap)
+  .flatMap(({ id }, index) => _(id).map(type => ([type, index]).values()))
+  .fromPairs()
+  .value()
 
 export const shipTypes = {
   1: __('DE'),

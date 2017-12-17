@@ -64,6 +64,12 @@ export const shipFleetIdSelectorFactory = memoize(shipId =>
   ], fleetIdMap => fleetIdMap[shipId]
   ))
 
+export const rawValueConfigSelector = createSelector(
+  [
+    configSelector,
+  ], config => get(config, 'plugin.ShipInfo.rawValue', false)
+)
+
 export const shipTableDataSelectorFactory = memoize(shipId =>
   createSelector(
     [
@@ -71,11 +77,11 @@ export const shipTableDataSelectorFactory = memoize(shipId =>
       shipEquipDataSelectorFactory(shipId),
       constSelector,
       shipFleetIdMapSelector,
-      configSelector,
+      rawValueConfigSelector,
       inRepairShipsIdSelector,
     ],
-    ([ship, $ship] = [], equips, { $shipTypes }, fleetIdMap, config, repairs = []) =>
-      getShipInfoData(ship, $ship, equips, $shipTypes, fleetIdMap, get(config, 'plugin.ShipInfo.rawValue', false), repairs)
+    ([ship, $ship] = [], equips, { $shipTypes }, fleetIdMap, rawValue, repairs = []) =>
+      getShipInfoData(ship, $ship, equips, $shipTypes, fleetIdMap, rawValue, repairs)
   )
 )
 
