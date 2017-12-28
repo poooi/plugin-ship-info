@@ -31,6 +31,10 @@ const Name = ({ className, ship, ...props }) => (
     {...props}
     className={`${className || ''} ship-name`}
   >
+    <img
+      className="ship-icon"
+      src={path.resolve(__dirname, `../../assets/ships/${ship.name}.png`)}
+    />
     <span
       className="name"
       title={window.i18n.resources.__(ship.name)}
