@@ -14,25 +14,25 @@ import ShipInfoCells from './ship-info-cells'
 
 const { __ } = window
 
-const types = [
+const TYPES = [
   'id', 'name', 'type', 'soku', 'lv',
   'cond', 'hp', 'karyoku', 'raisou', 'taiku',
   'soukou', 'lucky', 'kaihi', 'taisen', 'sakuteki',
   'repairtime', 'equipment', 'lock',
 ]
-const titles = [
+const TITLES = [
   'ID', 'Name', 'Class', 'Speed', 'Level',
   'Cond', 'HP', 'Firepower', 'Torpedo', 'AA',
   'Armor', 'Luck', 'Evasion', 'ASW', 'LOS',
   'Repair', 'Equipment', 'Lock',
 ]
-const sortables = [
+const SORTABLES = [
   true, true, true, true, true,
   true, true, true, true, true,
   true, true, true, true, true,
   true, false, false,
 ]
-const centerAligns = [
+const CENTER_ALIGNS = [
   false, false, false, false, true,
   true, true, true, true, true,
   true, true, true, true, true,
@@ -40,7 +40,7 @@ const centerAligns = [
 ]
 
 // width will always unshift 1 extra element for row index
-const widths = [
+const WIDTHS = [
   40,
   50, 160, 90, 40, 40,
   40, 40, 60, 60, 60,
@@ -119,7 +119,7 @@ const ShipInfoTableArea = connect(
 
   constructor(props) {
     super(props)
-    this.tableWidth = sum(widths)
+    this.tableWidth = sum(WIDTHS)
     this.updateWindowSize = debounce(this.updateWindowSize, 500)
     this.setRef = this.setRef.bind(this)
   }
@@ -168,13 +168,13 @@ const ShipInfoTableArea = connect(
       <TitleCell
         {...props}
         style={style}
-        title={titles[index]}
-        sortable={sortables[index]}
-        centerAlign={centerAligns[index]}
-        sorting={sortName === types[index]}
-        up={sortName === types[index] && Boolean(sortOrder)}
-        down={sortName === types[index] && Boolean(!sortOrder)}
-        handleClickTitle={this.handleClickTitle(types[index])}
+        title={TITLES[index]}
+        sortable={SORTABLES[index]}
+        centerAlign={CENTER_ALIGNS[index]}
+        sorting={sortName === TYPES[index]}
+        up={sortName === TYPES[index] && Boolean(sortOrder)}
+        down={sortName === TYPES[index] && Boolean(!sortOrder)}
+        handleClickTitle={this.handleClickTitle(TYPES[index])}
       />
     )
   }
@@ -207,7 +207,7 @@ const ShipInfoTableArea = connect(
       onContextMenu,
       className: cls({
         'ship-info-cell': true,
-        center: centerAligns[columnIndex - 1],
+        center: CENTER_ALIGNS[columnIndex - 1],
         highlight,
         'even-dark': rowIndex % 2 === 1 && window.isDarkTheme,
         'even-light': rowIndex % 2 === 1 && !window.isDarkTheme,
@@ -223,7 +223,7 @@ const ShipInfoTableArea = connect(
     } else {
       const index = columnIndex - 1
       const ship = rows[rowIndex - 1]
-      const Cell = ShipInfoCells[types[index]]
+      const Cell = ShipInfoCells[TYPES[index]]
       content = <Cell ship={ship} style={style} {...props} />
     }
 
@@ -253,7 +253,7 @@ const ShipInfoTableArea = connect(
 
   getColumnWidth = ({ index }) => {
     // 20: magic number, seems it need to be greater than 16
-    const width = floor((widths[index] || 40) *
+    const width = floor((WIDTHS[index] || 40) *
       (this.state.windowWidth - 20 > this.tableWidth
         ? ((this.state.windowWidth - 20) / this.tableWidth)
         : 1
@@ -295,7 +295,7 @@ const ShipInfoTableArea = connect(
             activeRow={activeRow}
             activeColumn={activeColumn}
             windowWidth={windowWidth}
-            columnCount={18}
+            columnCount={WIDTHS.length}
             columnWidth={this.getColumnWidth}
             estimatedRowSize={100}
             fixedColumnCount={windowWidth > this.tableWidth ? 0 : 0}
