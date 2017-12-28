@@ -106,22 +106,22 @@ body {
 }
 .ship-info-cell.td-taiku-max {
   text-align: center;
-  background-color: hsl(60, 50%, 40%);
+  background-color: hsl(30, 50%, 40%);
 }
 .ship-info-cell.td-taiku-max.highlight {
   text-align: center;
-  background-color: hsl(60, 50%, 70%);
+  background-color: hsl(30, 50%, 70%);
 }
 .ship-info-cell.td-soukou {
   text-align: center;
 }
 .ship-info-cell.td-soukou-max {
   text-align: center;
-  background-color: hsl(30, 50%, 40%);
+  background-color: hsl(60, 50%, 40%);
 }
 .ship-info-cell.td-soukou-max.highlight {
   text-align: center;
-  background-color: hsl(30, 50%, 70%);
+  background-color: hsl(60, 50%, 70%);
 }
 .ship-info-cell.td-lucky {
   text-align: center;
