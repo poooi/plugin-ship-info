@@ -1,15 +1,9 @@
 import propTypes from 'prop-types'
 import _, { clone } from 'lodash'
 import { repairFactor } from './constants'
+import shipKaih from '../assets/evasion.json'
 
 const { __ } = window
-
-// Ship initial (lv 1) kaihi stat
-// for kaihi correction free from equipment effects
-const shipKaih = {
-  547: 43,
-  146: 45,
-}
 
 export const getTimePerHP = (api_lv = 1, api_stype = 1) => {
   let factor = 0
@@ -164,6 +158,8 @@ export const getShipInfoData = (
         const kaihiMax = ship.api_kaihi[1]
         const kaih = shipKaih[$ship.api_id]
         kaihi = Math.floor((kaihiMax - kaih) * (ship.api_lv / 99)) + kaih
+      } else {
+        kaihi = 0 // we don't have kaihi data for this ship
       }
     })
   }

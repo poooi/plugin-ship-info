@@ -277,7 +277,7 @@ const Kaihi = ({ ship, ...props }) => (
   <div
     {...props}
   >
-    { ship.kaihi }
+    { ship.kaihi || 'NA' }
   </div>
 )
 
