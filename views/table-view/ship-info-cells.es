@@ -6,6 +6,7 @@ import cls from 'classnames'
 import path from 'path'
 
 import { resolveTime } from 'views/utils/tools'
+import { Avatar } from 'views/components/etc/avatar'
 import Slotitems from './slotitems'
 import SallyArea from './sally-area'
 import { sokuInterpretation, sokuStyles } from '../constants'
@@ -31,6 +32,7 @@ const Name = ({ className, ship, ...props }) => (
     {...props}
     className={`${className || ''} ship-name`}
   >
+    <Avatar mstId={ship.shipId} />
     <span
       className="name"
       title={window.i18n.resources.__(ship.name)}

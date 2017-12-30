@@ -695,3 +695,13 @@ th {
     width: calc(100% / 15 - 4px);
   }
 }
+
+.ship-avatar-container {
+  width: 40px;
+  position: initial;
+}
+
+.ship-avatar {
+  height: 30px;
+  margin-left: -55%;
+}

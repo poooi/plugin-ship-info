@@ -27,6 +27,7 @@ export const windowOptions = {
   webPreferences: {
     experimentalFeatures: true,
     experimentalCanvasFeatures: true,
+    nodeIntegrationInWorker: true,
   },
 }
 export const windowURL = `file://${__dirname}/index.html`

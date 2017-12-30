@@ -79,6 +79,7 @@ export const getShipInfoData = (
   repairs = [],
 ) => {
   const id = ship.api_id
+  const shipId = $ship.api_id
   const typeId = $ship.api_stype
   const fleetId = fleetIdMap[ship.api_id]
   const type = ($shipTypes[$ship.api_stype] || {}).api_name
@@ -168,6 +169,7 @@ export const getShipInfoData = (
 
   return ({
     id,
+    shipId,
     typeId,
     fleetId,
     type,
