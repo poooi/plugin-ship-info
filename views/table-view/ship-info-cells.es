@@ -32,7 +32,7 @@ const Name = ({ className, ship, ...props }) => (
     {...props}
     className={`${className || ''} ship-name`}
   >
-    <Avatar mstId={ship.shipId} />
+    <Avatar mstId={ship.shipId} height={35} />
     <span
       className="name"
       title={window.i18n.resources.__(ship.name)}

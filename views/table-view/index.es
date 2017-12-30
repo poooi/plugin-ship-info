@@ -42,7 +42,7 @@ const CENTER_ALIGNS = [
 // width will always unshift 1 extra element for row index
 const WIDTHS = [
   40,
-  50, 200, 90, 40, 40,
+  50, 220, 90, 40, 40,
   40, 40, 60, 60, 60,
   60, 60, 40, 40, 40,
   80, 180, 40,
