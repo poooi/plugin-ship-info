@@ -3,9 +3,20 @@ import { createSelector } from 'reselect'
 import _, { get, mapValues, findIndex, includes, flatten, fromPairs, flatMap, keyBy } from 'lodash'
 import fp from 'lodash/fp'
 
-import { constSelector, shipDataSelectorFactory, shipsSelector,
-  configSelector, fcdSelector, shipEquipDataSelectorFactory, fleetInExpeditionSelectorFactory,
-  fleetShipsIdSelectorFactory, stateSelector, inRepairShipsIdSelector, extensionSelectorFactory } from 'views/utils/selectors'
+import {
+  constSelector,
+  shipDataSelectorFactory,
+  shipsSelector,
+  configSelector,
+  fcdSelector,
+  shipEquipDataSelectorFactory,
+  fleetInExpeditionSelectorFactory,
+  fleetShipsIdSelectorFactory,
+  stateSelector,
+  inRepairShipsIdSelector,
+  extensionSelectorFactory,
+  wctfSelector,
+} from 'views/utils/selectors'
 
 import { PLUGIN_KEY } from './redux'
 import { getShipInfoData, katakanaToHiragana, intToBoolArray, reverseSuperTypeMap } from './utils'
@@ -79,9 +90,10 @@ export const shipTableDataSelectorFactory = memoize(shipId =>
       shipFleetIdMapSelector,
       rawValueConfigSelector,
       inRepairShipsIdSelector,
+      wctfSelector,
     ],
-    ([ship, $ship] = [], equips, { $shipTypes }, fleetIdMap, rawValue, repairs = []) =>
-      getShipInfoData(ship, $ship, equips, $shipTypes, fleetIdMap, rawValue, repairs)
+    ([ship, $ship] = [], equips, { $shipTypes }, fleetIdMap, rawValue, repairs = [], db) =>
+      getShipInfoData(ship, $ship, equips, $shipTypes, fleetIdMap, rawValue, repairs, db)
   )
 )
 

@@ -1,7 +1,6 @@
 import propTypes from 'prop-types'
 import _, { clone } from 'lodash'
 import { repairFactor } from './constants'
-import shipKaih from '../assets/evasion.json'
 
 const { __ } = window
 
@@ -22,52 +21,7 @@ export const getTimePerHP = (api_lv = 1, api_stype = 1) => {
   return ((api_lv * 5) + ((Math.floor(Math.sqrt(api_lv - 11)) * 10) + 50)) * factor * 1000
 }
 
-// check if ship can equip daihatsu
-export const checkDaihatsu = ($ship) => {
-  // AV=16, LHA=17, AO=22
-  if ([16, 17, 22].includes($ship.api_stype)) {
-    return true
-  }
-
-  // excluding Akitsushima(445) and Hayasui(352)
-  if ([445, 460].includes($ship.api_id)) {
-    return false
-  }
-
-
-  // Abukuma Kai 2 = 200, Kinu Kai 2 = 487
-  // Satsuki Kai 2 = 418 , Mutsuki Kai 2 = 434, Kisaragi Kai 2 = 435
-  // Kasumi Kai 2 = 464, Kasumi Kai 2 B = 470, Ooshio Kai 2 = 199,
-  //   Asashio Kai 2 D = 468, Arashio Kai 2 = 490, Michishio Kai 2 = 489
-  // Verniy = 147, Kawakaze Kai 2 = 469
-  // Nagato Kai 2 = 541
-  // Yura Kai 2 = 488
-  // Fumitsuki Kai 2 = 548
-  // Tama Kai 2 = 547
-  if ([
-    200,
-    487,
-    418,
-    434,
-    435,
-    464,
-    470,
-    199,
-    468,
-    490,
-    489,
-    147,
-    469,
-    541,
-    488,
-    548,
-    547,
-  ].includes($ship.api_id)) {
-    return true
-  }
-
-  return false
-}
+const getValueByLevel = (min, max, lv) => Math.floor((max - min) * (lv / 99)) + min
 
 export const getShipInfoData = (
   ship,
@@ -77,6 +31,7 @@ export const getShipInfoData = (
   fleetIdMap,
   rawValue = false,
   repairs = [],
+  db,
 ) => {
   const id = ship.api_id
   const shipId = $ship.api_id
@@ -146,26 +101,27 @@ export const getShipInfoData = (
   let sakuteki = ship.api_sakuteki[0]
 
   if (rawValue) {
-    equips.forEach((equip) => {
-      if (typeof equip === 'undefined') {
-        return
-      }
-      const $equip = equip[1] || {}
-      kaihi -= $equip.api_houk || 0
-      taisen -= $equip.api_tais || 0
-      sakuteki -= $equip.api_saku || 0
-
-      if ($ship.api_id in shipKaih) {
-        const kaihiMax = ship.api_kaihi[1]
-        const kaih = shipKaih[$ship.api_id]
-        kaihi = Math.floor((kaihiMax - kaih) * (ship.api_lv / 99)) + kaih
-      } else {
-        kaihi = 0 // we don't have kaihi data for this ship
-      }
-    })
+    kaihi = getValueByLevel(
+      _.get(db, ['ships', shipId, 'stat', 'evasion'], 0),
+      _.get(db, ['ships', shipId, 'stat', 'evasion_max'], 0),
+      lv,
+    )
+    taisen = getValueByLevel(
+      _.get(db, ['ships', shipId, 'stat', 'asw'], 0),
+      _.get(db, ['ships', shipId, 'stat', 'asw_max'], 0),
+      lv,
+    )
+    sakuteki = getValueByLevel(
+      _.get(db, ['ships', shipId, 'stat', 'los'], 0),
+      _.get(db, ['ships', shipId, 'stat', 'los_max'], 0),
+      lv,
+    )
   }
 
-  const daihatsu = checkDaihatsu($ship)
+  // 24 = 上陸用舟艇, 46 = 特型内火艇
+  const daihatsu = _(db)
+    .get(['ships', shipId, 'additional_item_types'], [])
+    .some(i => [24, 46].includes(_.get(db, ['item_types', i, 'id_ingame'])))
 
   return ({
     id,
