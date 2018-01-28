@@ -1,7 +1,6 @@
 // copy from vires/utils/FileWriter.es
 // we use outputJson instead of writeFile
 
-import { promisify } from 'bluebird'
 import { outputJson, ensureDir } from 'fs-extra'
 import { dirname } from 'path-extra'
 
@@ -20,20 +19,20 @@ export default class FileWriter {
     this._queue = []
   }
 
-  write(path, data, options, callback) {
+  write = (path, data, options, callback) => {
     this._queue.push([path, data, options, callback])
     this._continueWriting()
   }
 
-  async _continueWriting() {
+  _continueWriting = async () => {
     if (this.writing) {
+      setTimeout(this._continueWriting, 100) // FIXME: is this necessary ?
       return
     }
     this.writing = true
     while (this._queue.length) {
       const [path, data, options, callback] = this._queue.shift()
-      await promisify(ensureDir)(dirname(path))
-      const err = await promisify(outputJson)(path, data, options)
+      const err = await outputJson(path, data, options)
       if (callback) {
         callback(err)
       }
