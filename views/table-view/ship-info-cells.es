@@ -1,9 +1,11 @@
 import React from 'react'
 import { OverlayTrigger, Tooltip } from 'react-bootstrap'
 import FontAwesome from 'react-fontawesome'
-import propTypes from 'prop-types'
+import PropTypes from 'prop-types'
 import cls from 'classnames'
 import path from 'path'
+import { connect } from 'react-redux'
+import { get } from 'lodash'
 
 import { resolveTime } from 'views/utils/tools'
 import { Avatar } from 'views/components/etc/avatar'
@@ -14,6 +16,8 @@ import { getTimePerHP, shipInfoShape, shipTypes } from '../utils'
 
 const { __ } = window
 
+const enableAvatarConfigSelector = state => get(state, ['config', 'poi', 'enableAvatar'], false)
+
 const Id = ({ ship, ...props }) => (
   <div
     {...props}
@@ -23,16 +27,19 @@ const Id = ({ ship, ...props }) => (
 )
 
 Id.propTypes = {
-  ship: propTypes.shape(shipInfoShape).isRequired,
-  className: propTypes.string,
+  ship: PropTypes.shape(shipInfoShape).isRequired,
+  className: PropTypes.string,
 }
 
-const Name = ({ className, ship, ...props }) => (
+const Name = ({ className, ship, enableAvatar, ...props }) => (
   <div
     {...props}
     className={`${className || ''} ship-name`}
   >
-    <Avatar mstId={ship.shipId} height={35} />
+    {
+      enableAvatar &&
+      <Avatar mstId={ship.shipId} height={35} />
+    }
     <span
       className="name"
       title={window.i18n.resources.__(ship.name)}
@@ -52,8 +59,9 @@ const Name = ({ className, ship, ...props }) => (
 )
 
 Name.propTypes = {
-  ship: propTypes.shape(shipInfoShape).isRequired,
-  className: propTypes.string,
+  ship: PropTypes.shape(shipInfoShape).isRequired,
+  className: PropTypes.string,
+  enableAvatar: PropTypes.bool.isRequired,
 }
 
 const Type = ({ ship, ...props }) => (
@@ -68,8 +76,8 @@ const Type = ({ ship, ...props }) => (
 )
 
 Type.propTypes = {
-  ship: propTypes.shape(shipInfoShape).isRequired,
-  className: propTypes.string,
+  ship: PropTypes.shape(shipInfoShape).isRequired,
+  className: PropTypes.string,
 }
 
 const Soku = ({ className, ship, ...props }) => {
@@ -87,8 +95,8 @@ const Soku = ({ className, ship, ...props }) => {
 }
 
 Soku.propTypes = {
-  ship: propTypes.shape(shipInfoShape).isRequired,
-  className: propTypes.string,
+  ship: PropTypes.shape(shipInfoShape).isRequired,
+  className: PropTypes.string,
 }
 
 const Lv = ({ ship, ...props }) => (
@@ -100,8 +108,8 @@ const Lv = ({ ship, ...props }) => (
 )
 
 Lv.propTypes = {
-  ship: propTypes.shape(shipInfoShape).isRequired,
-  className: propTypes.string,
+  ship: PropTypes.shape(shipInfoShape).isRequired,
+  className: PropTypes.string,
 }
 
 const Cond = ({ className, ship, ...props }) => {
@@ -126,8 +134,8 @@ const Cond = ({ className, ship, ...props }) => {
 }
 
 Cond.propTypes = {
-  ship: propTypes.shape(shipInfoShape).isRequired,
-  className: propTypes.string,
+  ship: PropTypes.shape(shipInfoShape).isRequired,
+  className: PropTypes.string,
 }
 
 const Hp = ({ ship, ...props }) => (
@@ -142,7 +150,7 @@ const Hp = ({ ship, ...props }) => (
 )
 
 Hp.propTypes = {
-  ship: propTypes.shape(shipInfoShape).isRequired,
+  ship: PropTypes.shape(shipInfoShape).isRequired,
 }
 
 const Karyoku = ({ className, ship, ...props }) => {
@@ -167,8 +175,8 @@ const Karyoku = ({ className, ship, ...props }) => {
 }
 
 Karyoku.propTypes = {
-  ship: propTypes.shape(shipInfoShape).isRequired,
-  className: propTypes.string,
+  ship: PropTypes.shape(shipInfoShape).isRequired,
+  className: PropTypes.string,
 }
 
 const Raisou = ({ className, ship, ...props }) => {
@@ -193,8 +201,8 @@ const Raisou = ({ className, ship, ...props }) => {
 }
 
 Raisou.propTypes = {
-  ship: propTypes.shape(shipInfoShape).isRequired,
-  className: propTypes.string,
+  ship: PropTypes.shape(shipInfoShape).isRequired,
+  className: PropTypes.string,
 }
 
 const Taiku = ({ className, ship, ...props }) => {
@@ -219,8 +227,8 @@ const Taiku = ({ className, ship, ...props }) => {
 }
 
 Taiku.propTypes = {
-  ship: propTypes.shape(shipInfoShape).isRequired,
-  className: propTypes.string,
+  ship: PropTypes.shape(shipInfoShape).isRequired,
+  className: PropTypes.string,
 }
 
 const Soukou = ({ className, ship, ...props }) => {
@@ -245,8 +253,8 @@ const Soukou = ({ className, ship, ...props }) => {
 }
 
 Soukou.propTypes = {
-  ship: propTypes.shape(shipInfoShape).isRequired,
-  className: propTypes.string,
+  ship: PropTypes.shape(shipInfoShape).isRequired,
+  className: PropTypes.string,
 }
 
 const Lucky = ({ className, ship, ...props }) => {
@@ -271,8 +279,8 @@ const Lucky = ({ className, ship, ...props }) => {
 }
 
 Lucky.propTypes = {
-  ship: propTypes.shape(shipInfoShape).isRequired,
-  className: propTypes.string,
+  ship: PropTypes.shape(shipInfoShape).isRequired,
+  className: PropTypes.string,
 }
 
 const Kaihi = ({ ship, ...props }) => (
@@ -284,8 +292,8 @@ const Kaihi = ({ ship, ...props }) => (
 )
 
 Kaihi.propTypes = {
-  ship: propTypes.shape(shipInfoShape).isRequired,
-  className: propTypes.string,
+  ship: PropTypes.shape(shipInfoShape).isRequired,
+  className: PropTypes.string,
 }
 
 const Taisen = ({ ship, ...props }) => (
@@ -300,8 +308,8 @@ const Taisen = ({ ship, ...props }) => (
 )
 
 Taisen.propTypes = {
-  ship: propTypes.shape(shipInfoShape).isRequired,
-  className: propTypes.string,
+  ship: PropTypes.shape(shipInfoShape).isRequired,
+  className: PropTypes.string,
 }
 
 const Sakuteki = ({ ship, ...props }) => (
@@ -313,8 +321,8 @@ const Sakuteki = ({ ship, ...props }) => (
 )
 
 Sakuteki.propTypes = {
-  ship: propTypes.shape(shipInfoShape).isRequired,
-  className: propTypes.string,
+  ship: PropTypes.shape(shipInfoShape).isRequired,
+  className: PropTypes.string,
 }
 
 const RepairTime = ({ className, ship, ...props }) => {
@@ -357,8 +365,8 @@ const RepairTime = ({ className, ship, ...props }) => {
 }
 
 RepairTime.propTypes = {
-  ship: propTypes.shape(shipInfoShape).isRequired,
-  className: propTypes.string,
+  ship: PropTypes.shape(shipInfoShape).isRequired,
+  className: PropTypes.string,
 }
 
 const Equipment = ({ ship, ...props }) => (
@@ -370,8 +378,8 @@ const Equipment = ({ ship, ...props }) => (
 )
 
 Equipment.propTypes = {
-  ship: propTypes.shape(shipInfoShape).isRequired,
-  className: propTypes.string,
+  ship: PropTypes.shape(shipInfoShape).isRequired,
+  className: PropTypes.string,
 }
 
 const Lock = ({ ship, ...props }) => (
@@ -383,13 +391,13 @@ const Lock = ({ ship, ...props }) => (
 )
 
 Lock.propTypes = {
-  ship: propTypes.shape(shipInfoShape).isRequired,
-  className: propTypes.string,
+  ship: PropTypes.shape(shipInfoShape).isRequired,
+  className: PropTypes.string,
 }
 
 export default {
   id: Id,
-  name: Name,
+  name: connect(state => ({ enableAvatar: enableAvatarConfigSelector(state) }))(Name),
   type: Type,
   soku: Soku,
   lv: Lv,
