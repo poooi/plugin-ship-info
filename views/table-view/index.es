@@ -3,7 +3,7 @@ import propTypes from 'prop-types'
 import { connect } from 'react-redux'
 import cls from 'classnames'
 import { MultiGrid } from 'react-virtualized'
-import { sum, debounce, floor, get } from 'lodash'
+import { sum, debounce, floor, get, memoize } from 'lodash'
 
 import { extensionSelectorFactory } from 'views/utils/selectors'
 
@@ -110,18 +110,18 @@ const ShipInfoTableArea = connect(
     dispatch: propTypes.func,
   }
 
-  state = {
-    windowWidth: window.innerWidth,
-    windowHeight: window.innerHeight,
-    activeColumn: -1,
-    activeRow: -1,
-  }
-
   constructor(props) {
     super(props)
     this.tableWidth = sum(WIDTHS)
     this.updateWindowSize = debounce(this.updateWindowSize, 500)
     this.setRef = this.setRef.bind(this)
+    this.onClickFactory = memoize(this.onClickFactory)
+    this.state = {
+      windowWidth: window.innerWidth,
+      windowHeight: window.innerHeight,
+      activeColumn: -1,
+      activeRow: -1,
+    }
   }
 
   componentDidMount = () => {
@@ -140,16 +140,67 @@ const ShipInfoTableArea = connect(
     // })
   }
 
-  updateWindowSize = () => {
+  onContextMenu = () =>
     this.setState({
-      windowWidth: window.innerWidth,
-      windowHeight: window.innerHeight,
-    }, () => {
-      if (this.grid) {
-        this.grid.recomputeGridSize()
-        this.grid.forceUpdateGrids()
-      }
+      activeColumn: -1,
+      activeRow: -1,
     })
+
+  onClickFactory = ({ columnIndex, rowIndex }) => () => {
+    const { activeColumn, activeRow } = this.state
+    const off = activeColumn === columnIndex && activeRow === rowIndex
+    this.setState({
+      activeColumn: off ? -1 : columnIndex,
+      activeRow: off ? -1 : rowIndex,
+    })
+  }
+
+  setRef = (ref) => {
+    this.grid = ref
+  }
+
+  getColumnWidth = ({ index }) => {
+    // 20: magic number, seems it need to be greater than 16
+    const width = floor((WIDTHS[index] || 40) *
+      (this.state.windowWidth - 20 > this.tableWidth
+        ? ((this.state.windowWidth - 20) / this.tableWidth)
+        : 1
+      ),
+    )
+    return width
+  }
+
+  handleContentRendered = (e) => {
+    const { rowStopIndex, columnStopIndex } = e
+    if (this.activeColumn !== -1 && this.activeRow !== -1) {
+      this.setState({
+        activeColumn: (this.state.activeColumn + columnStopIndex) - this.columnStopIndex,
+        activeRow: (this.state.activeRow + rowStopIndex) - this.rowStopIndex,
+      })
+    }
+    this.rowStopIndex = rowStopIndex
+    this.columnStopIndex = columnStopIndex
+  }
+
+  handleClickTitle = title => () => {
+    if (this.props.sortName !== title) {
+      const order = (title === 'id' || title === 'type' || title === 'name') ? 1 : 0
+      this.saveSortRules(title, order)
+    } else {
+      this.saveSortRules(this.props.sortName, (this.props.sortOrder + 1) % 2)
+    }
+  }
+
+  handleScroll = ({ scrollTop }) => {
+    const { rows } = this.props
+    const contentHeight = rows.length * ROW_HEIGHT
+    const safeZone = Math.round(window.screen.height / config.get('poi.zoomLevel', 1))
+    if (this.props.toTop !== !scrollTop && contentHeight > safeZone) {
+      this.props.dispatch({
+        type: '@@poi-plugin-ship-info@scroll',
+        toTop: !scrollTop,
+      })
+    }
   }
 
   saveSortRules = (name, order) => {
@@ -157,54 +208,18 @@ const ShipInfoTableArea = connect(
     config.set('plugin.ShipInfo.sortOrder', order)
   }
 
-  titleRenderer = ({
-    columnIndex, style, sortName, sortOrder, ...props
-  }) => {
-    if (columnIndex === 0) {
-      return <div style={style} {...props} />
-    }
-    const index = columnIndex - 1
-    return (
-      <TitleCell
-        {...props}
-        style={style}
-        title={TITLES[index]}
-        sortable={SORTABLES[index]}
-        centerAlign={CENTER_ALIGNS[index]}
-        sorting={sortName === TYPES[index]}
-        up={sortName === TYPES[index] && Boolean(sortOrder)}
-        down={sortName === TYPES[index] && Boolean(!sortOrder)}
-        handleClickTitle={this.handleClickTitle(TYPES[index])}
-      />
-    )
-  }
-
   cellRenderer = ({
     columnIndex, key, rowIndex, style,
   }) => {
     const { rows, sortName, sortOrder } = this.props
-    const setState = this.setState.bind(this)
-    const onClick = () => {
-      const { activeColumn, activeRow } = this.state
-      const off = activeColumn === columnIndex && activeRow === rowIndex
-      setState({
-        activeColumn: off ? -1 : columnIndex,
-        activeRow: off ? -1 : rowIndex,
-      })
-    }
-    const onContextMenu = () => {
-      setState({
-        activeColumn: -1,
-        activeRow: -1,
-      })
-    }
+
     const highlight = (columnIndex === this.state.activeColumn || rowIndex === this.state.activeRow)
       && !(columnIndex === 0 && rowIndex !== this.state.activeRow)
       && !(rowIndex === 0 && columnIndex !== this.state.activeColumn)
     const props = {
       key,
-      onClick,
-      onContextMenu,
+      onClick: this.onClickFactory({ columnIndex, rowIndex }),
+      onContextMenu: this.onContextMenu,
       className: cls({
         'ship-info-cell': true,
         center: CENTER_ALIGNS[columnIndex - 1],
@@ -230,52 +245,38 @@ const ShipInfoTableArea = connect(
     return content
   }
 
-  handleContentRendered = (e) => {
-    const { rowStopIndex, columnStopIndex } = e
-    if (this.activeColumn !== -1 && this.activeRow !== -1) {
-      this.setState({
-        activeColumn: (this.state.activeColumn + columnStopIndex) - this.columnStopIndex,
-        activeRow: (this.state.activeRow + rowStopIndex) - this.rowStopIndex,
-      })
+  titleRenderer = ({
+    columnIndex, style, sortName, sortOrder, ...props
+  }) => {
+    if (columnIndex === 0) {
+      return <div style={style} {...props} />
     }
-    this.rowStopIndex = rowStopIndex
-    this.columnStopIndex = columnStopIndex
-  }
-
-  handleClickTitle = title => () => {
-    if (this.props.sortName !== title) {
-      const order = (title === 'id' || title === 'type' || title === 'name') ? 1 : 0
-      this.saveSortRules(title, order)
-    } else {
-      this.saveSortRules(this.props.sortName, (this.props.sortOrder + 1) % 2)
-    }
-  }
-
-  getColumnWidth = ({ index }) => {
-    // 20: magic number, seems it need to be greater than 16
-    const width = floor((WIDTHS[index] || 40) *
-      (this.state.windowWidth - 20 > this.tableWidth
-        ? ((this.state.windowWidth - 20) / this.tableWidth)
-        : 1
-      ),
+    const index = columnIndex - 1
+    return (
+      <TitleCell
+        {...props}
+        style={style}
+        title={TITLES[index]}
+        sortable={SORTABLES[index]}
+        centerAlign={CENTER_ALIGNS[index]}
+        sorting={sortName === TYPES[index]}
+        up={sortName === TYPES[index] && Boolean(sortOrder)}
+        down={sortName === TYPES[index] && Boolean(!sortOrder)}
+        handleClickTitle={this.handleClickTitle(TYPES[index])}
+      />
     )
-    return width
   }
 
-  handleScroll = ({ scrollTop }) => {
-    const { rows } = this.props
-    const contentHeight = rows.length * ROW_HEIGHT
-    const safeZone = Math.round(window.screen.height / config.get('poi.zoomLevel', 1))
-    if (this.props.toTop !== !scrollTop && contentHeight > safeZone) {
-      this.props.dispatch({
-        type: '@@poi-plugin-ship-info@scroll',
-        toTop: !scrollTop,
-      })
-    }
-  }
-
-  setRef = (ref) => {
-    this.grid = ref
+  updateWindowSize = () => {
+    this.setState({
+      windowWidth: window.innerWidth,
+      windowHeight: window.innerHeight,
+    }, () => {
+      if (this.grid) {
+        this.grid.recomputeGridSize()
+        this.grid.forceUpdateGrids()
+      }
+    })
   }
 
   render() {
