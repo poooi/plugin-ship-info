@@ -3,7 +3,7 @@ import propTypes from 'prop-types'
 import { connect } from 'react-redux'
 import cls from 'classnames'
 import { MultiGrid } from 'react-virtualized'
-import { sum, debounce, floor, get, memoize } from 'lodash'
+import { sum, debounce, floor, get, memoize, map } from 'lodash'
 
 import { extensionSelectorFactory } from 'views/utils/selectors'
 import { WindowEnv } from 'views/components/etc/window-env'
@@ -12,42 +12,16 @@ import Divider from '../divider'
 import { shipInfoShape } from '../utils'
 import { shipRowsSelector, shipInfoConfigSelector } from '../selectors'
 import ShipInfoCells from './ship-info-cells'
+import COLUMNS from './columns'
 
 const { __ } = window.i18n['poi-plugin-ship-info']
 
-const TYPES = [
-  'id', 'name', 'type', 'soku', 'lv',
-  'cond', 'hp', 'karyoku', 'raisou', 'taiku',
-  'soukou', 'lucky', 'kaihi', 'taisen', 'sakuteki',
-  'repairtime', 'equipment', 'lock',
-]
-const TITLES = [
-  'ID', 'Name', 'Class', 'Speed', 'Level',
-  'Cond', 'HP', 'Firepower', 'Torpedo', 'AA',
-  'Armor', 'Luck', 'Evasion', 'ASW', 'LOS',
-  'Repair', 'Equipment', 'Lock',
-]
-const SORTABLES = [
-  true, true, true, true, true,
-  true, true, true, true, true,
-  true, true, true, true, true,
-  true, false, false,
-]
-const CENTER_ALIGNS = [
-  false, false, false, false, true,
-  true, true, true, true, true,
-  true, true, true, true, true,
-  true, false, true,
-]
-
+const TYPES = map(COLUMNS, 'name')
+const TITLES = map(COLUMNS, 'title')
+const SORTABLES = map(COLUMNS, 'sortable')
+const CENTER_ALIGNS = map(COLUMNS, 'center')
 // width will always unshift 1 extra element for row index
-const WIDTHS = [
-  40,
-  50, 220, 90, 40, 40,
-  40, 40, 60, 60, 60,
-  60, 60, 40, 40, 40,
-  80, 180, 40,
-]
+const WIDTHS = [40].concat(map(COLUMNS, 'width'))
 
 const ROW_HEIGHT = 35
 
