@@ -197,7 +197,7 @@ const Area = connect(
     return (
       <div style={{ border: `solid 1px ${hexToRGBA(area.color, 0.5)}` }} className="area">
         <div className="header">
-          <div className="area-name"><Label style={{ color: area.color }}><FA name="tag" />{area.name}</Label></div>
+          <div className="area-name"><Label style={{ color: area.color }}><FA name="tag" /></Label>{area.name}</div>
           <div><AddShipDropdown area={index} onSelect={this.handleAddShip} /></div>
         </div>
         <div style={{ backgroundColor: hexToRGBA(area.color, 0.5) }}>
