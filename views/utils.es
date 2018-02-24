@@ -305,7 +305,7 @@ export const shipSuperTypeMap = [
 ]
 
 export const reverseSuperTypeMap = _(shipSuperTypeMap)
-  .flatMap(({ id }, index) => _(id).map(type => ([type, index]).values()))
+  .flatMap(({ id }, index) => _(id).map(type => ([type, index])).value())
   .fromPairs()
   .value()
 
