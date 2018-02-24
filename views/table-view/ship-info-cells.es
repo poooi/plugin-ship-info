@@ -301,7 +301,7 @@ const Taisen = ({ ship, ...props }) => (
     {...props}
   >
     <span>
-      { ship.taisen - ship.kyouka[6] }
+      { ship.taisen }
       { ship.kyouka[6] > 0 && <sup>+{ship.kyouka[6]}</sup> }
     </span>
   </div>
