@@ -1,4 +1,6 @@
 import { screen } from 'electron'
+import url from 'url'
+import path from 'path'
 
 const { workArea } = screen.getPrimaryDisplay()
 let {
@@ -30,7 +32,11 @@ export const windowOptions = {
     nodeIntegrationInWorker: true,
   },
 }
-export const windowURL = `file://${__dirname}/index.html`
+export const windowURL = url.format({
+  protocol: 'file',
+  slashes: true,
+  pathname: path.resolve(__dirname, 'index.html'),
+})
 export const useEnv = true
 // export const realClose = true
 
