@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import propTypes from 'prop-types'
-import { Dropdown, Button, ButtonGroup, ButtonToolbar } from 'react-bootstrap'
+import { Dropdown, Checkbox } from 'react-bootstrap'
 import { connect } from 'react-redux'
 import { get, each, findIndex } from 'lodash'
 import FontAwesome from 'react-fontawesome'
@@ -49,12 +49,20 @@ const reorderShips = (dispatch, getState) => {
 }
 
 const DeckPlannerView = connect(
-  state => ({
-    color: get(state, 'fcd.shiptag.color', []),
-    mapname: get(state, 'fcd.shiptag.mapname', []),
-    current: deckPlannerCurrentSelector(state),
-    vibrant: get(state, 'config.poi.vibrant'),
-  })
+  (state) => {
+    const displayFleetName = get(state.config, 'plugin.ShipInfo.displayFleetName', false)
+    const mapname = displayFleetName
+      ? get(state, ['fcd', 'shiptag', 'fleetname', window.language], [])
+      : get(state, ['fcd', 'shiptag', 'mapname'], [])
+
+    return {
+      color: get(state, 'fcd.shiptag.color', []),
+      mapname,
+      current: deckPlannerCurrentSelector(state),
+      vibrant: get(state, 'config.poi.vibrant'),
+      displayFleetName,
+    }
+  }
 )(class DeckPlannerView extends Component {
   static propTypes = {
     color: propTypes.arrayOf(propTypes.string),
@@ -63,6 +71,7 @@ const DeckPlannerView = connect(
     vibrant: propTypes.number,
     open: propTypes.bool,
     dispatch: propTypes.func,
+    displayFleetName: propTypes.bool.isRequired,
   }
 
   constructor(props) {
@@ -72,12 +81,6 @@ const DeckPlannerView = connect(
 
     this.state = {
       name: 'deck plan',
-      areas: mapname.map((name, index) => ({
-        name,
-        color: color[index],
-        ships: [],
-        areaIndex: index,
-      })),
       left: 0,
       view: 'area',
       fill: -1,
@@ -122,10 +125,22 @@ const DeckPlannerView = connect(
     this.setState({ extend: false })
   }
 
+  handleChangeDisplayFleetName = () => {
+    config.set('plugin.ShipInfo.displayFleetName', !this.props.displayFleetName)
+  }
+
   render() {
     const {
-      areas, left, view, fill, extend,
+      left, view, fill, extend,
     } = this.state
+    const { mapname, color, displayFleetName } = this.props
+
+    const areas = mapname.map((name, index) => ({
+      name,
+      color: color[index],
+      ships: [],
+      areaIndex: index,
+    }))
     const { vibrant } = this.props
     return (
       <ul
@@ -213,6 +228,21 @@ const DeckPlannerView = connect(
             </div>
           }
           <div className="radio-check">
+            {
+              view === 'ship' &&
+              <div
+                onClick={this.handleChangeDisplayFleetName}
+                className={cls('filter-option', {
+                  dark: window.isDarkTheme,
+                  light: !window.isDarkTheme,
+                  checked: displayFleetName,
+                })}
+                role="button"
+                tabIndex="0"
+              >
+                {__('Show fleet name')}
+              </div>
+            }
             <div
               onClick={() => this.props.dispatch(reorderShips)}
               className={cls('filter-option', {

@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import propTypes from 'prop-types'
-import { div } from 'react-bootstrap'
+import { Checkbox } from 'react-bootstrap'
 import { connect } from 'react-redux'
 import { get, isEqual } from 'lodash'
 import cls from 'classnames'
@@ -25,7 +25,10 @@ const hexToRGBA = (hex, opacity = 1) => {
 // Sally area value starts from 1, 0 is used for non-tagged ships
 const SallyAreaCheck = connect(
   (state) => {
-    const mapname = get(state, 'fcd.shiptag.mapname', [])
+    const displayFleetName = get(state.config, 'plugin.ShipInfo.displayFleetName', false)
+    const mapname = displayFleetName
+      ? get(state, ['fcd', 'shiptag', 'fleetname', window.language], [])
+      : get(state, ['fcd', 'shiptag', 'mapname'], [])
     const defaultChecked = Array(mapname.length + 1).fill(true)
     let checked = get(state.config, 'plugin.ShipInfo.sallyAreaChecked', defaultChecked)
 
@@ -40,6 +43,7 @@ const SallyAreaCheck = connect(
       color: get(state, 'fcd.shiptag.color', []),
       checked,
       checkedAll,
+      displayFleetName,
     })
   }
 )(class SallyAreaCheck extends Component {
@@ -48,11 +52,8 @@ const SallyAreaCheck = connect(
     checkedAll: propTypes.bool.isRequired,
     mapname: propTypes.arrayOf(propTypes.string),
     color: propTypes.arrayOf(propTypes.string),
+    displayFleetName: propTypes.bool.isRequired,
   }
-
-  shouldComponentUpdate = nextProps =>
-    nextProps.mapname.length !== this.props.mapname.length ||
-      !isEqual(nextProps.checked, this.props.checked)
 
   handleClickBox = index => () => {
     const checked = this.props.checked.slice()
@@ -69,13 +70,20 @@ const SallyAreaCheck = connect(
     config.set('plugin.ShipInfo.sallyAreaChecked', checked)
   }
 
+  handleChangeDisplayFleetName = () => {
+    config.set('plugin.ShipInfo.displayFleetName', !this.props.displayFleetName)
+  }
+
   render() {
     const {
-      mapname, color, checked, checkedAll,
+      mapname, color, checked, checkedAll, displayFleetName,
     } = this.props
     return (
       <div className="radio-check">
-        <div className="filter-span"><span>{__('Sally Area')}</span></div>
+        <div className="filter-span">
+          <span>{__('Sally Area')}</span>
+          <Checkbox inline checked={displayFleetName} onChange={this.handleChangeDisplayFleetName}>{__('Show fleet name')}</Checkbox>
+        </div>
 
         <div
           role="button"
