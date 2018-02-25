@@ -1,5 +1,6 @@
 import propTypes from 'prop-types'
 import _, { clone } from 'lodash'
+import url from 'url'
 import { repairFactor } from './constants'
 
 const { __ } = window
@@ -415,3 +416,9 @@ export const leyteFleets = [
     ships: [440],
   },
 ]
+
+export const fileUrl = pathname => url.format({
+  protocol: 'file',
+  slashes: true,
+  pathname,
+})

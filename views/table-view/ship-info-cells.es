@@ -12,7 +12,7 @@ import { Avatar } from 'views/components/etc/avatar'
 import Slotitems from './slotitems'
 import SallyArea from './sally-area'
 import { sokuInterpretation, sokuStyles } from '../constants'
-import { getTimePerHP, shipInfoShape, shipTypes } from '../utils'
+import { getTimePerHP, shipInfoShape, shipTypes, fileUrl } from '../utils'
 
 const { __ } = window
 
@@ -51,7 +51,7 @@ const Name = ({ className, ship, enableAvatar, ...props }) => (
         <img
           className="fleet-id-indicator"
           alt={`fleet: ${ship.fleetId + 1}`}
-          src={path.resolve(__dirname, `../../assets/svg/fleet-indicator-${ship.fleetId + 1}.svg`)}
+          src={fileUrl(path.resolve(__dirname, `../../assets/svg/fleet-indicator-${ship.fleetId + 1}.svg`))}
         />
     }
     <SallyArea area={ship.sallyArea} info_id={ship.id} />

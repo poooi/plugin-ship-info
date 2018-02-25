@@ -10,7 +10,7 @@ import path from 'path'
 import { onAddShip, onRemoveShip, onDisplaceShip } from '../../redux'
 import AddShipDropdown from './add-ship-dropdown'
 import { shipMenuDataSelector, ShipItemSelectorFactory, deckPlannerAreaSelectorFactory, shipFleetIdSelectorFactory } from '../../selectors'
-import { shipTypes, hexToRGBA } from '../../utils'
+import { shipTypes, hexToRGBA, fileUrl } from '../../utils'
 
 const { __, __r } = window
 
@@ -137,7 +137,7 @@ const ShipChip = connect(
                 className="fleet-id-indicator"
                 style={{ height: '10px' }}
                 alt={`fleet: ${fleetId + 1}`}
-                src={path.resolve(__dirname, `../../../assets/svg/fleet-indicator-${fleetId + 1}.svg`)}
+                src={fileUrl(path.resolve(__dirname, `../../../assets/svg/fleet-indicator-${fleetId + 1}.svg`))}
               />
           }
         </span>
