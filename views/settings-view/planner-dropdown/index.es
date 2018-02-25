@@ -228,21 +228,18 @@ const DeckPlannerView = connect(
             </div>
           }
           <div className="radio-check">
-            {
-              view === 'ship' &&
-              <div
-                onClick={this.handleChangeDisplayFleetName}
-                className={cls('filter-option', {
-                  dark: window.isDarkTheme,
-                  light: !window.isDarkTheme,
-                  checked: displayFleetName,
-                })}
-                role="button"
-                tabIndex="0"
-              >
-                {__('Show fleet name')}
-              </div>
-            }
+            <div
+              onClick={this.handleChangeDisplayFleetName}
+              className={cls('filter-option', {
+                dark: window.isDarkTheme,
+                light: !window.isDarkTheme,
+                checked: displayFleetName,
+              })}
+              role="button"
+              tabIndex="0"
+            >
+              {__('Show fleet name')}
+            </div>
             <div
               onClick={() => this.props.dispatch(reorderShips)}
               className={cls('filter-option', {
