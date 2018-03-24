@@ -10,8 +10,9 @@ import { extensionSelectorFactory } from 'views/utils/selectors'
 
 import LeyteStat from './leyte-stat'
 import CollectionProgress from './collection-progress'
+import { captureRect } from '../../utils'
 
-const { __ } = window
+const { __ } = window.i18n['poi-plugin-ship-info']
 
 const StatView = connect(
   state => ({
@@ -51,7 +52,7 @@ const StatView = connect(
 
   handleCaptureRect = async () => {
     await this.setState({ extend: true })
-    await window.captureRect('#stat-rect')
+    await captureRect('#stat-rect')
     this.setState({ extend: false })
   }
 

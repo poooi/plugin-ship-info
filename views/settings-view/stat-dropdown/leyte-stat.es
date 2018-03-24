@@ -8,7 +8,8 @@ import fp from 'lodash/fp'
 import { leyteFleets } from '../../utils'
 import { shipMenuDataSelector, adjustedRemodelChainsSelector, graphSelector } from '../../selectors'
 
-const { __, __r } = window
+const { __ } = window.i18n['poi-plugin-ship-info']
+const { __: __r } = window.i18n.resources
 
 const MAX_LEVEL = 165
 

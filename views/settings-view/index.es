@@ -16,7 +16,8 @@ import StatDropdown from './stat-dropdown'
 
 import { dataObserver, initStore } from '../redux'
 
-const { __, config } = window
+const { config } = window
+const { __ } = window.i18n['poi-plugin-ship-info']
 
 const ShipInfoCheckboxArea = connect(
   state => ({

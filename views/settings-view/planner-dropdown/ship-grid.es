@@ -7,7 +7,7 @@ import { shipSuperTypeMap } from '../../utils'
 import { onAddShip, onRemoveShip, onDisplaceShip } from '../../redux'
 import { shipMenuDataSelector, deckPlannerShipMapSelector } from '../../selectors'
 
-const { __ } = window
+const { __ } = window.i18n['poi-plugin-ship-info']
 
 const getDPAction = (shipId, fill) => (dispatch, getState) => {
   const planMap = deckPlannerShipMapSelector(getState())
@@ -38,7 +38,6 @@ const getDPAction = (shipId, fill) => (dispatch, getState) => {
     toAreaIndex: fill,
   }))
 }
-
 
 const ShipGrid = connect(
   state => ({

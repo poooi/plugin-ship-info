@@ -16,7 +16,7 @@ import { parseCsv } from '../csv-parser'
 const { dialog } = remote
 const outputFile = promisify(fs.outputFile)
 
-const { __ } = window
+const { __ } = window.i18n['poi-plugin-ship-info']
 
 const isWin = process.platform === 'win32'
 

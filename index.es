@@ -1,6 +1,4 @@
 import { screen } from 'electron'
-import url from 'url'
-import path from 'path'
 
 const { workArea } = screen.getPrimaryDisplay()
 let {
@@ -26,22 +24,9 @@ export const windowOptions = {
   y,
   width,
   height,
-  webPreferences: {
-    experimentalFeatures: true,
-    experimentalCanvasFeatures: true,
-    nodeIntegrationInWorker: true,
-  },
 }
-export const windowURL = url.format({
-  protocol: 'file',
-  slashes: true,
-  pathname: path.resolve(__dirname, 'index.html'),
-})
-export const useEnv = true
-// export const realClose = true
-
-// remove legacy config to tidy the config.cson
-// to be removed sometime
+export { reducer, reactClass } from './views'
 export const pluginDidLoad = () => {
   config.set('plugin.ShipInfo.shipTypeChecked')
 }
+export const windowMode = true

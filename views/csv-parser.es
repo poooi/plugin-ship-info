@@ -1,8 +1,9 @@
 import { get, map } from 'lodash'
 
 const {
-  __, _slotitems, $slotitems, $ships,
+  _slotitems, $slotitems, $ships,
 } = window
+const { __ } = window.i18n['poi-plugin-ship-info']
 
 const getItemName = index => (ship) => {
   const itemId = get(_slotitems, `${get(ship, `slot.${index}`)}.api_slotitem_id`)

@@ -5,7 +5,7 @@ import { connect } from 'react-redux'
 import { get } from 'lodash'
 import cls from 'classnames'
 
-const { __ } = window
+const { __ } = window.i18n['poi-plugin-ship-info']
 
 const hexToRGBA = (hex, opacity = 1) => {
   if (/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)) {

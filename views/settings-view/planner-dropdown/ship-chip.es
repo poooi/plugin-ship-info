@@ -11,7 +11,8 @@ import DisplaceToggle from './displace-toggle'
 import { ShipItemSelectorFactory, shipFleetIdSelectorFactory } from '../../selectors'
 import { shipTypes, fileUrl } from '../../utils'
 
-const { __, __r } = window
+const { __ } = window.i18n['poi-plugin-ship-info']
+const { __: __r } = window.i18n.resources
 
 export default connect(
   (state, props) => ({

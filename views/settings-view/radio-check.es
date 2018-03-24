@@ -6,7 +6,7 @@ import { get } from 'lodash'
 import cls from 'classnames'
 
 
-const { __ } = window
+const { __ } = window.i18n['poi-plugin-ship-info']
 
 // single option check
 // props:

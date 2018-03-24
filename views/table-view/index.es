@@ -12,7 +12,7 @@ import { shipInfoShape } from '../utils'
 import { shipRowsSelector, shipInfoConfigSelector } from '../selectors'
 import ShipInfoCells from './ship-info-cells'
 
-const { __ } = window
+const { __ } = window.i18n['poi-plugin-ship-info']
 
 const TYPES = [
   'id', 'name', 'type', 'soku', 'lv',
@@ -110,6 +110,10 @@ const ShipInfoTableArea = connect(
     dispatch: propTypes.func,
   }
 
+  static contextTypes = {
+    overlayMountPoint: propTypes.instanceOf(<div />),
+  }
+
   constructor(props) {
     super(props)
     this.tableWidth = sum(WIDTHS)
@@ -117,8 +121,8 @@ const ShipInfoTableArea = connect(
     this.setRef = this.setRef.bind(this)
     this.onClickFactory = memoize(this.onClickFactory)
     this.state = {
-      windowWidth: window.innerWidth,
-      windowHeight: window.innerHeight,
+      windowWidth: 800,
+      windowHeight: 600,
       activeColumn: -1,
       activeRow: -1,
     }
@@ -269,8 +273,8 @@ const ShipInfoTableArea = connect(
 
   updateWindowSize = () => {
     this.setState({
-      windowWidth: window.innerWidth,
-      windowHeight: window.innerHeight,
+      windowWidth: this.context.overlayMountPoint.querySelector('.poi-plugin').clientWidth,
+      windowHeight: this.context.overlayMountPoint.querySelector('.poi-plugin').clientHeight,
     }, () => {
       if (this.grid) {
         this.grid.recomputeGridSize()

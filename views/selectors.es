@@ -21,7 +21,7 @@ import {
 import { PLUGIN_KEY } from './redux'
 import { getShipInfoData, katakanaToHiragana, intToBoolArray, reverseSuperTypeMap } from './utils'
 
-const { __ } = window
+const { __ } = window.i18n['poi-plugin-ship-info']
 
 export const graphSelector = createSelector(
   [

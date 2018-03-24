@@ -8,13 +8,13 @@ import cls from 'classnames'
 
 import { extensionSelectorFactory } from 'views/utils/selectors'
 
-import { hexToRGBA } from '../../utils'
+import { hexToRGBA, captureRect } from '../../utils'
 import { onDPInit, onAddShip, onDisplaceShip, onRemoveShip } from '../../redux'
 import { deckPlannerCurrentSelector, shipMenuDataSelector, deckPlannerShipMapSelector } from '../../selectors'
 import Area from './area'
 import ShipGrid from './ship-grid'
 
-const { __ } = window
+const { __ } = window.i18n['poi-plugin-ship-info']
 
 const reorderShips = (dispatch, getState) => {
   const state = getState()
@@ -119,7 +119,7 @@ const DeckPlannerView = connect(
 
   handleCaptureImage = async () => {
     await this.setState({ extend: true })
-    window.captureRect('#planner-rect')
+    await captureRect('#planner-rect')
     this.setState({ extend: false })
   }
 
