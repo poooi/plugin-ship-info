@@ -368,7 +368,7 @@ export const shipMenuDataSelector = createSelector(
 export const deckPlannerCurrentSelector = createSelector(
   [
     extensionSelectorFactory(PLUGIN_KEY),
-  ], state => state.planner.current
+  ], state => (state.planner || {}).current
 )
 
 export const deckPlannerAreaSelectorFactory = memoize(areaIndex =>

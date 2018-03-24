@@ -30,6 +30,7 @@ module.exports = {
     'no-console': ['error', {allow: ['warn', 'error']}],
     'function-paren-newline': 'off',
     'jsx-a11y/click-events-have-key-events': 'off',
+    'jsx-a11y/anchor-is-valid': 'off',
   },
   'settings': {
     'import/resolver': {
@@ -58,6 +59,7 @@ module.exports = {
       'semver',
       'react-virtualized',
       'prop-types',
+      'fuse.js',
     ],
   },
 }

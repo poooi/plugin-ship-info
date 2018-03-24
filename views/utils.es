@@ -69,26 +69,31 @@ export const getShipInfoData = (
   const karyokuNow = houg[0] + kyouka[0]
   const karyokuMax = ship.api_karyoku[1]
   const karyoku = rawValue ? karyokuNow : ship.api_karyoku[0]
+  // eslint-disable-next-line no-underscore-dangle
   const _karyoku = ship.api_karyoku[0]
 
   const raisouNow = raig[0] + kyouka[1]
   const raisouMax = ship.api_raisou[1]
   const raisou = rawValue ? raisouNow : ship.api_raisou[0]
+  // eslint-disable-next-line no-underscore-dangle
   const _raisou = ship.api_raisou[0]
 
   const taikuNow = tyku[0] + kyouka[2]
   const taikuMax = ship.api_taiku[1]
   const taiku = rawValue ? taikuNow : ship.api_taiku[0]
+  // eslint-disable-next-line no-underscore-dangle
   const _taiku = ship.api_taiku[0]
 
   const soukouNow = souk[0] + kyouka[3]
   const soukouMax = ship.api_soukou[1]
   const soukou = rawValue ? soukouNow : ship.api_soukou[0]
+  // eslint-disable-next-line no-underscore-dangle
   const _soukou = ship.api_soukou[0]
 
   const luckyNow = luck[0] + kyouka[4]
   const luckyMax = ship.api_lucky[1]
   const lucky = rawValue ? luckyNow : ship.api_lucky[0]
+  // eslint-disable-next-line no-underscore-dangle
   const _lucky = ship.api_lucky[0]
 
   const isCompleted = karyokuNow >= karyokuMax &&
@@ -362,7 +367,6 @@ export const leyteFleets = [
   // 大淀
   // 初月、若月、秋月
   // 霜月
-  // '瑞鶴', '千代田', '千歳', '瑞鳳', '伊勢', '日向', '多摩', '五十鈴', '大淀', '初月', '若月', '秋月',  '霜月'
   {
     name: 'IJN Mobile Force (Ozawa)', // 機動部隊本隊
     ships: [111, 103, 102, 116, 77, 87, 100, 22, 183, 423, 421],
@@ -374,7 +378,6 @@ export const leyteFleets = [
   // 早霜、秋霜
   // 岸波、沖波、朝霜、長波
   // 浜波、藤波
-  // '愛宕', '高雄', '摩耶', '鳥海', '大和', '武蔵', '長門', '妙高', '羽黒', '能代','島風', '早霜', '秋霜', '岸波', '沖波', '朝霜', '長波', '浜波', '藤波'
   {
     name: 'IJN First Striking First Section (Kurita)', // 第一遊撃部隊 第一部隊
     ships: [67, 66, 68, 69, 131, 143, 80, 62, 65, 138, 50, 409, 452, 425, 135, 485],
@@ -382,7 +385,6 @@ export const leyteFleets = [
   // 金剛、榛名
   // 鈴谷、熊野、利根、筑摩
   // 矢矧 浦風、磯風、雪風、浜風、清霜、野分
-  // '金剛', '榛名', '鈴谷', '熊野', '利根', '筑摩', '矢矧', '浦風', '磯風', '雪風', '浜風', '清霜', '野分'
   {
     name: 'IJN First Striking Second Section (Suzuki)', // 第一遊撃部隊 第二部隊
     ships: [78, 79, 124, 125, 71, 72, 139, 168, 167, 20, 170, 410, 415],
@@ -391,7 +393,6 @@ export const leyteFleets = [
   // 最上
   // 時雨
   // 山雲、満潮、朝雲
-  // '山城', '扶桑', '最上', '時雨', '山雲', '満潮', '朝雲'
   {
     name: 'IJN First Striking Third Section (Nishimura)', // 第一遊撃部隊 第三部隊
     ships: [27, 26, 70, 43, 414, 97, 413],
@@ -404,7 +405,6 @@ export const leyteFleets = [
   // 青葉
   // 鬼怒
   // 浦波
-  // '那智', '足柄', '阿武隈', '曙', '潮', '霞', '不知火', '若葉', '初春', '初霜', '青葉', '鬼怒', '浦波'
   {
     name: 'IJN Second Striking Force (Shima)', // 第二遊撃部隊
     ships: [63, 64, 114, 15, 16, 49, 18, 40, 38, 41, 61, 113, 486],

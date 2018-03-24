@@ -1,8 +1,7 @@
 // copy from vires/utils/FileWriter.es
 // we use outputJson instead of writeFile
 
-import { outputJson, ensureDir } from 'fs-extra'
-import { dirname } from 'path-extra'
+import { outputJson } from 'fs-extra'
 
 // A stream of async file writing. `write` queues the task which will be executed
 // after all tasks before are done.

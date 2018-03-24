@@ -31,7 +31,9 @@ Id.propTypes = {
   className: PropTypes.string,
 }
 
-const Name = ({ className, ship, enableAvatar, ...props }) => (
+const Name = ({
+  className, ship, enableAvatar, ...props
+}) => (
   <div
     {...props}
     className={`${className || ''} ship-name`}

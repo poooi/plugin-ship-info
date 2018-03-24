@@ -11,13 +11,14 @@ const { __ } = window
 
 const RANDOM_COLORS = times(200, () => `hsla(${Math.floor(Math.random() * 360)}, 60%, 70%, 0.6)`)
 
+// eslint-disable-next-line react/prop-types
 const NameCube = ({ name, count, ctype }) => {
   if (name.length === 1) {
     return (
       <div className="name-cube" style={{ background: count > 0 && RANDOM_COLORS[ctype] }}>
         <div style={{
- width: '50px', textAlign: 'center', lineHeight: '50px', fontSize: '20px',
-}}
+          width: '50px', textAlign: 'center', lineHeight: '50px', fontSize: '20px',
+        }}
         >{name}
         </div>
       </div>
@@ -28,7 +29,7 @@ const NameCube = ({ name, count, ctype }) => {
   let name2
   let name3
   let name4
-
+  /* eslint-disable prefer-destructuring */
   if (name.length === 2) {
     name1 = name[0]
     name4 = name[1]

@@ -52,6 +52,7 @@ class ShipMenu extends Component {
   }
 
   handleShipSelect = (eventKey) => {
+    // eslint-disable-next-line no-console
     console.log(eventKey)
   }
 

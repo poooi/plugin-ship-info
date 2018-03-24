@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import propTypes from 'prop-types'
 import { Checkbox } from 'react-bootstrap'
 import { connect } from 'react-redux'
-import { get, isEqual } from 'lodash'
+import { get } from 'lodash'
 import cls from 'classnames'
 
 const { __ } = window

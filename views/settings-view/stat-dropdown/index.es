@@ -143,13 +143,13 @@ const PlannerDropdown = connect(
     activeDropdown: get(extensionSelectorFactory('poi-plugin-ship-info')(state), 'ui.activeDropdown', 0),
   }),
   { handleToggle: handleToggleAction },
-)(({ activeDropdown, handleToggle }) =>
-  (<Dropdown id="stat" pullRight open={activeDropdown === 'stat'} onToggle={handleToggle}>
+)(({ activeDropdown, handleToggle }) => (
+  <Dropdown id="stat" pullRight open={activeDropdown === 'stat'} onToggle={handleToggle}>
     <Dropdown.Toggle>
       <FontAwesome name="line-chart" style={{ marginRight: '1ex' }} />{__('Statistics')} <sup>BETA</sup>
     </Dropdown.Toggle>
     <StatView bsRole="menu" open={activeDropdown === 'stat'} />
-  </Dropdown>)
-)
+  </Dropdown>
+))
 
 export default PlannerDropdown

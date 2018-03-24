@@ -46,6 +46,11 @@ const BookmarkMenu = connect(
     bookmarks: extensionSelectorFactory(PLUGIN_KEY)(state).bookmark || {},
   })
 )(class BookmarkMenu extends Component {
+  static propTypes = {
+    bookmarks: propTypes.objectOf(propTypes.object).isRequired,
+    children: propTypes.arrayOf(propTypes.element),
+  }
+
   constructor(props) {
     super(props)
     const bookmarks = values(props.bookmarks)
@@ -57,11 +62,6 @@ const BookmarkMenu = connect(
     this.state = {
       query: '',
     }
-  }
-
-  static propTypes = {
-    bookmarks: propTypes.objectOf(propTypes.object).isRequired,
-    children: propTypes.arrayOf(propTypes.element),
   }
 
   // componentDidMount = () => {
@@ -182,8 +182,8 @@ const BookmarkDropdown = connect(
     activeDropdown: get(extensionSelectorFactory('poi-plugin-ship-info')(state), 'ui.activeDropdown', 0),
   }),
   { handleToggle: handleToggleAction },
-)(({ bookmarks, activeDropdown, handleToggle }) =>
-  (<Dropdown id="bookmark" pullRight open={activeDropdown === 'bookmark'} onToggle={handleToggle}>
+)(({ bookmarks, activeDropdown, handleToggle }) => (
+  <Dropdown id="bookmark" pullRight open={activeDropdown === 'bookmark'} onToggle={handleToggle}>
     <Dropdown.Toggle>
       <FontAwesome name="tags" style={{ marginRight: '1ex' }} />{__('Bookmarks')}
     </Dropdown.Toggle>
@@ -194,6 +194,7 @@ const BookmarkDropdown = connect(
         )
       }
     </BookmarkMenu>
-   </Dropdown>)
-)
+  </Dropdown>
+))
+
 export default BookmarkDropdown

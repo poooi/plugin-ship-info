@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import propTypes from 'prop-types'
-import { Dropdown, Checkbox } from 'react-bootstrap'
+import { Dropdown } from 'react-bootstrap'
 import { connect } from 'react-redux'
 import { get, each, findIndex } from 'lodash'
 import FontAwesome from 'react-fontawesome'
@@ -76,8 +76,6 @@ const DeckPlannerView = connect(
 
   constructor(props) {
     super(props)
-
-    const { mapname, color } = props
 
     this.state = {
       name: 'deck plan',
