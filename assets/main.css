@@ -2,11 +2,6 @@
   --color-primary: hsl(210, 50%, 40%);
 }
 
-.ship-info-wrap *, body, h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
-  font-family: "Ubuntu", "Helvetica Neue", "Helvetica", "Arial", "Heiti SC", "WenQuanYi Micro Hei", "Microsoft YaHei", sans-serif;
-  outline: none;
-}
-
 /* this prvents font fallback */
 .ship-info-wrap #stat-rect *,
 .ship-info-wrap #planner-rect * {
