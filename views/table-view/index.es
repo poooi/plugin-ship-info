@@ -6,6 +6,7 @@ import { MultiGrid } from 'react-virtualized'
 import { sum, debounce, floor, get, memoize } from 'lodash'
 
 import { extensionSelectorFactory } from 'views/utils/selectors'
+import { WindowEnv } from 'views/components/etc/window-env'
 
 import Divider from '../divider'
 import { shipInfoShape } from '../utils'
@@ -110,10 +111,6 @@ const ShipInfoTableArea = connect(
     dispatch: propTypes.func,
   }
 
-  static contextTypes = {
-    overlayMountPoint: propTypes.instanceOf(<div />),
-  }
-
   constructor(props) {
     super(props)
     this.tableWidth = sum(WIDTHS)
@@ -121,8 +118,8 @@ const ShipInfoTableArea = connect(
     this.setRef = this.setRef.bind(this)
     this.onClickFactory = memoize(this.onClickFactory)
     this.state = {
-      windowWidth: 800,
-      windowHeight: 600,
+      windowWidth: props.mountPoint.clientWidth,
+      windowHeight: props.mountPoint.clientHeight,
       activeColumn: -1,
       activeRow: -1,
     }
@@ -273,8 +270,8 @@ const ShipInfoTableArea = connect(
 
   updateWindowSize = () => {
     this.setState({
-      windowWidth: this.context.overlayMountPoint.querySelector('.poi-plugin').clientWidth,
-      windowHeight: this.context.overlayMountPoint.querySelector('.poi-plugin').clientHeight,
+      windowWidth: this.props.mountPoint.querySelector('.poi-plugin').clientWidth,
+      windowHeight: this.props.mountPoint.querySelector('.poi-plugin').clientHeight,
     }, () => {
       if (this.grid) {
         this.grid.recomputeGridSize()
@@ -324,4 +321,8 @@ const ShipInfoTableArea = connect(
   }
 })
 
-export default ShipInfoTableArea
+export default props => (
+  <WindowEnv.Consumer>
+    {({ mountPoint }) => <ShipInfoTableArea mountPoint={mountPoint} {...props} />}
+  </WindowEnv.Consumer>
+)
