@@ -118,8 +118,8 @@ const ShipInfoTableArea = connect(
     this.setRef = this.setRef.bind(this)
     this.onClickFactory = memoize(this.onClickFactory)
     this.state = {
-      windowWidth: props.mountPoint.clientWidth,
-      windowHeight: props.mountPoint.clientHeight,
+      windowWidth: props.window.innerWidth,
+      windowHeight: props.window.innerHeight,
       activeColumn: -1,
       activeRow: -1,
     }
@@ -128,17 +128,10 @@ const ShipInfoTableArea = connect(
   componentDidMount = () => {
     this.updateWindowSize()
     window.addEventListener('resize', this.updateWindowSize)
-    // console.log(document.querySelectorAll('.ReactVirtualized__Grid'))
-    // document.querySelectorAll('.ReactVirtualized__Grid').forEach((target) => {
-    //   target.addEventListener('scroll', this.handleScroll)
-    // })
   }
 
   componentWillUnmount = () => {
     window.removeEventListener('resize', this.updateWindowSize)
-    // document.querySelectorAll('.ReactVirtualized__Grid').forEach((target) => {
-    //   target.removeEventListener('scroll', this.handleScroll)
-    // })
   }
 
   onContextMenu = () =>
@@ -269,9 +262,10 @@ const ShipInfoTableArea = connect(
   }
 
   updateWindowSize = () => {
+    const target = this.props.window.document.querySelector('.poi-plugin')
     this.setState({
-      windowWidth: this.props.mountPoint.querySelector('.poi-plugin').clientWidth,
-      windowHeight: this.props.mountPoint.querySelector('.poi-plugin').clientHeight,
+      windowWidth: target ? target.clientWidth : 800,
+      windowHeight: target ? target.clientHeight : 600,
     }, () => {
       if (this.grid) {
         this.grid.recomputeGridSize()
@@ -323,6 +317,6 @@ const ShipInfoTableArea = connect(
 
 export default props => (
   <WindowEnv.Consumer>
-    {({ mountPoint }) => <ShipInfoTableArea mountPoint={mountPoint} {...props} />}
+    {({ window }) => <ShipInfoTableArea window={window} {...props} />}
   </WindowEnv.Consumer>
 )

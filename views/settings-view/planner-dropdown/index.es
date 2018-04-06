@@ -98,8 +98,8 @@ const DeckPlannerView = connect(
 
   componentWillReceiveProps = (nextProps) => {
     if (!this.props.open && nextProps.open) {
-      const toolbar = document.querySelector('#settings-toolbar')
-      const planner = document.querySelector('#planner')
+      const toolbar = nextProps.window.document.querySelector('#settings-toolbar')
+      const planner = nextProps.window.document.querySelector('#planner')
       if (toolbar && planner) {
         const { left: outerLeft } = toolbar.getBoundingClientRect()
         const { left: innerLeft } = planner.getBoundingClientRect()
@@ -119,7 +119,7 @@ const DeckPlannerView = connect(
 
   handleCaptureImage = async () => {
     await this.setState({ extend: true })
-    await captureRect('#planner-rect')
+    await captureRect('#planner-rect', this.props.window.document)
     this.setState({ extend: false })
   }
 
@@ -295,16 +295,17 @@ const handleToggleAction = () => ({
 
 
 const PlannerDropdown = connect(
-  state => ({
+  (state, props) => ({
     activeDropdown: get(extensionSelectorFactory('poi-plugin-ship-info')(state), 'ui.activeDropdown', 0),
+    window: props.window,
   }),
   { handleToggle: handleToggleAction },
-)(({ activeDropdown, handleToggle }) => (
+)(({ activeDropdown, handleToggle, window }) => (
   <Dropdown id="planner" pullRight open={activeDropdown === 'planner'} onToggle={handleToggle}>
     <Dropdown.Toggle>
       <FontAwesome name="tags" style={{ marginRight: '1ex' }} />{__('Deck Planner')} <sup>BETA</sup>
     </Dropdown.Toggle>
-    <DeckPlannerView bsRole="menu" open={activeDropdown === 'planner'} />
+    <DeckPlannerView bsRole="menu" open={activeDropdown === 'planner'} window={window} />
   </Dropdown>
 ))
 

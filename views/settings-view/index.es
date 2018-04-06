@@ -8,6 +8,7 @@ import { observe } from 'redux-observers'
 
 import { extensionSelectorFactory } from 'views/utils/selectors'
 import { store } from 'views/create-store'
+import { WindowEnv } from 'views/components/etc/window-env'
 
 import BookmarkDropdown from './bookmark-dropdown'
 import ConfigMenu from './config-menu'
@@ -73,7 +74,7 @@ const ShipInfoCheckboxArea = connect(
 
   render() {
     const { menuShow, autoShow } = this.state
-    const { toTop } = this.props
+    const { toTop, window } = this.props
     return (
       <div id="ship-info-settings">
         <div>
@@ -103,13 +104,13 @@ const ShipInfoCheckboxArea = connect(
               <BookmarkDropdown />
             </ButtonGroup>
             <ButtonGroup>
-              <ExportDropdown />
+              <ExportDropdown/>
             </ButtonGroup>
             <ButtonGroup>
-              <PlannerDropdown />
+              <PlannerDropdown window={window} />
             </ButtonGroup>
             <ButtonGroup>
-              <StatDropdown />
+              <StatDropdown window={window}  />
             </ButtonGroup>
           </ButtonToolbar>
         </div>
@@ -130,4 +131,9 @@ const ShipInfoCheckboxArea = connect(
   }
 })
 
-export default ShipInfoCheckboxArea
+export default props => (
+  <WindowEnv.Consumer>
+    {({ window }) => <ShipInfoCheckboxArea window={window} {...props} />}
+  </WindowEnv.Consumer>
+)
+

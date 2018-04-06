@@ -425,8 +425,8 @@ export const fileUrl = pathname => url.format({
   pathname,
 })
 
-export const captureRect = async (query) => {
-  const rect = document.querySelector(query)
+export const captureRect = async (query, mountPoint) => {
+  const rect = mountPoint.querySelector(query)
   if (!rect) {
     return
   }
