@@ -138,7 +138,7 @@ const ShipInfoTableArea = connect(
   }
 
   componentWillUnmount = () => {
-    window.removeListener('resize', this.updateWindowSize)
+    window.removeEventListener('resize', this.updateWindowSize)
     // document.querySelectorAll('.ReactVirtualized__Grid').forEach((target) => {
     //   target.removeEventListener('scroll', this.handleScroll)
     // })

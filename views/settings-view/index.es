@@ -7,6 +7,7 @@ import { get } from 'lodash'
 import { observe } from 'redux-observers'
 
 import { extensionSelectorFactory } from 'views/utils/selectors'
+import { store } from 'views/create-store'
 
 import BookmarkDropdown from './bookmark-dropdown'
 import ConfigMenu from './config-menu'
@@ -36,7 +37,7 @@ const ShipInfoCheckboxArea = connect(
 
   componentDidMount = () => {
     this.props.dispatch(initStore)
-    this.unsubscribeObserver = observe(window.store, [dataObserver])
+    this.unsubscribeObserver = observe(store, [dataObserver])
   }
 
   componentWillUnmount = () => {
