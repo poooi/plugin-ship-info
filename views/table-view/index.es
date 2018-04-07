@@ -107,7 +107,7 @@ const ShipInfoTableArea = connect(
     sortName: propTypes.string.isRequired,
     sortOrder: propTypes.number.isRequired,
     toTop: propTypes.bool,
-    isExtend: propTypes.bool,
+    // isExtend: propTypes.bool,
     dispatch: propTypes.func,
     window: propTypes.instanceOf(window.constructor),
   }
@@ -115,24 +115,25 @@ const ShipInfoTableArea = connect(
   constructor(props) {
     super(props)
     this.tableWidth = sum(WIDTHS)
-    this.updateWindowSize = debounce(this.updateWindowSize, 500)
+    this.updateTableAreaSize = debounce(this.updateTableAreaSize, 500)
     this.setRef = this.setRef.bind(this)
     this.onClickFactory = memoize(this.onClickFactory)
     this.state = {
-      windowWidth: props.window.innerWidth,
-      windowHeight: props.window.innerHeight,
-      activeColumn: -1,
+      tableAreaWidth: props.window.innerWidth,
+      tableAreaHeight: props.window.innerHeight,
       activeRow: -1,
     }
   }
 
   componentDidMount = () => {
-    this.updateWindowSize()
-    window.addEventListener('resize', this.updateWindowSize)
+    this.updateTableAreaSize()
+    // eslint-disable-next-line no-undef
+    this.observer = new ResizeObserver(this.updateTableAreaSize)
+    this.observer.observe(this.tableArea)
   }
 
   componentWillUnmount = () => {
-    window.removeEventListener('resize', this.updateWindowSize)
+    this.observer.unobserve(this.tableArea)
   }
 
   onContextMenu = () =>
@@ -157,8 +158,8 @@ const ShipInfoTableArea = connect(
   getColumnWidth = ({ index }) => {
     // 20: magic number, seems it need to be greater than 16
     const width = floor((WIDTHS[index] || 40) *
-      (this.state.windowWidth - 20 > this.tableWidth
-        ? ((this.state.windowWidth - 20) / this.tableWidth)
+      (this.state.tableAreaWidth - 20 > this.tableWidth
+        ? ((this.state.tableAreaWidth - 20) / this.tableWidth)
         : 1
       ),
     )
@@ -262,11 +263,12 @@ const ShipInfoTableArea = connect(
     )
   }
 
-  updateWindowSize = () => {
-    const target = this.props.window.document.querySelector('.poi-plugin')
+  updateTableAreaSize = (entries) => {
+    const target = entries.shift() || this.tableArea
+    if (!target) return
     this.setState({
-      windowWidth: target ? target.clientWidth : 800,
-      windowHeight: target ? target.clientHeight : 600,
+      tableAreaWidth: target.contentRect ? target.contentRect.width : target.clientWidth,
+      tableAreaHeight: target.contentRect ? target.contentRect.height : target.clientHeight,
     }, () => {
       if (this.grid) {
         this.grid.recomputeGridSize()
@@ -276,36 +278,34 @@ const ShipInfoTableArea = connect(
   }
 
   render() {
-    const { rows, isExtend } = this.props
+    const { rows } = this.props
     const {
-      windowWidth, windowHeight, activeRow, activeColumn,
+      tableAreaWidth, tableAreaHeight, activeRow, activeColumn,
     } = this.state
-    // 526, 85, 115: magic numbers for layout dimensions
-    const height = Math.max(windowHeight - (isExtend ? 526 : 85), 115)
     return (
-      <div id="ship-info-show" style={{ display: 'flex', flexDirection: 'column' }}>
+      <div id="ship-info-show">
         <Divider icon={false} />
-        <div style={{ flex: 1 }} className="table-container">
+        <div style={{ flex: 1 }} className="table-container" ref={(r) => { this.tableArea = r }}>
           <MultiGrid
             rows={rows}
             ref={this.setRef}
             activeRow={activeRow}
             activeColumn={activeColumn}
-            windowWidth={windowWidth}
+            windowWidth={tableAreaWidth}
             columnCount={WIDTHS.length}
             columnWidth={this.getColumnWidth}
             estimatedRowSize={100}
-            fixedColumnCount={windowWidth > this.tableWidth ? 0 : 0}
+            fixedColumnCount={0}
             fixedRowCount={1}
             handleContentRendered={this.handleContentRendered}
-            height={height}
+            height={tableAreaHeight}
             overscanColumnCount={10}
             overscanRowCount={5}
             cellRenderer={this.cellRenderer}
             rowCount={rows.length + 1}
             rowHeight={ROW_HEIGHT}
             scrollToAlignment="start"
-            width={windowWidth - 16} // 16: left and right padding (8 + 8)
+            width={tableAreaWidth - 16} // 16: left and right padding (8 + 8)
             scrollToColumn={0}
             scrollToRow={0}
             onScroll={this.handleScroll}
