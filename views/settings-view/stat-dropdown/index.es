@@ -24,6 +24,7 @@ const StatView = connect(
   static propTypes = {
     vibrant: propTypes.number,
     open: propTypes.bool,
+    window: propTypes.instanceOf(window.constructor),
   }
 
   constructor(props) {

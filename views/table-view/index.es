@@ -109,6 +109,7 @@ const ShipInfoTableArea = connect(
     toTop: propTypes.bool,
     isExtend: propTypes.bool,
     dispatch: propTypes.func,
+    window: propTypes.instanceOf(window.constructor),
   }
 
   constructor(props) {

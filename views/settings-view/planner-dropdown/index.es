@@ -72,6 +72,7 @@ const DeckPlannerView = connect(
     open: propTypes.bool,
     dispatch: propTypes.func,
     displayFleetName: propTypes.bool.isRequired,
+    window: propTypes.instanceOf(window.constructor),
   }
 
   constructor(props) {

@@ -29,6 +29,7 @@ const ShipInfoCheckboxArea = connect(
   static propTypes = {
     toTop: propTypes.bool,
     dispatch: propTypes.func,
+    window: propTypes.instanceOf(window.constructor),
   }
 
   state = {
@@ -104,13 +105,13 @@ const ShipInfoCheckboxArea = connect(
               <BookmarkDropdown />
             </ButtonGroup>
             <ButtonGroup>
-              <ExportDropdown/>
+              <ExportDropdown />
             </ButtonGroup>
             <ButtonGroup>
               <PlannerDropdown window={window} />
             </ButtonGroup>
             <ButtonGroup>
-              <StatDropdown window={window}  />
+              <StatDropdown window={window} />
             </ButtonGroup>
           </ButtonToolbar>
         </div>
