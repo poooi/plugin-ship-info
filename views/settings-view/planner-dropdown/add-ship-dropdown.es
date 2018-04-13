@@ -9,7 +9,8 @@ import FontAwesome from 'react-fontawesome'
 import { shipMenuDataSelector, deckPlannerAllShipIdsSelector } from '../../selectors'
 import { shipSuperTypeMap } from '../../utils'
 
-const { __, __r } = window
+const { __ } = window.i18n['poi-plugin-ship-info']
+const { __: __r } = window.i18n.resources
 
 const Item = ({ eventKey, onSelect, children }) =>
   (

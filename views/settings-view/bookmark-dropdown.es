@@ -11,9 +11,7 @@ import { extensionSelectorFactory } from 'views/utils/selectors'
 import { onUpdate, onDelete, PLUGIN_KEY } from '../redux'
 import { boolArrayToInt } from '../utils'
 
-const { __ } = window
-
-// const bookmarks = ['test', 'foo', 'bar']
+const { __ } = window.i18n['poi-plugin-ship-info']
 
 const BookmarkItem = ({
   eventKey, onSelect, onClick, children,

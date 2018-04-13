@@ -7,7 +7,8 @@ import cls from 'classnames'
 import { shipSuperTypeMap } from '../constants'
 import { intToBoolArray, boolArrayToInt, shipTypes } from '../utils'
 
-const { __, __r } = window
+const { __ } = window.i18n['poi-plugin-ship-info']
+const { __: __r } = window.i18n.resources
 
 const TypeView = connect(
   (state, props) => {

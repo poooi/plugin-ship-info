@@ -7,6 +7,8 @@ import { get } from 'lodash'
 import { observe } from 'redux-observers'
 
 import { extensionSelectorFactory } from 'views/utils/selectors'
+import { store } from 'views/create-store'
+import { WindowEnv } from 'views/components/etc/window-env'
 
 import BookmarkDropdown from './bookmark-dropdown'
 import ConfigMenu from './config-menu'
@@ -16,7 +18,8 @@ import StatDropdown from './stat-dropdown'
 
 import { dataObserver, initStore } from '../redux'
 
-const { __, config } = window
+const { config } = window
+const { __ } = window.i18n['poi-plugin-ship-info']
 
 const ShipInfoCheckboxArea = connect(
   state => ({
@@ -26,6 +29,7 @@ const ShipInfoCheckboxArea = connect(
   static propTypes = {
     toTop: propTypes.bool,
     dispatch: propTypes.func,
+    window: propTypes.instanceOf(window.constructor),
   }
 
   state = {
@@ -35,7 +39,7 @@ const ShipInfoCheckboxArea = connect(
 
   componentDidMount = () => {
     this.props.dispatch(initStore)
-    this.unsubscribeObserver = observe(window.store, [dataObserver])
+    this.unsubscribeObserver = observe(store, [dataObserver])
   }
 
   componentWillUnmount = () => {
@@ -71,7 +75,7 @@ const ShipInfoCheckboxArea = connect(
 
   render() {
     const { menuShow, autoShow } = this.state
-    const { toTop } = this.props
+    const { toTop, window } = this.props
     return (
       <div id="ship-info-settings">
         <div>
@@ -104,10 +108,10 @@ const ShipInfoCheckboxArea = connect(
               <ExportDropdown />
             </ButtonGroup>
             <ButtonGroup>
-              <PlannerDropdown />
+              <PlannerDropdown window={window} />
             </ButtonGroup>
             <ButtonGroup>
-              <StatDropdown />
+              <StatDropdown window={window} />
             </ButtonGroup>
           </ButtonToolbar>
         </div>
@@ -128,4 +132,9 @@ const ShipInfoCheckboxArea = connect(
   }
 })
 
-export default ShipInfoCheckboxArea
+export default props => (
+  <WindowEnv.Consumer>
+    {({ window }) => <ShipInfoCheckboxArea window={window} {...props} />}
+  </WindowEnv.Consumer>
+)
+

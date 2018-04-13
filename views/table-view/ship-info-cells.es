@@ -14,7 +14,7 @@ import SallyArea from './sally-area'
 import { sokuInterpretation, sokuStyles } from '../constants'
 import { getTimePerHP, shipInfoShape, shipTypes, fileUrl } from '../utils'
 
-const { __ } = window
+const { __ } = window.i18n['poi-plugin-ship-info']
 
 const enableAvatarConfigSelector = state => get(state, ['config', 'poi', 'enableAvatar'], false)
 

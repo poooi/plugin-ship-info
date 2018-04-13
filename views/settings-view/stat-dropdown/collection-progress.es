@@ -7,7 +7,7 @@ import fp from 'lodash/fp'
 import { shipSuperTypeMap } from '../../utils'
 import { uniqueShipIdsSelector, uniqueShipCountSelector, graphSelector } from '../../selectors'
 
-const { __ } = window
+const { __ } = window.i18n['poi-plugin-ship-info']
 
 const RANDOM_COLORS = times(200, () => `hsla(${Math.floor(Math.random() * 360)}, 60%, 70%, 0.6)`)
 

@@ -31,6 +31,7 @@ export default class FileWriter {
     this.writing = true
     while (this._queue.length) {
       const [path, data, options, callback] = this._queue.shift()
+      // eslint-disable-next-line no-await-in-loop
       const err = await outputJson(path, data, options)
       if (callback) {
         callback(err)

@@ -10,8 +10,9 @@ import { extensionSelectorFactory } from 'views/utils/selectors'
 
 import LeyteStat from './leyte-stat'
 import CollectionProgress from './collection-progress'
+import { captureRect } from '../../utils'
 
-const { __ } = window
+const { __ } = window.i18n['poi-plugin-ship-info']
 
 const StatView = connect(
   state => ({
@@ -23,6 +24,7 @@ const StatView = connect(
   static propTypes = {
     vibrant: propTypes.number,
     open: propTypes.bool,
+    window: propTypes.instanceOf(window.constructor),
   }
 
   constructor(props) {
@@ -37,8 +39,8 @@ const StatView = connect(
 
   componentWillReceiveProps = (nextProps) => {
     if (!this.props.open && nextProps.open) {
-      const toolbar = document.querySelector('#settings-toolbar')
-      const planner = document.querySelector('#stat')
+      const toolbar = nextProps.window.document.querySelector('#settings-toolbar')
+      const planner = nextProps.window.document.querySelector('#stat')
       if (toolbar && planner) {
         const { left: outerLeft } = toolbar.getBoundingClientRect()
         const { left: innerLeft } = planner.getBoundingClientRect()
@@ -51,7 +53,7 @@ const StatView = connect(
 
   handleCaptureRect = async () => {
     await this.setState({ extend: true })
-    await window.captureRect('#stat-rect')
+    await captureRect('#stat-rect', this.props.window.document)
     this.setState({ extend: false })
   }
 
@@ -137,18 +139,18 @@ const handleToggleAction = () => ({
   activeDropdown: 'stat',
 })
 
-
 const PlannerDropdown = connect(
-  state => ({
+  (state, props) => ({
     activeDropdown: get(extensionSelectorFactory('poi-plugin-ship-info')(state), 'ui.activeDropdown', 0),
+    window: props.window,
   }),
   { handleToggle: handleToggleAction },
-)(({ activeDropdown, handleToggle }) => (
+)(({ activeDropdown, handleToggle, window }) => (
   <Dropdown id="stat" pullRight open={activeDropdown === 'stat'} onToggle={handleToggle}>
     <Dropdown.Toggle>
       <FontAwesome name="line-chart" style={{ marginRight: '1ex' }} />{__('Statistics')} <sup>BETA</sup>
     </Dropdown.Toggle>
-    <StatView bsRole="menu" open={activeDropdown === 'stat'} />
+    <StatView bsRole="menu" open={activeDropdown === 'stat'} window={window} />
   </Dropdown>
 ))
 

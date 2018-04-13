@@ -1,9 +1,11 @@
 import propTypes from 'prop-types'
 import _, { clone } from 'lodash'
 import url from 'url'
+import { remote } from 'electron'
 import { repairFactor } from './constants'
+import html2canvas from '../lib/html2canvas'
 
-const { __ } = window
+const { __ } = window.i18n['poi-plugin-ship-info']
 
 export const getTimePerHP = (api_lv = 1, api_stype = 1) => {
   let factor = 0
@@ -422,3 +424,17 @@ export const fileUrl = pathname => url.format({
   slashes: true,
   pathname,
 })
+
+export const captureRect = async (query, mountPoint) => {
+  const rect = mountPoint.querySelector(query)
+  if (!rect) {
+    return
+  }
+  const { width, height } = rect.getBoundingClientRect()
+  const canvas = await html2canvas(rect, {
+    background: '#333',
+    width: Math.ceil(width, 16),
+    height: Math.ceil(height, 16),
+  })
+  remote.getCurrentWebContents().downloadURL(canvas.toDataURL('image/png'))
+}

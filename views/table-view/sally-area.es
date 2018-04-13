@@ -5,7 +5,7 @@ import { connect } from 'react-redux'
 
 import { sallyAreaSelectorFactory } from '../selectors'
 
-const { __ } = window
+const { __ } = window.i18n['poi-plugin-ship-info']
 
 const SallyArea = connect(
   (state, props) => {
