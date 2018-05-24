@@ -36,7 +36,7 @@
     }
   },
   "devDependencies": {
-    "babel-eslint": "^8.2.1",
+    "babel-eslint": "=8.2.1",
     "bluebird": "^3.5.1",
     "eslint": "^4.17.0",
     "eslint-config-airbnb": "^16.1.0",
@@ -44,8 +44,8 @@
     "eslint-plugin-import": "^2.8.0",
     "eslint-plugin-jsx-a11y": "^6.0.3",
     "eslint-plugin-react": "^7.6.1",
-    "poi-util-transpile": "~8.0.0",
-    "stylelint": "^8.4.0",
+    "poi-util-transpile": "~8.2.2",
+    "stylelint": "^9.2.1",
     "stylelint-config-standard": "^18.0.0"
   },
   "dependencies": {}
