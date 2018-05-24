@@ -1,7 +1,7 @@
 // copy from vires/utils/FileWriter.es
 // we use outputJson instead of writeFile
 
-import { outputJson } from 'fs-extra'
+import { outputJson, WriteOptions } from 'fs-extra'
 
 // A stream of async file writing. `write` queues the task which will be executed
 // after all tasks before are done.
@@ -12,13 +12,14 @@ import { outputJson } from 'fs-extra'
 // for (var i = 0; i < 100; i++) {
 //   fw.write(path, (''+i).repeat(10000))
 // }
-export default class FileWriter {
-  constructor() {
-    this.writing = false
-    this._queue = []
-  }
 
-  write = (path, data, options, callback) => {
+export type QueueItem = [string, any, WriteOptions | undefined, Function | undefined]
+
+export default class FileWriter  {
+  writing = false
+  _queue:QueueItem[] = []
+
+  write = (path: string, data: any, options?: WriteOptions, callback?: Function) => {
     this._queue.push([path, data, options, callback])
     this._continueWriting()
   }
@@ -30,11 +31,17 @@ export default class FileWriter {
     }
     this.writing = true
     while (this._queue.length) {
-      const [path, data, options, callback] = this._queue.shift()
+      const [path, data, options, callback] = this._queue.shift()!
       // eslint-disable-next-line no-await-in-loop
-      const err = await outputJson(path, data, options)
-      if (callback) {
-        callback(err)
+      try {
+        const res = await outputJson(path, data, options)
+        if (callback) {
+          callback(res)
+        }
+      } catch (err) {
+        if (callback) {
+          callback(err)
+        }
       }
     }
     this.writing = false
