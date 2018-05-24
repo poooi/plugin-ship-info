@@ -36,9 +36,7 @@ try {
 }
 
 const bookmarkReducer = (state = bookmarkInitState, action) => {
-  const {
-    type, bookmark, settings, data,
-  } = action
+  const { type, bookmark, settings, data } = action
   switch (type) {
     case '@@poi-plugin-ship-info@update':
       return {
@@ -78,7 +76,13 @@ const bookmarkReducer = (state = bookmarkInitState, action) => {
 
 const plannerReducer = (state = plannerInitState, action) => {
   const {
-    type, mapname, shipId, areaIndex, fromAreaIndex, toAreaIndex, data,
+    type,
+    mapname,
+    shipId,
+    areaIndex,
+    fromAreaIndex,
+    toAreaIndex,
+    data,
   } = action
   const { current } = state
   switch (type) {
@@ -118,7 +122,9 @@ const plannerReducer = (state = plannerInitState, action) => {
     case `@@${PLUGIN_KEY}@dp-removeship`: {
       const newCurrent = current.slice()
       if (newCurrent[areaIndex].includes(shipId)) {
-        newCurrent[areaIndex] = newCurrent[areaIndex].filter(id => id !== shipId)
+        newCurrent[areaIndex] = newCurrent[areaIndex].filter(
+          id => id !== shipId,
+        )
         return {
           ...state,
           current: newCurrent,
@@ -129,7 +135,9 @@ const plannerReducer = (state = plannerInitState, action) => {
     case `@@${PLUGIN_KEY}@dp-displaceShip`: {
       const newCurrent = current.slice()
       if (newCurrent[fromAreaIndex].includes(shipId)) {
-        newCurrent[fromAreaIndex] = newCurrent[fromAreaIndex].filter(id => id !== shipId)
+        newCurrent[fromAreaIndex] = newCurrent[fromAreaIndex].filter(
+          id => id !== shipId,
+        )
         newCurrent[toAreaIndex] = [...newCurrent[toAreaIndex], shipId]
         return {
           ...state,
@@ -145,9 +153,7 @@ const plannerReducer = (state = plannerInitState, action) => {
 }
 
 const uiReducer = (state = uiInitState, action) => {
-  const {
-    isExtend, type, toTop, activeDropdown,
-  } = action
+  const { isExtend, type, toTop, activeDropdown } = action
   if (type === `@@${PLUGIN_KEY}@scroll`) {
     return {
       ...state,
@@ -156,7 +162,8 @@ const uiReducer = (state = uiInitState, action) => {
   } else if (type === `@@${PLUGIN_KEY}@active-dropdown`) {
     return {
       ...state,
-      activeDropdown: activeDropdown === state.activeDropdown ? '' : activeDropdown,
+      activeDropdown:
+        activeDropdown === state.activeDropdown ? '' : activeDropdown,
     }
   } else if (type === `@@${PLUGIN_KEY}@extend`) {
     return {
@@ -182,43 +189,35 @@ export const reducer = combineReducers({
   ready: readyReducer,
 })
 
-export const onDPInit = ({ color, mapname }) =>
-  ({
-    type: `@@${PLUGIN_KEY}@dp-init`,
-    color,
-    mapname,
-  })
+export const onDPInit = ({ color, mapname }) => ({
+  type: `@@${PLUGIN_KEY}@dp-init`,
+  color,
+  mapname,
+})
 
-export const onAddShip = ({ shipId, areaIndex }) =>
-  ({
-    type: `@@${PLUGIN_KEY}@dp-addShip`,
-    shipId,
-    areaIndex,
-  })
+export const onAddShip = ({ shipId, areaIndex }) => ({
+  type: `@@${PLUGIN_KEY}@dp-addShip`,
+  shipId,
+  areaIndex,
+})
 
+export const onRemoveShip = ({ shipId, areaIndex }) => ({
+  type: `@@${PLUGIN_KEY}@dp-removeship`,
+  shipId,
+  areaIndex,
+})
 
-export const onRemoveShip = ({ shipId, areaIndex }) =>
-  ({
-    type: `@@${PLUGIN_KEY}@dp-removeship`,
-    shipId,
-    areaIndex,
-  })
+export const onDisplaceShip = ({ shipId, fromAreaIndex, toAreaIndex }) => ({
+  type: `@@${PLUGIN_KEY}@dp-displaceShip`,
+  shipId,
+  fromAreaIndex,
+  toAreaIndex,
+})
 
-
-export const onDisplaceShip = ({ shipId, fromAreaIndex, toAreaIndex }) =>
-  ({
-    type: `@@${PLUGIN_KEY}@dp-displaceShip`,
-    shipId,
-    fromAreaIndex,
-    toAreaIndex,
-  })
-
-export const onLoadData = ({ data }) =>
-  ({
-    type: `@@${PLUGIN_KEY}@loadData`,
-    data,
-  })
-
+export const onLoadData = ({ data }) => ({
+  type: `@@${PLUGIN_KEY}@loadData`,
+  data,
+})
 
 // actions
 export const onUpdate = ({ bookmark, settings }) => ({
@@ -271,5 +270,5 @@ export const dataObserver = observer(
     if (current.ready) {
       fileWriter.write(DATA_PATH, current)
     }
-  }
+  },
 )

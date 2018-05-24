@@ -14,125 +14,121 @@ import { captureRect } from '../../utils'
 
 const { __ } = window.i18n['poi-plugin-ship-info']
 
-const StatView = connect(
-  state => ({
-    color: get(state, 'fcd.shiptag.color', []),
-    mapname: get(state, 'fcd.shiptag.mapname', []),
-    vibrant: get(state, 'config.poi.vibrant'),
-  })
-)(class StatView extends Component {
-  static propTypes = {
-    vibrant: propTypes.number,
-    open: propTypes.bool,
-    window: propTypes.instanceOf(window.constructor),
-  }
-
-  constructor(props) {
-    super(props)
-
-    this.state = {
-      view: 'leyte',
-      left: 0,
-      extend: false,
+const StatView = connect(state => ({
+  color: get(state, 'fcd.shiptag.color', []),
+  mapname: get(state, 'fcd.shiptag.mapname', []),
+  vibrant: get(state, 'config.poi.vibrant'),
+}))(
+  class StatView extends Component {
+    static propTypes = {
+      vibrant: propTypes.number,
+      open: propTypes.bool,
+      window: propTypes.instanceOf(window.constructor),
     }
-  }
 
-  componentWillReceiveProps = (nextProps) => {
-    if (!this.props.open && nextProps.open) {
-      const toolbar = nextProps.window.document.querySelector('#settings-toolbar')
-      const planner = nextProps.window.document.querySelector('#stat')
-      if (toolbar && planner) {
-        const { left: outerLeft } = toolbar.getBoundingClientRect()
-        const { left: innerLeft } = planner.getBoundingClientRect()
-        this.setState({
-          left: Math.round(outerLeft - innerLeft),
-        })
+    constructor(props) {
+      super(props)
+
+      this.state = {
+        view: 'leyte',
+        left: 0,
+        extend: false,
       }
     }
-  }
 
-  handleCaptureRect = async () => {
-    await this.setState({ extend: true })
-    await captureRect('#stat-rect', this.props.window.document)
-    this.setState({ extend: false })
-  }
+    componentWillReceiveProps = nextProps => {
+      if (!this.props.open && nextProps.open) {
+        const toolbar = nextProps.window.document.querySelector(
+          '#settings-toolbar',
+        )
+        const planner = nextProps.window.document.querySelector('#stat')
+        if (toolbar && planner) {
+          const { left: outerLeft } = toolbar.getBoundingClientRect()
+          const { left: innerLeft } = planner.getBoundingClientRect()
+          this.setState({
+            left: Math.round(outerLeft - innerLeft),
+          })
+        }
+      }
+    }
 
-  render() {
-    const { left, view, extend } = this.state
-    const { vibrant } = this.props
-    return (
-      <ul
-        className="dropdown-menu"
-        style={{
-          width: '99vw',
-          height: '95vh',
-          left,
-          background: `rgba(51, 51, 51, ${vibrant ? 0.95 : 1})`,
-          overflowY: extend && 'visible',
-        }}
-      >
-        <div
+    handleCaptureRect = async () => {
+      await this.setState({ extend: true })
+      await captureRect('#stat-rect', this.props.window.document)
+      this.setState({ extend: false })
+    }
+
+    render() {
+      const { left, view, extend } = this.state
+      const { vibrant } = this.props
+      return (
+        <ul
+          className="dropdown-menu"
           style={{
-            display: 'flex',
-            position: 'sticky',
-            top: '-5px',
+            width: '99vw',
+            height: '95vh',
+            left,
             background: `rgba(51, 51, 51, ${vibrant ? 0.95 : 1})`,
-            zIndex: 1,
+            overflowY: extend && 'visible',
           }}
         >
-          <div className="radio-check" style={{ marginRight: '4em' }}>
-            <div
-              onClick={() => this.setState({ view: 'leyte' })}
-              className={cls('filter-option', {
-                checked: view === 'leyte',
-                dark: window.isDarkTheme,
-                light: !window.isDarkTheme,
-              })}
-              role="button"
-              tabIndex="0"
-            >
-              {__('Leyte Gulf')}
-            </div>
+          <div
+            style={{
+              display: 'flex',
+              position: 'sticky',
+              top: '-5px',
+              background: `rgba(51, 51, 51, ${vibrant ? 0.95 : 1})`,
+              zIndex: 1,
+            }}
+          >
             <div className="radio-check" style={{ marginRight: '4em' }}>
               <div
-                onClick={() => this.setState({ view: 'collection' })}
+                onClick={() => this.setState({ view: 'leyte' })}
                 className={cls('filter-option', {
-                  checked: view === 'collection',
+                  checked: view === 'leyte',
                   dark: window.isDarkTheme,
                   light: !window.isDarkTheme,
                 })}
                 role="button"
                 tabIndex="0"
               >
-                {__('Collection')}
+                {__('Leyte Gulf')}
+              </div>
+              <div className="radio-check" style={{ marginRight: '4em' }}>
+                <div
+                  onClick={() => this.setState({ view: 'collection' })}
+                  className={cls('filter-option', {
+                    checked: view === 'collection',
+                    dark: window.isDarkTheme,
+                    light: !window.isDarkTheme,
+                  })}
+                  role="button"
+                  tabIndex="0"
+                >
+                  {__('Collection')}
+                </div>
+              </div>
+            </div>
+            <div className="radio-check" style={{ marginRight: '4em' }}>
+              <div
+                onClick={this.handleCaptureRect}
+                role="button"
+                tabIndex="0"
+                className="filter-option dark"
+              >
+                {__('Save to image')}
               </div>
             </div>
           </div>
-          <div className="radio-check" style={{ marginRight: '4em' }}>
-            <div
-              onClick={this.handleCaptureRect}
-              role="button"
-              tabIndex="0"
-              className="filter-option dark"
-            >
-              {__('Save to image')}
-            </div>
+          <div id="stat-rect" style={{ padding: extend && '1em' }}>
+            {view === 'leyte' && <LeyteStat />}
+            {view === 'collection' && <CollectionProgress />}
           </div>
-        </div>
-        <div id="stat-rect" style={{ padding: extend && '1em' }}>
-          {
-            view === 'leyte' &&
-            <LeyteStat />
-          }
-          {
-            view === 'collection' &&
-            <CollectionProgress />
-          }
-        </div>
-      </ul>
-    )
-  }
-})
+        </ul>
+      )
+    }
+  },
+)
 
 const handleToggleAction = () => ({
   type: '@@poi-plugin-ship-info@active-dropdown',
@@ -141,14 +137,24 @@ const handleToggleAction = () => ({
 
 const PlannerDropdown = connect(
   (state, props) => ({
-    activeDropdown: get(extensionSelectorFactory('poi-plugin-ship-info')(state), 'ui.activeDropdown', 0),
+    activeDropdown: get(
+      extensionSelectorFactory('poi-plugin-ship-info')(state),
+      'ui.activeDropdown',
+      0,
+    ),
     window: props.window,
   }),
   { handleToggle: handleToggleAction },
 )(({ activeDropdown, handleToggle, window }) => (
-  <Dropdown id="stat" pullRight open={activeDropdown === 'stat'} onToggle={handleToggle}>
+  <Dropdown
+    id="stat"
+    pullRight
+    open={activeDropdown === 'stat'}
+    onToggle={handleToggle}
+  >
     <Dropdown.Toggle>
-      <FontAwesome name="line-chart" style={{ marginRight: '1ex' }} />{__('Statistics')} <sup>BETA</sup>
+      <FontAwesome name="line-chart" style={{ marginRight: '1ex' }} />
+      {__('Statistics')} <sup>BETA</sup>
     </Dropdown.Toggle>
     <StatView bsRole="menu" open={activeDropdown === 'stat'} window={window} />
   </Dropdown>

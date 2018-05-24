@@ -7,7 +7,7 @@ export default class DisplaceToggle extends PureComponent {
     children: propTypes.element,
   }
 
-  handleClick = (e) => {
+  handleClick = e => {
     e.preventDefault()
 
     this.props.onClick(e)
@@ -17,7 +17,7 @@ export default class DisplaceToggle extends PureComponent {
     return (
       // eslint-disable-next-line jsx-a11y/interactive-supports-focus
       <span role="link" onClick={this.handleClick}>
-        { this.props.children}
+        {this.props.children}
       </span>
     )
   }

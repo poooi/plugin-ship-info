@@ -6,30 +6,25 @@ import { get, map } from 'lodash'
 import fp from 'lodash/fp'
 import FontAwesome from 'react-fontawesome'
 
-import { shipMenuDataSelector, deckPlannerAllShipIdsSelector } from '../../selectors'
+import {
+  shipMenuDataSelector,
+  deckPlannerAllShipIdsSelector,
+} from '../../selectors'
 import { shipSuperTypeMap } from '../../utils'
 
 const { __ } = window.i18n['poi-plugin-ship-info']
 const { __: __r } = window.i18n.resources
 
-const Item = ({ eventKey, onSelect, children }) =>
-  (
-    <MenuItem eventKey={eventKey} onSelect={onSelect} className="ship-item">
-      <span className="ship-item-content">
-        {
-          children
-        }
-      </span>
-    </MenuItem>
-  )
+const Item = ({ eventKey, onSelect, children }) => (
+  <MenuItem eventKey={eventKey} onSelect={onSelect} className="ship-item">
+    <span className="ship-item-content">{children}</span>
+  </MenuItem>
+)
 
 Item.propTypes = {
   eventKey: propTypes.number,
   onSelect: propTypes.func,
-  children: propTypes.oneOfType([
-    propTypes.array,
-    propTypes.string,
-  ]),
+  children: propTypes.oneOfType([propTypes.array, propTypes.string]),
 }
 
 class ShipMenu extends Component {
@@ -52,7 +47,7 @@ class ShipMenu extends Component {
     })
   }
 
-  handleShipSelect = (eventKey) => {
+  handleShipSelect = eventKey => {
     // eslint-disable-next-line no-console
     console.log(eventKey)
   }
@@ -69,61 +64,69 @@ class ShipMenu extends Component {
 
     return (
       <ul className="dropdown-menu add-ship-menu pull-right">
-        {
-          typeIndex >= 0 &&
-            <MenuItem onSelect={this.handleGoBack}>{__('return to ship types')}</MenuItem>
-        }
-        {
-          typeIndex >= 0
-          ?
-            React.Children.toArray(children)
-              .filter(child => get(shipSuperTypeMap, `${typeIndex}.id`, []).includes(child.props.typeId))
-              .filter(child => [0, areaIndex + 1].includes(child.props.area || 0))
-          :
-            map(shipSuperTypeMap, (type, index) => (
-              <Item key={type.name} eventKey={index} onSelect={this.handleTypeSelect(index)}>
+        {typeIndex >= 0 && (
+          <MenuItem onSelect={this.handleGoBack}>
+            {__('return to ship types')}
+          </MenuItem>
+        )}
+        {typeIndex >= 0
+          ? React.Children.toArray(children)
+              .filter(child =>
+                get(shipSuperTypeMap, `${typeIndex}.id`, []).includes(
+                  child.props.typeId,
+                ),
+              )
+              .filter(child =>
+                [0, areaIndex + 1].includes(child.props.area || 0),
+              )
+          : map(shipSuperTypeMap, (type, index) => (
+              <Item
+                key={type.name}
+                eventKey={index}
+                onSelect={this.handleTypeSelect(index)}
+              >
                 {__(type.name)}
               </Item>
-            ))
-        }
+            ))}
       </ul>
     )
   }
 }
 
-const AddShipDropdown = connect(
-  (state, props) => ({
-    shipItems: shipMenuDataSelector(state),
-    areaIndex: props.area,
-    allShipIds: deckPlannerAllShipIdsSelector(state),
-    color: get(state, 'fcd.shiptag.color', []),
-  })
-)(({
-  shipItems, areaIndex, allShipIds, color, onSelect,
-}) => (
+const AddShipDropdown = connect((state, props) => ({
+  shipItems: shipMenuDataSelector(state),
+  areaIndex: props.area,
+  allShipIds: deckPlannerAllShipIdsSelector(state),
+  color: get(state, 'fcd.shiptag.color', []),
+}))(({ shipItems, areaIndex, allShipIds, color, onSelect }) => (
   <Dropdown id={`add-ship-dropdown-${areaIndex}`} pullRight>
     <Dropdown.Toggle bsStyle="link">
       <FontAwesome name="plus" />
     </Dropdown.Toggle>
     <ShipMenu bsRole="menu" areaIndex={areaIndex}>
-      {
-        fp.flow(
-          fp.filter(ship => !allShipIds.includes(ship.id)),
-          fp.sortBy(ship => -ship.lv),
-          fp.map(ship => (
-            <Item
-              onSelect={onSelect}
-              key={ship.id}
-              eventKey={ship.id}
-              typeId={ship.typeId}
-              area={ship.area}
-            >
-              <span>{`Lv.${ship.lv} ${__r(ship.name)}`}</span>
-              {!!ship.area && <Label><FontAwesome name="tag" style={{ color: color[ship.area - 1] }} /></Label>}
-            </Item>
-          ))
-        )(shipItems)
-      }
+      {fp.flow(
+        fp.filter(ship => !allShipIds.includes(ship.id)),
+        fp.sortBy(ship => -ship.lv),
+        fp.map(ship => (
+          <Item
+            onSelect={onSelect}
+            key={ship.id}
+            eventKey={ship.id}
+            typeId={ship.typeId}
+            area={ship.area}
+          >
+            <span>{`Lv.${ship.lv} ${__r(ship.name)}`}</span>
+            {!!ship.area && (
+              <Label>
+                <FontAwesome
+                  name="tag"
+                  style={{ color: color[ship.area - 1] }}
+                />
+              </Label>
+            )}
+          </Item>
+        )),
+      )(shipItems)}
     </ShipMenu>
   </Dropdown>
 ))

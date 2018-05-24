@@ -20,30 +20,26 @@ const { __ } = window.i18n['poi-plugin-ship-info']
 
 const isWin = process.platform === 'win32'
 
-const RadioCheck = ({
-  label, options, value: currentValue, onChange,
-}) => (
+const RadioCheck = ({ label, options, value: currentValue, onChange }) => (
   <div className="radio-check">
-    <div className="filter-span"><span>{__(label)}</span></div>
-    {
-    options.map(({ name, value }) =>
-      (
-        <div
-          key={name}
-          role="button"
-          tabIndex="0"
-          onClick={onChange(value)}
-          className={cls('filter-option', {
-            checked: currentValue === value,
-            dark: window.isDarkTheme,
-            light: !window.isDarkTheme,
-          })}
-        >
-          {__(name)}
-        </div>
-      )
-    )
-  }
+    <div className="filter-span">
+      <span>{__(label)}</span>
+    </div>
+    {options.map(({ name, value }) => (
+      <div
+        key={name}
+        role="button"
+        tabIndex="0"
+        onClick={onChange(value)}
+        className={cls('filter-option', {
+          checked: currentValue === value,
+          dark: window.isDarkTheme,
+          light: !window.isDarkTheme,
+        })}
+      >
+        {__(name)}
+      </div>
+    ))}
   </div>
 )
 
@@ -121,23 +117,30 @@ class ExportMenu extends Component {
 
   handleExportToFile = () => {
     const bw = remote.getCurrentWindow()
-    dialog.showSaveDialog(bw, {
-      title: __('Position the file to save into'),
-      filters: [{
-        name: 'CSV file',
-        extensions: ['csv'],
-      }],
-    }, async (filename) => {
-      if (filename) {
-        const { sep, end, selection } = this.state
-        const rows = selection === 'current' ? this.props.rows : this.props.allRows
-        try {
-          await outputFile(filename, parseCsv(rows, sep, end))
-        } catch (e) {
-          console.error(e)
+    dialog.showSaveDialog(
+      bw,
+      {
+        title: __('Position the file to save into'),
+        filters: [
+          {
+            name: 'CSV file',
+            extensions: ['csv'],
+          },
+        ],
+      },
+      async filename => {
+        if (filename) {
+          const { sep, end, selection } = this.state
+          const rows =
+            selection === 'current' ? this.props.rows : this.props.allRows
+          try {
+            await outputFile(filename, parseCsv(rows, sep, end))
+          } catch (e) {
+            console.error(e)
+          }
         }
-      }
-    })
+      },
+    )
   }
 
   render() {
@@ -166,10 +169,12 @@ class ExportMenu extends Component {
         </div>
         <div style={{ display: 'flex', paddingLeft: '10px' }}>
           <Button onClick={this.handleExportToClipboard} style={{ flex: 1 }}>
-            <FA name="clipboard" style={{ marginRight: '1ex' }} />{__('Copy to clipboard')}
+            <FA name="clipboard" style={{ marginRight: '1ex' }} />
+            {__('Copy to clipboard')}
           </Button>
           <Button onClick={this.handleExportToFile} style={{ flex: 1 }}>
-            <FA name="file-text" style={{ marginRight: '1ex' }} />{__('Export to file')}
+            <FA name="file-text" style={{ marginRight: '1ex' }} />
+            {__('Export to file')}
           </Button>
         </div>
       </ul>
@@ -186,15 +191,23 @@ const ExportDropdown = connect(
   state => ({
     allRows: allShipRowsSelector(state),
     rows: shipRowsSelector(state),
-    activeDropdown: get(extensionSelectorFactory('poi-plugin-ship-info')(state), 'ui.activeDropdown', 0),
+    activeDropdown: get(
+      extensionSelectorFactory('poi-plugin-ship-info')(state),
+      'ui.activeDropdown',
+      0,
+    ),
   }),
   { handleToggle: handleToggleAction },
-)(({
-  allRows, rows, activeDropdown, handleToggle,
-}) => (
-  <Dropdown id="export" pullRight open={activeDropdown === 'export'} onToggle={handleToggle}>
+)(({ allRows, rows, activeDropdown, handleToggle }) => (
+  <Dropdown
+    id="export"
+    pullRight
+    open={activeDropdown === 'export'}
+    onToggle={handleToggle}
+  >
     <Dropdown.Toggle>
-      <FA name="download" style={{ marginRight: '1ex' }} />{__('Export Data')}
+      <FA name="download" style={{ marginRight: '1ex' }} />
+      {__('Export Data')}
     </Dropdown.Toggle>
     <ExportMenu bsRole="menu" allRows={allRows} rows={rows} />
   </Dropdown>

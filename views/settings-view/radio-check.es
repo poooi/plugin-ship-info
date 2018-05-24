@@ -5,7 +5,6 @@ import { connect } from 'react-redux'
 import { get } from 'lodash'
 import cls from 'classnames'
 
-
 const { __ } = window.i18n['poi-plugin-ship-info']
 
 // single option check
@@ -14,32 +13,36 @@ const { __ } = window.i18n['poi-plugin-ship-info']
 //  label@String, displayed label
 //  options@Array[Object{key@Number, label@String}], possible strings
 //  default@Number, default option, optional
-const RadioCheck = connect(
-  (state, props) => ({
-    currentRadio: get(state.config, `plugin.ShipInfo.${props.configKey}`, props.default || 0),
-  })
-)(class RadioCheck extends Component {
-  static propTypes = {
-    label: propTypes.string.isRequired,
-    options: propTypes.objectOf(propTypes.string),
-    currentRadio: propTypes.number.isRequired,
-    configKey: propTypes.string.isRequired,
-  }
+const RadioCheck = connect((state, props) => ({
+  currentRadio: get(
+    state.config,
+    `plugin.ShipInfo.${props.configKey}`,
+    props.default || 0,
+  ),
+}))(
+  class RadioCheck extends Component {
+    static propTypes = {
+      label: propTypes.string.isRequired,
+      options: propTypes.objectOf(propTypes.string),
+      currentRadio: propTypes.number.isRequired,
+      configKey: propTypes.string.isRequired,
+    }
 
-  shouldComponentUpdate = nextProps => this.props.currentRadio !== nextProps.currentRadio
+    shouldComponentUpdate = nextProps =>
+      this.props.currentRadio !== nextProps.currentRadio
 
-  handleClickRadio = index => () => {
-    config.set(`plugin.ShipInfo.${this.props.configKey}`, index)
-  }
+    handleClickRadio = index => () => {
+      config.set(`plugin.ShipInfo.${this.props.configKey}`, index)
+    }
 
-  render() {
-    const { label, options, currentRadio } = this.props
-    return (
-      <div className="radio-check">
-        <div className="filter-span"><span>{__(label)}</span></div>
-        {
-        Object.keys(options).map(key =>
-          (
+    render() {
+      const { label, options, currentRadio } = this.props
+      return (
+        <div className="radio-check">
+          <div className="filter-span">
+            <span>{__(label)}</span>
+          </div>
+          {Object.keys(options).map(key => (
             <div
               key={key}
               role="button"
@@ -53,12 +56,11 @@ const RadioCheck = connect(
             >
               {__(options[key])}
             </div>
-          )
-        )
-      }
-      </div>
-    )
-  }
-})
+          ))}
+        </div>
+      )
+    }
+  },
+)
 
 export default RadioCheck

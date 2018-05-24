@@ -16,46 +16,34 @@ import { getTimePerHP, shipInfoShape, shipTypes, fileUrl } from '../utils'
 
 const { __ } = window.i18n['poi-plugin-ship-info']
 
-const enableAvatarConfigSelector = state => get(state, ['config', 'poi', 'enableAvatar'], false)
+const enableAvatarConfigSelector = state =>
+  get(state, ['config', 'poi', 'enableAvatar'], false)
 
-const Id = ({ ship, ...props }) => (
-  <div
-    {...props}
-  >
-    { ship.id }
-  </div>
-)
+const Id = ({ ship, ...props }) => <div {...props}>{ship.id}</div>
 
 Id.propTypes = {
   ship: PropTypes.shape(shipInfoShape).isRequired,
   className: PropTypes.string,
 }
 
-const Name = ({
-  className, ship, enableAvatar, ...props
-}) => (
-  <div
-    {...props}
-    className={`${className || ''} ship-name`}
-  >
-    {
-      enableAvatar &&
-      <Avatar mstId={ship.shipId} height={35} />
-    }
-    <span
-      className="name"
-      title={window.i18n.resources.__(ship.name)}
-    >
+const Name = ({ className, ship, enableAvatar, ...props }) => (
+  <div {...props} className={`${className || ''} ship-name`}>
+    {enableAvatar && <Avatar mstId={ship.shipId} height={35} />}
+    <span className="name" title={window.i18n.resources.__(ship.name)}>
       {window.i18n.resources.__(ship.name)}
     </span>
-    {
-      ship.fleetId > -1 &&
-        <img
-          className="fleet-id-indicator"
-          alt={`fleet: ${ship.fleetId + 1}`}
-          src={fileUrl(path.resolve(__dirname, `../../assets/svg/fleet-indicator-${ship.fleetId + 1}.svg`))}
-        />
-    }
+    {ship.fleetId > -1 && (
+      <img
+        className="fleet-id-indicator"
+        alt={`fleet: ${ship.fleetId + 1}`}
+        src={fileUrl(
+          path.resolve(
+            __dirname,
+            `../../assets/svg/fleet-indicator-${ship.fleetId + 1}.svg`,
+          ),
+        )}
+      />
+    )}
     <SallyArea area={ship.sallyArea} info_id={ship.id} />
   </div>
 )
@@ -67,13 +55,10 @@ Name.propTypes = {
 }
 
 const Type = ({ ship, ...props }) => (
-  <div
-    {...props}
-  >
-    { window.language === 'en-US'
+  <div {...props}>
+    {window.language === 'en-US'
       ? shipTypes[ship.typeId]
-      : window.i18n.resources.__(ship.type)
-    }
+      : window.i18n.resources.__(ship.type)}
   </div>
 )
 
@@ -87,10 +72,7 @@ const Soku = ({ className, ship, ...props }) => {
   const sokuString = sokuInterpretation[soku] || 'Unknown'
   const sokuClass = sokuStyles[soku] || ''
   return (
-    <div
-      {...props}
-      className={`${className} ${sokuClass}`}
-    >
+    <div {...props} className={`${className} ${sokuClass}`}>
       <span>{__(sokuString)}</span>
     </div>
   )
@@ -101,13 +83,7 @@ Soku.propTypes = {
   className: PropTypes.string,
 }
 
-const Lv = ({ ship, ...props }) => (
-  <div
-    {...props}
-  >
-    { ship.lv }
-  </div>
-)
+const Lv = ({ ship, ...props }) => <div {...props}>{ship.lv}</div>
 
 Lv.propTypes = {
   ship: PropTypes.shape(shipInfoShape).isRequired,
@@ -126,11 +102,8 @@ const Cond = ({ className, ship, ...props }) => {
   }
 
   return (
-    <div
-      className={cls(condClass, className)}
-      {...props}
-    >
-      { ship.cond }
+    <div className={cls(condClass, className)} {...props}>
+      {ship.cond}
     </div>
   )
 }
@@ -141,12 +114,10 @@ Cond.propTypes = {
 }
 
 const Hp = ({ ship, ...props }) => (
-  <div
-    {...props}
-  >
+  <div {...props}>
     <span>
-      { ship.taik[0] }
-      { ship.maxhp - ship.taik[0] > 0 && <sup>+{ship.maxhp - ship.taik[0]}</sup> }
+      {ship.taik[0]}
+      {ship.maxhp - ship.taik[0] > 0 && <sup>+{ship.maxhp - ship.taik[0]}</sup>}
     </span>
   </div>
 )
@@ -157,17 +128,12 @@ Hp.propTypes = {
 
 const Karyoku = ({ className, ship, ...props }) => {
   const { karyoku, karyokuMax, karyokuNow } = ship
-  const karyokuClass = karyokuNow >= karyokuMax
-    ? 'td-karyoku-max'
-    : 'td-karyoku'
-  const karyokuString = karyokuNow >= karyokuMax
-    ? 'MAX'
-    : `+${karyokuMax - karyokuNow}`
+  const karyokuClass =
+    karyokuNow >= karyokuMax ? 'td-karyoku-max' : 'td-karyoku'
+  const karyokuString =
+    karyokuNow >= karyokuMax ? 'MAX' : `+${karyokuMax - karyokuNow}`
   return (
-    <div
-      {...props}
-      className={`${className || ''} ${karyokuClass}`}
-    >
+    <div {...props} className={`${className || ''} ${karyokuClass}`}>
       <span>
         {`${karyoku}/`}
         <span style={{ fontSize: '80%' }}>{karyokuString}</span>
@@ -183,17 +149,11 @@ Karyoku.propTypes = {
 
 const Raisou = ({ className, ship, ...props }) => {
   const { raisou, raisouMax, raisouNow } = ship
-  const raisouClass = raisouNow >= raisouMax
-    ? 'td-raisou-max'
-    : 'td-raisou'
-  const raisouString = raisouNow >= raisouMax
-    ? 'MAX'
-    : `+${raisouMax - raisouNow}`
+  const raisouClass = raisouNow >= raisouMax ? 'td-raisou-max' : 'td-raisou'
+  const raisouString =
+    raisouNow >= raisouMax ? 'MAX' : `+${raisouMax - raisouNow}`
   return (
-    <div
-      {...props}
-      className={`${className || ''} ${raisouClass}`}
-    >
+    <div {...props} className={`${className || ''} ${raisouClass}`}>
       <span>
         {`${raisou}/`}
         <span style={{ fontSize: '80%' }}>{raisouString}</span>
@@ -209,17 +169,10 @@ Raisou.propTypes = {
 
 const Taiku = ({ className, ship, ...props }) => {
   const { taiku, taikuMax, taikuNow } = ship
-  const taikuClass = taikuNow >= taikuMax
-    ? 'td-taiku-max'
-    : 'td-taiku'
-  const taikuString = taikuNow >= taikuMax
-    ? 'MAX'
-    : `+${taikuMax - taikuNow}`
+  const taikuClass = taikuNow >= taikuMax ? 'td-taiku-max' : 'td-taiku'
+  const taikuString = taikuNow >= taikuMax ? 'MAX' : `+${taikuMax - taikuNow}`
   return (
-    <div
-      {...props}
-      className={`${className || ''} ${taikuClass}`}
-    >
+    <div {...props} className={`${className || ''} ${taikuClass}`}>
       <span>
         {`${taiku}/`}
         <span style={{ fontSize: '80%' }}>{taikuString}</span>
@@ -235,17 +188,11 @@ Taiku.propTypes = {
 
 const Soukou = ({ className, ship, ...props }) => {
   const { soukou, soukouMax, soukouNow } = ship
-  const soukouClass = soukouNow >= soukouMax
-    ? 'td-soukou-max'
-    : 'td-soukou'
-  const soukouString = soukouNow >= soukouMax
-    ? 'MAX'
-    : `+${soukouMax - soukouNow}`
+  const soukouClass = soukouNow >= soukouMax ? 'td-soukou-max' : 'td-soukou'
+  const soukouString =
+    soukouNow >= soukouMax ? 'MAX' : `+${soukouMax - soukouNow}`
   return (
-    <div
-      {...props}
-      className={`${className || ''} ${soukouClass}`}
-    >
+    <div {...props} className={`${className || ''} ${soukouClass}`}>
       <span>
         {`${soukou}/`}
         <span style={{ fontSize: '80%' }}>{soukouString}</span>
@@ -261,17 +208,10 @@ Soukou.propTypes = {
 
 const Lucky = ({ className, ship, ...props }) => {
   const { lucky, luckyMax, luckyNow } = ship
-  const luckyClass = luckyNow >= luckyMax
-    ? 'td-lucky-max'
-    : 'td-lucky'
-  const luckyString = luckyNow >= luckyMax
-    ? 'MAX'
-    : `+${luckyMax - luckyNow}`
+  const luckyClass = luckyNow >= luckyMax ? 'td-lucky-max' : 'td-lucky'
+  const luckyString = luckyNow >= luckyMax ? 'MAX' : `+${luckyMax - luckyNow}`
   return (
-    <div
-      {...props}
-      className={`${className || ''} ${luckyClass}`}
-    >
+    <div {...props} className={`${className || ''} ${luckyClass}`}>
       <span>
         {`${lucky}/`}
         <span style={{ fontSize: '80%' }}>{luckyString}</span>
@@ -285,13 +225,7 @@ Lucky.propTypes = {
   className: PropTypes.string,
 }
 
-const Kaihi = ({ ship, ...props }) => (
-  <div
-    {...props}
-  >
-    { ship.kaihi || 'NA' }
-  </div>
-)
+const Kaihi = ({ ship, ...props }) => <div {...props}>{ship.kaihi || 'NA'}</div>
 
 Kaihi.propTypes = {
   ship: PropTypes.shape(shipInfoShape).isRequired,
@@ -299,12 +233,10 @@ Kaihi.propTypes = {
 }
 
 const Taisen = ({ ship, ...props }) => (
-  <div
-    {...props}
-  >
+  <div {...props}>
     <span>
-      { ship.taisen }
-      { ship.kyouka[6] > 0 && <sup>+{ship.kyouka[6]}</sup> }
+      {ship.taisen}
+      {ship.kyouka[6] > 0 && <sup>+{ship.kyouka[6]}</sup>}
     </span>
   </div>
 )
@@ -314,13 +246,7 @@ Taisen.propTypes = {
   className: PropTypes.string,
 }
 
-const Sakuteki = ({ ship, ...props }) => (
-  <div
-    {...props}
-  >
-    { ship.sakuteki }
-  </div>
-)
+const Sakuteki = ({ ship, ...props }) => <div {...props}>{ship.sakuteki}</div>
 
 Sakuteki.propTypes = {
   ship: PropTypes.shape(shipInfoShape).isRequired,
@@ -328,9 +254,7 @@ Sakuteki.propTypes = {
 }
 
 const RepairTime = ({ className, ship, ...props }) => {
-  const {
-    nowhp, maxhp, repairtime, lv, typeId, inDock,
-  } = ship
+  const { nowhp, maxhp, repairtime, lv, typeId, inDock } = ship
   let repairClass = ''
   if (nowhp * 4 <= maxhp) {
     repairClass = 'repair-heavy'
@@ -340,28 +264,22 @@ const RepairTime = ({ className, ship, ...props }) => {
     repairClass = 'repair-minor'
   }
   return (
-    <div
-      {...props}
-      className={`${repairClass} ${className}`}
-    >
-      {
-        repairtime &&
-          <OverlayTrigger
-            placement="top"
-            overlay={
-              <Tooltip id="repairtime1hp" className="info-tooltip">
-                { `1HP : ${resolveTime(getTimePerHP(lv, typeId) / 1000)}` }
-              </Tooltip>}
-          >
-            <span>
-              {
-                inDock && <FontAwesome name="bath" />
-              }
-              {resolveTime(repairtime)}
-            </span>
-          </OverlayTrigger>
-
-      }
+    <div {...props} className={`${repairClass} ${className}`}>
+      {repairtime && (
+        <OverlayTrigger
+          placement="top"
+          overlay={
+            <Tooltip id="repairtime1hp" className="info-tooltip">
+              {`1HP : ${resolveTime(getTimePerHP(lv, typeId) / 1000)}`}
+            </Tooltip>
+          }
+        >
+          <span>
+            {inDock && <FontAwesome name="bath" />}
+            {resolveTime(repairtime)}
+          </span>
+        </OverlayTrigger>
+      )}
     </div>
   )
 }
@@ -372,9 +290,7 @@ RepairTime.propTypes = {
 }
 
 const Equipment = ({ ship, ...props }) => (
-  <div
-    {...props}
-  >
+  <div {...props}>
     <Slotitems slot={ship.slot} exslot={ship.exslot} />
   </div>
 )
@@ -385,11 +301,7 @@ Equipment.propTypes = {
 }
 
 const Lock = ({ ship, ...props }) => (
-  <div
-    {...props}
-  >
-    {ship.locked === 1 ? <FontAwesome name="lock" /> : ' '}
-  </div>
+  <div {...props}>{ship.locked === 1 ? <FontAwesome name="lock" /> : ' '}</div>
 )
 
 Lock.propTypes = {
@@ -399,7 +311,9 @@ Lock.propTypes = {
 
 export default {
   id: Id,
-  name: connect(state => ({ enableAvatar: enableAvatarConfigSelector(state) }))(Name),
+  name: connect(state => ({ enableAvatar: enableAvatarConfigSelector(state) }))(
+    Name,
+  ),
   type: Type,
   soku: Soku,
   lv: Lv,
