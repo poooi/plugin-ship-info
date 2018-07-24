@@ -665,8 +665,10 @@ th {
 .ship-grid-container .ship-grid-header {
   background: none;
   font-weight: bold;
-  line-height: 1.5rem;
+  line-height: 2rem;
   font-size: 120%;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .name-cube {
@@ -693,5 +695,18 @@ th {
   }
   .ship-grid-container {
     width: calc(100% / 15 - 4px);
+  }
+}
+
+.euro-stat .ship-grid-container {
+  width: calc(100% / 5 - 4px);
+}
+
+@media (min-width: 1440px) {
+  .euro-stat .ship-grid-cell {
+    width: initial;
+  }
+  .euro-stat .ship-grid-container {
+    width: calc(100% / 7 - 4px);
   }
 }

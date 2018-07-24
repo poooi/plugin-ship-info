@@ -349,6 +349,29 @@ export const hexToRGBA = (hex, opacity = 1) => {
   return ''
 }
 
+export const euroShips = [
+  {
+    name: '🇬🇧 Royal Navy',
+    ships: [78, 439, 515, 519],
+  },
+  {
+    name: '🇩🇪 Kriegsmarine',
+    ships: [171, 174, 175, 176, 431, 432],
+  },
+  {
+    name: '🇮🇹 Regia Marina',
+    ships: [441, 442, 443, 444, 448, 449, 535],
+  },
+  {
+    name: '🇫🇷 Marine nationale',
+    ships: [491, 492],
+  },
+  {
+    name: '🇷🇺 Военно-Морской Флот СССР',
+    ships: [147, 511, 516],
+  },
+]
+
 // http://pwencycl.kgbudge.com/L/e/Leyte_Gulf.htm
 // https://ja.wikipedia.org/wiki/レイテ沖海戦
 // _.map(names, name => _.get(_.find($ships, ship => ship.api_name.startsWith(name)), 'api_id'))
