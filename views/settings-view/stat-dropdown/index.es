@@ -8,7 +8,7 @@ import cls from 'classnames'
 
 import { extensionSelectorFactory } from 'views/utils/selectors'
 
-import LeyteStat from './leyte-stat'
+import EuroStat from './euro-stat'
 import CollectionProgress from './collection-progress'
 import { captureRect } from '../../utils'
 
@@ -92,7 +92,7 @@ const StatView = connect(state => ({
                 role="button"
                 tabIndex="0"
               >
-                {__('Leyte Gulf')}
+                {__('European')}
               </div>
               <div className="radio-check" style={{ marginRight: '4em' }}>
                 <div
@@ -121,7 +121,7 @@ const StatView = connect(state => ({
             </div>
           </div>
           <div id="stat-rect" style={{ padding: extend && '1em' }}>
-            {view === 'leyte' && <LeyteStat />}
+            {view === 'leyte' && <EuroStat />}
             {view === 'collection' && <CollectionProgress />}
           </div>
         </ul>
