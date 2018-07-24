@@ -21,10 +21,15 @@ export const getTimePerHP = (api_lv = 1, api_stype = 1) => {
     return api_lv * 10 * factor * 1000
   }
 
-  return ((api_lv * 5) + ((Math.floor(Math.sqrt(api_lv - 11)) * 10) + 50)) * factor * 1000
+  return (
+    (api_lv * 5 + (Math.floor(Math.sqrt(api_lv - 11)) * 10 + 50)) *
+    factor *
+    1000
+  )
 }
 
-const getValueByLevel = (min, max, lv) => Math.floor(((max - min) * lv) / 99) + min
+const getValueByLevel = (min, max, lv) =>
+  Math.floor((max - min) * lv / 99) + min
 
 export const getShipInfoData = (
   ship,
@@ -98,7 +103,8 @@ export const getShipInfoData = (
   // eslint-disable-next-line no-underscore-dangle
   const _lucky = ship.api_lucky[0]
 
-  const isCompleted = karyokuNow >= karyokuMax &&
+  const isCompleted =
+    karyokuNow >= karyokuMax &&
     raisouNow >= raisouMax &&
     taikuNow >= taikuMax &&
     soukouNow >= soukouMax
@@ -131,7 +137,7 @@ export const getShipInfoData = (
     .get(['ships', shipId, 'additional_item_types'], [])
     .some(i => [24, 46].includes(_.get(db, ['item_types', i, 'id_ingame'])))
 
-  return ({
+  return {
     id,
     shipId,
     typeId,
@@ -185,7 +191,7 @@ export const getShipInfoData = (
     isCompleted,
     daihatsu,
     taik,
-  })
+  }
 }
 
 export const shipInfoShape = {
@@ -248,20 +254,25 @@ export const nameCompare = (a, b) => {
 
 // katagana to hiragana
 export const katakanaToHiragana = str =>
-  str.replace(/[\u30a1-\u30f6]/g, (match) => {
+  str.replace(/[\u30a1-\u30f6]/g, match => {
     const chr = match.charCodeAt(0) - 0x60
     return String.fromCharCode(chr)
   })
 
 export const getKanaSortValues = str =>
-  katakanaToHiragana(str).split('').map(s => s.charCodeAt())
+  katakanaToHiragana(str)
+    .split('')
+    .map(s => s.charCodeAt())
 
 // following function is used to convert betweern array of booleans and int
 // leading true value is to ensure the bit length
 // 12 => '1100' => [true, true, false, false] => [true, false, false]
 // [true, false, false] => [true, true, false, false] => '1100' => 12
 export const intToBoolArray = (int = 0) => {
-  const boolArray = int.toString(2).split('').map(s => !!+s)
+  const boolArray = int
+    .toString(2)
+    .split('')
+    .map(s => !!+s)
   boolArray.shift()
   return boolArray
 }
@@ -272,7 +283,6 @@ export const boolArrayToInt = (boolArray = []) => {
   const str = arr.map(bool => +bool).join('')
   return parseInt(str, 2)
 }
-
 
 // ship types dated 20170106, beginning with id=1
 // const shipTypes = ["海防艦", "駆逐艦", "軽巡洋艦", "重雷装巡洋艦",
@@ -313,7 +323,11 @@ export const shipSuperTypeMap = [
 ]
 
 export const reverseSuperTypeMap = _(shipSuperTypeMap)
-  .flatMap(({ id }, index) => _(id).map(type => ([type, index])).value())
+  .flatMap(({ id }, index) =>
+    _(id)
+      .map(type => [type, index])
+      .value(),
+  )
   .fromPairs()
   .value()
 
@@ -356,6 +370,29 @@ export const hexToRGBA = (hex, opacity = 1) => {
   return ''
 }
 
+export const euroShips = [
+  {
+    name: '🇬🇧 Royal Navy',
+    ships: [78, 439, 515, 519],
+  },
+  {
+    name: '🇩🇪 Kriegsmarine',
+    ships: [171, 174, 175, 176, 431, 432],
+  },
+  {
+    name: '🇮🇹 Regia Marina',
+    ships: [441, 442, 443, 444, 448, 449, 535],
+  },
+  {
+    name: '🇫🇷 Marine nationale',
+    ships: [491, 492],
+  },
+  {
+    name: '🇷🇺 Военно-Морской Флот СССР',
+    ships: [147, 511, 516],
+  },
+]
+
 // http://pwencycl.kgbudge.com/L/e/Leyte_Gulf.htm
 // https://ja.wikipedia.org/wiki/レイテ沖海戦
 // _.map(names, name => _.get(_.find($ships, ship => ship.api_name.startsWith(name)), 'api_id'))
@@ -382,7 +419,24 @@ export const leyteFleets = [
   // 浜波、藤波
   {
     name: 'IJN First Striking First Section (Kurita)', // 第一遊撃部隊 第一部隊
-    ships: [67, 66, 68, 69, 131, 143, 80, 62, 65, 138, 50, 409, 452, 425, 135, 485],
+    ships: [
+      67,
+      66,
+      68,
+      69,
+      131,
+      143,
+      80,
+      62,
+      65,
+      138,
+      50,
+      409,
+      452,
+      425,
+      135,
+      485,
+    ],
   },
   // 金剛、榛名
   // 鈴谷、熊野、利根、筑摩
@@ -419,11 +473,12 @@ export const leyteFleets = [
   },
 ]
 
-export const fileUrl = pathname => url.format({
-  protocol: 'file',
-  slashes: true,
-  pathname,
-})
+export const fileUrl = pathname =>
+  url.format({
+    protocol: 'file',
+    slashes: true,
+    pathname,
+  })
 
 export const captureRect = async (query, mountPoint) => {
   const rect = mountPoint.querySelector(query)

@@ -2,10 +2,18 @@ import React from 'react'
 
 import RadioCheck from './radio-check'
 import SallyAreaCheck from './sally-area-check'
-import { lvOptions, lockedOptions, expeditionOptions, modernizationOptions,
-  remodelOptions, rawValueOptions,
-  inFleetOptions, sparkleOptions,
-  exSlotOptions, daihatsuOptions } from '../constants'
+import {
+  lvOptions,
+  lockedOptions,
+  expeditionOptions,
+  modernizationOptions,
+  remodelOptions,
+  rawValueOptions,
+  inFleetOptions,
+  sparkleOptions,
+  exSlotOptions,
+  daihatsuOptions,
+} from '../constants'
 
 import TypeView from './type-view'
 
@@ -80,7 +88,6 @@ const ConfigView = () => (
     </div>
   </div>
 )
-
 
 const ConfigMenu = () => (
   <div className="filter-menu">

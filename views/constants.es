@@ -95,7 +95,6 @@ export const sparkleOptions = {
   2: 'No',
 }
 
-
 export const exSlotOptions = {
   0: 'All',
   1: 'Yes',

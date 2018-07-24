@@ -5,7 +5,7 @@ import FA from 'react-fontawesome'
 import { get } from 'lodash'
 import fp from 'lodash/fp'
 
-import { leyteFleets } from '../../utils'
+import { euroShips } from '../../utils'
 import {
   shipMenuDataSelector,
   adjustedRemodelChainsSelector,
@@ -17,17 +17,17 @@ const { __: __r } = window.i18n.resources
 
 const MAX_LEVEL = 165
 
-const LeyteStat = connect(state => ({
+const EuroStat = connect(state => ({
   $ships: get(state, 'const.$ships', {}),
   $graph: graphSelector(state),
   ships: shipMenuDataSelector(state),
   sameShipMap: adjustedRemodelChainsSelector(state),
 }))(({ $ships, $graph, ships, sameShipMap }) => (
   <div>
-    {leyteFleets.map(fleet => (
+    {euroShips.map(fleet => (
       <div key={fleet.name}>
         <h4>{__(fleet.name)}</h4>
-        <div className="ship-grid">
+        <div className="ship-grid euro-stat">
           {fp.flow(
             fp.sortBy([
               shipId => -get($ships, [shipId, 'api_stype'], 0),
@@ -74,4 +74,4 @@ const LeyteStat = connect(state => ({
   </div>
 ))
 
-export default LeyteStat
+export default EuroStat

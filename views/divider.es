@@ -2,7 +2,7 @@ import React from 'react'
 import propTypes from 'prop-types'
 import FontAwesome from 'react-fontawesome'
 
-const Divider = (props) => {
+const Divider = props => {
   const { text = '', icon, show } = props
   return (
     <div className="divider">
@@ -10,10 +10,11 @@ const Divider = (props) => {
       <h5>
         <span>{`${text}`}</span>
         <span>
-          {
-              icon &&
-              <FontAwesome name={show ? 'chevron-circle-down' : 'chevron-circle-right'} />
-            }
+          {icon && (
+            <FontAwesome
+              name={show ? 'chevron-circle-down' : 'chevron-circle-right'}
+            />
+          )}
         </span>
       </h5>
     </div>
@@ -27,4 +28,3 @@ Divider.propTypes = {
 }
 
 export default Divider
-

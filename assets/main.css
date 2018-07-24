@@ -1,3 +1,16 @@
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  border-radius: 1px;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 1px;
+  background-color: #3d3d3d;
+}
+
 :root {
   --color-primary: hsl(210, 50%, 40%);
 }
@@ -11,49 +24,73 @@
 /* this prvents font fallback */
 .ship-info-wrap #stat-rect *,
 .ship-info-wrap #planner-rect * {
-  font-family: FontAwesome, Helvetica, Arial, 'Segoe UI', Segoe, 'Source Han Sans', 'Noto Sans CJK', 'PingFang', 'Hiragino Sans GB', 'WQY michohei', 'Microsoft Yahei UI', 'Microsoft Yahei', sans-serif;
+  font-family:
+    FontAwesome,
+    Helvetica,
+    Arial,
+    "Segoe UI",
+    Segoe,
+    "Source Han Sans",
+    "Noto Sans CJK",
+    "PingFang",
+    "Hiragino Sans GB",
+    "WQY michohei",
+    "Microsoft Yahei UI",
+    "Microsoft Yahei",
+    sans-serif;
 }
 
 .ship-info-wrap h2 {
   font-size: 2rem;
 }
+
 .ship-info-wrap #ship-info {
   height: 100%;
 }
+
 .ship-info-wrap .ship-info-wrap {
   height: 100%;
   display: flex;
-  flex-direction: column
+  flex-direction: column;
 }
+
 .ship-info-wrap #ship-info-show {
   flex: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
-.ship-info-wrap #ship-info-show > divider {
-  flex: 9px;
-}
+
 .ship-info-wrap #ship-info-show .table-container {
   padding-left: 8px;
 }
+
 .ship-info-wrap .center {
   text-align: center;
 }
+
 .ship-info-wrap .form-group {
-  margin-bottom: 0px;
+  margin-bottom: 0;
 }
+
 .ship-info-wrap .vertical-center {
   display: flex;
   align-items: center;
 }
+
 .ship-info-wrap .divider {
   padding-left: 15px;
   padding-right: 15px;
 }
+
+.ship-info-wrap #ship-info-show > .divider {
+  flex: 9px;
+}
+
 .ship-info-wrap .divider hr {
   margin-bottom: 15.5px;
 }
+
 .ship-info-wrap .ship-info-cell {
   white-space: nowrap;
   line-height: 35px;
@@ -62,120 +99,152 @@
   text-overflow: ellipsis;
   cursor: default;
 }
+
 .ship-info-wrap .ship-info-cell.even-dark {
   background-color: rgba(255, 255, 255, 0.1);
 }
+
 .ship-info-wrap .ship-info-cell.even-light {
   background-color: rgba(0, 0, 0, 0.1);
 }
+
 .ship-info-wrap .ship-info-cell.clickable {
   cursor: pointer;
 }
-.ship-info-wrap .ship-info-cell.highlight{
+
+.ship-info-wrap .ship-info-cell.highlight {
   background-color: var(--color-primary);
 }
+
 .ship-info-wrap .ship-info-cell.td-karyoku {
   text-align: center;
 }
+
 .ship-info-wrap .ship-info-cell.td-karyoku-max {
   text-align: center;
   background-color: hsl(0, 50%, 40%);
 }
-.ship-info-wrap .ship-info-cell.td-karyoku-max.highlight{
+
+.ship-info-wrap .ship-info-cell.td-karyoku-max.highlight {
   background-color: hsl(0, 50%, 70%);
 }
+
 .ship-info-wrap .ship-info-cell.td-raisou {
   text-align: center;
 }
+
 .ship-info-wrap .ship-info-cell.td-raisou-max {
   text-align: center;
   background-color: hsl(190, 50%, 40%);
 }
+
 .ship-info-wrap .ship-info-cell.td-raisou-max.highlight {
   text-align: center;
   background-color: hsl(190, 50%, 70%);
 }
+
 .ship-info-wrap .ship-info-cell.td-taiku {
   text-align: center;
 }
+
 .ship-info-wrap .ship-info-cell.td-taiku-max {
   text-align: center;
   background-color: hsl(30, 50%, 40%);
 }
+
 .ship-info-wrap .ship-info-cell.td-taiku-max.highlight {
   text-align: center;
   background-color: hsl(30, 50%, 70%);
 }
+
 .ship-info-wrap .ship-info-cell.td-soukou {
   text-align: center;
 }
+
 .ship-info-wrap .ship-info-cell.td-soukou-max {
   text-align: center;
   background-color: hsl(60, 50%, 40%);
 }
+
 .ship-info-wrap .ship-info-cell.td-soukou-max.highlight {
   text-align: center;
   background-color: hsl(60, 50%, 70%);
 }
+
 .ship-info-wrap .ship-info-cell.td-lucky {
   text-align: center;
 }
+
 .ship-info-wrap .ship-info-cell.td-lucky-max {
   text-align: center;
   background-color: rgba(125, 239, 94, 0.33);
 }
+
 .ship-info-wrap .ship-info-cell.td-lucky-max.hightlight {
   text-align: center;
   background-color: rgba(125, 239, 94, 0.75);
 }
+
 .ship-info-wrap .ship-info-cell.repair-heavy {
   background-color: hsl(0, 50%, 40%);
 }
+
 .ship-info-wrap .ship-info-cell.repair-moderate {
   background-color: hsl(30, 50%, 40%);
 }
+
 .ship-info-wrap .ship-info-cell.repair-minor {
   background-color: hsl(60, 50%, 40%);
 }
+
 .ship-info-wrap .ship-info-cell.repair-heavy.highlight {
   background-color: hsl(0, 50%, 70%);
 }
+
 .ship-info-wrap .ship-info-cell.repair-moderate.highlight {
   background-color: hsl(30, 50%, 70%);
 }
+
 .ship-info-wrap .ship-info-cell.repair-minor.highlight {
   background-color: hsl(60, 50%, 70%);
 }
+
 .ship-info-wrap .ship-info-cell.cond-danger {
   color: hsl(0, 100%, 40%);
   font-weight: bold;
 }
+
 .ship-info-wrap .ship-info-cell.cond-danger.highlight {
   color: hsl(0, 100%, 70%);
   font-weight: bold;
 }
+
 .ship-info-wrap .ship-info-cell.cond-warning {
   color: hsl(30, 100%, 40%);
   font-weight: bold;
 }
+
 .ship-info-wrap .ship-info-cell.cond-warning.highlight {
   color: hsl(30, 100%, 70%);
   font-weight: bold;
 }
+
 .ship-info-wrap .ship-info-cell.cond-success {
   color: hsl(60, 100%, 40%);
   font-weight: bold;
 }
+
 .ship-info-wrap .ship-info-cell.cond-success.highlight {
   color: hsl(60, 50%, 70%);
   font-weight: bold;
 }
-.ship-info-wrap clickable {
+
+.ship-info-wrap .clickable {
   filter: none;
   transition: 0.2s;
 }
 
-.ship-info-wrap #settings-toolbar .btn-group>.btn {
+.ship-info-wrap #settings-toolbar .btn-group > .btn {
   height: 36px;
 }
 
@@ -188,21 +257,25 @@
   margin-top: 1px;
   margin-bottom: 1px;
 }
+
 .ship-info-wrap #ship-info-settings #ship-info-filter .col-xs-2,
 .ship-info-wrap #ship-info-settings #ship-info-filter .col-xs-10,
 .ship-info-wrap #ship-info-settings #ship-info-filter .col-xs-12 {
   padding-left: 1px;
   padding-right: 1px;
 }
+
 .ship-info-wrap #ship-info-settings .form-control {
   height: inherit;
   padding: 6px 15px 7px;
 }
+
 .ship-info-wrap #ship-info-show .container {
-  margin: 0px;
-  padding: 0px;
+  margin: 0;
+  padding: 0;
   width: inherit;
 }
+
 .ship-info-wrap #ship-info-show .slotitem-container img {
   height: 30px;
   z-index: 1;
@@ -216,23 +289,29 @@
   height: 38px;
   padding: 0 5px;
 }
+
 .ship-info-wrap #ship-info-show .ship-info-table {
-  padding: 0px 15px;
+  padding: 0 15px;
 }
+
 .ship-info-wrap #ship-info-show .ship-info-table tbody {
   counter-reset: rowNumber;
 }
+
 .ship-info-wrap #ship-info-show .ship-info-table table > tbody > tr > td:first-child::before {
   counter-increment: rowNumber;
   content: counter(rowNumber);
   min-width: 1em;
 }
+
 .ship-info-wrap ::-webkit-scrollbar {
   width: 10px;
 }
+
 .ship-info-wrap ::-webkit-scrollbar-track {
   border-radius: 1px;
 }
+
 .ship-info-wrap ::-webkit-scrollbar-thumb {
   border-radius: 1px;
   background-color: #3d3d3d;
@@ -254,7 +333,7 @@
   flex: none;
 }
 
-.ship-info-wrap .alv-img{
+.ship-info-wrap .alv-img {
   height: 14px;
   margin-bottom: 2px;
 }
@@ -262,11 +341,11 @@
 .ship-info-wrap img.svg {
   width: 26px;
   height: 23px;
-  margin: 0px 4px;
+  margin: 0 4px;
 }
 
 .ship-info-wrap .sorting.up {
-  background: hsl(0, 50%, 40%)
+  background: hsl(0, 50%, 40%);
 }
 
 .ship-info-wrap .sorting.down {
@@ -277,13 +356,15 @@
   height: 4em;
 }
 
-.ship-info-wrap .info-tooltip .tooltip-inner{
+.ship-info-wrap .info-tooltip .tooltip-inner {
   max-width: initial;
   width: fit-content;
 }
 
 .ship-info-wrap .super-type {
   display: flex;
+  margin-bottom: 1em;
+  width: 48em;
 }
 
 .ship-info-wrap .super-type button {
@@ -318,7 +399,7 @@
 
 .ship-info-wrap .slotitem-background {
   font-size: 30px;
-  line-height: 0px;
+  line-height: 0;
   position: absolute;
   top: -2px;
   left: 3px;
@@ -370,7 +451,7 @@
   overflow: hidden;
 }
 
-.ship-info-wrap .filter-option:after {
+.ship-info-wrap .filter-option::after {
   content: "";
   display: block;
   position: absolute;
@@ -384,12 +465,12 @@
   background-position: 50%;
   transform: scale(10, 10);
   opacity: 0;
-  transition: transform .5s, opacity 1s;
+  transition: transform 0.5s, opacity 1s;
 }
 
-.ship-info-wrap .filter-option:active:after {
+.ship-info-wrap .filter-option:active::after {
   transform: scale(0, 0);
-  opacity: .2;
+  opacity: 0.2;
   transition: 0s;
 }
 
@@ -437,7 +518,7 @@
   margin-left: 0.5em;
 }
 
-.ship-info-wrap .bookmark > a{
+.ship-info-wrap .bookmark > a {
   display: flex !important;
   align-items: center;
   height: 3em;
@@ -480,7 +561,7 @@
 }
 
 .ship-info-wrap .ReactVirtualized__Grid:focus {
-  border: 0px;
+  border: 0;
 }
 
 .ship-info-wrap .type-menu {
@@ -490,20 +571,14 @@
   padding: 1em 1em 0 1em;
 }
 
-.ship-info-wrap .type-menu >div {
+.ship-info-wrap .type-menu > div {
   display: inline-flex;
   align-content: flex-start;
   flex-wrap: wrap;
 }
 
-.ship-info-wrap .super-type {
-  margin-bottom: 1em;
-  width: 48em;
-}
-
 .ship-info-wrap .type-menu .supertype,
 .ship-info-wrap .type-menu .shiptype {
-  display: block;
   height: 2em;
   display: flex;
   padding-left: 1em;
@@ -528,7 +603,7 @@
 
 .ship-info-wrap .type-menu .supertype.partial,
 .ship-info-wrap .type-menu .shiptype.partial {
-  background-color: rgba(205,220,57,0.5);
+  background-color: rgba(205, 220, 57, 0.5);
 }
 
 .ship-info-wrap .filter-menu {
@@ -558,7 +633,7 @@
   justify-content: flex-start;
   align-content: flex-start;
   min-height: 6em;
-  padding-top: .5em;
+  padding-top: 0.5em;
 }
 
 .ship-info-wrap .area .planned .lane {
@@ -574,7 +649,7 @@
 }
 
 .ship-info-wrap .ship-chip {
-  margin: .25em .5em;
+  margin: 0.25em 0.5em;
   padding-left: 1em;
   padding-right: 1em;
   border-radius: 2em;
@@ -600,8 +675,8 @@
 }
 
 .ship-info-wrap .ship-chip .displace .fa,
-.ship-info-wrap .ship-chip .remove .fa{
-  padding-left: .5em;
+.ship-info-wrap .ship-chip .remove .fa {
+  padding-left: 0.5em;
   padding-right: 0;
   font-size: 120%;
 }
@@ -623,8 +698,8 @@
   min-width: 6em;
   max-width: 16em;
   display: flex;
-  padding-left: .5ex;
-  padding-right: .5ex;
+  padding-left: 0.5ex;
+  padding-right: 0.5ex;
   line-height: 250%;
   transition: 0.2s;
   margin: 2px;
@@ -644,7 +719,7 @@
 }
 
 .ship-info-wrap .ship-grid-cell .ship-level {
-  color: rgba(255, 255, 255, 0.5)
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .ship-info-wrap .ship-grid-container {
@@ -653,14 +728,16 @@
 }
 
 .ship-info-wrap .ship-grid-container .ship-grid-cell {
-  width: 100%
+  width: 100%;
 }
 
 .ship-info-wrap .ship-grid-container .ship-grid-header {
   background: none;
   font-weight: bold;
-  line-height: 1.5rem;
+  line-height: 2rem;
   font-size: 120%;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .ship-info-wrap .name-cube {
@@ -685,7 +762,21 @@
   .ship-info-wrap .ship-grid-cell {
     width: calc(100% / 10 - 4px);
   }
+
   .ship-info-wrap .ship-grid-container {
     width: calc(100% / 15 - 4px);
+  }
+}
+
+.euro-stat .ship-grid-container {
+  width: calc(100% / 5 - 4px);
+}
+
+@media (min-width: 1440px) {
+  .euro-stat .ship-grid-cell {
+    width: initial;
+  }
+  .euro-stat .ship-grid-container {
+    width: calc(100% / 7 - 4px);
   }
 }
