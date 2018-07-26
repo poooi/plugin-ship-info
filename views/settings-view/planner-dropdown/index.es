@@ -74,6 +74,7 @@ const DeckPlannerView = connect(state => {
     current: deckPlannerCurrentSelector(state),
     vibrant: get(state, 'config.poi.vibrant'),
     displayFleetName,
+    zoomLevel: get(state, 'config.poi.zoomLevel', 1),
   }
 })(
   class DeckPlannerView extends Component {
@@ -86,6 +87,7 @@ const DeckPlannerView = connect(state => {
       dispatch: propTypes.func,
       displayFleetName: propTypes.bool.isRequired,
       window: propTypes.instanceOf(window.constructor),
+      zoomLevel: propTypes.number.isRequired,
     }
 
     constructor(props) {
@@ -152,7 +154,7 @@ const DeckPlannerView = connect(state => {
 
     render() {
       const { left, view, fill, extend } = this.state
-      const { mapname, color, displayFleetName } = this.props
+      const { mapname, color, displayFleetName, zoomLevel } = this.props
 
       const areas = mapname.map((name, index) => ({
         name,
@@ -165,8 +167,8 @@ const DeckPlannerView = connect(state => {
         <ul
           className="dropdown-menu"
           style={{
-            width: '99vw',
-            height: '90vh',
+            width: `calc(95vw / ${zoomLevel})`,
+            height: `calc(90vh / ${zoomLevel})`,
             left,
             background: `rgba(51, 51, 51, ${vibrant ? 0.95 : 1})`,
             overflowY: extend && 'visible',

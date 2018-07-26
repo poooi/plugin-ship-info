@@ -18,12 +18,14 @@ const StatView = connect(state => ({
   color: get(state, 'fcd.shiptag.color', []),
   mapname: get(state, 'fcd.shiptag.mapname', []),
   vibrant: get(state, 'config.poi.vibrant'),
+  zoomLevel: get(state, 'config.poi.zoomLevel', 1),
 }))(
   class StatView extends Component {
     static propTypes = {
       vibrant: propTypes.number,
       open: propTypes.bool,
       window: propTypes.instanceOf(window.constructor),
+      zoomLevel: propTypes.number.isRequired,
     }
 
     constructor(props) {
@@ -60,13 +62,14 @@ const StatView = connect(state => ({
 
     render() {
       const { left, view, extend } = this.state
-      const { vibrant } = this.props
+      const { vibrant, window, zoomLevel } = this.props
+
       return (
         <ul
           className="dropdown-menu"
           style={{
-            width: '99vw',
-            height: '95vh',
+            width: `calc(95vw / ${zoomLevel})`,
+            height: `calc(90vh / ${zoomLevel})`,
             left,
             background: `rgba(51, 51, 51, ${vibrant ? 0.95 : 1})`,
             overflowY: extend && 'visible',
