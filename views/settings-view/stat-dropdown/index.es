@@ -54,10 +54,11 @@ const StatView = connect(state => ({
       }
     }
 
-    handleCaptureRect = async () => {
-      await this.setState({ extend: true })
-      await captureRect('#stat-rect', this.props.window.document)
-      this.setState({ extend: false })
+    handleCaptureRect = () => {
+      this.setState({ extend: true }, async () => {
+        await captureRect('#stat-rect', this.props.window.document)
+        this.setState({ extend: false })
+      })
     }
 
     render() {

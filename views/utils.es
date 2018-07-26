@@ -487,7 +487,7 @@ export const captureRect = async (query, mountPoint) => {
   }
   const { width, height } = rect.getBoundingClientRect()
   const canvas = await html2canvas(rect, {
-    background: '#333',
+    backgroundColor: '#333',
     width: Math.ceil(width, 16),
     height: Math.ceil(height, 16),
   })

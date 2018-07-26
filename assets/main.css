@@ -37,7 +37,11 @@
     "WQY michohei",
     "Microsoft Yahei UI",
     "Microsoft Yahei",
-    sans-serif;
+    sans-serif,
+    'Apple Color Emoji',
+    'Segoe UI Emoji',
+    'Segoe UI Symbol',
+    'Noto Color Emoji' !important;
 }
 
 .ship-info-wrap h2 {
