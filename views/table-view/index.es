@@ -2,13 +2,12 @@ import React, { Component } from 'react'
 import propTypes from 'prop-types'
 import { connect } from 'react-redux'
 import cls from 'classnames'
-import { MultiGrid } from 'react-virtualized'
-import { sum, debounce, floor, get, memoize, map } from 'lodash'
+import { MultiGrid, AutoSizer } from 'react-virtualized'
+import { sum, floor, get, memoize, map } from 'lodash'
 
 import { extensionSelectorFactory } from 'views/utils/selectors'
 import { WindowEnv } from 'views/components/etc/window-env'
 
-import Divider from '../divider'
 import { shipInfoShape } from '../utils'
 import { shipRowsSelector, shipInfoConfigSelector } from '../selectors'
 import ShipInfoCells from './ship-info-cells'
@@ -96,25 +95,11 @@ const ShipInfoTableArea = connect(state => ({
     constructor(props) {
       super(props)
       this.tableWidth = sum(WIDTHS)
-      this.updateTableAreaSize = debounce(this.updateTableAreaSize, 500)
       this.setRef = this.setRef.bind(this)
       this.onClickFactory = memoize(this.onClickFactory)
       this.state = {
-        tableAreaWidth: props.window.innerWidth,
-        tableAreaHeight: props.window.innerHeight,
         activeRow: -1,
       }
-    }
-
-    componentDidMount = () => {
-      this.updateTableAreaSize()
-      // eslint-disable-next-line no-undef
-      this.observer = new ResizeObserver(this.updateTableAreaSize)
-      this.observer.observe(this.tableArea)
-    }
-
-    componentWillUnmount = () => {
-      this.observer.unobserve(this.tableArea)
     }
 
     onContextMenu = () =>
@@ -254,69 +239,46 @@ const ShipInfoTableArea = connect(state => ({
       )
     }
 
-    updateTableAreaSize = entries => {
-      const target = entries.shift() || this.tableArea
-      if (!target) return
-      this.setState(
-        {
-          tableAreaWidth: target.contentRect
-            ? target.contentRect.width
-            : target.clientWidth,
-          tableAreaHeight: target.contentRect
-            ? target.contentRect.height
-            : target.clientHeight,
-        },
-        () => {
-          if (this.grid) {
-            this.grid.recomputeGridSize()
-            this.grid.forceUpdateGrids()
-          }
-        },
-      )
-    }
-
     render() {
       const { rows } = this.props
-      const {
-        tableAreaWidth,
-        tableAreaHeight,
-        activeRow,
-        activeColumn,
-      } = this.state
+      const { activeRow, activeColumn } = this.state
+
       return (
         <div id="ship-info-show">
-          <Divider icon={false} />
           <div
-            style={{ flex: 1 }}
+            style={{ flex: 1, margin: 0, padding: 0 }}
             className="table-container"
             ref={r => {
               this.tableArea = r
             }}
           >
-            <MultiGrid
-              rows={rows}
-              ref={this.setRef}
-              activeRow={activeRow}
-              activeColumn={activeColumn}
-              windowWidth={tableAreaWidth}
-              columnCount={WIDTHS.length}
-              columnWidth={this.getColumnWidth}
-              estimatedRowSize={100}
-              fixedColumnCount={0}
-              fixedRowCount={1}
-              handleContentRendered={this.handleContentRendered}
-              height={tableAreaHeight}
-              overscanColumnCount={10}
-              overscanRowCount={5}
-              cellRenderer={this.cellRenderer}
-              rowCount={rows.length + 1}
-              rowHeight={ROW_HEIGHT}
-              scrollToAlignment="start"
-              width={tableAreaWidth - 16} // 16: left and right padding (8 + 8)
-              scrollToColumn={0}
-              scrollToRow={0}
-              onScroll={this.handleScroll}
-            />
+            <AutoSizer>
+              {({ height, width }) => (
+                <MultiGrid
+                  rows={rows}
+                  ref={this.setRef}
+                  activeRow={activeRow}
+                  activeColumn={activeColumn}
+                  columnCount={WIDTHS.length}
+                  columnWidth={this.getColumnWidth}
+                  estimatedRowSize={100}
+                  fixedColumnCount={0}
+                  fixedRowCount={1}
+                  handleContentRendered={this.handleContentRendered}
+                  height={height}
+                  overscanColumnCount={10}
+                  overscanRowCount={5}
+                  cellRenderer={this.cellRenderer}
+                  rowCount={rows.length + 1}
+                  rowHeight={ROW_HEIGHT}
+                  scrollToAlignment="start"
+                  width={width} // 16: left and right padding (8 + 8)
+                  scrollToColumn={0}
+                  scrollToRow={0}
+                  onScroll={this.handleScroll}
+                />
+              )}
+            </AutoSizer>
           </div>
         </div>
       )
