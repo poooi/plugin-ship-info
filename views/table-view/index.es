@@ -98,6 +98,7 @@ const ShipInfoTableArea = connect(state => ({
       this.setRef = this.setRef.bind(this)
       this.onClickFactory = memoize(this.onClickFactory)
       this.state = {
+        tableAreaWidth: props.window.width,
         activeRow: -1,
       }
     }
@@ -239,6 +240,20 @@ const ShipInfoTableArea = connect(state => ({
       )
     }
 
+    handleResize = ({ width }) => {
+      this.setState(
+        {
+          tableAreaWidth: width,
+        },
+        () => {
+          if (this.grid) {
+            this.grid.recomputeGridSize()
+            this.grid.forceUpdateGrids()
+          }
+        },
+      )
+    }
+
     render() {
       const { rows } = this.props
       const { activeRow, activeColumn } = this.state
@@ -252,7 +267,7 @@ const ShipInfoTableArea = connect(state => ({
               this.tableArea = r
             }}
           >
-            <AutoSizer>
+            <AutoSizer onResize={this.handleResize}>
               {({ height, width }) => (
                 <MultiGrid
                   rows={rows}
