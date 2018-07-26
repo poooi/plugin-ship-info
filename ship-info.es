@@ -70,7 +70,7 @@ window.captureRect = async (query) => {
   }
   const { width, height } = rect.getBoundingClientRect()
   const canvas = await html2canvas(rect, {
-    background: '#333',
+    backgroundColor: '#333',
     width: ceil(width, 16),
     height: ceil(height, 16),
   })

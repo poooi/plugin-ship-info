@@ -50,9 +50,10 @@ const StatView = connect(
   }
 
   handleCaptureRect = async () => {
-    await this.setState({ extend: true })
-    await window.captureRect('#stat-rect')
-    this.setState({ extend: false })
+    this.setState({ extend: true }, async () => {
+      await window.captureRect('#stat-rect')
+      this.setState({ extend: false })
+    })
   }
 
   render() {
@@ -149,7 +150,7 @@ const PlannerDropdown = connect(
       <FontAwesome name="line-chart" style={{ marginRight: '1ex' }} />{__('Statistics')} <sup>BETA</sup>
     </Dropdown.Toggle>
     <StatView bsRole="menu" open={activeDropdown === 'stat'} />
-   </Dropdown>)
+  </Dropdown>)
 )
 
 export default PlannerDropdown

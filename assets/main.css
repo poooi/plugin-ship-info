@@ -10,7 +10,24 @@
 /* this prvents font fallback */
 #stat-rect *,
 #planner-rect * {
-  font-family: FontAwesome, Helvetica, Arial, 'Segoe UI', Segoe, 'Source Han Sans', 'Noto Sans CJK', 'PingFang', 'Hiragino Sans GB', 'WQY michohei', 'Microsoft Yahei UI', 'Microsoft Yahei', sans-serif;
+  font-family:
+  FontAwesome,
+  Helvetica,
+  Arial,
+  "Segoe UI",
+  Segoe,
+  "Source Han Sans",
+  "Noto Sans CJK",
+  "PingFang",
+  "Hiragino Sans GB",
+  "WQY michohei",
+  "Microsoft Yahei UI",
+  "Microsoft Yahei",
+  sans-serif,
+  'Apple Color Emoji',
+  'Segoe UI Emoji',
+  'Segoe UI Symbol',
+  'Noto Color Emoji' !important;
 }
 
 html {
