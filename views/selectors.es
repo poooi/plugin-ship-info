@@ -25,6 +25,7 @@ import {
   inRepairShipsIdSelector,
   extensionSelectorFactory,
   wctfSelector,
+  createDeepCompareArraySelector,
 } from 'views/utils/selectors'
 
 import { PLUGIN_KEY } from './redux'
@@ -36,6 +37,11 @@ import {
 } from './utils'
 
 const { __ } = window.i18n['poi-plugin-ship-info']
+
+// This wrapper prevents different array (in terms of ===) being returned
+// despite having the same elements
+const arrayResultWrapper = selector =>
+  createDeepCompareArraySelector(selector, result => result)
 
 export const graphSelector = createSelector(
   [constSelector],
@@ -67,13 +73,15 @@ export const shipInfoConfigSelector = createSelector(
   }),
 )
 
-const allFleetShipIdSelector = createSelector(
-  [
-    ...[...Array(4).keys()].map(fleetId =>
-      fleetShipsIdSelectorFactory(fleetId),
-    ),
-  ],
-  (id1, id2, id3, id4) => [id1, id2, id3, id4],
+const allFleetShipIdSelector = arrayResultWrapper(
+  createSelector(
+    [
+      ...[...Array(4).keys()].map(fleetId =>
+        fleetShipsIdSelectorFactory(fleetId),
+      ),
+    ],
+    (id1, id2, id3, id4) => [id1, id2, id3, id4],
+  ),
 )
 
 export const shipFleetIdMapSelector = createSelector(
@@ -312,14 +320,16 @@ const fleetShipsInExpeditionSelectorFactory = memoize(fleetId =>
   ),
 )
 
-const expeditionShipsSelector = createSelector(
-  [
-    state => fleetShipsInExpeditionSelectorFactory(0)(state),
-    state => fleetShipsInExpeditionSelectorFactory(1)(state),
-    state => fleetShipsInExpeditionSelectorFactory(2)(state),
-    state => fleetShipsInExpeditionSelectorFactory(3)(state),
-  ],
-  (...ids) => [].concat(...ids),
+const expeditionShipsSelector = arrayResultWrapper(
+  createSelector(
+    [
+      state => fleetShipsInExpeditionSelectorFactory(0)(state),
+      state => fleetShipsInExpeditionSelectorFactory(1)(state),
+      state => fleetShipsInExpeditionSelectorFactory(2)(state),
+      state => fleetShipsInExpeditionSelectorFactory(3)(state),
+    ],
+    (...ids) => [].concat(...ids),
+  ),
 )
 
 export const allShipRowsSelector = createSelector(
@@ -374,51 +384,53 @@ export const shipRowsSelector = createSelector(
     )(ships),
 )
 
-export const shipListIdSelector = createSelector(
-  [
-    allShipRowsSelector,
-    shipTypesSelecor,
-    expeditionShipsSelector,
-    shipInfoConfigSelector,
-  ],
-  (
-    ships,
-    shipTypes,
-    expeditionShips,
-    {
-      lvRadio,
-      lockedRadio,
-      expeditionRadio,
-      modernizationRadio,
-      remodelRadio,
-      inFleetRadio,
-      exSlotRadio,
-      sparkleRadio,
-      daihatsuRadio,
-      sallyAreaChecked,
-      sortName,
-      sortOrder,
-    },
-  ) =>
-    fp.flow(
-      fp.filter(
-        ship =>
-          handleTypeFilter(ship.typeId, shipTypes) &&
-          handleLvFilter(ship.lv, lvRadio) &&
-          handleLockedFilter(ship.locked, lockedRadio) &&
-          handleExpeditionFilter(ship.id, expeditionShips, expeditionRadio) &&
-          handleModernizationFilter(ship.isCompleted, modernizationRadio) &&
-          handleRemodelFilter(ship.after, remodelRadio) &&
-          handleSallyAreaFilter(ship.sallyArea, sallyAreaChecked) &&
-          handleInFleetFilter(ship.fleetId, inFleetRadio) &&
-          handleExSlotFilter(ship.exslot, exSlotRadio) &&
-          handleSparkleFilter(ship.cond, sparkleRadio) &&
-          handleDaihatsuFilter(ship.daihatsu, daihatsuRadio),
-      ),
-      fp.sortBy(getSortFunction(sortName)),
-      sortOrder ? ship => ship : fp.reverse,
-      fp.map('id'),
-    )(ships),
+export const shipListIdSelector = arrayResultWrapper(
+  createSelector(
+    [
+      allShipRowsSelector,
+      shipTypesSelecor,
+      expeditionShipsSelector,
+      shipInfoConfigSelector,
+    ],
+    (
+      ships,
+      shipTypes,
+      expeditionShips,
+      {
+        lvRadio,
+        lockedRadio,
+        expeditionRadio,
+        modernizationRadio,
+        remodelRadio,
+        inFleetRadio,
+        exSlotRadio,
+        sparkleRadio,
+        daihatsuRadio,
+        sallyAreaChecked,
+        sortName,
+        sortOrder,
+      },
+    ) =>
+      fp.flow(
+        fp.filter(
+          ship =>
+            handleTypeFilter(ship.typeId, shipTypes) &&
+            handleLvFilter(ship.lv, lvRadio) &&
+            handleLockedFilter(ship.locked, lockedRadio) &&
+            handleExpeditionFilter(ship.id, expeditionShips, expeditionRadio) &&
+            handleModernizationFilter(ship.isCompleted, modernizationRadio) &&
+            handleRemodelFilter(ship.after, remodelRadio) &&
+            handleSallyAreaFilter(ship.sallyArea, sallyAreaChecked) &&
+            handleInFleetFilter(ship.fleetId, inFleetRadio) &&
+            handleExSlotFilter(ship.exslot, exSlotRadio) &&
+            handleSparkleFilter(ship.cond, sparkleRadio) &&
+            handleDaihatsuFilter(ship.daihatsu, daihatsuRadio),
+        ),
+        fp.sortBy(getSortFunction(sortName)),
+        sortOrder ? ship => ship : fp.reverse,
+        fp.map('id'),
+      )(ships),
+  ),
 )
 
 export const sallyAreaSelectorFactory = memoize(area =>
