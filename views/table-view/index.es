@@ -8,8 +8,11 @@ import { sum, floor, get, memoize, map } from 'lodash'
 import { extensionSelectorFactory } from 'views/utils/selectors'
 import { WindowEnv } from 'views/components/etc/window-env'
 
-import { shipInfoShape } from '../utils'
-import { shipRowsSelector, shipInfoConfigSelector } from '../selectors'
+import {
+  shipInfoConfigSelector,
+  shipListIdSelector,
+  shipTableDataSelectorFactory,
+} from '../selectors'
 import ShipInfoCells from './ship-info-cells'
 import COLUMNS from './columns'
 
@@ -68,7 +71,7 @@ TitleCell.propTypes = {
 }
 
 const ShipInfoTableArea = connect(state => ({
-  rows: shipRowsSelector(state),
+  list: shipListIdSelector(state),
   ...shipInfoConfigSelector(state),
   toTop: get(
     extensionSelectorFactory('poi-plugin-ship-info')(state),
@@ -83,11 +86,10 @@ const ShipInfoTableArea = connect(state => ({
 }))(
   class ShipInfoTableArea extends Component {
     static propTypes = {
-      rows: propTypes.arrayOf(propTypes.shape(shipInfoShape)).isRequired,
+      list: propTypes.arrayOf(propTypes.number).isRequired,
       sortName: propTypes.string.isRequired,
       sortOrder: propTypes.number.isRequired,
       toTop: propTypes.bool,
-      // isExtend: propTypes.bool,
       dispatch: propTypes.func,
       window: propTypes.instanceOf(window.constructor),
     }
@@ -157,8 +159,8 @@ const ShipInfoTableArea = connect(state => ({
     }
 
     handleScroll = ({ scrollTop }) => {
-      const { rows } = this.props
-      const contentHeight = rows.length * ROW_HEIGHT
+      const { list } = this.props
+      const contentHeight = list.length * ROW_HEIGHT
       const safeZone = Math.round(
         window.screen.height / config.get('poi.zoomLevel', 1),
       )
@@ -176,7 +178,7 @@ const ShipInfoTableArea = connect(state => ({
     }
 
     cellRenderer = ({ columnIndex, key, rowIndex, style }) => {
-      const { rows, sortName, sortOrder } = this.props
+      const { list, sortName, sortOrder } = this.props
 
       const highlight =
         (columnIndex === this.state.activeColumn ||
@@ -212,9 +214,11 @@ const ShipInfoTableArea = connect(state => ({
         )
       } else {
         const index = columnIndex - 1
-        const ship = rows[rowIndex - 1]
-        const Cell = ShipInfoCells[TYPES[index]]
-        content = <Cell ship={ship} style={style} {...props} />
+        const shipId = list[rowIndex - 1]
+        const Cell = connect(state => ({
+          ship: shipTableDataSelectorFactory(shipId)(state),
+        }))(ShipInfoCells[TYPES[index]])
+        content = <Cell shipId={shipId} style={style} {...props} />
       }
 
       return content
@@ -255,7 +259,7 @@ const ShipInfoTableArea = connect(state => ({
     }
 
     render() {
-      const { rows } = this.props
+      const { list } = this.props
       const { activeRow, activeColumn } = this.state
 
       return (
@@ -270,7 +274,6 @@ const ShipInfoTableArea = connect(state => ({
             <AutoSizer onResize={this.handleResize}>
               {({ height, width }) => (
                 <MultiGrid
-                  rows={rows}
                   ref={this.setRef}
                   activeRow={activeRow}
                   activeColumn={activeColumn}
@@ -284,7 +287,7 @@ const ShipInfoTableArea = connect(state => ({
                   overscanColumnCount={10}
                   overscanRowCount={5}
                   cellRenderer={this.cellRenderer}
-                  rowCount={rows.length + 1}
+                  rowCount={list.length + 1}
                   rowHeight={ROW_HEIGHT}
                   scrollToAlignment="start"
                   width={width} // 16: left and right padding (8 + 8)

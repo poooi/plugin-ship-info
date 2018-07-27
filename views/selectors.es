@@ -374,6 +374,53 @@ export const shipRowsSelector = createSelector(
     )(ships),
 )
 
+export const shipListIdSelector = createSelector(
+  [
+    allShipRowsSelector,
+    shipTypesSelecor,
+    expeditionShipsSelector,
+    shipInfoConfigSelector,
+  ],
+  (
+    ships,
+    shipTypes,
+    expeditionShips,
+    {
+      lvRadio,
+      lockedRadio,
+      expeditionRadio,
+      modernizationRadio,
+      remodelRadio,
+      inFleetRadio,
+      exSlotRadio,
+      sparkleRadio,
+      daihatsuRadio,
+      sallyAreaChecked,
+      sortName,
+      sortOrder,
+    },
+  ) =>
+    fp.flow(
+      fp.filter(
+        ship =>
+          handleTypeFilter(ship.typeId, shipTypes) &&
+          handleLvFilter(ship.lv, lvRadio) &&
+          handleLockedFilter(ship.locked, lockedRadio) &&
+          handleExpeditionFilter(ship.id, expeditionShips, expeditionRadio) &&
+          handleModernizationFilter(ship.isCompleted, modernizationRadio) &&
+          handleRemodelFilter(ship.after, remodelRadio) &&
+          handleSallyAreaFilter(ship.sallyArea, sallyAreaChecked) &&
+          handleInFleetFilter(ship.fleetId, inFleetRadio) &&
+          handleExSlotFilter(ship.exslot, exSlotRadio) &&
+          handleSparkleFilter(ship.cond, sparkleRadio) &&
+          handleDaihatsuFilter(ship.daihatsu, daihatsuRadio),
+      ),
+      fp.sortBy(getSortFunction(sortName)),
+      sortOrder ? ship => ship : fp.reverse,
+      fp.map('id'),
+    )(ships),
+)
+
 export const sallyAreaSelectorFactory = memoize(area =>
   createSelector([fcdSelector], fcd => ({
     mapname: get(
