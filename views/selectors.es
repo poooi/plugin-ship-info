@@ -1,5 +1,5 @@
 import memoize from 'fast-memoize'
-import { createSelector } from 'reselect'
+import { createSelector, createSelectorCreator, defaultMemoize } from 'reselect'
 import _, {
   get,
   mapValues,
@@ -9,6 +9,7 @@ import _, {
   fromPairs,
   flatMap,
   keyBy,
+  isEqual,
 } from 'lodash'
 import fp from 'lodash/fp'
 
@@ -18,7 +19,6 @@ import {
   shipsSelector,
   configSelector,
   fcdSelector,
-  shipEquipDataSelectorFactory,
   fleetInExpeditionSelectorFactory,
   fleetShipsIdSelectorFactory,
   stateSelector,
@@ -42,6 +42,21 @@ const { __ } = window.i18n['poi-plugin-ship-info']
 // despite having the same elements
 const arrayResultWrapper = selector =>
   createDeepCompareArraySelector(selector, result => result)
+
+/**
+ * createSelector with isEqual as compare function
+ */
+export const createDeepCompareObjectSelector = createSelectorCreator(
+  defaultMemoize,
+  isEqual,
+)
+
+/**
+ * This wrapper prevents different object (in terms of ===) being returned
+ * despite having the same key and values
+ */
+const objectResultWrapper = selector =>
+  createDeepCompareObjectSelector(selector, result => result)
 
 export const graphSelector = createSelector(
   [constSelector],
@@ -84,12 +99,12 @@ const allFleetShipIdSelector = arrayResultWrapper(
   ),
 )
 
-export const shipFleetIdMapSelector = createSelector(
-  [shipsSelector, allFleetShipIdSelector],
-  (ships, fleetIds) =>
+export const shipFleetIdMapSelector = objectResultWrapper(
+  createSelector([shipsSelector, allFleetShipIdSelector], (ships, fleetIds) =>
     mapValues(ships, ship =>
       findIndex(fleetIds, fleetId => includes(fleetId, ship.api_id)),
     ),
+  ),
 )
 
 export const shipFleetIdSelectorFactory = memoize(shipId =>
@@ -104,7 +119,6 @@ export const shipTableDataSelectorFactory = memoize(shipId =>
   createSelector(
     [
       shipDataSelectorFactory(shipId),
-      shipEquipDataSelectorFactory(shipId),
       constSelector,
       shipFleetIdMapSelector,
       rawValueConfigSelector,
@@ -113,7 +127,6 @@ export const shipTableDataSelectorFactory = memoize(shipId =>
     ],
     (
       [ship, $ship] = [],
-      equips,
       { $shipTypes },
       fleetIdMap,
       rawValue,
@@ -123,7 +136,6 @@ export const shipTableDataSelectorFactory = memoize(shipId =>
       getShipInfoData(
         ship,
         $ship,
-        equips,
         $shipTypes,
         fleetIdMap,
         rawValue,

@@ -34,7 +34,6 @@ const getValueByLevel = (min, max, lv) =>
 export const getShipInfoData = (
   ship,
   $ship,
-  equips,
   $shipTypes,
   fleetIdMap,
   rawValue = false,
