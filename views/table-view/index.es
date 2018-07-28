@@ -125,11 +125,10 @@ const ShipInfoTableArea = connect(state => ({
     }
 
     getColumnWidth = ({ index }) => {
-      // 20: magic number, seems it need to be greater than 16
       const width = floor(
         (WIDTHS[index] || 40) *
-          (this.state.tableAreaWidth - 20 > this.tableWidth
-            ? (this.state.tableAreaWidth - 20) / this.tableWidth
+          (this.state.tableAreaWidth > this.tableWidth
+            ? this.state.tableAreaWidth / this.tableWidth
             : 1),
       )
       return width
@@ -197,9 +196,9 @@ const ShipInfoTableArea = connect(state => ({
           'even-light': rowIndex % 2 === 1 && !window.isDarkTheme,
         }),
       }
-      let content
+
       if (rowIndex === 0) {
-        content = this.titleRenderer({
+        return this.titleRenderer({
           columnIndex,
           style,
           sortName,
@@ -207,21 +206,19 @@ const ShipInfoTableArea = connect(state => ({
           ...props,
         })
       } else if (columnIndex === 0) {
-        content = (
+        return (
           <div style={{ ...style, paddingLeft: '10px' }} key={key} {...props}>
             {rowIndex}
           </div>
         )
-      } else {
-        const index = columnIndex - 1
-        const shipId = list[rowIndex - 1]
-        const Cell = connect(state => ({
-          ship: shipTableDataSelectorFactory(shipId)(state),
-        }))(ShipInfoCells[TYPES[index]])
-        content = <Cell shipId={shipId} style={style} {...props} />
       }
+      const index = columnIndex - 1
+      const shipId = list[rowIndex - 1]
 
-      return content
+      const Cell = connect(state => ({
+        ship: shipTableDataSelectorFactory(shipId)(state),
+      }))(ShipInfoCells[TYPES[index]])
+      return <Cell shipId={shipId} style={style} {...props} />
     }
 
     titleRenderer = ({ columnIndex, style, sortName, sortOrder, ...props }) => {
@@ -284,7 +281,7 @@ const ShipInfoTableArea = connect(state => ({
                   fixedRowCount={1}
                   handleContentRendered={this.handleContentRendered}
                   height={height}
-                  overscanColumnCount={10}
+                  overscanColumnCount={2}
                   overscanRowCount={5}
                   cellRenderer={this.cellRenderer}
                   rowCount={list.length + 1}
