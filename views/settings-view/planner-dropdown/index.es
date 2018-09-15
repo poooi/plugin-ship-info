@@ -228,7 +228,7 @@ const DeckPlannerView = connect(state => {
                 </div>
                 {areas.map(area => (
                   <div
-                    key={area.name}
+                    key={area.color}
                     onClick={() => this.setState({ fill: area.areaIndex })}
                     className={cls('filter-option', {
                       checked: fill === area.areaIndex,
@@ -290,7 +290,7 @@ const DeckPlannerView = connect(state => {
               <div>
                 {areas.map(area => (
                   <Area
-                    key={area.name}
+                    key={area.color}
                     area={area}
                     index={area.areaIndex}
                     others={areas.filter(

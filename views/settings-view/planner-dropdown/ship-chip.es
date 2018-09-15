@@ -119,7 +119,7 @@ export default connect((state, props) => ({
                   {others.map(_area => (
                     <MenuItem
                       eventKey={_area.areaIndex}
-                      key={_area.name}
+                      key={_area.color}
                       onSelect={onDisplace}
                     >
                       {__('Move to ')}{' '}
