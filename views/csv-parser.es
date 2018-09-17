@@ -1,7 +1,8 @@
 import { get, map } from 'lodash'
+import i18next from 'views/env-parts/i18next'
 
 const { _slotitems, $slotitems, $ships } = window
-const { __ } = window.i18n['poi-plugin-ship-info']
+const __ = i18next.getFixedT(null, ['poi-plugin-ship-info', 'resources'])
 
 const getItemName = index => ship => {
   const itemId = get(

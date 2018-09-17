@@ -1,19 +1,18 @@
 import React, { Component } from 'react'
-import propTypes from 'prop-types'
+import PropTypes from 'prop-types'
 import { Dropdown, MenuItem, Label } from 'react-bootstrap'
 import { connect } from 'react-redux'
 import { get, map } from 'lodash'
 import fp from 'lodash/fp'
 import FontAwesome from 'react-fontawesome'
+import { translate } from 'react-i18next'
+import { compose } from 'redux'
 
 import {
   shipMenuDataSelector,
   deckPlannerAllShipIdsSelector,
 } from '../../selectors'
 import { shipSuperTypeMap } from '../../utils'
-
-const { __ } = window.i18n['poi-plugin-ship-info']
-const { __: __r } = window.i18n.resources
 
 const Item = ({ eventKey, onSelect, children }) => (
   <MenuItem eventKey={eventKey} onSelect={onSelect} className="ship-item">
@@ -22,15 +21,17 @@ const Item = ({ eventKey, onSelect, children }) => (
 )
 
 Item.propTypes = {
-  eventKey: propTypes.number,
-  onSelect: propTypes.func,
-  children: propTypes.oneOfType([propTypes.array, propTypes.string]),
+  eventKey: PropTypes.number,
+  onSelect: PropTypes.func,
+  children: PropTypes.oneOfType([PropTypes.array, PropTypes.string]),
 }
 
+@translate(['poi-plugin-ship-info'])
 class ShipMenu extends Component {
   static propTypes = {
-    children: propTypes.arrayOf(propTypes.element),
-    areaIndex: propTypes.number,
+    children: PropTypes.arrayOf(PropTypes.element),
+    areaIndex: PropTypes.number,
+    t: PropTypes.func.isRequired,
   }
 
   constructor(props) {
@@ -59,14 +60,14 @@ class ShipMenu extends Component {
   }
 
   render() {
-    const { children, areaIndex } = this.props
+    const { children, areaIndex, t } = this.props
     const { typeIndex } = this.state
 
     return (
       <ul className="dropdown-menu add-ship-menu pull-right">
         {typeIndex >= 0 && (
           <MenuItem onSelect={this.handleGoBack}>
-            {__('return to ship types')}
+            {t('return to ship types')}
           </MenuItem>
         )}
         {typeIndex >= 0
@@ -85,7 +86,7 @@ class ShipMenu extends Component {
                 eventKey={index}
                 onSelect={this.handleTypeSelect(index)}
               >
-                {__(type.name)}
+                {t(type.name)}
               </Item>
             ))}
       </ul>
@@ -93,12 +94,15 @@ class ShipMenu extends Component {
   }
 }
 
-const AddShipDropdown = connect((state, props) => ({
-  shipItems: shipMenuDataSelector(state),
-  areaIndex: props.area,
-  allShipIds: deckPlannerAllShipIdsSelector(state),
-  color: get(state, 'fcd.shiptag.color', []),
-}))(({ shipItems, areaIndex, allShipIds, color, onSelect }) => (
+const AddShipDropdown = compose(
+  translate(['resources']),
+  connect((state, props) => ({
+    shipItems: shipMenuDataSelector(state),
+    areaIndex: props.area,
+    allShipIds: deckPlannerAllShipIdsSelector(state),
+    color: get(state, 'fcd.shiptag.color', []),
+  })),
+)(({ shipItems, areaIndex, allShipIds, color, onSelect, t }) => (
   <Dropdown id={`add-ship-dropdown-${areaIndex}`} pullRight>
     <Dropdown.Toggle bsStyle="link">
       <FontAwesome name="plus" />
@@ -115,7 +119,7 @@ const AddShipDropdown = connect((state, props) => ({
             typeId={ship.typeId}
             area={ship.area}
           >
-            <span>{`Lv.${ship.lv} ${__r(ship.name)}`}</span>
+            <span>{`Lv.${ship.lv} ${t(ship.name)}`}</span>
             {!!ship.area && (
               <Label>
                 <FontAwesome

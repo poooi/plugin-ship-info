@@ -9,6 +9,7 @@ import { observe } from 'redux-observers'
 import { extensionSelectorFactory } from 'views/utils/selectors'
 import { store } from 'views/create-store'
 import { WindowEnv } from 'views/components/etc/window-env'
+import i18next from 'views/env-parts/i18next'
 
 import BookmarkDropdown from './bookmark-dropdown'
 import ConfigMenu from './config-menu'
@@ -19,7 +20,7 @@ import StatDropdown from './stat-dropdown'
 import { dataObserver, initStore } from '../redux'
 
 const { config } = window
-const { __ } = window.i18n['poi-plugin-ship-info']
+const __ = i18next.getFixedT(null, ['poi-plugin-ship-info', 'resources'])
 
 const ShipInfoCheckboxArea = connect(state => ({
   toTop: get(

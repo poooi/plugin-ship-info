@@ -9,6 +9,7 @@ import fs from 'fs-extra'
 import { promisify } from 'bluebird'
 import { extensionSelectorFactory } from 'views/utils/selectors'
 import { get } from 'lodash'
+import i18next from 'views/env-parts/i18next'
 
 import { allShipRowsSelector, shipRowsSelector } from '../selectors'
 import { parseCsv } from '../csv-parser'
@@ -16,7 +17,7 @@ import { parseCsv } from '../csv-parser'
 const { dialog } = remote
 const outputFile = promisify(fs.outputFile)
 
-const { __ } = window.i18n['poi-plugin-ship-info']
+const __ = i18next.getFixedT(null, ['poi-plugin-ship-info', 'resources'])
 
 const isWin = process.platform === 'win32'
 

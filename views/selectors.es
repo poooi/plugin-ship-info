@@ -11,6 +11,7 @@ import _, {
   keyBy,
 } from 'lodash'
 import fp from 'lodash/fp'
+import i18next from 'views/env-parts/i18next'
 
 import {
   constSelector,
@@ -35,7 +36,7 @@ import {
   reverseSuperTypeMap,
 } from './utils'
 
-const { __ } = window.i18n['poi-plugin-ship-info']
+const __ = i18next.getFixedT(null, ['poi-plugin-ship-info', 'resources'])
 
 export const graphSelector = createSelector(
   [constSelector],
