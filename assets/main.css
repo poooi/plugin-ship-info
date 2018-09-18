@@ -337,9 +337,10 @@
   flex: none;
 }
 
-.ship-info-wrap .alv-img {
+.ship-info-slotitem-tooltip .alv-img {
   height: 14px;
   margin-bottom: 2px;
+  margin-left: 1ex;
 }
 
 .ship-info-wrap img.svg {

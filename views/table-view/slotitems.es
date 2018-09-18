@@ -16,54 +16,55 @@ const getBackgroundStyle = () =>
     ? { backgroundColor: 'rgba(33, 33, 33, 0.7)' }
     : { backgroundColor: 'rgba(256, 256, 256, 0.7)' }
 
-const Slotitem = translate(['poi-plugin-ship-info'])(
-  ({ item, isEx = false, t }) => (
-    <div className="slotitem-container">
-      <OverlayTrigger
-        placement="top"
-        overlay={
-          <Tooltip id={`item-${item.api_id}`} className="info-tooltip">
-            {t(item.api_name || '')}
-            {item.api_level > 0 ? (
-              <strong style={{ color: '#45A9A5' }}>★+{item.api_level}</strong>
-            ) : (
-              ''
-            )}
-            {item.api_alv && item.api_alv <= 7 && item.api_alv >= 1 ? (
-              <img
-                alt="alv"
-                className="alv-img"
-                src={Path.join(
-                  ROOT,
-                  'assets',
-                  'img',
-                  'airplane',
-                  `alv${item.api_alv}.png`,
-                )}
-              />
-            ) : (
-              ''
-            )}
-          </Tooltip>
-        }
-      >
-        <span>
-          <span className="slotitem-background">&#x2B22;</span>
-          <SlotitemIcon
-            alt={t(item.api_name || '')}
-            slotitemId={get(item, 'api_type.3', -1)}
-            style={{ zIndex: 1 }}
-          />
-          {isEx && (
-            <span className="slotitem-onslot" style={getBackgroundStyle()}>
-              +
-            </span>
+const Slotitem = translate(['resources'])(({ item, isEx = false, t }) => (
+  <div className="slotitem-container">
+    <OverlayTrigger
+      placement="top"
+      overlay={
+        <Tooltip
+          id={`item-${item.api_id}`}
+          className="ship-info-slotitem-tooltip"
+        >
+          {t(item.api_name || '', { keySeparator: 'chiba' })}
+          {item.api_level > 0 ? (
+            <strong style={{ color: '#45A9A5' }}>★+{item.api_level}</strong>
+          ) : (
+            ''
           )}
-        </span>
-      </OverlayTrigger>
-    </div>
-  ),
-)
+          {item.api_alv && item.api_alv <= 7 && item.api_alv >= 1 ? (
+            <img
+              alt="alv"
+              className="alv-img"
+              src={Path.join(
+                ROOT,
+                'assets',
+                'img',
+                'airplane',
+                `alv${item.api_alv}.png`,
+              )}
+            />
+          ) : (
+            ''
+          )}
+        </Tooltip>
+      }
+    >
+      <span>
+        <span className="slotitem-background">&#x2B22;</span>
+        <SlotitemIcon
+          alt={t(item.api_name || '', { keySeparator: 'chiba' })}
+          slotitemId={get(item, 'api_type.3', -1)}
+          style={{ zIndex: 1 }}
+        />
+        {isEx && (
+          <span className="slotitem-onslot" style={getBackgroundStyle()}>
+            +
+          </span>
+        )}
+      </span>
+    </OverlayTrigger>
+  </div>
+))
 
 const itemShape = {
   api_name: propTypes.string.isRequired,
