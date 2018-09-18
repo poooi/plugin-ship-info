@@ -44,7 +44,7 @@
   "Remodelable": "개장",
   "Not Remodelable": "개장완료",
   "Remodelable": "개장미완",
-  "Ship tag: %s": "출격해역: %s",
+  "ship_tag": "출격해역: {{map}}",
   "Sally Area": "출격해역",
   "No Sally Area": "미출격"
 }

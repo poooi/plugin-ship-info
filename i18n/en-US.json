@@ -67,5 +67,7 @@
   "soku": "Speed",
   "Firepower": "Fire.",
   "Torpedo": "Torp.",
-  "Evasion": "Ev."
+  "Evasion": "Ev.",
+  "ship_tag": "Ship tag: {{map}}",
+  "unknown_area": "Unknown area {{area}}, data not updated"
 }

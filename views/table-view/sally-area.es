@@ -26,7 +26,7 @@ const SallyArea = compose(
         placement="top"
         overlay={
           <Tooltip id={`sally-area-${info_id}`} className="info-tooltip">
-            {t('Ship tag: %s', mapname)}
+            {t('ship_tag', { map: mapname })}
           </Tooltip>
         }
       >
