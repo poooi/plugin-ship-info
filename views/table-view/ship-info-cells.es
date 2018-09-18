@@ -6,6 +6,7 @@ import cls from 'classnames'
 import path from 'path'
 import { connect } from 'react-redux'
 import { get } from 'lodash'
+import { translate } from 'react-i18next'
 
 import { resolveTime } from 'views/utils/tools'
 import { Avatar } from 'views/components/etc/avatar'
@@ -13,8 +14,6 @@ import Slotitems from './slotitems'
 import SallyArea from './sally-area'
 import { sokuInterpretation, sokuStyles } from '../constants'
 import { getTimePerHP, shipInfoShape, shipTypes, fileUrl } from '../utils'
-
-const { __ } = window.i18n['poi-plugin-ship-info']
 
 const enableAvatarConfigSelector = state =>
   get(state, ['config', 'poi', 'enableAvatar'], false)
@@ -26,26 +25,28 @@ Id.propTypes = {
   className: PropTypes.string,
 }
 
-const Name = ({ className, ship, enableAvatar, ...props }) => (
-  <div {...props} className={`${className || ''} ship-name`}>
-    {enableAvatar && <Avatar mstId={ship.shipId} height={35} />}
-    <span className="name" title={window.i18n.resources.__(ship.name)}>
-      {window.i18n.resources.__(ship.name)}
-    </span>
-    {ship.fleetId > -1 && (
-      <img
-        className="fleet-id-indicator"
-        alt={`fleet: ${ship.fleetId + 1}`}
-        src={fileUrl(
-          path.resolve(
-            __dirname,
-            `../../assets/svg/fleet-indicator-${ship.fleetId + 1}.svg`,
-          ),
-        )}
-      />
-    )}
-    <SallyArea area={ship.sallyArea} info_id={ship.id} />
-  </div>
+const Name = translate(['resources'])(
+  ({ className, ship, enableAvatar, t, ...props }) => (
+    <div {...props} className={`${className || ''} ship-name`}>
+      {enableAvatar && <Avatar mstId={ship.shipId} height={35} />}
+      <span className="name" title={t(ship.name)}>
+        {t(ship.name)}
+      </span>
+      {ship.fleetId > -1 && (
+        <img
+          className="fleet-id-indicator"
+          alt={`fleet: ${ship.fleetId + 1}`}
+          src={fileUrl(
+            path.resolve(
+              __dirname,
+              `../../assets/svg/fleet-indicator-${ship.fleetId + 1}.svg`,
+            ),
+          )}
+        />
+      )}
+      <SallyArea area={ship.sallyArea} info_id={ship.id} />
+    </div>
+  ),
 )
 
 Name.propTypes = {
@@ -54,29 +55,29 @@ Name.propTypes = {
   enableAvatar: PropTypes.bool.isRequired,
 }
 
-const Type = ({ ship, ...props }) => (
+const Type = translate(['resources'])(({ ship, t, ...props }) => (
   <div {...props}>
-    {window.language === 'en-US'
-      ? shipTypes[ship.typeId]
-      : window.i18n.resources.__(ship.type)}
+    {window.language === 'en-US' ? shipTypes[ship.typeId] : t(ship.type)}
   </div>
-)
+))
 
 Type.propTypes = {
   ship: PropTypes.shape(shipInfoShape).isRequired,
   className: PropTypes.string,
 }
 
-const Soku = ({ className, ship, ...props }) => {
-  const { soku } = ship
-  const sokuString = sokuInterpretation[soku] || 'Unknown'
-  const sokuClass = sokuStyles[soku] || ''
-  return (
-    <div {...props} className={`${className} ${sokuClass}`}>
-      <span>{__(sokuString)}</span>
-    </div>
-  )
-}
+const Soku = translate(['poi-plugin-ship-info'])(
+  ({ className, ship, t, ...props }) => {
+    const { soku } = ship
+    const sokuString = sokuInterpretation[soku] || 'Unknown'
+    const sokuClass = sokuStyles[soku] || ''
+    return (
+      <div {...props} className={`${className} ${sokuClass}`}>
+        <span>{t(sokuString)}</span>
+      </div>
+    )
+  },
+)
 
 Soku.propTypes = {
   ship: PropTypes.shape(shipInfoShape).isRequired,

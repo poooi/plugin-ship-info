@@ -1,8 +1,9 @@
 import React from 'react'
 import { connect } from 'react-redux'
-
 import { get, times } from 'lodash'
 import fp from 'lodash/fp'
+import { translate } from 'react-i18next'
+import { compose } from 'redux'
 
 import { shipSuperTypeMap } from '../../utils'
 import {
@@ -10,8 +11,6 @@ import {
   uniqueShipCountSelector,
   graphSelector,
 } from '../../selectors'
-
-const { __ } = window.i18n['poi-plugin-ship-info']
 
 const RANDOM_COLORS = times(
   200,
@@ -77,12 +76,15 @@ const NameCube = ({ name, count, ctype }) => {
   )
 }
 
-const CollectionProgress = connect(state => ({
-  $ships: get(state, 'const.$ships', {}),
-  $graph: graphSelector(state),
-  ships: uniqueShipIdsSelector(state),
-  count: uniqueShipCountSelector(state),
-}))(({ $ships, $graph, ships, count }) => {
+const CollectionProgress = compose(
+  translate(['poi-plugin-ship-info']),
+  connect(state => ({
+    $ships: get(state, 'const.$ships', {}),
+    $graph: graphSelector(state),
+    ships: uniqueShipIdsSelector(state),
+    count: uniqueShipCountSelector(state),
+  })),
+)(({ $ships, $graph, ships, count, t }) => {
   const typeShips = fp.flow(
     fp.map(({ id }) =>
       fp.filter(shipId => id.includes(get($ships, [shipId, 'api_stype'])))(
@@ -98,7 +100,7 @@ const CollectionProgress = connect(state => ({
       {shipSuperTypeMap.map(({ id, name }, i) => (
         <div key={name}>
           <h4>
-            {__(name)} {typeShipsCollected[i].length}/{typeShips[i].length}
+            {t(name)} {typeShipsCollected[i].length}/{typeShips[i].length}
           </h4>
           <div className="ship-grid">
             {fp.flow(

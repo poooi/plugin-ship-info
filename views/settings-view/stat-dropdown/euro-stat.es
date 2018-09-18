@@ -1,9 +1,10 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import FA from 'react-fontawesome'
-
 import { get } from 'lodash'
 import fp from 'lodash/fp'
+import { translate } from 'react-i18next'
+import { compose } from 'redux'
 
 import { euroShips } from '../../utils'
 import {
@@ -12,21 +13,21 @@ import {
   graphSelector,
 } from '../../selectors'
 
-const { __ } = window.i18n['poi-plugin-ship-info']
-const { __: __r } = window.i18n.resources
-
 const MAX_LEVEL = 165
 
-const EuroStat = connect(state => ({
-  $ships: get(state, 'const.$ships', {}),
-  $graph: graphSelector(state),
-  ships: shipMenuDataSelector(state),
-  sameShipMap: adjustedRemodelChainsSelector(state),
-}))(({ $ships, $graph, ships, sameShipMap }) => (
+const EuroStat = compose(
+  translate(['resources', 'poi-plugin-ship-info'], { nsMode: 'fallback' }),
+  connect(state => ({
+    $ships: get(state, 'const.$ships', {}),
+    $graph: graphSelector(state),
+    ships: shipMenuDataSelector(state),
+    sameShipMap: adjustedRemodelChainsSelector(state),
+  })),
+)(({ $ships, $graph, ships, sameShipMap, t }) => (
   <div>
     {euroShips.map(fleet => (
       <div key={fleet.name}>
-        <h4>{__(fleet.name)}</h4>
+        <h4>{t(fleet.name)}</h4>
         <div className="ship-grid euro-stat">
           {fp.flow(
             fp.sortBy([
@@ -37,7 +38,7 @@ const EuroStat = connect(state => ({
             fp.map(shipId => (
               <div className="ship-grid-container" key={shipId}>
                 <div className="ship-grid-cell ship-grid-header" key={shipId}>
-                  {__r(get($ships, [shipId, 'api_name'], __('Unknown')))}
+                  {t(get($ships, [shipId, 'api_name'], t('Unknown')))}
                 </div>
                 {fp.flow(
                   fp.filter(ship =>
@@ -57,7 +58,7 @@ const EuroStat = connect(state => ({
                     >
                       <span className="ship-name">
                         {ship.area > 0 && <FA name="tag" />}
-                        {__r(ship.name)}
+                        {t(ship.name)}
                       </span>
                       <span className="ship-level">
                         <sup>Lv.{ship.lv}</sup>

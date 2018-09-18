@@ -1,11 +1,13 @@
-import propTypes from 'prop-types'
+import PropTypes from 'prop-types'
 import _, { clone } from 'lodash'
 import url from 'url'
 import { remote } from 'electron'
+import i18next from 'views/env-parts/i18next'
+
 import { repairFactor } from './constants'
 import html2canvas from '../lib/html2canvas'
 
-const { __ } = window.i18n['poi-plugin-ship-info']
+const __ = i18next.getFixedT(null, ['poi-plugin-ship-info', 'resources'])
 
 export const getTimePerHP = (api_lv = 1, api_stype = 1) => {
   let factor = 0
@@ -195,51 +197,51 @@ export const getShipInfoData = (
 }
 
 export const shipInfoShape = {
-  id: propTypes.number.isRequired,
-  typeId: propTypes.number.isRequired,
-  fleetId: propTypes.number.isRequired,
-  type: propTypes.string.isRequired,
-  name: propTypes.string.isRequired,
-  yomi: propTypes.string.isRequired,
-  sortno: propTypes.number.isRequired,
-  lv: propTypes.number.isRequired,
-  cond: propTypes.number.isRequired,
-  karyoku: propTypes.number.isRequired,
-  houg: propTypes.arrayOf(propTypes.number).isRequired,
-  raisou: propTypes.number.isRequired,
-  raig: propTypes.arrayOf(propTypes.number).isRequired,
-  taiku: propTypes.number.isRequired,
-  tyku: propTypes.arrayOf(propTypes.number).isRequired,
-  soukou: propTypes.number.isRequired,
-  souk: propTypes.arrayOf(propTypes.number).isRequired,
-  lucky: propTypes.number.isRequired,
-  luck: propTypes.arrayOf(propTypes.number).isRequired,
-  kyouka: propTypes.arrayOf(propTypes.number).isRequired,
-  kaihi: propTypes.number.isRequired,
-  taisen: propTypes.number.isRequired,
-  sakuteki: propTypes.number.isRequired,
-  slot: propTypes.arrayOf(propTypes.number).isRequired,
-  exslot: propTypes.number.isRequired,
-  locked: propTypes.number.isRequired,
-  nowhp: propTypes.number.isRequired,
-  maxhp: propTypes.number.isRequired,
-  losshp: propTypes.number.isRequired,
-  repairtime: propTypes.number.isRequired,
-  after: propTypes.number.isRequired,
-  sallyArea: propTypes.number,
-  soku: propTypes.number.isRequired,
-  karyokuNow: propTypes.number.isRequired,
-  karyokuMax: propTypes.number.isRequired,
-  raisouNow: propTypes.number.isRequired,
-  raisouMax: propTypes.number.isRequired,
-  taikuNow: propTypes.number.isRequired,
-  taikuMax: propTypes.number.isRequired,
-  soukouNow: propTypes.number.isRequired,
-  soukouMax: propTypes.number.isRequired,
-  luckyNow: propTypes.number.isRequired,
-  luckyMax: propTypes.number.isRequired,
-  isCompleted: propTypes.bool.isRequired,
-  daihatsu: propTypes.bool.isRequired,
+  id: PropTypes.number.isRequired,
+  typeId: PropTypes.number.isRequired,
+  fleetId: PropTypes.number.isRequired,
+  type: PropTypes.string.isRequired,
+  name: PropTypes.string.isRequired,
+  yomi: PropTypes.string.isRequired,
+  sortno: PropTypes.number.isRequired,
+  lv: PropTypes.number.isRequired,
+  cond: PropTypes.number.isRequired,
+  karyoku: PropTypes.number.isRequired,
+  houg: PropTypes.arrayOf(PropTypes.number).isRequired,
+  raisou: PropTypes.number.isRequired,
+  raig: PropTypes.arrayOf(PropTypes.number).isRequired,
+  taiku: PropTypes.number.isRequired,
+  tyku: PropTypes.arrayOf(PropTypes.number).isRequired,
+  soukou: PropTypes.number.isRequired,
+  souk: PropTypes.arrayOf(PropTypes.number).isRequired,
+  lucky: PropTypes.number.isRequired,
+  luck: PropTypes.arrayOf(PropTypes.number).isRequired,
+  kyouka: PropTypes.arrayOf(PropTypes.number).isRequired,
+  kaihi: PropTypes.number.isRequired,
+  taisen: PropTypes.number.isRequired,
+  sakuteki: PropTypes.number.isRequired,
+  slot: PropTypes.arrayOf(PropTypes.number).isRequired,
+  exslot: PropTypes.number.isRequired,
+  locked: PropTypes.number.isRequired,
+  nowhp: PropTypes.number.isRequired,
+  maxhp: PropTypes.number.isRequired,
+  losshp: PropTypes.number.isRequired,
+  repairtime: PropTypes.number.isRequired,
+  after: PropTypes.number.isRequired,
+  sallyArea: PropTypes.number,
+  soku: PropTypes.number.isRequired,
+  karyokuNow: PropTypes.number.isRequired,
+  karyokuMax: PropTypes.number.isRequired,
+  raisouNow: PropTypes.number.isRequired,
+  raisouMax: PropTypes.number.isRequired,
+  taikuNow: PropTypes.number.isRequired,
+  taikuMax: PropTypes.number.isRequired,
+  soukouNow: PropTypes.number.isRequired,
+  soukouMax: PropTypes.number.isRequired,
+  luckyNow: PropTypes.number.isRequired,
+  luckyMax: PropTypes.number.isRequired,
+  isCompleted: PropTypes.bool.isRequired,
+  daihatsu: PropTypes.bool.isRequired,
 }
 
 const jpCollator = new Intl.Collator('ja-JP')
