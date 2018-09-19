@@ -128,7 +128,8 @@ class SallyAreaCheck extends Component {
         </div>
         {mapname.map((name, idx) => (
           <div
-            key={name}
+            // eslint-disable-next-line react/no-array-index-key
+            key={idx}
             onClick={this.handleClickBox(idx + 1)}
             className={cls('filter-option', {
               dark: window.isDarkTheme,

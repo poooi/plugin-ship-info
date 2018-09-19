@@ -41,6 +41,7 @@ class ShipItem extends PureComponent {
       onContextmenu,
       t,
     } = this.props
+
     const { hover } = this.state
     const alpha = hover ? 0.85 : 0.75
     const bgColor =
@@ -48,6 +49,7 @@ class ShipItem extends PureComponent {
         ? hexToRGBA(color[ship.area - 1], alpha)
         : String(ship.id) in planMap &&
           hexToRGBA(color[planMap[ship.id]], alpha)
+
     return (
       <div
         role="button"
@@ -57,8 +59,8 @@ class ShipItem extends PureComponent {
           backgroundColor: bgColor,
           cursor: ship.area > 0 ? 'not-allowed' : 'copy',
         }}
-        onClick={!(ship.area > 0) && onClick}
-        onContextMenu={!(ship.area > 0) && onContextmenu}
+        onClick={!(ship.area > 0) ? onClick : undefined}
+        onContextMenu={!(ship.area > 0) ? onContextmenu : undefined}
         onMouseEnter={this.handleMouseEnter}
         onMouseLeave={this.handleMouseLeave}
       >

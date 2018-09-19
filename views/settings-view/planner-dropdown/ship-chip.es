@@ -96,7 +96,7 @@ class ShipChip extends PureComponent {
         className="ship-chip"
         onMouseEnter={this.handleMouseEnter}
         onMouseLeave={this.handleMouseLeave}
-        onContextMenu={!(area > 0) && onRemove}
+        onContextMenu={!(area > 0) ? onRemove : undefined}
       >
         <span className="ship-type">
           {shipTypes[typeId]}
