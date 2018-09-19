@@ -19,6 +19,7 @@ const ShipAvatar = styled.img.attrs({
   height: 40px;
   position: absolute;
   top: 0px;
+  transition: 0.2s;
 `
 
 const Gradient = styled.div`
@@ -28,7 +29,10 @@ const Gradient = styled.div`
   top: 0px;
   left: 0px;
   background: ${props =>
-    `linear-gradient(90deg, rgba(0, 0, 0, 0), ${props.color})`};
+    props.useAvatar
+      ? `linear-gradient(90deg, rgba(0, 0, 0, 0), ${props.color})`
+      : props.color};
+  transition: 0.2s;
 `
 
 const ShipGridCell = styled.div`
@@ -83,6 +87,7 @@ const ShipLevel = styled.div`
   color: get(state, 'fcd.shiptag.color', []),
   mapname: get(state, 'fcd.shiptag.mapname', []),
   ip: get(state, 'info.server.ip', '203.104.209.71'),
+  useAvatar: get(state, ['config', 'poi', 'appearance', 'avatar'], false),
 }))
 class ShipItem extends PureComponent {
   static propTypes = {
@@ -92,6 +97,7 @@ class ShipItem extends PureComponent {
     onContextmenu: PropTypes.func.isRequired,
     t: PropTypes.func.isRequired,
     ip: PropTypes.string.isRequired,
+    useAvatar: PropTypes.bool.isRequired,
   }
 
   state = {
@@ -112,6 +118,7 @@ class ShipItem extends PureComponent {
       onContextmenu,
       t,
       ip,
+      useAvatar,
     } = this.props
 
     const { hover } = this.state
@@ -146,11 +153,19 @@ class ShipItem extends PureComponent {
         onMouseEnter={this.handleMouseEnter}
         onMouseLeave={this.handleMouseLeave}
       >
-        <ShipAvatar
-          src={getShipImgPath(ship.shipId, 'remodel', false, ip, ship.version)}
-          left={Math.round(ship.avatarOffset * 40)}
-        />
-        <Gradient color={bgColor} />
+        {useAvatar && (
+          <ShipAvatar
+            src={getShipImgPath(
+              ship.shipId,
+              'remodel',
+              false,
+              ip,
+              ship.version,
+            )}
+            left={Math.round(ship.avatarOffset * 40)}
+          />
+        )}
+        <Gradient color={bgColor} useAvatar={useAvatar} />
         <ShipLevel>Lv.{ship.lv}</ShipLevel>
         <br />
         <ShipName>
