@@ -11,19 +11,27 @@ import { getShipImgPath } from 'views/utils/ship-img'
 import { hexToRGBA } from '../../utils'
 import { deckPlannerShipMapSelector } from '../../selectors'
 
-const ShipGridCell = styled.div.attrs({
-  style: ({ shipImage, color, hover }) => ({
-    backgroundImage: hover
-      ? `
-    url(${shipImage}),
-    linear-gradient(90deg, ${color}, ${color})
-    `
-      : `
-    linear-gradient(90deg, rgba(0, 0, 0, 0), ${color}),
-    url(${shipImage})
-    `,
+const ShipAvatar = styled.img.attrs({
+  style: ({ left }) => ({
+    left: `-${left}px`,
   }),
 })`
+  height: 40px;
+  position: absolute;
+  top: 0px;
+`
+
+const Gradient = styled.div`
+  height: 40px;
+  width: 100%;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  background: ${props =>
+    `linear-gradient(90deg, rgba(0, 0, 0, 0), ${props.color})`};
+`
+
+const ShipGridCell = styled.div`
   width: calc(100% / 7 - 4px);
   min-width: 6em;
   max-width: 16em;
@@ -31,13 +39,26 @@ const ShipGridCell = styled.div.attrs({
   margin: 2px;
   background-color: rgba(255, 255, 255, 0.1);
   text-align: right;
-  padding: 4px 0.5ex;
   background-size: auto 40px;
   background-repeat: no-repeat;
   height: 40px;
+  position: relative;
+  overflow: hidden;
 
   @media (min-width: 1440px) {
     width: calc(100% / 10 - 4px);
+  }
+
+  ${ShipAvatar} {
+    z-index: -10;
+  }
+
+  ${Gradient} {
+    z-index: -5;
+  }
+
+  &:hover ${ShipAvatar} {
+    z-index: -1;
   }
 }
 `
@@ -46,12 +67,14 @@ const ShipName = styled.div`
   font-weight: 600;
   display: inline-block;
   padding: 0 1ex;
+  color: white;
 `
 
 const ShipLevel = styled.div`
   display: inline-block;
   line-height: 1em;
   padding: 0 1ex;
+  color: white;
 `
 
 @translate(['resources'])
@@ -123,6 +146,11 @@ class ShipItem extends PureComponent {
         onMouseEnter={this.handleMouseEnter}
         onMouseLeave={this.handleMouseLeave}
       >
+        <ShipAvatar
+          src={getShipImgPath(ship.shipId, 'remodel', false, ip, ship.version)}
+          left={Math.round(ship.avatarOffset * 40)}
+        />
+        <Gradient color={bgColor} />
         <ShipLevel>Lv.{ship.lv}</ShipLevel>
         <br />
         <ShipName>

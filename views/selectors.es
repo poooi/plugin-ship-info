@@ -388,8 +388,8 @@ export const sallyAreaSelectorFactory = memoize(area =>
 
 export const ShipItemSelectorFactory = memoize(shipId =>
   createSelector(
-    [shipDataSelectorFactory(shipId), constSelector],
-    ([ship, $ship] = [], { $graphs } = {}) =>
+    [shipDataSelectorFactory(shipId), fcdSelector],
+    ([ship, $ship] = [], { shipavatar } = {}) =>
       !!ship && !!$ship
         ? {
             id: ship.api_id,
@@ -399,7 +399,11 @@ export const ShipItemSelectorFactory = memoize(shipId =>
             lv: ship.api_lv,
             area: ship.api_sally_area,
             superTypeIndex: reverseSuperTypeMap[$ship.api_stype] || 0,
-            version: get($graphs, [$ship.api_id, 'api_version', 0]),
+            avatarOffset: get(
+              shipavatar,
+              ['marginMagics', $ship.api_id, 'normal'],
+              0.555,
+            ),
           }
         : undefined,
   ),
