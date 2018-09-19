@@ -56,7 +56,9 @@
     "stylelint": "^9.2.1",
     "stylelint-config-standard": "^18.0.0"
   },
-  "dependencies": {},
+  "dependencies": {
+    "styled-components": "^4.0.0-beta.7"
+  },
   "husky": {
     "hooks": {
       "commit-msg": "commitlint -e $GIT_PARAMS",
