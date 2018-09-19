@@ -1,9 +1,13 @@
 import React from 'react'
 import { connect } from 'react-redux'
-import { get, times } from 'lodash'
+import { get } from 'lodash'
 import fp from 'lodash/fp'
 import { translate } from 'react-i18next'
 import { compose } from 'redux'
+import styled from 'styled-components'
+import { OverlayTrigger, Tooltip } from 'react-bootstrap'
+
+import { getShipImgPath } from 'views/utils/ship-img'
 
 import { shipSuperTypeMap } from '../../utils'
 import {
@@ -12,79 +16,61 @@ import {
   graphSelector,
 } from '../../selectors'
 
-const RANDOM_COLORS = times(
-  200,
-  () => `hsla(${Math.floor(Math.random() * 360)}, 60%, 70%, 0.6)`,
-)
+const Wrapper = styled.div`
+  margin-left: 100px;
+`
 
-// eslint-disable-next-line react/prop-types
-const NameCube = ({ name, count, ctype }) => {
-  if (name.length === 1) {
-    return (
-      <div
-        className="name-cube"
-        style={{ background: count > 0 && RANDOM_COLORS[ctype] }}
-      >
-        <div
-          style={{
-            width: '50px',
-            textAlign: 'center',
-            lineHeight: '50px',
-            fontSize: '20px',
-          }}
-        >
-          {name}
-        </div>
-      </div>
-    )
+const ShipCube = styled.div`
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  height: 50px;
+  width: 50px;
+  margin: 2px;
+  position: relative;
+  overflow: hidden;
+`
+
+const ShipAvatar = styled.div.attrs({
+  style: ({ image }) => ({
+    backgroundImage: `url(${image})`,
+  }),
+})`
+  height: 50px;
+  width: 50px;
+  position: absolute;
+  top: 0px;
+  transition: 0.2s;
+  background-position-x: -90px;
+  background-size: auto 50px;
+  z-index: -10;
+`
+
+const Overlay = styled.div`
+  height: 70px;
+  width: 70px;
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  background: ${props => props.background};
+  transition: 0.2s;
+  z-index: -5;
+
+  &:hover {
+    background: none;
   }
-
-  let name1
-  let name2
-  let name3
-  let name4
-  /* eslint-disable prefer-destructuring */
-  if (name.length === 2) {
-    name1 = name[0]
-    name4 = name[1]
-  }
-
-  if (name.length === 3) {
-    name1 = name[0]
-    name3 = name[1]
-    name4 = name[2]
-  }
-
-  if (name.length >= 4) {
-    name1 = name[0]
-    name2 = name[1]
-    name3 = name[2]
-    name4 = name[3]
-  }
-
-  return (
-    <div
-      className="name-cube"
-      style={{ background: count > 0 && RANDOM_COLORS[ctype] }}
-    >
-      {[name1, name2, name3, name4].map(_name => (
-        <div className="letter-cube" key={_name}>
-          {_name}
-        </div>
-      ))}
-    </div>
-  )
-}
+`
 
 const CollectionProgress = compose(
-  translate(['poi-plugin-ship-info']),
+  translate(['resources', 'poi-plugin-ship-info'], { nsMode: 'fallback' }),
   connect(state => ({
     $ships: get(state, 'const.$ships', {}),
     $graph: graphSelector(state),
     ships: uniqueShipIdsSelector(state),
     count: uniqueShipCountSelector(state),
+    ip: get(state, 'info.server.ip', '203.104.209.71'),
   })),
-)(({ $ships, $graph, ships, count, t }) => {
+)(({ $ships, $graph, ships, count, ip, t }) => {
   const typeShips = fp.flow(
     fp.map(({ id }) =>
       fp.filter(shipId => id.includes(get($ships, [shipId, 'api_stype'])))(
@@ -96,12 +82,12 @@ const CollectionProgress = compose(
     fp.filter(shipId => count[shipId] > 0)(shipIds),
   )(typeShips)
   return (
-    <div>
+    <Wrapper>
       {shipSuperTypeMap.map(({ id, name }, i) => (
         <div key={name}>
-          <h4>
+          <h2>
             {t(name)} {typeShipsCollected[i].length}/{typeShips[i].length}
-          </h4>
+          </h2>
           <div className="ship-grid">
             {fp.flow(
               fp.filter(shipId =>
@@ -112,17 +98,37 @@ const CollectionProgress = compose(
                 shipId => get($graph, [shipId, 'api_sortno']),
               ]),
               fp.map(shipId => (
-                <NameCube
-                  name={get($ships, [shipId, 'api_name'])}
-                  count={count[shipId]}
-                  ctype={get($ships, [shipId, 'api_ctype'])}
-                />
+                <OverlayTrigger
+                  placement="top"
+                  overlay={
+                    <Tooltip id={`ship-collection-${shipId}`}>
+                      {t(get($ships, [shipId, 'api_name']))}
+                    </Tooltip>
+                  }
+                >
+                  <ShipCube key={shipId}>
+                    <ShipAvatar
+                      image={getShipImgPath(
+                        shipId,
+                        'banner',
+                        false,
+                        ip,
+                        get($graph, [shipId, 'version', 0]),
+                      )}
+                    />
+                    <Overlay
+                      background={
+                        count[shipId] > 0 ? 'none' : 'rgba(0, 0, 0, 0.75)'
+                      }
+                    />
+                  </ShipCube>
+                </OverlayTrigger>
               )),
             )(ships)}
           </div>
         </div>
       ))}
-    </div>
+    </Wrapper>
   )
 })
 
