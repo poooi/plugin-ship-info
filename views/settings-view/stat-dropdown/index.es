@@ -19,14 +19,12 @@ import { captureRect } from '../../utils'
   color: get(state, 'fcd.shiptag.color', []),
   mapname: get(state, 'fcd.shiptag.mapname', []),
   vibrant: get(state, 'config.poi.vibrant'),
-  zoomLevel: get(state, 'config.poi.zoomLevel', 1),
 }))
 class StatView extends Component {
   static propTypes = {
     vibrant: PropTypes.number,
     open: PropTypes.bool,
     window: PropTypes.instanceOf(window.constructor),
-    zoomLevel: PropTypes.number.isRequired,
     t: PropTypes.func.isRequired,
   }
 
@@ -65,14 +63,14 @@ class StatView extends Component {
 
   render() {
     const { left, view, extend } = this.state
-    const { vibrant, window, zoomLevel, t } = this.props
+    const { vibrant, window, t } = this.props
 
     return (
       <ul
         className="dropdown-menu"
         style={{
-          width: `calc(95vw / ${zoomLevel})`,
-          height: `calc(90vh / ${zoomLevel})`,
+          width: '95vw',
+          height: '90vh',
           left,
           background: `rgba(51, 51, 51, ${vibrant ? 0.95 : 1})`,
           overflowY: extend && 'visible',
@@ -126,7 +124,7 @@ class StatView extends Component {
             </div>
           </div>
         </div>
-        <div id="stat-rect" style={{ padding: extend && '1em' }}>
+        <div id="stat-rect" style={{ padding: extend && '2em' }}>
           {view === 'leyte' && <EuroStat />}
           {view === 'collection' && <CollectionProgress />}
         </div>

@@ -75,7 +75,6 @@ const reorderShips = (dispatch, getState) => {
     current: deckPlannerCurrentSelector(state),
     vibrant: get(state, 'config.poi.vibrant'),
     displayFleetName,
-    zoomLevel: get(state, 'config.poi.zoomLevel', 1),
   }
 })
 class DeckPlannerView extends Component {
@@ -88,7 +87,6 @@ class DeckPlannerView extends Component {
     dispatch: PropTypes.func,
     displayFleetName: PropTypes.bool.isRequired,
     window: PropTypes.instanceOf(window.constructor),
-    zoomLevel: PropTypes.number.isRequired,
     t: PropTypes.func.isRequired,
   }
 
@@ -141,9 +139,10 @@ class DeckPlannerView extends Component {
   }
 
   handleCaptureImage = async () => {
-    await this.setState({ extend: true })
-    await captureRect('#planner-rect', this.props.window.document)
-    this.setState({ extend: false })
+    this.setState({ extend: true }, async () => {
+      await captureRect('#planner-rect', this.props.window.document)
+      this.setState({ extend: false })
+    })
   }
 
   handleChangeDisplayFleetName = () => {
@@ -152,7 +151,7 @@ class DeckPlannerView extends Component {
 
   render() {
     const { left, view, fill, extend } = this.state
-    const { mapname, color, displayFleetName, zoomLevel, t } = this.props
+    const { mapname, color, displayFleetName, t } = this.props
 
     const areas = mapname.map((name, index) => ({
       name,
@@ -165,8 +164,8 @@ class DeckPlannerView extends Component {
       <ul
         className="dropdown-menu"
         style={{
-          width: `calc(95vw / ${zoomLevel})`,
-          height: `calc(90vh / ${zoomLevel})`,
+          width: '95vw',
+          height: '90vh',
           left,
           background: `rgba(51, 51, 51, ${vibrant ? 0.95 : 1})`,
           overflowY: extend && 'visible',
@@ -283,7 +282,7 @@ class DeckPlannerView extends Component {
             </div>
           </div>
         </div>
-        <div id="planner-rect">
+        <div id="planner-rect" style={{ padding: extend && '2em' }}>
           {view === 'area' && (
             <div>
               {areas.map(area => (

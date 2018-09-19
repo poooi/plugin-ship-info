@@ -492,6 +492,7 @@ export const captureRect = async (query, mountPoint) => {
     backgroundColor: '#333',
     width: Math.ceil(width, 16),
     height: Math.ceil(height, 16),
+    allowTaint: true,
   })
   remote.getCurrentWebContents().downloadURL(canvas.toDataURL('image/png'))
 }
