@@ -2,3 +2,4 @@
 .eslintignore
 
 assets/build.js
+yarn.lock
