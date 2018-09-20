@@ -135,9 +135,16 @@ export const getShipInfoData = (
   }
 
   // 24 = 上陸用舟艇, 46 = 特型内火艇
-  const daihatsu = _(db)
-    .get(['ships', shipId, 'additional_item_types'], [])
-    .some(i => [24, 46].includes(_.get(db, ['item_types', i, 'id_ingame'])))
+  const daihatsuItems = _([24, 46]).map(i =>
+    _.find(db?.item_types, t => t.id_ingame === i),
+  )
+
+  const daihatsuShips = daihatsuItems.flatMap('equipable_extra_ship').value()
+  const daihastuTypes = daihatsuItems.flatMap('equipable_on_type').value()
+
+  const daihatsu =
+    daihatsuShips.includes(shipId) ||
+    daihastuTypes.includes(db?.ships?.[shipId]?.type)
 
   return {
     id,
