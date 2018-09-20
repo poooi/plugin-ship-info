@@ -4,10 +4,10 @@ import { get } from 'lodash'
 import fp from 'lodash/fp'
 import { translate } from 'react-i18next'
 import { compose } from 'redux'
-import styled from 'styled-components'
 import { OverlayTrigger, Tooltip } from 'react-bootstrap'
-
 import { getShipImgPath } from 'views/utils/ship-img'
+
+import styled from '../../../lib/styled-components'
 
 import { shipSuperTypeMap } from '../../utils'
 import {
