@@ -16,7 +16,7 @@ import { sokuInterpretation, sokuStyles } from '../constants'
 import { getTimePerHP, shipInfoShape, shipTypes, fileUrl } from '../utils'
 
 const enableAvatarConfigSelector = state =>
-  get(state, ['config', 'poi', 'appearance', 'avatar'], false)
+  get(state, ['config', 'poi', 'appearance', 'avatar'], true)
 
 const Id = ({ ship, ...props }) => <div {...props}>{ship.id}</div>
 

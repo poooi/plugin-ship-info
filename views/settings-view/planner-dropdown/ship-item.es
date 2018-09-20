@@ -87,7 +87,7 @@ const ShipLevel = styled.div`
   color: get(state, 'fcd.shiptag.color', []),
   mapname: get(state, 'fcd.shiptag.mapname', []),
   ip: get(state, 'info.server.ip', '203.104.209.71'),
-  useAvatar: get(state, ['config', 'poi', 'appearance', 'avatar'], false),
+  useAvatar: get(state, ['config', 'poi', 'appearance', 'avatar'], true),
 }))
 class ShipItem extends PureComponent {
   static propTypes = {
