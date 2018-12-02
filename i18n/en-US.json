@@ -69,5 +69,16 @@
   "Torpedo": "Torp.",
   "Evasion": "Ev.",
   "ship_tag": "Ship tag: {{map}}",
-  "unknown_area": "Unknown area {{area}}, data not updated"
+  "unknown_area": "Unknown area {{area}}, data not updated",
+  "ビラ・スタンモーア夜戦": "Battle of Blackett Strait",
+  "い号作戦": "Operation I-Go",
+  "クラ湾夜戦": "Battle of Kula Gulf",
+  "コロンバンガラ島沖海戦": "Battle of Kolombangara",
+  "ブーゲンビル島への輸送": "Bougainville Island Transport",
+  "ベラ湾夜戦": "Battle of Vella Gulf",
+  "第一次ベララベラ海戦": "Battle off Horaniu",
+  "第二次ベララベラ海戦": "Battle of Vella Lavella",
+  "ラバウル空襲": "Bombing of Rabaul",
+  "ブーゲンビル島沖海戦": "Battle of Empress Augusta Bay",
+  "セント・ジョージ岬沖海戦": "Battle of Cape St. George"
 }

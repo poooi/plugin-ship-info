@@ -10,7 +10,7 @@ import { compose } from 'redux'
 
 import { extensionSelectorFactory } from 'views/utils/selectors'
 
-import EuroStat from './euro-stat'
+import SolomonStat from './solomon-stat'
 import CollectionProgress from './collection-progress'
 import { captureRect } from '../../utils'
 
@@ -96,7 +96,7 @@ class StatView extends Component {
               role="button"
               tabIndex="0"
             >
-              {t('European')}
+              {t('Solomon')}
             </div>
             <div className="radio-check" style={{ marginRight: '4em' }}>
               <div
@@ -125,7 +125,7 @@ class StatView extends Component {
           </div>
         </div>
         <div id="stat-rect" style={{ padding: extend && '2em' }}>
-          {view === 'leyte' && <EuroStat />}
+          {view === 'leyte' && <SolomonStat />}
           {view === 'collection' && <CollectionProgress />}
         </div>
       </ul>
