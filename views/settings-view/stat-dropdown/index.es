@@ -96,7 +96,7 @@ class StatView extends Component {
               role="button"
               tabIndex="0"
             >
-              {t('Solomon')}
+              {t('Solomon Sea')}
             </div>
             <div className="radio-check" style={{ marginRight: '4em' }}>
               <div
