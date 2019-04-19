@@ -31,7 +31,7 @@ export const getTimePerHP = (api_lv = 1, api_stype = 1) => {
 }
 
 const getValueByLevel = (min, max, lv) =>
-  Math.floor((max - min) * lv / 99) + min
+  Math.floor(((max - min) * lv) / 99) + min
 
 export const getShipInfoData = (
   ship,

@@ -99,7 +99,8 @@ const plannerReducer = (state = plannerInitState, action) => {
           ...state,
           current: [...current, ...new Array(len).fill([])],
         }
-      } else if (current.length > mapname.length) {
+      }
+      if (current.length > mapname.length) {
         const newCurrent = current.slice(0, mapname.length)
         return {
           ...state,
@@ -159,13 +160,15 @@ const uiReducer = (state = uiInitState, action) => {
       ...state,
       toTop,
     }
-  } else if (type === `@@${PLUGIN_KEY}@active-dropdown`) {
+  }
+  if (type === `@@${PLUGIN_KEY}@active-dropdown`) {
     return {
       ...state,
       activeDropdown:
         activeDropdown === state.activeDropdown ? '' : activeDropdown,
     }
-  } else if (type === `@@${PLUGIN_KEY}@extend`) {
+  }
+  if (type === `@@${PLUGIN_KEY}@extend`) {
     return {
       ...state,
       isExtend,

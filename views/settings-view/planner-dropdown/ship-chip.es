@@ -158,17 +158,11 @@ class ShipChip extends PureComponent {
           )}
         </span>
         <span>
-          {!(area > 0) &&
-            hover && (
-              <a
-                role="button"
-                tabIndex="0"
-                onClick={onRemove}
-                className="remove"
-              >
-                <FA name="times-circle" />
-              </a>
-            )}
+          {!(area > 0) && hover && (
+            <a role="button" tabIndex="0" onClick={onRemove} className="remove">
+              <FA name="times-circle" />
+            </a>
+          )}
         </span>
       </Label>
     )

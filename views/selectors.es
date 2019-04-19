@@ -86,11 +86,15 @@ export const shipFleetIdMapSelector = createSelector(
 )
 
 export const shipFleetIdSelectorFactory = memoize(shipId =>
-  createSelector([shipFleetIdMapSelector], fleetIdMap => fleetIdMap[shipId]),
+  createSelector(
+    [shipFleetIdMapSelector],
+    fleetIdMap => fleetIdMap[shipId],
+  ),
 )
 
-export const rawValueConfigSelector = createSelector([configSelector], config =>
-  get(config, 'plugin.ShipInfo.rawValue', false),
+export const rawValueConfigSelector = createSelector(
+  [configSelector],
+  config => get(config, 'plugin.ShipInfo.rawValue', false),
 )
 
 export const shipTableDataSelectorFactory = memoize(shipId =>
@@ -376,14 +380,17 @@ export const shipRowsSelector = createSelector(
 )
 
 export const sallyAreaSelectorFactory = memoize(area =>
-  createSelector([fcdSelector], fcd => ({
-    mapname: get(
-      fcd,
-      `shiptag.mapname.${area - 1}`,
-      __('unknown_area', { area }),
-    ),
-    color: get(fcd, `shiptag.color.${area - 1}`, ''),
-  })),
+  createSelector(
+    [fcdSelector],
+    fcd => ({
+      mapname: get(
+        fcd,
+        `shiptag.mapname.${area - 1}`,
+        __('unknown_area', { area }),
+      ),
+      color: get(fcd, `shiptag.color.${area - 1}`, ''),
+    }),
+  ),
 )
 
 export const ShipItemSelectorFactory = memoize(shipId =>
@@ -451,30 +458,34 @@ const ourShipsSelector = createSelector(
       .value(),
 )
 
-const beforeShipMapSelector = createSelector([ourShipsSelector], $ships =>
-  _($ships)
-    .filter(ship => +(ship.api_aftershipid || 0) > 0)
-    .map(ship => [ship.api_aftershipid, ship.api_id])
-    .fromPairs()
-    .value(),
+const beforeShipMapSelector = createSelector(
+  [ourShipsSelector],
+  $ships =>
+    _($ships)
+      .filter(ship => +(ship.api_aftershipid || 0) > 0)
+      .map(ship => [ship.api_aftershipid, ship.api_id])
+      .fromPairs()
+      .value(),
 )
 
 // the chain starts from each ship, thus incomplete if the ship is not the starting one
 // the adjustedRemodelChainsSelector will return complete chains for all ships
-const remodelChainsSelector = createSelector([ourShipsSelector], $ships =>
-  _($ships)
-    .mapValues(({ api_id: shipId }) => {
-      let current = $ships[shipId]
-      let next = +(current.api_aftershipid || 0)
-      let same = [shipId]
-      while (!same.includes(next) && next > 0) {
-        same = [...same, next]
-        current = $ships[next] || {}
-        next = +(current.api_aftershipid || 0)
-      }
-      return same
-    })
-    .value(),
+const remodelChainsSelector = createSelector(
+  [ourShipsSelector],
+  $ships =>
+    _($ships)
+      .mapValues(({ api_id: shipId }) => {
+        let current = $ships[shipId]
+        let next = +(current.api_aftershipid || 0)
+        let same = [shipId]
+        while (!same.includes(next) && next > 0) {
+          same = [...same, next]
+          current = $ships[next] || {}
+          next = +(current.api_aftershipid || 0)
+        }
+        return same
+      })
+      .value(),
 )
 
 export const uniqueShipIdsSelector = createSelector(

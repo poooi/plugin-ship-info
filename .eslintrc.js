@@ -23,5 +23,7 @@ module.exports = {
     'jsx-a11y/click-events-have-key-events': 'off',
     'jsx-a11y/anchor-is-valid': 'off',
     'prettier/prettier': 'error',
+    'react/no-access-state-in-setstate': 'off', // FIXME: add back this rule
+    'react/destructuring-assignment': 'off',
   },
 }

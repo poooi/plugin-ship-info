@@ -49,7 +49,7 @@ const EuroStat = compose(
                     <div
                       style={{
                         background: `hsla(210, ${Math.min(
-                          Math.round(ship.lv * 100 / MAX_LEVEL),
+                          Math.round((ship.lv * 100) / MAX_LEVEL),
                           100,
                         )}%, 40%, 0.75)`,
                       }}
