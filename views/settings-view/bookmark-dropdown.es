@@ -129,7 +129,7 @@ class BookmarkMenu extends Component {
     const result =
       query.length > 0
         ? Object.entries(this.fuse.search(query))
-            .map(([key, value]) => value) // eslint-disable-line no-unused-vars
+            .map(([key, value]) => value) // eslint-disable-line no-unused-vars, @typescript-eslint/no-unused-vars
             .map(value => value.name)
         : Object.keys(this.props.bookmarks)
     return (

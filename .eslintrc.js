@@ -4,9 +4,16 @@ module.exports = {
     es6: true,
     node: true,
   },
-  extends: ['airbnb', 'poi-plugin', 'prettier', 'prettier/react'],
+  extends: [
+    'airbnb',
+    'poi-plugin',
+    'plugin:@typescript-eslint/recommended',
+    'prettier',
+    'prettier/react',
+    'prettier/@typescript-eslint',
+  ],
   parser: 'babel-eslint',
-  plugins: ['import', 'react', 'prettier'],
+  plugins: ['import', 'react', 'prettier', '@typescript-eslint'],
   rules: {
     semi: ['error', 'never'],
     'import/no-unresolved': [2, { ignore: ['views/.*'] }],
@@ -25,5 +32,12 @@ module.exports = {
     'prettier/prettier': 'error',
     'react/no-access-state-in-setstate': 'off', // FIXME: add back this rule
     'react/destructuring-assignment': 'off',
+    '@typescript-eslint/camelcase': 'off',
   },
+  overrides: [
+    {
+      files: ['*.ts, *.tsx'],
+      parser: '@typescript-eslint/parser',
+    },
+  ],
 }

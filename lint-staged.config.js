@@ -1,4 +1,4 @@
 module.exports = {
-  '*.{es,js}': 'eslint',
+  '*.{es,js,ts,tsx}': 'eslint',
   '*.{css}': 'stylelint',
 }
