@@ -7,7 +7,7 @@ import { compose } from 'redux'
 import { OverlayTrigger, Tooltip } from 'react-bootstrap'
 import { getShipImgPath } from 'views/utils/ship-img'
 
-import styled from '../../../lib/styled-components'
+import styled from 'styled-components'
 
 import { shipSuperTypeMap } from '../../utils'
 import {

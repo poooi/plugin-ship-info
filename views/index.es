@@ -1,7 +1,7 @@
 import React from 'react'
 import { join } from 'path-extra'
 import { WindowEnv } from 'views/components/etc/window-env'
-import { StyleSheetManager } from '../lib/styled-components'
+import { StyleSheetManager } from 'styled-components'
 
 import TableView from './table-view'
 import SettingsView from './settings-view'

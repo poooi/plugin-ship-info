@@ -6,7 +6,7 @@ import FA from 'react-fontawesome'
 import { translate } from 'react-i18next'
 import { getShipImgPath } from 'views/utils/ship-img'
 
-import styled from '../../../lib/styled-components'
+import styled from 'styled-components'
 
 import { hexToRGBA } from '../../utils'
 import { deckPlannerShipMapSelector } from '../../selectors'
