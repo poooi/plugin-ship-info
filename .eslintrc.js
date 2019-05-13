@@ -1,5 +1,5 @@
 const jsExtensions = ['.js', '.es']
-const tsExtensions = ['.ts', '.tsx']
+const tsExtensions = ['.ts', '.tsx', '*.d.ts']
 const allExtensions = jsExtensions.concat(tsExtensions)
 
 module.exports = {
@@ -16,6 +16,17 @@ module.exports = {
     'prettier/react',
     'prettier/@typescript-eslint',
   ],
+  settings: {
+    'import/extensions': allExtensions,
+    'import/parsers': {
+      '@typescript-eslint/parser': tsExtensions,
+    },
+    'import/resolver': {
+      node: {
+        extensions: allExtensions,
+      },
+    },
+  },
   parser: 'babel-eslint',
   plugins: ['import', 'react', 'prettier', '@typescript-eslint'],
   rules: {
@@ -41,19 +52,8 @@ module.exports = {
   },
   overrides: [
     {
-      files: ['*.ts, *.tsx', '*.d.ts'],
+      files: tsExtensions,
       parser: '@typescript-eslint/parser',
-      settings: {
-        'import/extensions': allExtensions,
-        'import/parsers': {
-          '@typescript-eslint/parser': tsExtensions,
-        },
-        'import/resolver': {
-          node: {
-            extensions: allExtensions,
-          },
-        },
-      },
     },
   ],
 }
