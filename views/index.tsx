@@ -1,5 +1,5 @@
-import React from 'react'
-import { join } from 'path-extra'
+import React, { StatelessComponent, ReactElement } from 'react'
+import { join } from 'path'
 import { WindowEnv } from 'views/components/etc/window-env'
 import { StyleSheetManager } from 'styled-components'
 
@@ -7,9 +7,9 @@ import TableView from './table-view'
 import SettingsView from './settings-view'
 
 export { reducer } from './redux'
-export const reactClass = () => (
+export const reactClass: StatelessComponent<null> = (): ReactElement => (
   <WindowEnv.Consumer>
-    {({ window }) => (
+    {({ window }): ReactElement => (
       <StyleSheetManager target={window.document.head}>
         <div className="ship-info-wrap">
           <link

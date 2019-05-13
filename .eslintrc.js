@@ -1,3 +1,7 @@
+const jsExtensions = ['.js', '.es']
+const tsExtensions = ['.ts', '.tsx']
+const allExtensions = jsExtensions.concat(tsExtensions)
+
 module.exports = {
   env: {
     browser: true,
@@ -33,11 +37,23 @@ module.exports = {
     'react/no-access-state-in-setstate': 'off', // FIXME: add back this rule
     'react/destructuring-assignment': 'off',
     '@typescript-eslint/camelcase': 'off',
+    'import/prefer-default-export': 'off',
   },
   overrides: [
     {
-      files: ['*.ts, *.tsx'],
+      files: ['*.ts, *.tsx', '*.d.ts'],
       parser: '@typescript-eslint/parser',
+      settings: {
+        'import/extensions': allExtensions,
+        'import/parsers': {
+          '@typescript-eslint/parser': tsExtensions,
+        },
+        'import/resolver': {
+          node: {
+            extensions: allExtensions,
+          },
+        },
+      },
     },
   ],
 }
