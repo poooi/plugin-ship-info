@@ -1,4 +1,4 @@
-import { screen, Display } from 'electron'
+import { Display, screen } from 'electron'
 
 const { workArea } = screen.getPrimaryDisplay()
 let { x, y, width, height } = global.config.get(
@@ -24,10 +24,10 @@ if (height == null) {
 }
 
 export const windowOptions = {
+  height,
+  width,
   x,
   y,
-  width,
-  height,
 }
 export { reducer, reactClass } from './views'
 

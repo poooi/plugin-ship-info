@@ -1,10 +1,10 @@
-import React, { StatelessComponent, ReactElement } from 'react'
 import { join } from 'path'
-import { WindowEnv } from 'views/components/etc/window-env'
+import React, { ReactElement, StatelessComponent } from 'react'
 import { StyleSheetManager } from 'styled-components'
+import { WindowEnv } from 'views/components/etc/window-env'
 
-import TableView from './table-view'
 import SettingsView from './settings-view'
+import TableView from './table-view'
 
 export { reducer } from './redux'
 export const reactClass: StatelessComponent<null> = (): ReactElement => (

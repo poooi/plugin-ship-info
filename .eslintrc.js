@@ -11,10 +11,8 @@ module.exports = {
   extends: [
     'airbnb',
     'poi-plugin',
-    'plugin:@typescript-eslint/recommended',
     'prettier',
     'prettier/react',
-    'prettier/@typescript-eslint',
   ],
   settings: {
     'import/extensions': allExtensions,
@@ -28,15 +26,13 @@ module.exports = {
     },
   },
   parser: 'babel-eslint',
-  plugins: ['import', 'react', 'prettier', '@typescript-eslint'],
+  plugins: ['import', 'react', 'prettier'],
   rules: {
-    semi: ['error', 'never'],
     'import/no-unresolved': [2, { ignore: ['views/.*'] }],
     'react/jsx-filename-extension': 'off',
     'no-underscore-dangle': ['error', { allow: ['__'], allowAfterThis: true }],
     'import/extensions': ['error', { es: 'never' }],
     'import/no-extraneous-dependencies': 'off',
-    'comma-dangle': ['error', 'always-multiline'],
     camelcase: 'off',
     'no-confusing-arrow': 'off',
     'react/require-default-props': 'off',
@@ -47,13 +43,6 @@ module.exports = {
     'prettier/prettier': 'error',
     'react/no-access-state-in-setstate': 'off', // FIXME: add back this rule
     'react/destructuring-assignment': 'off',
-    '@typescript-eslint/camelcase': 'off',
     'import/prefer-default-export': 'off',
   },
-  overrides: [
-    {
-      files: tsExtensions,
-      parser: '@typescript-eslint/parser',
-    },
-  ],
 }

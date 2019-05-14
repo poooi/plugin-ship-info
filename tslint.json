@@ -1,0 +1,16 @@
+{
+  "extends": [
+    "tslint:latest",
+    "tslint-react",
+    "tslint-config-prettier",
+    "tslint-plugin-prettier"
+  ],
+  "linterOptions": {
+    "exclude": ["shims/vendors/*"]
+  },
+  "rules": {
+    "prettier": true,
+    "no-implicit-dependencies": [true, ["react", "styled-components", "electron", "prop-types", "views"]],
+    "no-submodule-imports": false
+  }
+}
