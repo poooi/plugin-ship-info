@@ -1,38 +1,49 @@
-import memoize from 'fast-memoize'
-import { createSelector } from 'reselect'
+import { APIShip } from 'kcsapi/api_port/port/response'
 import _, {
-  get,
-  mapValues,
   findIndex,
-  includes,
+  flatMap,
   flatten,
   fromPairs,
-  flatMap,
+  get,
+  includes,
   keyBy,
+  map,
+  mapValues,
+  memoize,
+  ObjectIterator,
 } from 'lodash'
 import fp from 'lodash/fp'
+import { createSelector } from 'reselect'
 import i18next from 'views/env-parts/i18next'
 
+import { IShip } from './types'
+
 import {
-  constSelector,
-  shipDataSelectorFactory,
-  shipsSelector,
   configSelector,
+  constSelector,
+  extensionSelectorFactory,
   fcdSelector,
-  shipEquipDataSelectorFactory,
   fleetInExpeditionSelectorFactory,
   fleetShipsIdSelectorFactory,
-  stateSelector,
+  IConstState,
   inRepairShipsIdSelector,
-  extensionSelectorFactory,
+  IShipData,
+  IState,
+  shipDataSelectorFactory,
+  shipEquipDataSelectorFactory,
+  shipsSelector,
+  stateSelector,
   wctfSelector,
 } from 'views/utils/selectors'
 
+import { APISlotItem } from 'kcsapi/api_get_member/require_info/response'
+import { APIMstShip, APIMstSlotitem } from 'kcsapi/api_start2/getData/response'
+import { any } from 'prop-types'
 import { PLUGIN_KEY } from './redux'
 import {
   getShipInfoData,
-  katakanaToHiragana,
   intToBoolArray,
+  katakanaToHiragana,
   reverseSuperTypeMap,
 } from './utils'
 
@@ -40,31 +51,31 @@ const __ = i18next.getFixedT(null, ['poi-plugin-ship-info', 'resources'])
 
 export const graphSelector = createSelector(
   [constSelector],
-  ({ $shipgraph } = {}) => keyBy($shipgraph, 'api_id'),
+  constState => keyBy(constState.$shipgraph, 'api_id'),
 )
 
 export const shipInfoConfigSelector = createSelector(
   [configSelector, fcdSelector],
   (config, { shiptag = {} }) => ({
-    sortName: get(config, 'plugin.ShipInfo.sortName', 'lv'),
-    sortOrder: get(config, 'plugin.ShipInfo.sortOrder', 0),
-    lvRadio: get(config, 'plugin.ShipInfo.lvRadio', 2),
-    lockedRadio: get(config, 'plugin.ShipInfo.lockedRadio', 1),
+    daihatsuRadio: get(config, 'plugin.ShipInfo.daihatsuRadio', 0),
+    exSlotRadio: get(config, 'plugin.ShipInfo.exSlotRadio', 0),
     expeditionRadio: get(config, 'plugin.ShipInfo.expeditionRadio', 0),
+    inFleetRadio: get(config, 'plugin.ShipInfo.inFleetRadio', 0),
+    lockedRadio: get(config, 'plugin.ShipInfo.lockedRadio', 1),
+    lvRadio: get(config, 'plugin.ShipInfo.lvRadio', 2),
+    marriedRadio: get(config, 'plugin.ShipInfo.marriedRadio', 0),
     modernizationRadio: get(config, 'plugin.ShipInfo.modernizationRadio', 0),
+    pagedLayout: get(config, 'plugin.ShipInfo.pagedLayout', 0),
+    rawValue: get(config, 'plugin.ShipInfo.rawValue', false),
     remodelRadio: get(config, 'plugin.ShipInfo.remodelRadio', 0),
     sallyAreaChecked: get(
       config,
       'plugin.ShipInfo.sallyAreaChecked',
       Array((shiptag.mapname || []).length + 1).fill(true),
     ),
-    pagedLayout: get(config, 'plugin.ShipInfo.pagedLayout', 0),
-    marriedRadio: get(config, 'plugin.ShipInfo.marriedRadio', 0),
-    inFleetRadio: get(config, 'plugin.ShipInfo.inFleetRadio', 0),
+    sortName: get(config, 'plugin.ShipInfo.sortName', 'lv'),
+    sortOrder: get(config, 'plugin.ShipInfo.sortOrder', 0),
     sparkleRadio: get(config, 'plugin.ShipInfo.sparkleRadio', 0),
-    exSlotRadio: get(config, 'plugin.ShipInfo.exSlotRadio', 0),
-    daihatsuRadio: get(config, 'plugin.ShipInfo.daihatsuRadio', 0),
-    rawValue: get(config, 'plugin.ShipInfo.rawValue', false),
   }),
 )
 
@@ -74,12 +85,21 @@ const allFleetShipIdSelector = createSelector(
       fleetShipsIdSelectorFactory(fleetId),
     ),
   ],
-  (id1, id2, id3, id4) => [id1, id2, id3, id4],
+  (id1: number[], id2: number[], id3: number[], id4: number[]) => [
+    id1,
+    id2,
+    id3,
+    id4,
+  ],
 )
+
+interface IDictionary<T> {
+  [index: string]: T
+}
 
 export const shipFleetIdMapSelector = createSelector(
   [shipsSelector, allFleetShipIdSelector],
-  (ships, fleetIds) =>
+  (ships: IDictionary<APIShip>, fleetIds: number[][]) =>
     mapValues(ships, ship =>
       findIndex(fleetIds, fleetId => includes(fleetId, ship.api_id)),
     ),
@@ -109,18 +129,18 @@ export const shipTableDataSelectorFactory = memoize(shipId =>
       wctfSelector,
     ],
     (
-      [ship, $ship] = [],
-      equips,
-      { $shipTypes },
+      [ship, $ship] = [] as any,
+      equips: IDictionary<APISlotItem>,
+      { $shipTypes }: { $shipTypes: IDictionary<APIMstSlotitem> },
       fleetIdMap,
       rawValue,
       repairs = [],
       db,
     ) =>
       getShipInfoData(
-        ship,
-        $ship,
-        equips,
+        ship!,
+        $ship!,
+        equips!,
         $shipTypes,
         fleetIdMap,
         rawValue,
@@ -199,16 +219,20 @@ const handleRemodelFilter = memoize((after, remodelRadio) => {
   }
 })
 
-const handleSallyAreaFilter = memoize((sallyArea, sallyAreaChecked) => {
-  const checkedAll = (sallyAreaChecked || []).reduce(
-    (all, checked) => all && checked,
-    true,
-  )
-  if (checkedAll) return true
-  return typeof sallyArea !== 'undefined'
-    ? (sallyAreaChecked || [])[sallyArea || 0]
-    : true
-})
+const handleSallyAreaFilter = memoize(
+  (sallyArea: number | undefined, sallyAreaChecked: boolean[]) => {
+    const checkedAll = (sallyAreaChecked || []).reduce(
+      (all, checked) => all && checked,
+      true,
+    )
+    if (checkedAll) {
+      return true
+    }
+    return typeof sallyArea !== 'undefined'
+      ? (sallyAreaChecked || [])[sallyArea || 0]
+      : true
+  },
+)
 
 const handleInFleetFilter = memoize((fleetId, inFleetRadio) => {
   const isInFleet = fleetId > -1
@@ -235,7 +259,7 @@ const handleSparkleFilter = memoize((cond, sparkleRadio) => {
   }
 })
 
-const handleExSlotFilter = memoize((exslot, exSlotRadio) => {
+const handleExSlotFilter = memoize((exslot: number, exSlotRadio: number) => {
   switch (exSlotRadio) {
     case 1:
       return exslot !== 0
@@ -247,7 +271,7 @@ const handleExSlotFilter = memoize((exslot, exSlotRadio) => {
   }
 })
 
-const handleDaihatsuFilter = (daihatsu, daihatsuRadio) => {
+const handleDaihatsuFilter = (daihatsu: boolean, daihatsuRadio: number) => {
   switch (daihatsuRadio) {
     case 1:
       return daihatsu
@@ -259,40 +283,52 @@ const handleDaihatsuFilter = (daihatsu, daihatsuRadio) => {
   }
 }
 
-const getSortFunction = sortName => {
+const getSortFunction = (sortName: string) => {
   switch (sortName) {
     case 'id':
-      return ship => ship.id
+      return (ship: IShip) => ship.id
     case 'name':
       return [
-        ship => katakanaToHiragana(ship.yomi),
-        ship => ship.lv,
-        ship => -ship.id,
+        (ship: IShip) => katakanaToHiragana(ship.yomi),
+        (ship: IShip) => ship.lv,
+        (ship: IShip) => -ship.id,
       ]
     case 'lv':
       // Sort rule of level in game (descending):
       // 1. level (descending)
       // 2. sortno (ascending)
       // 3. id (descending)
-      return [ship => ship.lv, ship => -ship.sortno, ship => -ship.id]
+      return [
+        (ship: IShip) => ship.lv,
+        (ship: IShip) => -ship.sortno,
+        (ship: IShip) => -ship.id,
+      ]
     case 'type':
       return [
-        ship => ship.typeId,
-        ship => -ship.sortno,
-        ship => ship.lv,
-        ship => -ship.id,
+        (ship: IShip) => ship.typeId,
+        (ship: IShip) => -ship.sortno,
+        (ship: IShip) => ship.lv,
+        (ship: IShip) => -ship.id,
       ]
     case 'hp':
-      return [ship => ship.maxhp, ship => -ship.sortno, ship => -ship.id]
+      return [
+        (ship: IShip) => ship.maxhp,
+        (ship: IShip) => -ship.sortno,
+        (ship: IShip) => -ship.id,
+      ]
     default:
-      return [ship => ship[sortName], ship => ship.sortno, ship => -ship.id]
+      return [
+        (ship: IShip) => ship[sortName as keyof IShip],
+        (ship: IShip) => ship.sortno,
+        (ship: IShip) => -ship.id,
+      ]
   }
 }
 
 const shipTypesSelecor = createSelector(
   [
     state => get(state, 'const.$shipTypes', {}),
-    state => get(state.config, 'plugin.ShipInfo.shipTypes'),
+    state => get((state as IState).config, 'plugin.ShipInfo.shipTypes'),
   ],
   ($shipTypes, shipTypeChecked) => {
     const checked = intToBoolArray(shipTypeChecked)
@@ -300,7 +336,7 @@ const shipTypesSelecor = createSelector(
       return Object.keys($shipTypes).map(s => +s)
     }
     return checked.reduce(
-      (types, check, index) =>
+      (types: number[], check: boolean, index: number) =>
         check && index + 1 in $shipTypes ? types.concat([index + 1]) : types,
       [],
     )
@@ -313,7 +349,7 @@ const fleetShipsInExpeditionSelectorFactory = memoize(fleetId =>
       fleetInExpeditionSelectorFactory(fleetId),
       fleetShipsIdSelectorFactory(fleetId),
     ],
-    (inExpedition, id) => (inExpedition ? id : []),
+    (inExpedition: boolean, id: number[]) => (inExpedition ? id : []),
   ),
 )
 
@@ -324,13 +360,15 @@ const expeditionShipsSelector = createSelector(
     state => fleetShipsInExpeditionSelectorFactory(2)(state),
     state => fleetShipsInExpeditionSelectorFactory(3)(state),
   ],
-  (...ids) => [].concat(...ids),
+  (...ids) => ([] as number[]).concat(...ids),
 )
 
 export const allShipRowsSelector = createSelector(
   [shipsSelector, stateSelector],
   (ships, state) =>
-    fp.map(ship => shipTableDataSelectorFactory(ship.api_id)(state))(ships),
+    map(ships, (ship: APIShip) =>
+      shipTableDataSelectorFactory(ship.api_id)(state),
+    ),
 )
 
 export const shipRowsSelector = createSelector(
@@ -361,7 +399,7 @@ export const shipRowsSelector = createSelector(
   ) =>
     fp.flow(
       fp.filter(
-        ship =>
+        (ship: IShip) =>
           handleTypeFilter(ship.typeId, shipTypes) &&
           handleLvFilter(ship.lv, lvRadio) &&
           handleLockedFilter(ship.locked, lockedRadio) &&
@@ -383,34 +421,34 @@ export const sallyAreaSelectorFactory = memoize(area =>
   createSelector(
     [fcdSelector],
     fcd => ({
+      color: get(fcd, `shiptag.color.${area - 1}`, ''),
       mapname: get(
         fcd,
         `shiptag.mapname.${area - 1}`,
         __('unknown_area', { area }),
       ),
-      color: get(fcd, `shiptag.color.${area - 1}`, ''),
     }),
   ),
 )
 
-export const ShipItemSelectorFactory = memoize(shipId =>
+export const shipItemSelectorFactory = memoize(shipId =>
   createSelector(
     [shipDataSelectorFactory(shipId), fcdSelector],
-    ([ship, $ship] = [], { shipavatar } = {}) =>
+    ([ship, $ship] = [] as any, { shipavatar } = {} as any) =>
       !!ship && !!$ship
         ? {
-            id: ship.api_id,
-            shipId: $ship.api_id,
-            typeId: $ship.api_stype,
-            name: $ship.api_name,
-            lv: ship.api_lv,
             area: ship.api_sally_area,
-            superTypeIndex: reverseSuperTypeMap[$ship.api_stype] || 0,
             avatarOffset: get(
               shipavatar,
               ['marginMagics', $ship.api_id, 'normal'],
               0.555,
             ),
+            id: ship.api_id,
+            lv: ship.api_lv,
+            name: $ship.api_name,
+            shipId: $ship.api_id,
+            superTypeIndex: reverseSuperTypeMap[$ship.api_stype] || 0,
+            typeId: $ship.api_stype,
           }
         : undefined,
   ),
@@ -420,14 +458,14 @@ export const shipMenuDataSelector = createSelector(
   [shipsSelector, state => state],
   (_ships, state) =>
     fp.flow(
-      fp.map(ship => ship.api_id),
-      fp.map(shipId => ShipItemSelectorFactory(shipId)(state)),
-    )(_ships),
+      fp.map((ship: APIShip) => ship.api_id),
+      fp.map(shipId => shipItemSelectorFactory(shipId)(state)),
+    )(_ships as any),
 )
 
 export const deckPlannerCurrentSelector = createSelector(
   [extensionSelectorFactory(PLUGIN_KEY)],
-  state => (state.planner || {}).current || [],
+  state => ((state as any).planner || {}).current || [],
 )
 
 export const deckPlannerAreaSelectorFactory = memoize(areaIndex =>
@@ -444,26 +482,31 @@ export const deckPlannerAllShipIdsSelector = createSelector(
 
 export const deckPlannerShipMapSelector = createSelector(
   [deckPlannerCurrentSelector],
-  current =>
+  (current: IDictionary<number[]>) =>
     fromPairs(
       flatMap(current, (ships, areaIndex) => ships.map(id => [id, areaIndex])),
     ),
 )
 
-const ourShipsSelector = createSelector(
+const ourShipsSelector = createSelector<
+  any,
+  IConstState,
+  IDictionary<APIMstShip>
+>(
   [constSelector],
-  ({ $ships = {} } = {}) =>
+  ({ $ships = {} } = {} as any) =>
     _($ships)
       .pickBy(({ api_sortno }) => Boolean(api_sortno))
-      .value(),
+      .value() as IDictionary<APIMstShip>,
 )
 
 const beforeShipMapSelector = createSelector(
   [ourShipsSelector],
   $ships =>
     _($ships)
-      .filter(ship => +(ship.api_aftershipid || 0) > 0)
-      .map(ship => [ship.api_aftershipid, ship.api_id])
+      .filter<APIMstShip>(((ship: APIMstShip) =>
+        +(ship.api_aftershipid || 0) > 0) as any)
+      .map((ship: APIMstShip) => [ship.api_aftershipid, ship.api_id])
       .fromPairs()
       .value(),
 )
@@ -472,10 +515,11 @@ const beforeShipMapSelector = createSelector(
 // the adjustedRemodelChainsSelector will return complete chains for all ships
 const remodelChainsSelector = createSelector(
   [ourShipsSelector],
-  $ships =>
-    _($ships)
-      .mapValues(({ api_id: shipId }) => {
-        let current = $ships[shipId]
+  ($ships: IDictionary<APIMstShip>): IDictionary<number[]> =>
+    mapValues<IDictionary<APIMstShip>, number[]>(
+      $ships,
+      ({ api_id: shipId }: APIMstShip) => {
+        let current: APIMstShip | { api_aftershipid?: string } = $ships[shipId]!
         let next = +(current.api_aftershipid || 0)
         let same = [shipId]
         while (!same.includes(next) && next > 0) {
@@ -484,25 +528,29 @@ const remodelChainsSelector = createSelector(
           next = +(current.api_aftershipid || 0)
         }
         return same
-      })
-      .value(),
+      },
+    ),
 )
 
 export const uniqueShipIdsSelector = createSelector(
   [ourShipsSelector, beforeShipMapSelector],
   ($ships, beforeShipMap) =>
     _($ships)
-      .filter(({ api_id }) => !(api_id in beforeShipMap))
-      .map(({ api_id }) => api_id)
+      .filter((({ api_id }: APIMstShip) =>
+        !(api_id in beforeShipMap)) as ObjectIterator<
+        Partial<IDictionary<APIMstShip>>,
+        boolean
+      >)
+      .map(({ api_id }: APIMstShip) => api_id)
       .value(),
 )
 
 export const shipUniqueMapSelector = createSelector(
   [uniqueShipIdsSelector, remodelChainsSelector],
-  (shipIds, chains) =>
+  (shipIds, chains: IDictionary<number[]>) =>
     _(shipIds)
       .flatMap(shipId =>
-        _(chains[shipId])
+        _(chains[shipId as any])
           .map(id => [id, shipId])
           .value(),
       )
@@ -514,14 +562,16 @@ export const adjustedRemodelChainsSelector = createSelector(
   [remodelChainsSelector, shipUniqueMapSelector],
   (remodelChains, uniqueMap) =>
     _(uniqueMap)
-      .mapValues(uniqueId => remodelChains[uniqueId])
+      .mapValues(uniqueId => remodelChains[uniqueId as any])
       .value(),
 )
 
 export const kai2ShipSelector = createSelector(
   [uniqueShipIdsSelector, adjustedRemodelChainsSelector],
   (ships, remodelChains) =>
-    fp.flow(fp.filter(shipId => remodelChains[shipId].length > 3))(ships),
+    fp.flow(fp.filter(shipId => remodelChains[shipId as any].length > 3))(
+      ships,
+    ),
 )
 
 export const uniqueShipCountSelector = createSelector(
@@ -529,6 +579,7 @@ export const uniqueShipCountSelector = createSelector(
   (uniqs, remodelChains, ships) =>
     mapValues(
       remodelChains,
-      shipIds => fp.filter(ship => shipIds.includes(ship.shipId))(ships).length,
+      shipIds =>
+        fp.filter(ship => shipIds.includes((ship as any).shipId))(ships).length,
     ),
 )

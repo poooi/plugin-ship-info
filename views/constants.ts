@@ -7,32 +7,32 @@
 
 export const shipSuperTypeMap = [
   {
-    name: 'DD',
     id: [2],
+    name: 'DD',
   },
   {
-    name: 'CL',
     id: [3, 4, 21],
+    name: 'CL',
   },
   {
-    name: 'CA',
     id: [5, 6],
+    name: 'CA',
   },
   {
-    name: 'BB',
     id: [8, 9, 10, 12],
+    name: 'BB',
   },
   {
-    name: 'CV',
     id: [7, 11, 18],
+    name: 'CV',
   },
   {
-    name: 'SS',
     id: [13, 14],
+    name: 'SS',
   },
   {
-    name: 'Others',
     id: [1, 15, 16, 17, 19, 20, 22],
+    name: 'Others',
   },
 ]
 
@@ -107,7 +107,15 @@ export const daihatsuOptions = {
   2: 'No',
 }
 
-export const repairFactor = {
+export interface IRepairFactor {
+  [key: number]: {
+    api_id: number
+    api_name: string
+    factor: number
+  }
+}
+
+export const repairFactor: IRepairFactor = {
   1: { api_id: 1, api_name: '海防艦', factor: 0.5 },
   2: { api_id: 2, api_name: '駆逐艦', factor: 1 },
   3: { api_id: 3, api_name: '軽巡洋艦', factor: 1 },

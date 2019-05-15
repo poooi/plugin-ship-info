@@ -6,11 +6,30 @@
     "tslint-plugin-prettier"
   ],
   "linterOptions": {
-    "exclude": ["shims/vendors/*"]
+    "exclude": ["shims/*"]
   },
   "rules": {
     "prettier": true,
-    "no-implicit-dependencies": [true, ["react", "styled-components", "electron", "prop-types", "views"]],
-    "no-submodule-imports": false
+    "no-implicit-dependencies": [
+      true,
+      "dev",
+      [
+        "electron",
+        "lodash",
+        "prop-types",
+        "react",
+        "reselect",
+        "styled-components",
+        "views"
+      ]
+    ],
+    "no-submodule-imports": false,
+    "variable-name": [
+      true,
+      "ban-keywords",
+      "check-format",
+      "allow-snake-case",
+      "allow-leading-underscore"
+    ]
   }
 }

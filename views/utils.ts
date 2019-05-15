@@ -1,15 +1,23 @@
-import PropTypes from 'prop-types'
-import _, { clone } from 'lodash'
-import url from 'url'
 import { remote } from 'electron'
+import _, { clone, get } from 'lodash'
+import PropTypes from 'prop-types'
+import url from 'url'
 import i18next from 'views/env-parts/i18next'
 
-import { repairFactor } from './constants'
+import { APISlotItem } from 'kcsapi/api_get_member/require_info/response'
+import { APIShip } from 'kcsapi/api_port/port/response'
+import { APIMstShip, APIMstSlotitem } from 'kcsapi/api_start2/getData/response'
+import { Dictionary } from 'views/utils/selectors'
 import html2canvas from '../lib/html2canvas'
+import { repairFactor } from './constants'
+import { IShip } from './types'
 
 const __ = i18next.getFixedT(null, ['poi-plugin-ship-info', 'resources'])
 
-export const getTimePerHP = (api_lv = 1, api_stype = 1) => {
+export const getTimePerHP = (
+  api_lv: number = 1,
+  api_stype: number = 1,
+): number => {
   let factor = 0
   if (repairFactor[api_stype] != null) {
     factor = repairFactor[api_stype].factor || 0
@@ -30,19 +38,20 @@ export const getTimePerHP = (api_lv = 1, api_stype = 1) => {
   )
 }
 
-const getValueByLevel = (min, max, lv) =>
+const getValueByLevel = (min: number, max: number, lv: number): number =>
   Math.floor(((max - min) * lv) / 99) + min
 
+/* tslint:disable:object-literal-sort-keys */
 export const getShipInfoData = (
-  ship,
-  $ship,
-  equips,
-  $shipTypes,
-  fleetIdMap,
+  ship: APIShip,
+  $ship: APIMstShip,
+  equips: Dictionary<APISlotItem>,
+  $shipTypes: Dictionary<APIMstSlotitem>,
+  fleetIdMap: Dictionary<number>,
   rawValue = false,
-  repairs = [],
-  db,
-) => {
+  repairs: number[] = [],
+  db: object,
+): IShip => {
   const id = ship.api_id
   const shipId = $ship.api_id
   const typeId = $ship.api_stype
@@ -50,16 +59,16 @@ export const getShipInfoData = (
   const type = ($shipTypes[$ship.api_stype] || {}).api_name
   const name = $ship.api_name
   const yomi = $ship.api_yomi
-  const sortno = $ship.api_sortno
+  const sortno = $ship.api_sortno!
   const lv = ship.api_lv
 
   const cond = ship.api_cond
-  const houg = $ship.api_houg
-  const raig = $ship.api_raig
-  const tyku = $ship.api_tyku
-  const souk = $ship.api_souk
-  const luck = $ship.api_luck
-  const taik = $ship.api_taik
+  const houg = $ship.api_houg!
+  const raig = $ship.api_raig!
+  const tyku = $ship.api_tyku!
+  const souk = $ship.api_souk!
+  const luck = $ship.api_luck!
+  const taik = $ship.api_taik!
   const kyouka = ship.api_kyouka
 
   const slot = clone(ship.api_slot)
@@ -68,38 +77,38 @@ export const getShipInfoData = (
   const nowhp = ship.api_nowhp
   const maxhp = ship.api_maxhp
   const losshp = ship.api_maxhp - ship.api_nowhp
-  const repairtime = parseInt(ship.api_ndock_time / 1000.0, 10)
+  const repairtime = Math.floor(ship.api_ndock_time / 1000.0)
   const inDock = repairs.includes(ship.api_id)
-  const after = parseInt($ship.api_aftershipid, 10)
+  const after = parseInt($ship.api_aftershipid!, 10)
   const sallyArea = ship.api_sally_area || 0
   const soku = ship.api_soku
 
   // Attention this will overwrite some original properties
-  const karyokuNow = houg[0] + kyouka[0]
+  const karyokuNow = houg![0] + kyouka[0]
   const karyokuMax = ship.api_karyoku[1]
   const karyoku = rawValue ? karyokuNow : ship.api_karyoku[0]
   // eslint-disable-next-line no-underscore-dangle
   const _karyoku = ship.api_karyoku[0]
 
-  const raisouNow = raig[0] + kyouka[1]
+  const raisouNow = raig![0] + kyouka[1]
   const raisouMax = ship.api_raisou[1]
   const raisou = rawValue ? raisouNow : ship.api_raisou[0]
   // eslint-disable-next-line no-underscore-dangle
   const _raisou = ship.api_raisou[0]
 
-  const taikuNow = tyku[0] + kyouka[2]
+  const taikuNow = tyku![0] + kyouka[2]
   const taikuMax = ship.api_taiku[1]
   const taiku = rawValue ? taikuNow : ship.api_taiku[0]
   // eslint-disable-next-line no-underscore-dangle
   const _taiku = ship.api_taiku[0]
 
-  const soukouNow = souk[0] + kyouka[3]
+  const soukouNow = souk![0] + kyouka[3]
   const soukouMax = ship.api_soukou[1]
   const soukou = rawValue ? soukouNow : ship.api_soukou[0]
   // eslint-disable-next-line no-underscore-dangle
   const _soukou = ship.api_soukou[0]
 
-  const luckyNow = luck[0] + kyouka[4]
+  const luckyNow = luck![0] + kyouka[4]
   const luckyMax = ship.api_lucky[1]
   const lucky = rawValue ? luckyNow : ship.api_lucky[0]
   // eslint-disable-next-line no-underscore-dangle
@@ -136,15 +145,19 @@ export const getShipInfoData = (
 
   // 24 = 上陸用舟艇, 46 = 特型内火艇
   const daihatsuItems = _([24, 46]).map(i =>
-    _.find(db?.item_types, t => t.id_ingame === i),
+    _.find(get(db, 'item_types'), t => t.id_ingame === i),
   )
 
-  const daihatsuShips = daihatsuItems.flatMap('equipable_extra_ship').value()
-  const daihastuTypes = daihatsuItems.flatMap('equipable_on_type').value()
+  const daihatsuShips = daihatsuItems
+    .flatMap('equipable_extra_ship')
+    .value() as number[]
+  const daihastuTypes = daihatsuItems
+    .flatMap('equipable_on_type')
+    .value() as number[]
 
   const daihatsu =
     daihatsuShips.includes(shipId) ||
-    daihastuTypes.includes(db?.ships?.[shipId]?.type)
+    daihastuTypes.includes(get(db, ['ships', shipId, 'type']))
 
   return {
     id,
@@ -250,28 +263,33 @@ export const shipInfoShape = {
   isCompleted: PropTypes.bool.isRequired,
   daihatsu: PropTypes.bool.isRequired,
 }
+/* tslint:enable:object-literal-sort-keys */
 
 const jpCollator = new Intl.Collator('ja-JP')
 
-export const nameCompare = (a, b) => {
+export const nameCompare = (a: IShip, b: IShip) => {
   if (a.yomi === b.yomi) {
-    if (a.lv !== b.lv) return a.lv - b.lv
-    if (a.id !== b.id) return -(a.id - b.id)
+    if (a.lv !== b.lv) {
+      return a.lv - b.lv
+    }
+    if (a.id !== b.id) {
+      return -(a.id - b.id)
+    }
   }
   return jpCollator.compare(a.yomi, b.yomi)
 }
 
 // katagana to hiragana
-export const katakanaToHiragana = str =>
+export const katakanaToHiragana = (str: string) =>
   str.replace(/[\u30a1-\u30f6]/g, match => {
     const chr = match.charCodeAt(0) - 0x60
     return String.fromCharCode(chr)
   })
 
-export const getKanaSortValues = str =>
+export const getKanaSortValues = (str: string) =>
   katakanaToHiragana(str)
     .split('')
-    .map(s => s.charCodeAt())
+    .map(s => s.charCodeAt(0))
 
 // following function is used to convert betweern array of booleans and int
 // leading true value is to ensure the bit length
@@ -288,7 +306,7 @@ export const intToBoolArray = (int = 0) => {
 
 export const boolArrayToInt = (boolArray = []) => {
   const arr = boolArray.slice()
-  arr.unshift(true)
+  arr.unshift()
   const str = arr.map(bool => +bool).join('')
   return parseInt(str, 2)
 }
@@ -302,32 +320,32 @@ export const boolArrayToInt = (boolArray = []) => {
 
 export const shipSuperTypeMap = [
   {
-    name: 'DD',
     id: [2],
+    name: 'DD',
   },
   {
-    name: 'CL',
     id: [3, 4, 21],
+    name: 'CL',
   },
   {
-    name: 'CA',
     id: [5, 6],
+    name: 'CA',
   },
   {
-    name: 'BB',
     id: [8, 9, 10, 12],
+    name: 'BB',
   },
   {
-    name: 'CV',
     id: [7, 11, 18],
+    name: 'CV',
   },
   {
-    name: 'SS',
     id: [13, 14],
+    name: 'SS',
   },
   {
-    name: 'Others',
     id: [1, 15, 16, 17, 19, 20, 22],
+    name: 'Others',
   },
 ]
 
@@ -365,15 +383,25 @@ export const shipTypes = {
   22: __('AO'),
 }
 
-export const hexToRGBA = (hex, opacity = 1) => {
+export const hexToRGBA = (hex: string, opacity = 1) => {
   if (/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)) {
-    let color = hex.substring(1)
+    const color = hex.substring(1)
+    let colors
     if (color.length === 3) {
-      color = [color[0], color[0], color[1], color[1], color[2], color[2]]
+      colors = [
+        color[0],
+        color[0],
+        color[1],
+        color[1],
+        color[2],
+        color[2],
+      ].join('')
+    } else {
+      return ''
     }
-    const r = parseInt(color.slice(0, 2), 16)
-    const g = parseInt(color.slice(2, 4), 16)
-    const b = parseInt(color.slice(4, 6), 16)
+    const r = parseInt(colors.slice(0, 2), 16)
+    const g = parseInt(colors.slice(2, 4), 16)
+    const b = parseInt(colors.slice(4, 6), 16)
     return `rgba(${r}, ${g}, ${b}, ${opacity})`
   }
   return ''
@@ -546,24 +574,24 @@ export const leyteFleets = [
   },
 ]
 
-export const fileUrl = pathname =>
+export const fileUrl = (pathname: string): string =>
   url.format({
+    pathname,
     protocol: 'file',
     slashes: true,
-    pathname,
   })
 
-export const captureRect = async (query, mountPoint) => {
-  const rect = mountPoint.querySelector(query)
+export const captureRect = async (query: string, mountPoint: HTMLElement) => {
+  const rect = mountPoint.querySelector<HTMLElement>(query)
   if (!rect) {
     return
   }
   const { width, height } = rect.getBoundingClientRect()
   const canvas = await html2canvas(rect, {
-    backgroundColor: '#333',
-    width: Math.ceil(width, 16),
-    height: Math.ceil(height, 16),
     allowTaint: true,
+    backgroundColor: '#333',
+    height: _.ceil(height, 16),
+    width: _.ceil(width, 16),
   })
   remote.getCurrentWebContents().downloadURL(canvas.toDataURL('image/png'))
 }

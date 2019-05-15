@@ -10,14 +10,14 @@ import { translate } from 'react-i18next'
 import { onDisplaceShip } from '../../redux'
 import DisplaceToggle from './displace-toggle'
 import {
-  ShipItemSelectorFactory,
+  shipItemSelectorFactory,
   shipFleetIdSelectorFactory,
 } from '../../selectors'
 import { shipTypes, fileUrl } from '../../utils'
 
 @translate(['resources', 'poi-plugin-ship-info'], { nsMode: 'fallback' })
 @connect((state, props) => ({
-  ...ShipItemSelectorFactory(props.shipId)(state),
+  ...shipItemSelectorFactory(props.shipId)(state),
   color: get(state, 'fcd.shiptag.color', []),
   fleetId: shipFleetIdSelectorFactory(props.shipId)(state),
 }))
