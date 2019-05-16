@@ -38,10 +38,13 @@
   "devDependencies": {
     "@commitlint/cli": "^7.6.1",
     "@commitlint/config-conventional": "^7.6.0",
+    "@types/bluebird": "^3.5.26",
+    "@types/fs-extra": "^7.0.0",
     "@types/html2canvas": "^0.0.35",
     "@types/i18next": "^12.1.0",
     "@types/lodash": "^4.14.126",
     "@types/react": "^16.8.17",
+    "@types/redux": "^3.6.0",
     "@types/styled-components": "^4.1.15",
     "@typescript-eslint/parser": "^1.9.0",
     "babel-eslint": "10.0.1",

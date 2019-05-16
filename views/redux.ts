@@ -1,12 +1,13 @@
-import { observer } from 'redux-observers'
-import { omit, get } from 'lodash'
-import { combineReducers } from 'redux'
-import path from 'path'
 import { promisify } from 'bluebird'
 import { readJson } from 'fs-extra'
+import { get, omit } from 'lodash'
+import path from 'path'
+import { AnyAction, combineReducers } from 'redux'
+import { observer } from 'redux-observers'
 
 import { extensionSelectorFactory } from 'views/utils/selectors'
 
+import { Dispatch } from 'react'
 import FileWriter from './file-writer'
 
 export const PLUGIN_KEY = 'poi-plugin-ship-info'
@@ -17,25 +18,30 @@ export const DATA_PATH = path.join(APPDATA_PATH, `${PLUGIN_KEY}.json`)
 
 let bookmarkInitState = {}
 
-const plannerInitState = {
-  current: [],
+interface IPlannerState {
+  archive: object
+  current: number[][]
+}
+
+const plannerInitState: IPlannerState = {
   archive: {},
+  current: [],
 }
 
 const uiInitState = {
-  toTop: true,
   activeDropdown: '',
   isExtend: true,
+  toTop: true,
 }
 
 try {
-  const initState = JSON.parse(localStorage.getItem(PLUGIN_KEY)) || {}
+  const initState = JSON.parse(localStorage.getItem(PLUGIN_KEY)!) || {}
   bookmarkInitState = initState
 } catch (e) {
   console.error(e.stack)
 }
 
-const bookmarkReducer = (state = bookmarkInitState, action) => {
+const bookmarkReducer = (state = bookmarkInitState, action: AnyAction) => {
   const { type, bookmark, settings, data } = action
   switch (type) {
     case '@@poi-plugin-ship-info@update':
@@ -74,7 +80,7 @@ const bookmarkReducer = (state = bookmarkInitState, action) => {
 //   ]
 // }
 
-const plannerReducer = (state = plannerInitState, action) => {
+const plannerReducer = (state = plannerInitState, action: AnyAction) => {
   const {
     type,
     mapname,
@@ -153,7 +159,7 @@ const plannerReducer = (state = plannerInitState, action) => {
   return state
 }
 
-const uiReducer = (state = uiInitState, action) => {
+const uiReducer = (state = uiInitState, action: AnyAction) => {
   const { isExtend, type, toTop, activeDropdown } = action
   if (type === `@@${PLUGIN_KEY}@scroll`) {
     return {
@@ -177,7 +183,7 @@ const uiReducer = (state = uiInitState, action) => {
   return state
 }
 
-const readyReducer = (state = false, action) => {
+const readyReducer = (state = false, action: AnyAction) => {
   const { type } = action
   if (type === `@@${PLUGIN_KEY}@ready`) {
     return true
@@ -188,55 +194,90 @@ const readyReducer = (state = false, action) => {
 export const reducer = combineReducers({
   bookmark: bookmarkReducer,
   planner: plannerReducer,
-  ui: uiReducer,
   ready: readyReducer,
+  ui: uiReducer,
 })
 
-export const onDPInit = ({ color, mapname }) => ({
-  type: `@@${PLUGIN_KEY}@dp-init`,
+export const onDPInit = ({
   color,
   mapname,
+}: {
+  color: string
+  mapname: string
+}) => ({
+  color,
+  mapname,
+  type: `@@${PLUGIN_KEY}@dp-init`,
 })
 
-export const onAddShip = ({ shipId, areaIndex }) => ({
+export const onAddShip = ({
+  shipId,
+  areaIndex,
+}: {
+  shipId: number
+  areaIndex: number
+}) => ({
+  areaIndex,
+  shipId,
   type: `@@${PLUGIN_KEY}@dp-addShip`,
-  shipId,
-  areaIndex,
 })
 
-export const onRemoveShip = ({ shipId, areaIndex }) => ({
+export const onRemoveShip = ({
+  shipId,
+  areaIndex,
+}: {
+  shipId: number
+  areaIndex: number
+}) => ({
+  areaIndex,
+  shipId,
   type: `@@${PLUGIN_KEY}@dp-removeship`,
-  shipId,
-  areaIndex,
 })
 
-export const onDisplaceShip = ({ shipId, fromAreaIndex, toAreaIndex }) => ({
-  type: `@@${PLUGIN_KEY}@dp-displaceShip`,
+export const onDisplaceShip = ({
   shipId,
   fromAreaIndex,
   toAreaIndex,
+}: {
+  shipId: number
+  fromAreaIndex: number
+  toAreaIndex: number
+}) => ({
+  fromAreaIndex,
+  shipId,
+  toAreaIndex,
+  type: `@@${PLUGIN_KEY}@dp-displaceShip`,
 })
 
-export const onLoadData = ({ data }) => ({
-  type: `@@${PLUGIN_KEY}@loadData`,
+export const onLoadData = ({ data }: { data: any }) => ({
   data,
+  type: `@@${PLUGIN_KEY}@loadData`,
 })
 
 // actions
-export const onUpdate = ({ bookmark, settings }) => ({
-  type: '@@poi-plugin-ship-info@update',
+export const onUpdate = ({
   bookmark,
   settings,
-})
-
-export const onDelete = ({ bookmark }) => ({
-  type: '@@poi-plugin-ship-info@delete',
+}: {
+  bookmark: string
+  settings: any
+}) => ({
   bookmark,
+  settings,
+  type: '@@poi-plugin-ship-info@update',
 })
 
-export const initStore = async (dispatch, getState) => {
+export const onDelete = ({ bookmark }: { bookmark: string }) => ({
+  bookmark,
+  type: '@@poi-plugin-ship-info@delete',
+})
+
+export const initStore = async (
+  dispatch: Dispatch<any>,
+  getState: () => any,
+) => {
   try {
-    const data = await promisify(readJson)(DATA_PATH)
+    const data = await readJson(DATA_PATH)
 
     const mapname = get(getState(), 'fcd.shbiptag.mapname', [])
 
@@ -251,8 +292,8 @@ export const initStore = async (dispatch, getState) => {
     }
 
     dispatch({
-      type: '@@poi-plugin-ship-info@init',
       data,
+      type: '@@poi-plugin-ship-info@init',
     })
   } catch (e) {
     console.error(e.stack)

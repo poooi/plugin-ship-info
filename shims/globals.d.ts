@@ -6,3 +6,9 @@ declare namespace NodeJS {
     }
   }
 }
+
+
+interface Window {
+  ROOT: string
+  APPDATA_PATH: string
+}

@@ -14,10 +14,14 @@
       true,
       "dev",
       [
+        "bluebird",
         "electron",
+        "fs-extra",
         "lodash",
         "prop-types",
         "react",
+        "redux",
+        "redux-observers",
         "reselect",
         "styled-components",
         "views"
@@ -30,6 +34,7 @@
       "check-format",
       "allow-snake-case",
       "allow-leading-underscore"
-    ]
+    ],
+    "no-console": [true, "log"]
   }
 }

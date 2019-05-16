@@ -13,17 +13,20 @@ import { outputJson } from 'fs-extra'
 //   fw.write(path, (''+i).repeat(10000))
 // }
 export default class FileWriter {
-  constructor() {
-    this.writing = false
-    this._queue = []
-  }
+  public writing: boolean = false
+  public _queue: any[] = []
 
-  write = (path, data, options, callback) => {
+  public write = (
+    path: string,
+    data: any,
+    options?: object,
+    callback?: () => void,
+  ) => {
     this._queue.push([path, data, options, callback])
     this._continueWriting()
   }
 
-  _continueWriting = async () => {
+  public _continueWriting = async () => {
     if (this.writing) {
       setTimeout(this._continueWriting, 100) // FIXME: is this necessary ?
       return
