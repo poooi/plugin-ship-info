@@ -45,13 +45,14 @@ declare module 'views/utils/selectors' {
 
   export const configSelector: Selector<any, any>
   export const constSelector: Selector<any, IConstState>
-  export const extensionSelectorFactory: Selector<any, any>
+  export const extensionSelectorFactory: (id: string) => Selector<any, any>
   export const fcdSelector: Selector<any, IFCD>
-  export const fleetInExpeditionSelectorFactory: Selector<any, any>
-  export const fleetShipsIdSelectorFactory: Selector<any, any>
+  export const fleetInExpeditionSelectorFactory: (id: number) => Selector<any, any>
+  export const fleetShipsIdSelectorFactory: (id: number) => Selector<any, any>
   export const inRepairShipsIdSelector: Selector<any, any>
   export const shipDataSelectorFactory: (id: number) => Selector<any, IShipData>
-  export const shipEquipDataSelectorFactory: Selector<any, any>
+  export const shipEquipDataSelectorFactory: (id: number) => Selector<any, any>
+  export const equipDataSelectorFactory: (id: number) => Selector<any, any>
   export const shipsSelector: Selector<any, Dictionary<APIShip>>
   export const stateSelector: Selector<any, any>
   export const wctfSelector: Selector<any, any>

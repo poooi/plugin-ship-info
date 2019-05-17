@@ -15,11 +15,16 @@
       "dev",
       [
         "bluebird",
+        "classnames",
         "electron",
         "fs-extra",
+        "i18next",
         "lodash",
         "prop-types",
         "react",
+        "react-i18next",
+        "react-redux",
+        "react-virtualized",
         "redux",
         "redux-observers",
         "reselect",
@@ -33,7 +38,8 @@
       "ban-keywords",
       "check-format",
       "allow-snake-case",
-      "allow-leading-underscore"
+      "allow-leading-underscore",
+      "allow-pascal-case"
     ],
     "no-console": [true, "log"]
   }

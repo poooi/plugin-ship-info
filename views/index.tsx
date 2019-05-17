@@ -16,7 +16,7 @@ export const reactClass: StatelessComponent<null> = (): ReactElement => (
             rel="stylesheet"
             href={join(__dirname, '..', 'assets', 'main.css')}
           />
-          <SettingsView />
+          {/* <SettingsView /> */}
           <TableView />
         </div>
       </StyleSheetManager>
