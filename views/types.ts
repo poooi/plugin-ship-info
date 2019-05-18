@@ -30,7 +30,7 @@ export interface IShip {
   losshp: number
   repairtime: number
   after: number
-  sallyArea?: number
+  sallyArea: number
   soku: number
   karyokuNow: number
   karyokuMax: number

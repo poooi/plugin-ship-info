@@ -1,5 +1,5 @@
 declare module 'views/components/etc/window-env' {
-  import { Context } from 'react'
+  import { Context, Component } from 'react'
 
   export const WindowEnv: Context<{ window: Window }>
 }
@@ -60,4 +60,18 @@ declare module 'views/utils/selectors' {
 
 declare module 'views/components/etc/overlay' {
   export { Tooltip } from '@blueprintjs/core'
+}
+
+declare module 'views/components/etc/avatar' {
+  import { ComponentType } from 'react'
+  export const Avatar: ComponentType<any>
+}
+
+declare module 'views/utils/tools' {
+  export const resolveTime: (time: number) => string
+}
+
+declare module 'views/components/etc/icon' {
+  import { ComponentType } from 'react'
+  export const SlotitemIcon: ComponentType<any>
 }

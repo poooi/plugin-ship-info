@@ -14,4 +14,5 @@ interface Window {
   ROOT: string
   APPDATA_PATH: string
   config: IConfig
+  language: string
 }
