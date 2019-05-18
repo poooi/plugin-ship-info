@@ -7,18 +7,6 @@
 
 export const shipSuperTypeMap = [
   {
-    id: [2],
-    name: 'DD',
-  },
-  {
-    id: [3, 4, 21],
-    name: 'CL',
-  },
-  {
-    id: [5, 6],
-    name: 'CA',
-  },
-  {
     id: [8, 9, 10, 12],
     name: 'BB',
   },
@@ -27,81 +15,101 @@ export const shipSuperTypeMap = [
     name: 'CV',
   },
   {
+    id: [5, 6],
+    name: 'CA',
+  },
+  {
+    id: [3, 4, 21],
+    name: 'CL',
+  },
+  {
+    id: [2],
+    name: 'DD',
+  },
+  {
     id: [13, 14],
     name: 'SS',
   },
   {
-    id: [1, 15, 16, 17, 19, 20, 22],
+    id: [1],
+    name: 'DE',
+  },
+  {
+    id: [15, 16, 17, 19, 20, 22],
     name: 'Others',
   },
 ]
 
-export const lvOptions = {
+export interface IFilterOptions {
+  [key: string]: string
+}
+
+export const lvOptions: IFilterOptions = {
   0: 'All',
   1: 'Lv.1',
   2: 'Lv.≥ 2',
   3: 'Lv.≥ 100',
 }
 
-export const lockedOptions = {
+export const lockedOptions: IFilterOptions = {
   0: 'All',
   1: 'Yes',
   2: 'No',
 }
 
-export const expeditionOptions = {
+export const expeditionOptions: IFilterOptions = {
   0: 'All',
   1: 'Yes',
   2: 'No',
 }
 
-export const modernizationOptions = {
+export const modernizationOptions: IFilterOptions = {
   0: 'All',
   1: 'Completed',
   2: 'Incomplete',
 }
 
-export const remodelOptions = {
+export const remodelOptions: IFilterOptions = {
   0: 'All',
   1: 'Yes',
   2: 'No',
 }
 
-export const rawValueOptions = {
+export const rawValueOptions: IFilterOptions = {
   0: 'Equip. Incl.',
   1: 'Raw Value',
 }
 
-export const pagedLayoutOptions = {
+export const pagedLayoutOptions: IFilterOptions = {
   0: 'Single',
   1: 'Multiple',
 }
 
-export const marriedOptions = {
+export const marriedOptions: IFilterOptions = {
   0: 'All',
   1: 'Yes',
   2: 'No',
 }
 
-export const inFleetOptions = {
+export const inFleetOptions: IFilterOptions = {
   0: 'All',
   1: 'Yes',
   2: 'No',
 }
 
-export const sparkleOptions = {
+export const sparkleOptions: IFilterOptions = {
   0: 'All',
   1: 'Yes',
   2: 'No',
 }
 
-export const exSlotOptions = {
+export const exSlotOptions: IFilterOptions = {
   0: 'All',
   1: 'Yes',
   2: 'No',
 }
 
-export const daihatsuOptions = {
+export const daihatsuOptions: IFilterOptions = {
   0: 'All',
   1: 'Yes',
   2: 'No',

@@ -1,6 +1,6 @@
 interface IConfig {
   get: <T = any>(path: string, defaultValue: T) => T
-  set: (path: string) => void
+  set: (path: string, value?: any) => void
 }
 
 declare namespace NodeJS {

@@ -4,6 +4,7 @@ import styled, { StyleSheetManager } from 'styled-components'
 import { WindowEnv } from 'views/components/etc/window-env'
 
 import SettingsView from './settings-view'
+import { Sidebar } from './sidebar'
 import { TableView } from './table'
 export { reducer } from './redux'
 
@@ -22,6 +23,7 @@ export const reactClass: StatelessComponent<null> = (): ReactElement => (
             href={join(__dirname, '..', 'assets', 'main.css')}
           /> */}
           {/* <SettingsView /> */}
+          <Sidebar />
           <TableView />
         </ShipInfo>
       </StyleSheetManager>

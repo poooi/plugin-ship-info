@@ -9,7 +9,7 @@ import { APIShip } from 'kcsapi/api_port/port/response'
 import { APIMstShip, APIMstSlotitem } from 'kcsapi/api_start2/getData/response'
 import { Dictionary } from 'views/utils/selectors'
 import html2canvas from '../lib/html2canvas'
-import { repairFactor } from './constants'
+import { repairFactor, shipSuperTypeMap } from './constants'
 import { IShip } from './types'
 
 const __ = i18next.getFixedT(null, ['poi-plugin-ship-info', 'resources'])
@@ -304,50 +304,12 @@ export const intToBoolArray = (int = 0) => {
   return boolArray
 }
 
-export const boolArrayToInt = (boolArray = []) => {
+export const boolArrayToInt = (boolArray: boolean[] = []) => {
   const arr = boolArray.slice()
-  arr.unshift()
+  arr.unshift(true)
   const str = arr.map(bool => +bool).join('')
   return parseInt(str, 2)
 }
-
-// ship types dated 20170106, beginning with id=1
-// const shipTypes = ["海防艦", "駆逐艦", "軽巡洋艦", "重雷装巡洋艦",
-// "重巡洋艦", "航空巡洋艦", "軽空母", "戦艦", "戦艦", "航空戦艦", "正規空母",
-// "超弩級戦艦", "潜水艦", "潜水空母", "補給艦", "水上機母艦", "揚陸艦", "装甲空母",
-// "工作艦", "潜水母艦", "練習巡洋艦", "補給艦"]
-// attention, shipSuperTypeMap uses api_id
-
-export const shipSuperTypeMap = [
-  {
-    id: [2],
-    name: 'DD',
-  },
-  {
-    id: [3, 4, 21],
-    name: 'CL',
-  },
-  {
-    id: [5, 6],
-    name: 'CA',
-  },
-  {
-    id: [8, 9, 10, 12],
-    name: 'BB',
-  },
-  {
-    id: [7, 11, 18],
-    name: 'CV',
-  },
-  {
-    id: [13, 14],
-    name: 'SS',
-  },
-  {
-    id: [1, 15, 16, 17, 19, 20, 22],
-    name: 'Others',
-  },
-]
 
 export const reverseSuperTypeMap = _(shipSuperTypeMap)
   .flatMap(({ id }, index) =>
