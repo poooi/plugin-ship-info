@@ -14,6 +14,7 @@
       true,
       "dev",
       [
+        "@blueprintjs/core",
         "bluebird",
         "classnames",
         "electron",
@@ -23,6 +24,7 @@
         "prop-types",
         "react",
         "react-i18next",
+        "react-fontawesome",
         "react-redux",
         "react-virtualized",
         "redux",

@@ -57,3 +57,7 @@ declare module 'views/utils/selectors' {
   export const stateSelector: Selector<any, any>
   export const wctfSelector: Selector<any, any>
 }
+
+declare module 'views/components/etc/overlay' {
+  export { Tooltip } from '@blueprintjs/core'
+}
