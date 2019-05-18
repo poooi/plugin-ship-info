@@ -1,19 +1,30 @@
-import cls from 'classnames'
 import { get } from 'lodash'
 import path from 'path'
 import React, { HTMLAttributes } from 'react'
 import FontAwesome from 'react-fontawesome'
-import { useTranslation, withTranslation } from 'react-i18next'
+import { useTranslation } from 'react-i18next'
 import { connect } from 'react-redux'
+import styled from 'styled-components'
 import { Avatar } from 'views/components/etc/avatar'
 import { Tooltip } from 'views/components/etc/overlay'
 import { resolveTime } from 'views/utils/tools'
 
 import { IShip } from 'views/types'
-import { sokuInterpretation, sokuStyles } from '../constants'
-import { fileUrl, getTimePerHP, shipInfoShape, shipTypes } from '../utils'
+import { sokuInterpretation } from '../constants'
+import { fileUrl, getTimePerHP, shipTypes } from '../utils'
 import SallyArea from './sally-area'
 import Slotitems from './slotitems'
+
+const Cell = styled.div`
+  white-space: nowrap;
+  line-height: 35px;
+  vertical-align: middle;
+  overflow: visible;
+  text-overflow: ellipsis;
+  cursor: default;
+  display: flex;
+  align-items: center;
+`
 
 interface ICellProps extends HTMLAttributes<HTMLDivElement> {
   ship: IShip
@@ -22,7 +33,7 @@ interface ICellProps extends HTMLAttributes<HTMLDivElement> {
 const enableAvatarConfigSelector = (state: any) =>
   get(state, ['config', 'poi', 'appearance', 'avatar'], true)
 
-const Id = ({ ship, ...props }: ICellProps) => <div {...props}>{ship.id}</div>
+const Id = ({ ship, ...props }: ICellProps) => <Cell {...props}>{ship.id}</Cell>
 
 const Name = ({
   ship,
@@ -35,15 +46,13 @@ const Name = ({
   const { t } = useTranslation(['resources'])
 
   return (
-    <div {...props}>
+    <Cell {...props}>
       {enableAvatar && <Avatar mstId={ship.shipId} height={35} />}
-      <span className="name" title={t(ship.name)}>
-        {t(ship.name)}
-      </span>
+      <span title={t(ship.name)}>{t(ship.name)}</span>
       {ship.fleetId > -1 && (
         <img
-          className="fleet-id-indicator"
           alt={`fleet: ${ship.fleetId + 1}`}
+          height={16}
           src={fileUrl(
             path.resolve(
               __dirname,
@@ -53,18 +62,18 @@ const Name = ({
         />
       )}
       <SallyArea area={ship.sallyArea} info_id={ship.id} />
-    </div>
+    </Cell>
   )
 }
 
 const Type = ({ ship, ...props }: ICellProps) => {
   const { t } = useTranslation(['resources'])
   return (
-    <div {...props}>
+    <Cell {...props}>
       {window.language === 'en-US'
         ? shipTypes[ship.typeId as keyof typeof shipTypes]
         : t(ship.type)}
-    </div>
+    </Cell>
   )
 }
 
@@ -74,25 +83,25 @@ const Soku = ({ ship, ...props }: ICellProps) => {
     sokuInterpretation[soku as keyof typeof sokuInterpretation] || 'Unknown'
   const { t } = useTranslation(['poi-plugin-ship-info'])
   return (
-    <div {...props}>
+    <Cell {...props}>
       <span>{t(sokuString)}</span>
-    </div>
+    </Cell>
   )
 }
 
-const Lv = ({ ship, ...props }: ICellProps) => <div {...props}>{ship.lv}</div>
+const Lv = ({ ship, ...props }: ICellProps) => <Cell {...props}>{ship.lv}</Cell>
 
 const Cond = ({ ship, ...props }: ICellProps) => (
-  <div {...props}>{ship.cond}</div>
+  <Cell {...props}>{ship.cond}</Cell>
 )
 
 const Hp = ({ ship, ...props }: ICellProps) => (
-  <div {...props}>
+  <Cell {...props}>
     <span>
       {ship.taik[0]}
       {ship.maxhp - ship.taik[0] > 0 && <sup>+{ship.maxhp - ship.taik[0]}</sup>}
     </span>
-  </div>
+  </Cell>
 )
 
 const Karyoku = ({ ship, ...props }: ICellProps) => {
@@ -100,12 +109,12 @@ const Karyoku = ({ ship, ...props }: ICellProps) => {
   const karyokuString =
     karyokuNow >= karyokuMax ? 'MAX' : `+${karyokuMax - karyokuNow}`
   return (
-    <div {...props}>
+    <Cell {...props}>
       <span>
         {`${karyoku}/`}
         <span style={{ fontSize: '80%' }}>{karyokuString}</span>
       </span>
-    </div>
+    </Cell>
   )
 }
 
@@ -114,12 +123,12 @@ const Raisou = ({ ship, ...props }: ICellProps) => {
   const raisouString =
     raisouNow >= raisouMax ? 'MAX' : `+${raisouMax - raisouNow}`
   return (
-    <div {...props}>
+    <Cell {...props}>
       <span>
         {`${raisou}/`}
         <span style={{ fontSize: '80%' }}>{raisouString}</span>
       </span>
-    </div>
+    </Cell>
   )
 }
 
@@ -127,12 +136,12 @@ const Taiku = ({ ship, ...props }: ICellProps) => {
   const { taiku, taikuMax, taikuNow } = ship
   const taikuString = taikuNow >= taikuMax ? 'MAX' : `+${taikuMax - taikuNow}`
   return (
-    <div {...props}>
+    <Cell {...props}>
       <span>
         {`${taiku}/`}
         <span style={{ fontSize: '80%' }}>{taikuString}</span>
       </span>
-    </div>
+    </Cell>
   )
 }
 
@@ -141,12 +150,12 @@ const Soukou = ({ ship, ...props }: ICellProps) => {
   const soukouString =
     soukouNow >= soukouMax ? 'MAX' : `+${soukouMax - soukouNow}`
   return (
-    <div {...props}>
+    <Cell {...props}>
       <span>
         {`${soukou}/`}
         <span style={{ fontSize: '80%' }}>{soukouString}</span>
       </span>
-    </div>
+    </Cell>
   )
 }
 
@@ -154,37 +163,37 @@ const Lucky = ({ ship, ...props }: ICellProps) => {
   const { lucky, luckyMax, luckyNow } = ship
   const luckyString = luckyNow >= luckyMax ? 'MAX' : `+${luckyMax - luckyNow}`
   return (
-    <div {...props}>
+    <Cell {...props}>
       <span>
         {`${lucky}/`}
         <span style={{ fontSize: '80%' }}>{luckyString}</span>
       </span>
-    </div>
+    </Cell>
   )
 }
 
 const Kaihi = ({ ship, ...props }: ICellProps) => (
-  <div {...props}>{ship.kaihi || 'NA'}</div>
+  <Cell {...props}>{ship.kaihi || 'NA'}</Cell>
 )
 
 const Taisen = ({ ship, ...props }: ICellProps) => (
-  <div {...props}>
+  <Cell {...props}>
     <span>
       {ship.taisen}
       {ship.kyouka[6] > 0 && <sup>+{ship.kyouka[6]}</sup>}
     </span>
-  </div>
+  </Cell>
 )
 
 const Sakuteki = ({ ship, ...props }: ICellProps) => (
-  <div {...props}>{ship.sakuteki}</div>
+  <Cell {...props}>{ship.sakuteki}</Cell>
 )
 
 const RepairTime = ({ ship, ...props }: ICellProps) => {
   const { nowhp, maxhp, repairtime, lv, typeId, inDock } = ship
 
   return (
-    <div {...props}>
+    <Cell {...props}>
       {repairtime && (
         <Tooltip
           content={`1HP : ${resolveTime(getTimePerHP(lv, typeId) / 1000)}`}
@@ -195,18 +204,20 @@ const RepairTime = ({ ship, ...props }: ICellProps) => {
           </span>
         </Tooltip>
       )}
-    </div>
+    </Cell>
   )
 }
 
 const Equipment = ({ ship, ...props }: ICellProps) => (
-  <div {...props}>
+  <Cell {...props}>
     <Slotitems slot={ship.slot} exslot={ship.exslot} />
-  </div>
+  </Cell>
 )
 
 const Lock = ({ ship, ...props }: ICellProps) => (
-  <div {...props}>{ship.locked === 1 ? <FontAwesome name="lock" /> : ' '}</div>
+  <Cell {...props}>
+    {ship.locked === 1 ? <FontAwesome name="lock" /> : ' '}
+  </Cell>
 )
 
 export default {

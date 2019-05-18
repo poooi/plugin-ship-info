@@ -1,11 +1,11 @@
-import cls from 'classnames'
 import { TranslationFunction } from 'i18next'
 import { floor, get, map, memoize, sum } from 'lodash'
 import PropTypes from 'prop-types'
 import React, { Component, createRef } from 'react'
-import { useTranslation, withTranslation } from 'react-i18next'
+import { withTranslation } from 'react-i18next'
 import { connect, DispatchProp } from 'react-redux'
 import { AutoSizer, GridCellRenderer, MultiGrid } from 'react-virtualized'
+import styled from 'styled-components'
 
 import { WindowEnv } from 'views/components/etc/window-env'
 import { extensionSelectorFactory } from 'views/utils/selectors'
@@ -13,8 +13,9 @@ import { extensionSelectorFactory } from 'views/utils/selectors'
 import { IShip } from 'views/types'
 import { shipInfoConfigSelector, shipRowsSelector } from '../selectors'
 import { shipInfoShape } from '../utils'
+import ShipInfoCells from './cells'
 import COLUMNS from './columns'
-import ShipInfoCells from './ship-info-cells'
+import { TitleCell } from './title-cell'
 
 const { config } = window
 
@@ -27,53 +28,15 @@ const WIDTHS = [40].concat(map(COLUMNS, 'width'))
 
 const ROW_HEIGHT = 35
 
-interface ITitleCellProps {
-  style: React.CSSProperties
-  title: string
-  sortable: boolean
-  handleClickTitle?: () => void
-  centerAlign: boolean
-  sorting?: boolean
-  up?: boolean
-  down?: boolean
-  className?: string
-}
+const GridWrapper = styled.div`
+  flex: 1;
+  margin: 0;
+  padding: 0;
+`
 
-const noop = (): void => {
-  /* do nothing */
-}
-
-const TitleCell = ({
-  style,
-  title,
-  sortable,
-  centerAlign,
-  sorting,
-  up,
-  down,
-  handleClickTitle,
-  className,
-}: ITitleCellProps) => {
-  const { t } = useTranslation(['poi-plugin-ship-info'])
-
-  return (
-    <div
-      role="button"
-      tabIndex={0}
-      style={style}
-      onClick={sortable ? handleClickTitle : noop}
-      className={cls(className, {
-        center: centerAlign,
-        clickable: sortable,
-        down,
-        sorting,
-        up,
-      })}
-    >
-      {t(title)}
-    </div>
-  )
-}
+const Spacer = styled.div`
+  height: 35px;
+`
 
 interface IShipInfoTableAreaBaseProps extends DispatchProp {
   rows: IShip[]
@@ -190,22 +153,19 @@ class ShipInfoTableAreaBase extends Component<
   }) => {
     const { rows } = this.props
 
-    const highlight =
+    const isHighlighteds =
       (columnIndex === this.state.activeColumn ||
         rowIndex === this.state.activeRow) &&
       !(columnIndex === 0 && rowIndex !== this.state.activeRow) &&
       !(rowIndex === 0 && columnIndex !== this.state.activeColumn)
     const props = {
-      className: cls({
-        center: CENTER_ALIGNS[columnIndex - 1],
-        'even-dark': rowIndex % 2 === 1,
-        'even-light': rowIndex % 2 === 1,
-        highlight,
-        'ship-info-cell': true,
-      }),
+      centerAlign: CENTER_ALIGNS[columnIndex - 1],
+      isEven: rowIndex % 2 === 1,
+      isHighlighteds,
       key,
       onClick: this.onClickFactory({ columnIndex, rowIndex }),
       onContextMenu: this.onContextMenu,
+      style,
     }
     let content
     if (rowIndex === 0) {
@@ -215,16 +175,12 @@ class ShipInfoTableAreaBase extends Component<
         ...props,
       })
     } else if (columnIndex === 0) {
-      content = (
-        <div style={{ ...style, paddingLeft: '10px' }} key={key} {...props}>
-          {rowIndex}
-        </div>
-      )
+      content = <div {...props}>{rowIndex}</div>
     } else {
       const index = columnIndex - 1
       const ship = rows[rowIndex - 1]
       const Cell = ShipInfoCells[TYPES[index] as keyof typeof ShipInfoCells]
-      content = <Cell ship={ship} style={style} {...props} />
+      content = <Cell ship={ship} {...props} />
     }
 
     return content
@@ -249,7 +205,7 @@ class ShipInfoTableAreaBase extends Component<
         title={TITLES[index]}
         sortable={SORTABLES[index]}
         centerAlign={CENTER_ALIGNS[index]}
-        // sorting={sortName === TYPES[index]}
+        sorting={false}
         // up={sortName === TYPES[index] && Boolean(sortOrder)}
         // down={sortName === TYPES[index] && Boolean(!sortOrder)}
         // handleClickTitle={this.handleClickTitle(TYPES[index])}
@@ -276,41 +232,36 @@ class ShipInfoTableAreaBase extends Component<
     const { activeRow, activeColumn } = this.state
 
     return (
-      <div id="ship-info-show">
-        <div
-          style={{ flex: 1, margin: 0, padding: 0 }}
-          className="table-container"
-          ref={this.tableArea}
-        >
-          <AutoSizer onResize={this.handleResize}>
-            {({ height, width }) => (
-              <MultiGrid
-                rows={rows}
-                ref={this.grid}
-                activeRow={activeRow}
-                activeColumn={activeColumn}
-                columnCount={WIDTHS.length}
-                columnWidth={this.getColumnWidth}
-                estimatedRowSize={100}
-                fixedColumnCount={0}
-                fixedRowCount={1}
-                // handleContentRendered={this.handleContentRendered}
-                height={height}
-                overscanColumnCount={10}
-                overscanRowCount={5}
-                cellRenderer={this.cellRenderer}
-                rowCount={rows.length + 1}
-                rowHeight={ROW_HEIGHT}
-                scrollToAlignment="start"
-                width={width} // 16: left and right padding (8 + 8)
-                scrollToColumn={0}
-                scrollToRow={0}
-                // onScroll={this.handleScroll}
-              />
-            )}
-          </AutoSizer>
-        </div>
-      </div>
+      <GridWrapper>
+        {process.platform === 'darwin' && <Spacer />}
+        <AutoSizer onResize={this.handleResize}>
+          {({ height, width }) => (
+            <MultiGrid
+              rows={rows}
+              ref={this.grid}
+              activeRow={activeRow}
+              activeColumn={activeColumn}
+              columnCount={WIDTHS.length}
+              columnWidth={this.getColumnWidth}
+              estimatedRowSize={100}
+              fixedColumnCount={0}
+              fixedRowCount={1}
+              // handleContentRendered={this.handleContentRendered}
+              height={height}
+              overscanColumnCount={10}
+              overscanRowCount={5}
+              cellRenderer={this.cellRenderer}
+              rowCount={rows.length + 1}
+              rowHeight={ROW_HEIGHT}
+              scrollToAlignment="start"
+              width={width} // 16: left and right padding (8 + 8)
+              scrollToColumn={0}
+              scrollToRow={0}
+              // onScroll={this.handleScroll}
+            />
+          )}
+        </AutoSizer>
+      </GridWrapper>
     )
   }
 }

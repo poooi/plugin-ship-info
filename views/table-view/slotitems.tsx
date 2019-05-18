@@ -1,8 +1,10 @@
 import { filter, get, map } from 'lodash'
 import Path from 'path'
+import { rgba } from 'polished'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { connect } from 'react-redux'
+import styled from 'styled-components'
 import { SlotitemIcon } from 'views/components/etc/icon'
 import { Tooltip } from 'views/components/etc/overlay'
 
@@ -13,6 +15,30 @@ import { equipDataSelectorFactory } from 'views/utils/selectors'
 const { ROOT } = window
 
 type Item = APIMstSlotitem & APISlotItem
+
+const AlvImage = styled.img`
+  height: 14px;
+  margin-bottom: 2px;
+  margin-left: 1ex;
+`
+
+const SlotItemContainer = styled.div`
+  position: relative;
+  width: 30px;
+  height: 30px;
+`
+
+const ExtraIndicator = styled.div`
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  line-height: 1em;
+  width: 1em;
+  height: 1em;
+  text-align: center;
+  border-radius: 100%;
+  background: ${props => rgba(props.theme.GREEN1, 0.4)};
+`
 
 const Slotitem = ({ item, isEx = false }: { item: Item; isEx?: boolean }) => {
   const { t } = useTranslation(['resources'])
@@ -29,9 +55,8 @@ const Slotitem = ({ item, isEx = false }: { item: Item; isEx?: boolean }) => {
               ''
             )}
             {item.api_alv && item.api_alv <= 7 && item.api_alv >= 1 && (
-              <img
+              <AlvImage
                 alt="alv"
-                className="alv-img"
                 src={Path.join(
                   ROOT,
                   'assets',
@@ -44,15 +69,10 @@ const Slotitem = ({ item, isEx = false }: { item: Item; isEx?: boolean }) => {
           </>
         }
       >
-        <span>
-          <span className="slotitem-background">&#x2B22;</span>
-          <SlotitemIcon
-            alt={t(item.api_name || '', { keySeparator: 'chiba' })}
-            slotitemId={get(item, 'api_type.3', -1)}
-            style={{ zIndex: 1 }}
-          />
-          {isEx && <span>+</span>}
-        </span>
+        <SlotItemContainer>
+          <SlotitemIcon slotitemId={get(item, 'api_type.3', -1)} />
+          {isEx && <ExtraIndicator>+</ExtraIndicator>}
+        </SlotItemContainer>
       </Tooltip>
     </div>
   )
@@ -77,11 +97,11 @@ const Slotitems = connect(
     }
   },
 )(({ items, exitem }: { items: Item[]; exitem: Item }) => (
-  <div className="slotitem-container">
+  <>
     {items &&
       items.map(item => <Slotitem item={item} key={item.api_id || 0} />)}
     {exitem && <Slotitem item={exitem} isEx={true} />}
-  </div>
+  </>
 ))
 
 export default Slotitems

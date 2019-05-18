@@ -21,6 +21,7 @@
         "fs-extra",
         "i18next",
         "lodash",
+        "polished",
         "prop-types",
         "react",
         "react-i18next",
