@@ -14,7 +14,7 @@ interface ISallyAreaProps extends DispatchProp {
   info_id: number
 }
 
-const SallyArea = connect(
+export const SallyArea = connect(
   (state, props: Omit<ISallyAreaProps, 'color' | 'mapname' | 'dispatch'>) => {
     const { area } = props
     const { mapname, color } = sallyAreaSelectorFactory(area)(state)
@@ -40,5 +40,3 @@ const SallyArea = connect(
     </Tooltip>
   )
 })
-
-export default SallyArea

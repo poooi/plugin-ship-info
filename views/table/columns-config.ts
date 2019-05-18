@@ -1,4 +1,4 @@
-export default [
+export const ColumnsConfig = [
   {
     certer: false,
     name: 'id',

@@ -78,7 +78,7 @@ const Slotitem = ({ item, isEx = false }: { item: Item; isEx?: boolean }) => {
   )
 }
 
-const Slotitems = connect(
+export const Slotitems = connect(
   (state, { slot, exslot }: { slot: number[]; exslot: number }) => {
     const items = map(filter(slot, itemId => itemId > 0), itemId => {
       const [item = {}, $item = {}] =
@@ -103,5 +103,3 @@ const Slotitems = connect(
     {exitem && <Slotitem item={exitem} isEx={true} />}
   </>
 ))
-
-export default Slotitems

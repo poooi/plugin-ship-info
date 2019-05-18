@@ -12,8 +12,8 @@ import { resolveTime } from 'views/utils/tools'
 import { IShip } from 'views/types'
 import { sokuInterpretation } from '../constants'
 import { fileUrl, getTimePerHP, shipTypes } from '../utils'
-import SallyArea from './sally-area'
-import Slotitems from './slotitems'
+import { SallyArea } from './sally-area'
+import { Slotitems } from './slotitems'
 
 const Cell = styled.div`
   white-space: nowrap;
@@ -220,7 +220,7 @@ const Lock = ({ ship, ...props }: ICellProps) => (
   </Cell>
 )
 
-export default {
+export const Cells = {
   cond: Cond,
   equipment: Equipment,
   hp: Hp,

@@ -13,18 +13,18 @@ import { extensionSelectorFactory } from 'views/utils/selectors'
 import { IShip } from 'views/types'
 import { shipInfoConfigSelector, shipRowsSelector } from '../selectors'
 import { shipInfoShape } from '../utils'
-import ShipInfoCells from './cells'
-import COLUMNS from './columns'
+import { Cells as ShipInfoCells } from './cells'
+import { ColumnsConfig } from './columns-config'
 import { TitleCell } from './title-cell'
 
 const { config } = window
 
-const TYPES = map(COLUMNS, 'name')
-const TITLES = map(COLUMNS, 'title')
-const SORTABLES = map(COLUMNS, 'sortable')
-const CENTER_ALIGNS: boolean[] = map(COLUMNS, 'center')
+const TYPES = map(ColumnsConfig, 'name')
+const TITLES = map(ColumnsConfig, 'title')
+const SORTABLES = map(ColumnsConfig, 'sortable')
+const CENTER_ALIGNS: boolean[] = map(ColumnsConfig, 'center')
 // width will always unshift 1 extra element for row index
-const WIDTHS = [40].concat(map(COLUMNS, 'width'))
+const WIDTHS = [40].concat(map(ColumnsConfig, 'width'))
 
 const ROW_HEIGHT = 35
 
@@ -270,7 +270,7 @@ const ShipInfoTableArea = connect(state => ({
   rows: shipRowsSelector(state),
 }))(ShipInfoTableAreaBase)
 
-export default (props: object) => (
+export const TableView = (props: object) => (
   <WindowEnv.Consumer>
     {({ window }) => <ShipInfoTableArea window={window} {...props} />}
   </WindowEnv.Consumer>
