@@ -4,7 +4,7 @@ import { StyleSheetManager } from 'styled-components'
 import { WindowEnv } from 'views/components/etc/window-env'
 
 import SettingsView from './settings-view'
-import TableView from './table-view'
+import TableView from './table'
 
 export { reducer } from './redux'
 export const reactClass: StatelessComponent<null> = (): ReactElement => (
