@@ -119,7 +119,7 @@ const Menu = compose<ComponentType<{}>>(
       })
     }
 
-    public handleSelect = (id: number) => async () => {
+    public handleSelect = (id: number) => () => {
       this.props.onSelect(id)
     }
 
