@@ -15,6 +15,7 @@ import _, {
 import fp from 'lodash/fp'
 import { createSelector } from 'reselect'
 import i18next from 'views/env-parts/i18next'
+import { toRomaji } from 'wanakana'
 
 import { IShip } from './types'
 
@@ -431,10 +432,27 @@ export const sallyAreaSelectorFactory = memoize(area =>
   ),
 )
 
+export interface IShipInfoMenuData {
+  area?: number | undefined
+  avatarOffset?: number
+  id: number
+  lv: number
+  name: string
+  shipId: number
+  superTypeIndex: number
+  typeId: number
+  yomi: string
+  romaji: string
+  exp: number
+}
+
 export const shipItemSelectorFactory = memoize(shipId =>
   createSelector(
     [shipDataSelectorFactory(shipId), fcdSelector],
-    ([ship, $ship] = [] as any, { shipavatar } = {} as any) =>
+    (
+      [ship, $ship] = [] as any,
+      { shipavatar } = {} as any,
+    ): IShipInfoMenuData | undefined =>
       !!ship && !!$ship
         ? {
             area: ship.api_sally_area,
@@ -443,12 +461,15 @@ export const shipItemSelectorFactory = memoize(shipId =>
               ['marginMagics', $ship.api_id, 'normal'],
               0.555,
             ),
+            exp: ship.api_exp[0],
             id: ship.api_id,
             lv: ship.api_lv,
             name: $ship.api_name,
+            romaji: toRomaji($ship.api_yomi),
             shipId: $ship.api_id,
             superTypeIndex: reverseSuperTypeMap[$ship.api_stype] || 0,
             typeId: $ship.api_stype,
+            yomi: $ship.api_yomi,
           }
         : undefined,
   ),
@@ -536,11 +557,7 @@ export const uniqueShipIdsSelector = createSelector(
   [ourShipsSelector, beforeShipMapSelector],
   ($ships, beforeShipMap) =>
     _($ships)
-      .filter((({ api_id }: APIMstShip) =>
-        !(api_id in beforeShipMap)) as ObjectIterator<
-        Partial<IDictionary<APIMstShip>>,
-        boolean
-      >)
+      .filter(({ api_id }: APIMstShip) => !(api_id in beforeShipMap))
       .map(({ api_id }: APIMstShip) => api_id)
       .value(),
 )

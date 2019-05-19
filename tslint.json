@@ -19,6 +19,7 @@
         "classnames",
         "electron",
         "fs-extra",
+        "fuse.js",
         "i18next",
         "lodash",
         "polished",
@@ -32,7 +33,8 @@
         "redux-observers",
         "reselect",
         "styled-components",
-        "views"
+        "views",
+        "wanakana"
       ]
     ],
     "no-submodule-imports": false,

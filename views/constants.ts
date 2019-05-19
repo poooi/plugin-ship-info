@@ -5,7 +5,12 @@
 // "工作艦", "潜水母艦", "練習巡洋艦", "補給艦"]
 // attention, shipSuperTypeMap uses api_id
 
-export const shipSuperTypeMap = [
+export interface IShipSuperType {
+  id: number[]
+  name: string
+}
+
+export const shipSuperTypeMap: IShipSuperType[] = [
   {
     id: [8, 9, 10, 12],
     name: 'BB',
