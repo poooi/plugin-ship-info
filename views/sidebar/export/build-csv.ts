@@ -1,10 +1,14 @@
 import { get, map } from 'lodash'
 import i18next from 'views/env-parts/i18next'
+import { IShip } from '../../types'
 
-const { _slotitems, $slotitems, $ships } = window
+let _slotitems: any
+let $slotitems: any
+let $ships: any
+
 const __ = i18next.getFixedT(null, ['poi-plugin-ship-info', 'resources'])
 
-const getItemName = index => ship => {
+const getItemName = (index: number) => (ship: any) => {
   const itemId = get(
     _slotitems,
     `${get(ship, `slot.${index}`)}.api_slotitem_id`,
@@ -12,31 +16,31 @@ const getItemName = index => ship => {
   return get($slotitems, `${itemId}.api_name`, 'NA')
 }
 
-const getExItemName = ship => {
+const getExItemName = (ship: any) => {
   const itemId = get(_slotitems, `${get(ship, 'exslot')}.api_slotitem_id`)
   return get($slotitems, `${itemId}.api_name`, 'NA')
 }
 
-const buildConstFields = key => [
+const buildConstFields = (key: string) => [
   {
     key,
-    value: ship => get(ship, `${key}.0`, 'NA'),
+    value: (ship: any) => get(ship, `${key}.0`, 'NA'),
   },
 ]
 
-const buildSlotItemFields = index => [
+const buildSlotItemFields = (index: number) => [
   {
     key: `slot${index}`,
     value: getItemName(index),
   },
   {
     key: `slot${index}Alv`,
-    value: ship =>
+    value: (ship: any) =>
       get(_slotitems, `${get(ship, `slot.${index}`)}.api_alv`, 'NA'),
   },
   {
     key: `slot${index}Level`,
-    value: ship =>
+    value: (ship: any) =>
       get(_slotitems, `${get(ship, `slot.${index}`)}.api_level`, 'NA'),
   },
 ]
@@ -44,10 +48,15 @@ const buildSlotItemFields = index => [
 const buildKyoukaFields = () =>
   [0, 1, 2, 3, 4].map(index => ({
     key: `kyouka${index}`,
-    value: ship => get(ship, `kyouka.${index}`, 'NA'),
+    value: (ship: any) => get(ship, `kyouka.${index}`, 'NA'),
   }))
 
-export const fields = [
+interface IFieldWithKey {
+  key: string
+  value: (ship: any) => string
+}
+
+export const fields: Array<IFieldWithKey | string> = [
   'id',
   'name',
   'yomi',
@@ -109,12 +118,24 @@ export const fields = [
   },
 ]
 
-export const parseCsv = (rows, sep = ',', end = '\n') => {
+export const buildCsv = (rows: IShip[], sep = ',', end = '\n') => {
+  const state = window.getStore()
+
+  _slotitems = state.info.equips
+  $slotitems = state.const.$equips
+  $ships = state.const.$ships
+
   const entries = map(rows, row =>
-    map(fields, field => (field.key ? field.value(row) : get(row, field))),
+    map(fields, field =>
+      (field as IFieldWithKey).key
+        ? (field as IFieldWithKey).value(row)
+        : get(row, field as string),
+    ),
   )
 
-  const titles = map(fields, field => __(field.key || field))
+  const titles = map(fields, field =>
+    __((field as IFieldWithKey).key || (field as string)),
+  )
 
   entries.unshift(titles)
   return map(entries, entry => entry.join(sep)).join(end)

@@ -1,6 +1,6 @@
 export as namespace ReactI18next
 
-import i18next from 'i18next';
+import i18next, { TranslationFunction } from 'i18next';
 import * as React from 'react';
 
 type Omit<T, K> = Pick<T, Exclude<keyof T, K>>;
@@ -74,6 +74,7 @@ export function withSSR(): (
 export interface WithTranslation extends i18next.WithT {
   i18n: i18next.i18n;
   tReady: boolean;
+  t: TranslationFunction
 }
 export function withTranslation(
   ns?: Namespace,

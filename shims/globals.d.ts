@@ -15,4 +15,5 @@ interface Window {
   APPDATA_PATH: string
   config: IConfig
   language: string
+  getStore: (path?: string) => any
 }

@@ -2,6 +2,7 @@ import { rgba } from 'polished'
 import React from 'react'
 import styled from 'styled-components'
 
+import { Export } from './export'
 import { Filter } from './filter'
 
 const Wrapper = styled.div`
@@ -16,10 +17,12 @@ const Wrapper = styled.div`
   flex-direction: column;
   justify-content: flex-end;
   align-items: center;
+  padding-bottom: 20px;
 `
 
 export const Sidebar = () => (
   <Wrapper>
     <Filter />
+    <Export />
   </Wrapper>
 )

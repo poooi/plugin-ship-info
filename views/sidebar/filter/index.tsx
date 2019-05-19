@@ -19,6 +19,7 @@ import {
 import { RadioCheck } from './radio'
 import { SallyAreaCheck } from './sally-area'
 
+import { Container } from '../components/layout'
 import { ShipTypeCheck } from './ship-type'
 
 const Content = styled.div`
@@ -98,10 +99,6 @@ const ConfigView = () => (
     </Content>
   </>
 )
-
-const Container = styled.div`
-  padding: 16px;
-`
 
 export const Filter = () => (
   <Popover hasBackdrop={true}>
