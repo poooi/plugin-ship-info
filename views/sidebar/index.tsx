@@ -4,6 +4,7 @@ import styled from 'styled-components'
 
 import { Export } from './export'
 import { Filter } from './filter'
+import { Planner } from './planner'
 
 const Wrapper = styled.div`
   width: 50px;
@@ -22,6 +23,7 @@ const Wrapper = styled.div`
 
 export const Sidebar = () => (
   <Wrapper>
+    <Planner />
     <Filter />
     <Export />
   </Wrapper>

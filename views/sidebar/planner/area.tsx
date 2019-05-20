@@ -1,10 +1,11 @@
 import { Card, Tag } from '@blueprintjs/core'
 import { get, groupBy, keyBy } from 'lodash'
 import fp from 'lodash/fp'
-import React, { Component } from 'react'
+import React, { Component, ComponentType } from 'react'
 import FA from 'react-fontawesome'
 import { connect, DispatchProp } from 'react-redux'
 
+import { any } from 'bluebird'
 import { onAddShip } from '../../redux'
 import {
   deckPlannerAreaSelectorFactory,
@@ -15,14 +16,19 @@ import { AddShip } from './add-ship'
 import { ShipChip } from './ship-chip'
 
 interface IProps extends DispatchProp {
-  ships: Array<IShipInfoMenuData | undefined>
+  ships: IShipInfoMenuData[]
   shipIds: number[]
   index: number
   area: IArea
   others: IArea[]
 }
 
-export const Area = connect((state, props: IProps) => ({
+export const Area = connect<
+  any,
+  any,
+  any,
+  Pick<IProps, 'index' | 'area' | 'others'>
+>((state, props: IProps) => ({
   shipIds: deckPlannerAreaSelectorFactory(props.index)(state),
   ships: shipMenuDataSelector(state),
 }))(

@@ -59,7 +59,7 @@ declare module 'views/utils/selectors' {
 }
 
 declare module 'views/components/etc/overlay' {
-  export { Tooltip, Popover } from '@blueprintjs/core'
+  export { Tooltip, Popover, Dialog } from '@blueprintjs/core'
 }
 
 declare module 'views/components/etc/avatar' {

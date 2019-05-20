@@ -202,8 +202,8 @@ export const onDPInit = ({
   color,
   mapname,
 }: {
-  color: string
-  mapname: string
+  color: string[]
+  mapname: string[]
 }) => ({
   color,
   mapname,
