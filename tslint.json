@@ -31,6 +31,7 @@
         "react-virtualized",
         "redux",
         "redux-observers",
+        "redux-thunk",
         "reselect",
         "styled-components",
         "views",

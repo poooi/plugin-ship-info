@@ -9,3 +9,7 @@ declare module 'react-i18next' {
 declare module 'fuse.js' {
   export = Fuse
 }
+
+declare module 'redux-thunk' {
+  export = Thunk
+}

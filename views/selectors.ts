@@ -480,7 +480,7 @@ export const shipMenuDataSelector = createSelector(
   (_ships, state) =>
     fp.flow(
       fp.map((ship: APIShip) => ship.api_id),
-      fp.map(shipId => shipItemSelectorFactory(shipId)(state)),
+      fp.map(shipId => shipItemSelectorFactory(shipId)(state)!),
     )(_ships as any),
 )
 
@@ -503,9 +503,11 @@ export const deckPlannerAllShipIdsSelector = createSelector(
 
 export const deckPlannerShipMapSelector = createSelector(
   [deckPlannerCurrentSelector],
-  (current: IDictionary<number[]>) =>
+  (current: number[][]) =>
     fromPairs(
-      flatMap(current, (ships, areaIndex) => ships.map(id => [id, areaIndex])),
+      flatMap(current, (ships, areaIndex: number) =>
+        ships.map(id => [id, areaIndex]),
+      ),
     ),
 )
 

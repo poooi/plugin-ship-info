@@ -75,3 +75,7 @@ declare module 'views/components/etc/icon' {
   import { ComponentType } from 'react'
   export const SlotitemIcon: ComponentType<any>
 }
+
+declare module 'views/utils/ship-img' {
+  export const getShipImgPath: (id: number, type: string, damagaed: boolean, ip?: string, version?: number) => string
+}
