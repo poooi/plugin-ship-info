@@ -160,7 +160,9 @@ const Menu = compose<ComponentType<{}>>(
                 panel={
                   <ShipList>
                     {_(ships)
-                      .filter(ship => type === -1 || type === ship.typeId)
+                      .filter(
+                        ship => type === -1 || type === ship.superTypeIndex,
+                      )
                       .filter(
                         ship => !query || (filtered || []).includes(ship.id),
                       )
@@ -182,7 +184,7 @@ const Menu = compose<ComponentType<{}>>(
                           <ShipName>
                             {t(ship.name || '', { ns: 'resources' })}
                           </ShipName>
-                          {ship.area && ship.area > 0 && (
+                          {ship.area! > 0 && (
                             <Tag intent={Intent.PRIMARY}>{ship.area}</Tag>
                           )}
                         </ShipItem>

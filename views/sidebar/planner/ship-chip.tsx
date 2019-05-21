@@ -45,6 +45,7 @@ export const ShipChip = compose<
       | 'lv'
       | 'typeId'
       | 'fleetId'
+      | 'id'
     >
   >
 >(
