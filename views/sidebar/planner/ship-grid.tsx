@@ -2,6 +2,7 @@ import fp from 'lodash/fp'
 import React, { Dispatch, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { connect, DispatchProp } from 'react-redux'
+import styled from 'styled-components'
 
 import { Action } from 'redux'
 import { ThunkAction, ThunkDispatch } from 'redux-thunk'
@@ -56,6 +57,12 @@ const getDPAction = (
   )
 }
 
+const Grid = styled.div`
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+`
+
 interface IProps extends DispatchProp {
   fill: number
   ships: IShipInfoMenuData[]
@@ -86,7 +93,7 @@ export const ShipGrid = connect(state => ({
       {shipSuperTypeMap.map(stype => (
         <div key={stype.name}>
           <h2>{t(stype.name)}</h2>
-          <div className="ship-grid">
+          <Grid>
             {fp.flow(
               fp.filter((ship: IShipInfoMenuData) =>
                 stype.id.includes(ship.typeId),
@@ -105,7 +112,7 @@ export const ShipGrid = connect(state => ({
                 />
               )),
             )(ships)}
-          </div>
+          </Grid>
         </div>
       ))}
     </div>

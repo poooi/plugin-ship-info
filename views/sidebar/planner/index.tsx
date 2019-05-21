@@ -64,6 +64,7 @@ interface IPlannerContentProps extends DispatchProp {
   current: number[][]
   vibrant: number
   displayFleetName: boolean
+  activeTab: string
 }
 
 const PlannerContent = connect((state: { config: any }) => {
@@ -90,7 +91,7 @@ const PlannerContent = connect((state: { config: any }) => {
     current,
     displayFleetName,
     dispatch,
-    vibrant,
+    activeTab,
   }: IPlannerContentProps) => {
     useEffect(() => {
       if (current.length !== mapname.length) {
@@ -131,56 +132,45 @@ const PlannerContent = connect((state: { config: any }) => {
 
     return (
       <div>
-        <Tabs id="deck-planner-content">
-          <Tab
-            id="area"
-            title={t('Area View')}
-            panel={
-              <div>
-                <div>
-                  {areas.map(area => (
-                    <Area
-                      key={area.color}
-                      area={area}
-                      index={area.areaIndex}
-                      others={areas.filter(
-                        ({ areaIndex }) => areaIndex !== area.areaIndex,
-                      )}
-                    />
-                  ))}
-                </div>
-              </div>
-            }
-          />
-          <Tab
-            id="grid"
-            title={t('Ship Grid')}
-            panel={
-              <div>
-                <Checkbox>
-                  <CheckboxLabel>{t('Palette')}</CheckboxLabel>
-                  <CheckboxOption
-                    key={-1}
-                    checked={fill === -1}
-                    onClick={() => setFill(-1)}
-                  >
-                    {t('None')}
-                  </CheckboxOption>
-                  {areas.map(area => (
-                    <CheckboxOption
-                      key={area.color}
-                      onClick={() => setFill(area.areaIndex)}
-                      checked={fill === area.areaIndex}
-                    >
-                      {area.name}
-                    </CheckboxOption>
-                  ))}
-                </Checkbox>
-                <ShipGrid fill={fill} />
-              </div>
-            }
-          />
-        </Tabs>
+        {activeTab === 'area' ? (
+          <div>
+            <div>
+              {areas.map(area => (
+                <Area
+                  key={area.color}
+                  area={area}
+                  index={area.areaIndex}
+                  others={areas.filter(
+                    ({ areaIndex }) => areaIndex !== area.areaIndex,
+                  )}
+                />
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div>
+            <Checkbox>
+              <CheckboxLabel>{t('Palette')}</CheckboxLabel>
+              <CheckboxOption
+                key={-1}
+                checked={fill === -1}
+                onClick={() => setFill(-1)}
+              >
+                {t('None')}
+              </CheckboxOption>
+              {areas.map(area => (
+                <CheckboxOption
+                  key={area.color}
+                  onClick={() => setFill(area.areaIndex)}
+                  checked={fill === area.areaIndex}
+                >
+                  {area.name}
+                </CheckboxOption>
+              ))}
+            </Checkbox>
+            <ShipGrid fill={fill} />
+          </div>
+        )}
       </div>
     )
   },
@@ -189,12 +179,25 @@ const PlannerContent = connect((state: { config: any }) => {
 const PlannerDialog = styled(Dialog)`
   width: 80vw;
   height: 90vh;
-  overflow: scroll;
+  ${`.${Classes.DIALOG_BODY}`} {
+    overflow: scroll;
+  }
+`
+
+const Title = styled.div`
+  display: flex;
+  padding-right: 2em;
+`
+
+const Heading = styled.div`
+  flex-grow: 1;
 `
 
 export const Planner = () => {
   const [isOpen, setIsOpen] = useState(false)
   const { t } = useTranslation('poi-plugin-ship-info')
+
+  const [activeTab, setActiveTab] = useState('area')
 
   return (
     <>
@@ -202,14 +205,26 @@ export const Planner = () => {
         <FontAwesome name="tags" />
       </Button>
       <PlannerDialog
-        title={t('Deck Planner')}
         isOpen={isOpen}
         autoFocus={true}
         canOutsideClickClose={true}
         onClose={() => setIsOpen(false)}
+        title={
+          <Title>
+            <Heading>{t('Deck Planner')}</Heading>
+            <Tabs
+              id="deck-planner-content"
+              selectedTabId={activeTab}
+              onChange={(tab: string) => setActiveTab(tab)}
+            >
+              <Tab id="area" title={t('Area View')} />
+              <Tab id="grid" title={t('Ship Grid')} />
+            </Tabs>
+          </Title>
+        }
       >
         <div className={Classes.DIALOG_BODY}>
-          <PlannerContent />
+          <PlannerContent activeTab={activeTab} />
         </div>
       </PlannerDialog>
     </>

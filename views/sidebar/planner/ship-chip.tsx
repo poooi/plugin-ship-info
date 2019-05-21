@@ -1,4 +1,4 @@
-import { Menu, MenuItem, Tag } from '@blueprintjs/core'
+import { Menu, MenuItem, Position, Tag } from '@blueprintjs/core'
 import { get } from 'lodash'
 import path from 'path'
 import React, { ComponentType, PureComponent } from 'react'
@@ -6,6 +6,7 @@ import FA from 'react-fontawesome'
 import { withTranslation, WithTranslation } from 'react-i18next'
 import { connect, DispatchProp } from 'react-redux'
 import { compose } from 'redux'
+import styled from 'styled-components'
 import { Popover } from 'views/components/etc/overlay'
 
 import { onDisplaceShip, onRemoveShip } from '../../redux'
@@ -14,6 +15,10 @@ import {
   shipItemSelectorFactory,
 } from '../../selectors'
 import { fileUrl, shipTypes } from '../../utils'
+
+const Chip = styled(Tag)`
+  margin: 0.5ex 1ex;
+`
 
 interface IProps extends DispatchProp, WithTranslation {
   shipId: number
@@ -88,59 +93,70 @@ export const ShipChip = compose<
       const { typeId, name, lv, area, color, others, fleetId, t } = this.props
 
       return (
-        <Popover
-          content={
-            <Menu>
-              {others.map(_area => (
-                <MenuItem
-                  key={_area.color}
-                  onClick={this.handleDisplace(_area.areaIndex)}
-                >
-                  {t('Move to ')}{' '}
-                  <Tag style={{ color: _area.color }}>
-                    <FA name="tag" />
-                    {_area.name}
-                  </Tag>
-                </MenuItem>
-              ))}
-            </Menu>
-          }
+        <Chip
+          minimal={true}
+          interactive={true}
+          onRemove={this.handleRemove}
+          onContextMenu={!(area > 0) ? this.handleRemove : undefined}
         >
-          <Tag
-            interactive={true}
-            onRemove={this.handleRemove}
-            onContextMenu={!(area > 0) ? this.handleRemove : undefined}
+          <Popover
+            position={Position.TOP}
+            hasBackdrop={true}
+            content={
+              <Menu>
+                {others.map(_area => (
+                  <MenuItem
+                    key={_area.color}
+                    onClick={this.handleDisplace(_area.areaIndex)}
+                    text={
+                      <>
+                        {t('Move to ')}{' '}
+                        <Tag
+                          minimal={true}
+                          style={{
+                            color: _area.color,
+                          }}
+                        >
+                          <FA name="tag" />
+                          {_area.name}
+                        </Tag>
+                      </>
+                    }
+                  />
+                ))}
+              </Menu>
+            }
           >
             <span>
               {shipTypes[typeId as keyof typeof shipTypes]}
               {' | '}
-              {t(name)}
-              <span>Lv.{lv}</span>
+              {t(name)} <span>Lv.{lv}</span>
             </span>
-            <span>
-              {area > 0 && (
-                <FA
-                  name="tag"
-                  style={{ marginLeft: '1ex', color: color[area - 1] }}
-                />
-              )}
-            </span>
-            <span>
-              {fleetId > -1 && (
-                <img
-                  style={{ height: '10px' }}
-                  alt={`fleet: ${fleetId + 1}`}
-                  src={fileUrl(
-                    path.resolve(
-                      __dirname,
-                      `../../../assets/svg/fleet-indicator-${fleetId + 1}.svg`,
-                    ),
-                  )}
-                />
-              )}
-            </span>
-          </Tag>
-        </Popover>
+          </Popover>
+          <span>
+            {area > 0 && (
+              <FA
+                name="tag"
+                style={{ marginLeft: '1ex', color: color[area - 1] }}
+              />
+            )}
+          </span>
+
+          <span>
+            {fleetId > -1 && (
+              <img
+                style={{ height: '10px' }}
+                alt={`fleet: ${fleetId + 1}`}
+                src={fileUrl(
+                  path.resolve(
+                    __dirname,
+                    `../../../assets/svg/fleet-indicator-${fleetId + 1}.svg`,
+                  ),
+                )}
+              />
+            )}
+          </span>
+        </Chip>
       )
     }
   },

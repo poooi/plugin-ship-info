@@ -4,8 +4,8 @@ import fp from 'lodash/fp'
 import React, { Component, ComponentType } from 'react'
 import FA from 'react-fontawesome'
 import { connect, DispatchProp } from 'react-redux'
+import styled from 'styled-components'
 
-import { any } from 'bluebird'
 import { onAddShip } from '../../redux'
 import {
   deckPlannerAreaSelectorFactory,
@@ -14,6 +14,16 @@ import {
 } from '../../selectors'
 import { AddShip } from './add-ship'
 import { ShipChip } from './ship-chip'
+
+const Header = styled.div`
+  display: flex;
+  align-items: center;
+`
+
+const Lane = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+`
 
 interface IProps extends DispatchProp {
   ships: IShipInfoMenuData[]
@@ -51,7 +61,7 @@ export const Area = connect<
       )
       return (
         <Card interactive={true}>
-          <div>
+          <Header>
             <h5>
               <Tag style={{ color: area.color }}>
                 <FA name="tag" />
@@ -61,30 +71,27 @@ export const Area = connect<
             <div>
               <AddShip area={index} onSelect={this.handleAddShip} />
             </div>
-          </div>
+          </Header>
+
           <div>
-            <div>
-              <div>
-                {Object.keys(groupShipIds).map(idx => (
-                  <div className="lane" key={idx}>
-                    {fp.flow(
-                      fp.sortBy([
-                        (id: number) => -get(keyShips[id], 'lv', 0),
-                        id => -id,
-                      ]),
-                      fp.map((id: number) => (
-                        <ShipChip
-                          shipId={id}
-                          others={others}
-                          key={id}
-                          planArea={index}
-                        />
-                      )),
-                    )(groupShipIds[idx])}
-                  </div>
-                ))}
-              </div>
-            </div>
+            {Object.keys(groupShipIds).map(idx => (
+              <Lane key={idx}>
+                {fp.flow(
+                  fp.sortBy([
+                    (id: number) => -get(keyShips[id], 'lv', 0),
+                    id => -id,
+                  ]),
+                  fp.map((id: number) => (
+                    <ShipChip
+                      shipId={id}
+                      others={others}
+                      key={id}
+                      planArea={index}
+                    />
+                  )),
+                )(groupShipIds[idx])}
+              </Lane>
+            ))}
           </div>
         </Card>
       )

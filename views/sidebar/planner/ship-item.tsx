@@ -10,7 +10,9 @@ import { getShipImgPath } from 'views/utils/ship-img'
 import { deckPlannerShipMapSelector, IShipInfoMenuData } from '../../selectors'
 
 const ShipAvatar = styled.img.attrs<{ left: number }>(({ left }) => ({
-  left: `-${left}px`,
+  style: {
+    left: `-${left}px`,
+  },
 }))<{ left: number }>`
   height: 40px;
   position: absolute;
@@ -49,11 +51,13 @@ const ShipGridCell = styled.div.attrs({
   }
 
   ${ShipAvatar} {
-    z-index: -10;
+    z-index: 0;
+    transition: 0.3s;
   }
 
   ${Gradient} {
-    z-index: -5;
+    z-index: 0;
+    transition: 0.3s;
     background: ${props =>
       props.useAvatar
         ? `linear-gradient(90deg, rgba(0, 0, 0, 0), ${rgba(props.color, 0.75)})`
@@ -62,7 +66,7 @@ const ShipGridCell = styled.div.attrs({
 
   &:hover {
     ${Gradient} {
-      z-index: -5;
+      transition: 0.3s;
       background: ${props =>
         props.useAvatar
           ? `linear-gradient(
@@ -74,9 +78,16 @@ const ShipGridCell = styled.div.attrs({
   }
 
   &:hover ${ShipAvatar} {
-    z-index: -1;
+    z-index: 5;
+    transition: 0.3s;
   }
 }
+`
+
+const Text = styled.div`
+  z-index: 10;
+  position: absolute;
+  right: 0;
 `
 
 const ShipName = styled.div`
@@ -113,7 +124,7 @@ export const ShipItem = connect(state => ({
   ({ ship, planMap, color, onClick, onContextmenu, ip, useAvatar }: IProps) => {
     const { t } = useTranslation('resources')
 
-    const bgColor = color[ship.area! - 1] || color[planMap[ship.id]] || '#fff'
+    const bgColor = color[ship.area! - 1] || color[planMap[ship.id]] || '#000'
 
     return (
       <ShipGridCell
@@ -129,17 +140,19 @@ export const ShipItem = connect(state => ({
           />
         )}
         <Gradient />
-        <ShipLevel>Lv.{ship.lv}</ShipLevel>
-        <br />
-        <ShipName>
-          {t(ship.name)}
-          {ship.area! > 0 && (
-            <>
-              {' '}
-              <FA name="tag" />
-            </>
-          )}
-        </ShipName>
+        <Text>
+          <ShipLevel>Lv.{ship.lv}</ShipLevel>
+          <br />
+          <ShipName>
+            {t(ship.name)}
+            {ship.area! > 0 && (
+              <>
+                {' '}
+                <FA name="tag" />
+              </>
+            )}
+          </ShipName>
+        </Text>
       </ShipGridCell>
     )
   },
