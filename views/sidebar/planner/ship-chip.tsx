@@ -30,6 +30,7 @@ interface IProps extends DispatchProp, WithTranslation {
   others: IArea[]
   planArea: number
   fleetId: number
+  id: number
 }
 
 export const ShipChip = compose<
@@ -56,33 +57,33 @@ export const ShipChip = compose<
 )(
   class ShipChipBase extends PureComponent<IProps> {
     public handleDisplace = (areaIndex: number) => () => {
-      const { planArea, shipId } = this.props
+      const { planArea, id } = this.props
       this.props.dispatch(
         onDisplaceShip({
           fromAreaIndex: planArea,
-          shipId,
+          shipId: id,
           toAreaIndex: areaIndex,
         }),
       )
     }
 
     public handleRemove = () => {
-      const { shipId, planArea } = this.props
+      const { id, planArea } = this.props
       this.props.dispatch(
         onRemoveShip({
           areaIndex: planArea,
-          shipId,
+          shipId: id,
         }),
       )
     }
 
     public componentDidUpdate = () => {
-      const { area, planArea, shipId } = this.props
+      const { area, planArea, id } = this.props
       if (area > 0 && area - 1 !== planArea) {
         this.props.dispatch(
           onDisplaceShip({
             fromAreaIndex: planArea,
-            shipId,
+            shipId: id,
             toAreaIndex: area - 1,
           }),
         )
