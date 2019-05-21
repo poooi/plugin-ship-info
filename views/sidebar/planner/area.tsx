@@ -1,5 +1,5 @@
 import { Card, Tag } from '@blueprintjs/core'
-import { get, groupBy, keyBy } from 'lodash'
+import { get, groupBy, keyBy, keys } from 'lodash'
 import fp from 'lodash/fp'
 import React, { Component, ComponentType } from 'react'
 import FA from 'react-fontawesome'
@@ -14,6 +14,10 @@ import {
 } from '../../selectors'
 import { AddShip } from './add-ship'
 import { ShipChip } from './ship-chip'
+
+const Container = styled(Card)`
+  padding: 4px;
+`
 
 const Header = styled.div`
   display: flex;
@@ -60,12 +64,12 @@ export const Area = connect<
         id => ((keyShips[id] || {}) as IShipInfoMenuData).superTypeIndex,
       )
       return (
-        <Card interactive={true}>
+        <Container interactive={true}>
           <Header>
             <h5>
-              <Tag style={{ color: area.color }}>
+              <Tag style={{ color: area.color }} minimal={true}>
                 <FA name="tag" />
-              </Tag>
+              </Tag>{' '}
               {area.name}
             </h5>
             <div>
@@ -74,7 +78,7 @@ export const Area = connect<
           </Header>
 
           <div>
-            {Object.keys(groupShipIds).map(idx => (
+            {keys(groupShipIds).map(idx => (
               <Lane key={idx}>
                 {fp.flow(
                   fp.sortBy([
@@ -93,7 +97,7 @@ export const Area = connect<
               </Lane>
             ))}
           </div>
-        </Card>
+        </Container>
       )
     }
   },

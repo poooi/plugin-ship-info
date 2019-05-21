@@ -2,6 +2,7 @@
 
 import { Button, Classes, Tab, Tabs } from '@blueprintjs/core'
 import { each, findIndex, get } from 'lodash'
+import { rgba } from 'polished'
 import React, { Dispatch, useCallback, useEffect, useState } from 'react'
 import FontAwesome from 'react-fontawesome'
 import { useTranslation } from 'react-i18next'
@@ -57,6 +58,19 @@ const reorderShips = (dispatch: Dispatch<any>, getState: () => any) => {
     }
   })
 }
+
+const Palette = styled.div<{ color: string }>`
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background-color: ${rgba('#000', 0.75)};
+  padding-left: 1em;
+  border-left: 8px solid ${props => props.color || '#000'};
+
+  :hover {
+    background-color: #000;
+  }
+`
 
 interface IPlannerContentProps extends DispatchProp {
   color: string[]
@@ -149,25 +163,27 @@ const PlannerContent = connect((state: { config: any }) => {
           </div>
         ) : (
           <div>
-            <Checkbox>
-              <CheckboxLabel>{t('Palette')}</CheckboxLabel>
-              <CheckboxOption
-                key={-1}
-                checked={fill === -1}
-                onClick={() => setFill(-1)}
-              >
-                {t('None')}
-              </CheckboxOption>
-              {areas.map(area => (
+            <Palette color={color[fill]}>
+              <Checkbox>
+                <CheckboxLabel>{t('Palette')}</CheckboxLabel>
                 <CheckboxOption
-                  key={area.color}
-                  onClick={() => setFill(area.areaIndex)}
-                  checked={fill === area.areaIndex}
+                  key={-1}
+                  checked={fill === -1}
+                  onClick={() => setFill(-1)}
                 >
-                  {area.name}
+                  {t('None')}
                 </CheckboxOption>
-              ))}
-            </Checkbox>
+                {areas.map(area => (
+                  <CheckboxOption
+                    key={area.color}
+                    onClick={() => setFill(area.areaIndex)}
+                    checked={fill === area.areaIndex}
+                  >
+                    {area.name}
+                  </CheckboxOption>
+                ))}
+              </Checkbox>
+            </Palette>
             <ShipGrid fill={fill} />
           </div>
         )}
