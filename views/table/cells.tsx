@@ -9,13 +9,16 @@ import { Avatar } from 'views/components/etc/avatar'
 import { Tooltip } from 'views/components/etc/overlay'
 import { resolveTime } from 'views/utils/tools'
 
+import { rgba } from 'polished'
 import { IShip } from 'views/types'
 import { sokuInterpretation } from '../constants'
 import { fileUrl, getTimePerHP, shipTypes } from '../utils'
 import { SallyArea } from './sally-area'
 import { Slotitems } from './slotitems'
 
-export const Cell = styled.div`
+const TRANSPARENCY = 0.5
+
+export const Cell = styled.div<{ isEven?: boolean }>`
   white-space: nowrap;
   line-height: 35px;
   vertical-align: middle;
@@ -24,6 +27,7 @@ export const Cell = styled.div`
   cursor: default;
   display: flex;
   align-items: center;
+  background-color: ${props => props.isEven && rgba(props.theme.BLUE5, 0.05)};
 `
 
 interface ICellProps extends HTMLAttributes<HTMLDivElement> {
@@ -104,71 +108,96 @@ const Hp = ({ ship, ...props }: ICellProps) => (
   </Cell>
 )
 
+const KaryokuCell = styled(Cell)<{ max: boolean }>`
+  background-color: ${props =>
+    props.max && rgba(props.theme.RED3, TRANSPARENCY)};
+`
+
 const Karyoku = ({ ship, ...props }: ICellProps) => {
   const { karyoku, karyokuMax, karyokuNow } = ship
   const karyokuString =
     karyokuNow >= karyokuMax ? 'MAX' : `+${karyokuMax - karyokuNow}`
   return (
-    <Cell {...props}>
+    <KaryokuCell {...props} max={karyokuNow >= karyokuMax}>
       <span>
         {`${karyoku}/`}
         <span style={{ fontSize: '80%' }}>{karyokuString}</span>
       </span>
-    </Cell>
+    </KaryokuCell>
   )
 }
+
+const RaisouCell = styled(Cell)<{ max: boolean }>`
+  background-color: ${props =>
+    props.max && rgba(props.theme.COBALT3, TRANSPARENCY)};
+`
 
 const Raisou = ({ ship, ...props }: ICellProps) => {
   const { raisou, raisouMax, raisouNow } = ship
   const raisouString =
     raisouNow >= raisouMax ? 'MAX' : `+${raisouMax - raisouNow}`
   return (
-    <Cell {...props}>
+    <RaisouCell {...props} max={raisouNow >= raisouMax}>
       <span>
         {`${raisou}/`}
         <span style={{ fontSize: '80%' }}>{raisouString}</span>
       </span>
-    </Cell>
+    </RaisouCell>
   )
 }
+
+const TaikuCell = styled(Cell)<{ max: boolean }>`
+  background-color: ${props =>
+    props.max && rgba(props.theme.ORANGE3, TRANSPARENCY)};
+`
 
 const Taiku = ({ ship, ...props }: ICellProps) => {
   const { taiku, taikuMax, taikuNow } = ship
   const taikuString = taikuNow >= taikuMax ? 'MAX' : `+${taikuMax - taikuNow}`
   return (
-    <Cell {...props}>
+    <TaikuCell {...props} max={taikuNow >= taikuMax}>
       <span>
         {`${taiku}/`}
         <span style={{ fontSize: '80%' }}>{taikuString}</span>
       </span>
-    </Cell>
+    </TaikuCell>
   )
 }
+
+const SoukouCell = styled(Cell)<{ max: boolean }>`
+  background-color: ${props =>
+    props.max && rgba(props.theme.INDIGO3, TRANSPARENCY)};
+`
 
 const Soukou = ({ ship, ...props }: ICellProps) => {
   const { soukou, soukouMax, soukouNow } = ship
   const soukouString =
     soukouNow >= soukouMax ? 'MAX' : `+${soukouMax - soukouNow}`
   return (
-    <Cell {...props}>
+    <SoukouCell {...props} max={soukouNow >= soukouMax}>
       <span>
         {`${soukou}/`}
         <span style={{ fontSize: '80%' }}>{soukouString}</span>
       </span>
-    </Cell>
+    </SoukouCell>
   )
 }
+
+const LuckyCell = styled(Cell)<{ max: boolean }>`
+  background-color: ${props =>
+    props.max && rgba(props.theme.LIME3, TRANSPARENCY)};
+`
 
 const Lucky = ({ ship, ...props }: ICellProps) => {
   const { lucky, luckyMax, luckyNow } = ship
   const luckyString = luckyNow >= luckyMax ? 'MAX' : `+${luckyMax - luckyNow}`
   return (
-    <Cell {...props}>
+    <LuckyCell {...props} max={luckyNow >= luckyMax}>
       <span>
         {`${lucky}/`}
         <span style={{ fontSize: '80%' }}>{luckyString}</span>
       </span>
-    </Cell>
+    </LuckyCell>
   )
 }
 
