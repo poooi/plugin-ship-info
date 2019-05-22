@@ -231,7 +231,6 @@ class ShipInfoTableAreaBase extends Component<
               activeColumn={activeColumn}
               columnCount={WIDTHS.length}
               columnWidth={this.getColumnWidth}
-              estimatedRowSize={100}
               fixedColumnCount={0}
               fixedRowCount={1}
               // handleContentRendered={this.handleContentRendered}
