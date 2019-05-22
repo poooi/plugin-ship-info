@@ -1,4 +1,4 @@
-import { Dictionary, floor, get, map, memoize, sum } from 'lodash'
+import { debounce, Dictionary, floor, get, map, memoize, sum } from 'lodash'
 import React, { Component, createRef } from 'react'
 import { connect, DispatchProp } from 'react-redux'
 import { AutoSizer, GridCellRenderer, MultiGrid } from 'react-virtualized'
@@ -40,7 +40,6 @@ interface IShipInfoTableAreaBaseProps extends DispatchProp {
 }
 
 interface IShipInfoTableAreaBaseState {
-  tableAreaWidth: number
   activeRow: number
   activeColumn: number
 }
@@ -56,6 +55,7 @@ class ShipInfoTableAreaBase extends Component<
   public activeRow: number = -1
   public columnStopIndex: number = 0
   public rowStopIndex: number = 0
+  public tableAreaWidth: number
 
   // public handleContentRendered = (e) => {
   //   const { rowStopIndex, columnStopIndex } = e
@@ -80,14 +80,21 @@ class ShipInfoTableAreaBase extends Component<
     }
   })
 
+  public handleResize = debounce(({ width }: { width: number }) => {
+    this.tableAreaWidth = width
+    if (this.grid.current) {
+      this.grid.current.recomputeGridSize()
+    }
+  }, 100)
+
   constructor(props: IShipInfoTableAreaBaseProps) {
     super(props)
     this.onClickFactory = memoize(this.onClickFactory)
     this.state = {
       activeColumn: -1,
       activeRow: -1,
-      tableAreaWidth: props.window.innerWidth,
     }
+    this.tableAreaWidth = props.window.innerWidth
   }
 
   public onContextMenu = () =>
@@ -115,8 +122,8 @@ class ShipInfoTableAreaBase extends Component<
     // 20: magic number, seems it need to be greater than 16
     const width = floor(
       (WIDTHS[index] || 40) *
-        (this.state.tableAreaWidth - 20 > this.tableWidth
-          ? (this.state.tableAreaWidth - 20) / this.tableWidth
+        (this.tableAreaWidth - 20 > this.tableWidth
+          ? (this.tableAreaWidth - 20) / this.tableWidth
           : 1),
     )
     return width
@@ -208,20 +215,6 @@ class ShipInfoTableAreaBase extends Component<
     )
   }
 
-  public handleResize = ({ width }: { width: number }) => {
-    this.setState(
-      {
-        tableAreaWidth: width,
-      },
-      () => {
-        if (this.grid.current) {
-          this.grid.current.recomputeGridSize()
-          this.grid.current.forceUpdateGrids()
-        }
-      },
-    )
-  }
-
   public render() {
     const { ids } = this.props
     const { activeRow, activeColumn } = this.state
@@ -242,14 +235,14 @@ class ShipInfoTableAreaBase extends Component<
               fixedColumnCount={0}
               fixedRowCount={1}
               // handleContentRendered={this.handleContentRendered}
-              height={height}
-              overscanColumnCount={10}
+              height={height - (process.platform === 'darwin' ? 40 : 5)}
+              overscanColumnCount={5}
               overscanRowCount={5}
               cellRenderer={this.cellRenderer}
               rowCount={ids.length + 1}
               rowHeight={ROW_HEIGHT}
               scrollToAlignment="start"
-              width={width} // 16: left and right padding (8 + 8)
+              width={width - 16} // 16: left and right padding (8 + 8)
               scrollToColumn={0}
               scrollToRow={0}
               // onScroll={this.handleScroll}
