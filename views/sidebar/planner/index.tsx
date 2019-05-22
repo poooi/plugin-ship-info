@@ -63,12 +63,14 @@ const Palette = styled.div<{ color: string }>`
   position: sticky;
   top: 0;
   z-index: 20;
-  background-color: ${rgba('#000', 0.75)};
+  background-color: ${props =>
+    rgba(props.theme.variant === 'dark' ? '#000' : '#fff', 0.75)};
   padding-left: 1em;
   border-left: 8px solid ${props => props.color || '#000'};
 
   :hover {
-    background-color: #000;
+    background-color: ${props =>
+      props.theme.variant === 'dark' ? '#000' : '#fff'};
   }
 `
 
