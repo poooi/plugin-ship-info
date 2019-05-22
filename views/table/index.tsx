@@ -1,23 +1,16 @@
-import { TranslationFunction } from 'i18next'
 import { Dictionary, floor, get, map, memoize, sum } from 'lodash'
-import PropTypes from 'prop-types'
 import React, { Component, createRef } from 'react'
-import { withTranslation } from 'react-i18next'
 import { connect, DispatchProp } from 'react-redux'
 import { AutoSizer, GridCellRenderer, MultiGrid } from 'react-virtualized'
 import styled from 'styled-components'
 
 import { WindowEnv } from 'views/components/etc/window-env'
-import { extensionSelectorFactory } from 'views/utils/selectors'
 
 import { IShip } from 'views/types'
 import { allShipRowsMapSelector, filterShipIdsSelector } from '../selectors'
-import { shipInfoShape } from '../utils'
-import { Cells as ShipInfoCells } from './cells'
+import { Cell as NormalCell, Cells as ShipInfoCells } from './cells'
 import { ColumnsConfig } from './columns-config'
 import { TitleCell } from './title-cell'
-
-const { config } = window
 
 const TYPES = map(ColumnsConfig, 'name')
 const TITLES = map(ColumnsConfig, 'title')
@@ -42,6 +35,8 @@ interface IShipInfoTableAreaBaseProps extends DispatchProp {
   ids: number[]
   ships: Dictionary<IShip>
   window: Window
+  sortName: string
+  sortOrder: number
 }
 
 interface IShipInfoTableAreaBaseState {
@@ -61,6 +56,29 @@ class ShipInfoTableAreaBase extends Component<
   public activeRow: number = -1
   public columnStopIndex: number = 0
   public rowStopIndex: number = 0
+
+  // public handleContentRendered = (e) => {
+  //   const { rowStopIndex, columnStopIndex } = e
+  //   if (this.activeColumn !== -1 && this.activeRow !== -1) {
+  //     this.setState({
+  //       activeColumn:
+  //         this.state.activeColumn + columnStopIndex - this.columnStopIndex,
+  //       activeRow: this.state.activeRow + rowStopIndex - this.rowStopIndex,
+  //     })
+  //   }
+  //   this.rowStopIndex = rowStopIndex
+  //   this.columnStopIndex = columnStopIndex
+  // }
+
+  public handleClickTitle = memoize((title: string) => () => {
+    if (this.props.sortName !== title) {
+      const order =
+        title === 'id' || title === 'type' || title === 'name' ? 1 : 0
+      this.saveSortRules(title, order)
+    } else {
+      this.saveSortRules(this.props.sortName, (this.props.sortOrder + 1) % 2)
+    }
+  })
 
   constructor(props: IShipInfoTableAreaBaseProps) {
     super(props)
@@ -104,29 +122,6 @@ class ShipInfoTableAreaBase extends Component<
     return width
   }
 
-  // public handleContentRendered = (e) => {
-  //   const { rowStopIndex, columnStopIndex } = e
-  //   if (this.activeColumn !== -1 && this.activeRow !== -1) {
-  //     this.setState({
-  //       activeColumn:
-  //         this.state.activeColumn + columnStopIndex - this.columnStopIndex,
-  //       activeRow: this.state.activeRow + rowStopIndex - this.rowStopIndex,
-  //     })
-  //   }
-  //   this.rowStopIndex = rowStopIndex
-  //   this.columnStopIndex = columnStopIndex
-  // }
-
-  // public handleClickTitle = (title: string) => () => {
-  //   if (this.props.sortName !== title) {
-  //     const order =
-  //       title === 'id' || title === 'type' || title === 'name' ? 1 : 0
-  //     this.saveSortRules(title, order)
-  //   } else {
-  //     this.saveSortRules(this.props.sortName, (this.props.sortOrder + 1) % 2)
-  //   }
-  // }
-
   // public handleScroll = ({ scrollTop }: { scrollTop: number}) => {
   //   const { rows } = this.props
   //   const contentHeight = rows.length * ROW_HEIGHT
@@ -141,10 +136,10 @@ class ShipInfoTableAreaBase extends Component<
   //   }
   // }
 
-  // public saveSortRules = (name, order) => {
-  //   config.set('plugin.ShipInfo.sortName', name)
-  //   config.set('plugin.ShipInfo.sortOrder', order)
-  // }
+  public saveSortRules = (name: string, order: number) => {
+    window.config.set('plugin.ShipInfo.sortName', name)
+    window.config.set('plugin.ShipInfo.sortOrder', order)
+  }
 
   public cellRenderer: GridCellRenderer = ({
     columnIndex,
@@ -174,7 +169,7 @@ class ShipInfoTableAreaBase extends Component<
         ...props,
       })
     } else if (columnIndex === 0) {
-      content = <div {...props}>{rowIndex}</div>
+      content = <NormalCell {...props}>{rowIndex}</NormalCell>
     } else {
       const index = columnIndex - 1
       const { ids, ships } = this.props
@@ -197,6 +192,7 @@ class ShipInfoTableAreaBase extends Component<
     if (columnIndex === 0) {
       return <div style={style} {...props} />
     }
+    const { sortName, sortOrder } = this.props
     const index = columnIndex - 1
     return (
       <TitleCell
@@ -205,10 +201,9 @@ class ShipInfoTableAreaBase extends Component<
         title={TITLES[index]}
         sortable={SORTABLES[index]}
         centerAlign={CENTER_ALIGNS[index]}
-        sorting={false}
-        // up={sortName === TYPES[index] && Boolean(sortOrder)}
-        // down={sortName === TYPES[index] && Boolean(!sortOrder)}
-        // handleClickTitle={this.handleClickTitle(TYPES[index])}
+        sorting={sortName === TYPES[index]}
+        up={Boolean(sortOrder)}
+        onClick={this.handleClickTitle(TYPES[index])}
       />
     )
   }
@@ -266,9 +261,17 @@ class ShipInfoTableAreaBase extends Component<
   }
 }
 
-const ShipInfoTableArea = connect(state => ({
+const sortNameSelector = (state: { config: any }): string =>
+  get(state.config, 'plugin.ShipInfo.sortName', 'lv')
+
+const sortOrderSelector = (state: { config: any }): number =>
+  get(state.config, 'plugin.ShipInfo.sortOrder', 0)
+
+const ShipInfoTableArea = connect((state: { config: any }) => ({
   ids: filterShipIdsSelector(state),
   ships: allShipRowsMapSelector(state),
+  sortName: sortNameSelector(state),
+  sortOrder: sortOrderSelector(state),
 }))(ShipInfoTableAreaBase)
 
 export const TableView = (props: object) => (

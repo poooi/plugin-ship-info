@@ -15,7 +15,7 @@ import { fileUrl, getTimePerHP, shipTypes } from '../utils'
 import { SallyArea } from './sally-area'
 import { Slotitems } from './slotitems'
 
-const Cell = styled.div`
+export const Cell = styled.div`
   white-space: nowrap;
   line-height: 35px;
   vertical-align: middle;
