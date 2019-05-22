@@ -1,5 +1,5 @@
 import { TranslationFunction } from 'i18next'
-import { floor, get, map, memoize, sum } from 'lodash'
+import { Dictionary, floor, get, map, memoize, sum } from 'lodash'
 import PropTypes from 'prop-types'
 import React, { Component, createRef } from 'react'
 import { withTranslation } from 'react-i18next'
@@ -11,7 +11,7 @@ import { WindowEnv } from 'views/components/etc/window-env'
 import { extensionSelectorFactory } from 'views/utils/selectors'
 
 import { IShip } from 'views/types'
-import { shipInfoConfigSelector, shipRowsSelector } from '../selectors'
+import { allShipRowsMapSelector, filterShipIdsSelector } from '../selectors'
 import { shipInfoShape } from '../utils'
 import { Cells as ShipInfoCells } from './cells'
 import { ColumnsConfig } from './columns-config'
@@ -39,7 +39,8 @@ const Spacer = styled.div`
 `
 
 interface IShipInfoTableAreaBaseProps extends DispatchProp {
-  rows: IShip[]
+  ids: number[]
+  ships: Dictionary<IShip>
   window: Window
 }
 
@@ -151,8 +152,6 @@ class ShipInfoTableAreaBase extends Component<
     rowIndex,
     style,
   }) => {
-    const { rows } = this.props
-
     const isHighlighteds =
       (columnIndex === this.state.activeColumn ||
         rowIndex === this.state.activeRow) &&
@@ -178,7 +177,8 @@ class ShipInfoTableAreaBase extends Component<
       content = <div {...props}>{rowIndex}</div>
     } else {
       const index = columnIndex - 1
-      const ship = rows[rowIndex - 1]
+      const { ids, ships } = this.props
+      const ship = ships[ids[rowIndex - 1]]
       const Cell = ShipInfoCells[TYPES[index] as keyof typeof ShipInfoCells]
       content = <Cell ship={ship} {...props} />
     }
@@ -228,7 +228,7 @@ class ShipInfoTableAreaBase extends Component<
   }
 
   public render() {
-    const { rows } = this.props
+    const { ids } = this.props
     const { activeRow, activeColumn } = this.state
 
     return (
@@ -237,7 +237,7 @@ class ShipInfoTableAreaBase extends Component<
         <AutoSizer onResize={this.handleResize}>
           {({ height, width }) => (
             <MultiGrid
-              rows={rows}
+              ids={ids}
               ref={this.grid}
               activeRow={activeRow}
               activeColumn={activeColumn}
@@ -251,7 +251,7 @@ class ShipInfoTableAreaBase extends Component<
               overscanColumnCount={10}
               overscanRowCount={5}
               cellRenderer={this.cellRenderer}
-              rowCount={rows.length + 1}
+              rowCount={ids.length + 1}
               rowHeight={ROW_HEIGHT}
               scrollToAlignment="start"
               width={width} // 16: left and right padding (8 + 8)
@@ -267,7 +267,8 @@ class ShipInfoTableAreaBase extends Component<
 }
 
 const ShipInfoTableArea = connect(state => ({
-  rows: shipRowsSelector(state),
+  ids: filterShipIdsSelector(state),
+  ships: allShipRowsMapSelector(state),
 }))(ShipInfoTableAreaBase)
 
 export const TableView = (props: object) => (

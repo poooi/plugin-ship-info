@@ -2,15 +2,13 @@ import { Button, ButtonGroup, HTMLSelect } from '@blueprintjs/core'
 import { promisify } from 'bluebird'
 import { clipboard, remote } from 'electron'
 import fs from 'fs-extra'
-import { map } from 'lodash'
+import { map, values } from 'lodash'
 import React, { Component, FormEvent, useCallback } from 'react'
 import FA from 'react-fontawesome'
 import { useTranslation, withTranslation, WithTranslation } from 'react-i18next'
-import { connect } from 'react-redux'
 import { Popover } from 'views/components/etc/overlay'
 
-import { allShipRowsSelector, shipRowsSelector } from '../../selectors'
-import { IShip } from '../../types'
+import { allShipRowsMapSelector, filterShipIdsSelector } from '../../selectors'
 import { Checkbox, CheckboxLabel } from '../components/checkbox'
 import { Container } from '../components/layout'
 import { buildCsv } from './build-csv'
@@ -93,11 +91,6 @@ const selectionOptions: ISelectOptions[] = [
   },
 ]
 
-interface IProps extends WithTranslation {
-  rows: IShip[]
-  allRows: IShip[]
-}
-
 interface IState {
   sep?: string
   end?: string
@@ -105,7 +98,7 @@ interface IState {
 }
 
 const ExportContent = withTranslation(['poi-plugin-ship-info'])(
-  class ExportContentBase extends Component<IProps, IState> {
+  class ExportContentBase extends Component<WithTranslation, IState> {
     public state = {
       end: isWin ? '\r\n' : '\n',
       selection: 'current',
@@ -118,11 +111,20 @@ const ExportContent = withTranslation(['poi-plugin-ship-info'])(
       })
     }
 
+    public getShipData = () => {
+      const { selection } = this.state
+      const state = window.getStore()
+
+      const ids = filterShipIdsSelector(state)
+      const ships = allShipRowsMapSelector(state)
+
+      return selection === 'current' ? map(ids, id => ships[id]) : values(ships)
+    }
+
     public handleExportToClipboard = () => {
-      const { sep, end, selection } = this.state
-      const rows =
-        selection === 'current' ? this.props.rows : this.props.allRows
-      clipboard.writeText(buildCsv(rows, sep, end))
+      const { sep, end } = this.state
+
+      clipboard.writeText(buildCsv(this.getShipData(), sep, end))
     }
 
     public handleExportToFile = () => {
@@ -141,11 +143,9 @@ const ExportContent = withTranslation(['poi-plugin-ship-info'])(
         },
         async filename => {
           if (filename) {
-            const { sep, end, selection } = this.state
-            const rows =
-              selection === 'current' ? this.props.rows : this.props.allRows
+            const { sep, end } = this.state
             try {
-              await outputFile(filename, buildCsv(rows, sep, end))
+              await outputFile(filename, buildCsv(this.getShipData(), sep, end))
             } catch (e) {
               console.error(e)
             }
@@ -195,16 +195,13 @@ const ExportContent = withTranslation(['poi-plugin-ship-info'])(
   },
 )
 
-export const Export = connect(state => ({
-  allRows: allShipRowsSelector(state),
-  rows: shipRowsSelector(state),
-}))(({ allRows, rows }: { allRows: IShip[]; rows: IShip[] }) => {
+export const Export = () => {
   return (
     <Popover hasBackdrop={true}>
       <Button minimal={true}>
         <FA name="download" />
       </Button>
-      <ExportContent allRows={allRows} rows={rows} />
+      <ExportContent />
     </Popover>
   )
-})
+}

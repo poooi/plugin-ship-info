@@ -24,8 +24,11 @@ const AlvImage = styled.img`
 
 const SlotItemContainer = styled.div`
   position: relative;
-  width: 30px;
   height: 30px;
+
+  img {
+    height: 30px;
+  }
 `
 
 const ExtraIndicator = styled.div`

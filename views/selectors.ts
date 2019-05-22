@@ -151,11 +151,10 @@ export const shipTableDataSelectorFactory = memoize(shipId =>
   ),
 )
 
-const handleTypeFilter = memoize((typeId, shipTypes) =>
-  (shipTypes || []).includes(typeId),
-)
+const handleTypeFilter = (typeId: number, shipTypes: number[]) =>
+  (shipTypes || []).includes(typeId)
 
-const handleLvFilter = memoize((lv, lvRadio) => {
+const handleLvFilter = (lv: number, lvRadio: number) => {
   switch (lvRadio) {
     case 1:
       return lv === 1
@@ -167,9 +166,9 @@ const handleLvFilter = memoize((lv, lvRadio) => {
     default:
       return true
   }
-})
+}
 
-const handleLockedFilter = memoize((locked, lockedRadio) => {
+const handleLockedFilter = (locked: number, lockedRadio: number) => {
   switch (lockedRadio) {
     case 1:
       return locked === 1
@@ -179,23 +178,28 @@ const handleLockedFilter = memoize((locked, lockedRadio) => {
     default:
       return true
   }
-})
+}
 
-const handleExpeditionFilter = memoize(
-  (id, expeditionShips, expeditionRadio) => {
-    switch (expeditionRadio) {
-      case 1:
-        return (expeditionShips || []).includes(id)
-      case 2:
-        return !(expeditionShips || []).includes(id)
-      case 0:
-      default:
-        return true
-    }
-  },
-)
+const handleExpeditionFilter = (
+  id: number,
+  expeditionShips: number[],
+  expeditionRadio: number,
+) => {
+  switch (expeditionRadio) {
+    case 1:
+      return (expeditionShips || []).includes(id)
+    case 2:
+      return !(expeditionShips || []).includes(id)
+    case 0:
+    default:
+      return true
+  }
+}
 
-const handleModernizationFilter = memoize((isCompleted, modernizationRadio) => {
+const handleModernizationFilter = (
+  isCompleted: boolean,
+  modernizationRadio: number,
+) => {
   switch (modernizationRadio) {
     case 1:
       return isCompleted
@@ -205,9 +209,9 @@ const handleModernizationFilter = memoize((isCompleted, modernizationRadio) => {
     default:
       return true
   }
-})
+}
 
-const handleRemodelFilter = memoize((after, remodelRadio) => {
+const handleRemodelFilter = memoize((after: number, remodelRadio: number) => {
   const remodelable = after !== 0
   switch (remodelRadio) {
     case 1:
@@ -220,22 +224,23 @@ const handleRemodelFilter = memoize((after, remodelRadio) => {
   }
 })
 
-const handleSallyAreaFilter = memoize(
-  (sallyArea: number | undefined, sallyAreaChecked: boolean[]) => {
-    const checkedAll = (sallyAreaChecked || []).reduce(
-      (all, checked) => all && checked,
-      true,
-    )
-    if (checkedAll) {
-      return true
-    }
-    return typeof sallyArea !== 'undefined'
-      ? (sallyAreaChecked || [])[sallyArea || 0]
-      : true
-  },
-)
+const handleSallyAreaFilter = (
+  sallyArea: number | undefined,
+  sallyAreaChecked: boolean[],
+) => {
+  const checkedAll = (sallyAreaChecked || []).reduce(
+    (all, checked) => all && checked,
+    true,
+  )
+  if (checkedAll) {
+    return true
+  }
+  return typeof sallyArea !== 'undefined'
+    ? (sallyAreaChecked || [])[sallyArea || 0]
+    : true
+}
 
-const handleInFleetFilter = memoize((fleetId, inFleetRadio) => {
+const handleInFleetFilter = (fleetId: number, inFleetRadio: number) => {
   const isInFleet = fleetId > -1
   switch (inFleetRadio) {
     case 1:
@@ -246,9 +251,9 @@ const handleInFleetFilter = memoize((fleetId, inFleetRadio) => {
     default:
       return true
   }
-})
+}
 
-const handleSparkleFilter = memoize((cond, sparkleRadio) => {
+const handleSparkleFilter = (cond: number, sparkleRadio: number) => {
   switch (sparkleRadio) {
     case 1:
       return cond >= 50
@@ -258,9 +263,9 @@ const handleSparkleFilter = memoize((cond, sparkleRadio) => {
     default:
       return true
   }
-})
+}
 
-const handleExSlotFilter = memoize((exslot: number, exSlotRadio: number) => {
+const handleExSlotFilter = (exslot: number, exSlotRadio: number) => {
   switch (exSlotRadio) {
     case 1:
       return exslot !== 0
@@ -270,7 +275,7 @@ const handleExSlotFilter = memoize((exslot: number, exSlotRadio: number) => {
     default:
       return true
   }
-})
+}
 
 const handleDaihatsuFilter = (daihatsu: boolean, daihatsuRadio: number) => {
   switch (daihatsuRadio) {
@@ -372,7 +377,15 @@ export const allShipRowsSelector = createSelector(
     ),
 )
 
-export const shipRowsSelector = createSelector(
+export const allShipRowsMapSelector = createSelector(
+  [shipsSelector, stateSelector],
+  (ships, state) =>
+    mapValues(ships, (ship: APIShip) =>
+      shipTableDataSelectorFactory(ship.api_id)(state),
+    ),
+)
+
+export const filterShipIdsSelector = createSelector(
   [
     allShipRowsSelector,
     shipTypesSelecor,
@@ -415,6 +428,7 @@ export const shipRowsSelector = createSelector(
       ),
       fp.sortBy(getSortFunction(sortName)),
       sortOrder ? ship => ship : fp.reverse,
+      fp.map('id'),
     )(ships),
 )
 
