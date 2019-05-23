@@ -1,0 +1,17 @@
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: NodeTool@0
+  inputs:
+    versionSpec: '>=12.3.1'
+  displayName: 'Install Node.js'
+
+- script: |
+    yarn --frozen-lockfile
+  displayName: 'yarn install'
+
+- script: |
+    yarn tsc --noEmit
+    yarn tslint --project .
+  displayName: 'typecheck and lint'
