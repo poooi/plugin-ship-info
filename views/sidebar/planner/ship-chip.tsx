@@ -35,6 +35,7 @@ interface IProps extends DispatchProp, WithTranslation {
 
 export const ShipChip = compose<
   ComponentType<
+    // @ts-ignore
     Omit<
       IProps,
       | keyof DispatchProp

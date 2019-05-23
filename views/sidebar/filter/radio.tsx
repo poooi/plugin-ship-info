@@ -18,6 +18,7 @@ interface IProps extends DispatchProp, WithTranslation {
 
 export const RadioCheck = compose<
   ComponentType<
+    // @ts-ignore
     Omit<IProps, 't' | 'currentValue' | 'dispatch' | 'i18n' | 'tReady'>
   >
 >(

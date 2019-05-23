@@ -1,7 +1,7 @@
 import { Button, ButtonGroup, HTMLSelect } from '@blueprintjs/core'
 import { promisify } from 'bluebird'
 import { clipboard, remote } from 'electron'
-import fs from 'fs-extra'
+import { outputFile } from 'fs-extra'
 import { map, values } from 'lodash'
 import React, { Component, FormEvent, useCallback } from 'react'
 import FA from 'react-fontawesome'
@@ -14,7 +14,6 @@ import { Container } from '../components/layout'
 import { buildCsv } from './build-csv'
 
 const { dialog } = remote
-const outputFile = promisify(fs.outputFile)
 
 const isWin = process.platform === 'win32'
 

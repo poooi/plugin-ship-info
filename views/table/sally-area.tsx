@@ -15,6 +15,7 @@ interface ISallyAreaProps extends DispatchProp {
 }
 
 export const SallyArea = connect(
+  // @ts-ignore
   (state, props: Omit<ISallyAreaProps, 'color' | 'mapname' | 'dispatch'>) => {
     const { area } = props
     const { mapname, color } = sallyAreaSelectorFactory(area)(state)
