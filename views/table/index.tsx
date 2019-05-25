@@ -1,7 +1,12 @@
 import { debounce, Dictionary, floor, get, map, memoize, sum } from 'lodash'
 import React, { Component, createRef } from 'react'
 import { connect, DispatchProp } from 'react-redux'
-import { AutoSizer, GridCellRenderer, MultiGrid } from 'react-virtualized'
+import AutoSizer from 'react-virtualized-auto-sizer'
+import {
+  GridChildComponentProps,
+  GridOnScrollProps,
+  VariableSizeGrid as Grid,
+} from 'react-window'
 import styled from 'styled-components'
 
 import { WindowEnv } from 'views/components/etc/window-env'
@@ -31,6 +36,18 @@ const Spacer = styled.div`
   height: 35px;
 `
 
+const GridHeader = styled(Grid)`
+  ::-webkit-scrollbar {
+    height: 0;
+    width: 0;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    height: 0;
+    width: 0;
+  }
+`
+
 interface IShipInfoTableAreaBaseProps extends DispatchProp {
   ids: number[]
   ships: Dictionary<IShip>
@@ -49,26 +66,14 @@ class ShipInfoTableAreaBase extends Component<
   IShipInfoTableAreaBaseState
 > {
   public tableWidth = sum(WIDTHS)
-  public grid = createRef<MultiGrid>()
+  public grid = createRef<Grid>()
+  public gridHeader = createRef<Grid>()
   public tableArea = createRef<HTMLDivElement>()
   public activeColumn: number = -1
   public activeRow: number = -1
   public columnStopIndex: number = 0
   public rowStopIndex: number = 0
   public tableAreaWidth: number
-
-  // public handleContentRendered = (e) => {
-  //   const { rowStopIndex, columnStopIndex } = e
-  //   if (this.activeColumn !== -1 && this.activeRow !== -1) {
-  //     this.setState({
-  //       activeColumn:
-  //         this.state.activeColumn + columnStopIndex - this.columnStopIndex,
-  //       activeRow: this.state.activeRow + rowStopIndex - this.rowStopIndex,
-  //     })
-  //   }
-  //   this.rowStopIndex = rowStopIndex
-  //   this.columnStopIndex = columnStopIndex
-  // }
 
   public handleClickTitle = memoize((title: string) => () => {
     if (this.props.sortName !== title) {
@@ -83,7 +88,10 @@ class ShipInfoTableAreaBase extends Component<
   public handleResize = debounce(({ width }: { width: number }) => {
     this.tableAreaWidth = width
     if (this.grid.current) {
-      this.grid.current.recomputeGridSize()
+      this.grid.current.resetAfterColumnIndex(0)
+    }
+    if (this.gridHeader.current) {
+      this.gridHeader.current.resetAfterColumnIndex(0)
     }
   }, 100)
 
@@ -96,6 +104,19 @@ class ShipInfoTableAreaBase extends Component<
     }
     this.tableAreaWidth = props.window.innerWidth
   }
+
+  public getItemKey = ({
+    columnIndex,
+    data,
+    rowIndex,
+  }: {
+    columnIndex: number
+    data: any
+    rowIndex: number
+  }) =>
+    rowIndex === 0
+      ? `title-${columnIndex}`
+      : `${data[rowIndex].id}-${columnIndex}`
 
   public onContextMenu = () =>
     this.setState({
@@ -118,7 +139,7 @@ class ShipInfoTableAreaBase extends Component<
     })
   }
 
-  public getColumnWidth = ({ index }: { index: number }) => {
+  public getColumnWidth = (index: number) => {
     // 20: magic number, seems it need to be greater than 16
     const width = floor(
       (WIDTHS[index] || 40) *
@@ -129,31 +150,18 @@ class ShipInfoTableAreaBase extends Component<
     return width
   }
 
-  // public handleScroll = ({ scrollTop }: { scrollTop: number}) => {
-  //   const { rows } = this.props
-  //   const contentHeight = rows.length * ROW_HEIGHT
-  //   const safeZone = Math.round(
-  //     window.screen.height / config.get('poi.zoomLevel', 1),
-  //   )
-  //   if (this.props.toTop !== !scrollTop && contentHeight > safeZone) {
-  //     this.props.dispatch({
-  //       type: '@@poi-plugin-ship-info@scroll',
-  //       toTop: !scrollTop,
-  //     })
-  //   }
-  // }
+  public getRowHeight = () => ROW_HEIGHT
 
   public saveSortRules = (name: string, order: number) => {
     window.config.set('plugin.ShipInfo.sortName', name)
     window.config.set('plugin.ShipInfo.sortOrder', order)
   }
 
-  public cellRenderer: GridCellRenderer = ({
+  public cellRenderer = ({
     columnIndex,
-    key,
     rowIndex,
     style,
-  }) => {
+  }: GridChildComponentProps) => {
     const isHighlighteds =
       (columnIndex === this.state.activeColumn ||
         rowIndex === this.state.activeRow) &&
@@ -163,24 +171,17 @@ class ShipInfoTableAreaBase extends Component<
       centerAlign: CENTER_ALIGNS[columnIndex - 1],
       isEven: rowIndex % 2 === 1,
       isHighlighteds,
-      key,
       onClick: this.onClickFactory({ columnIndex, rowIndex }),
       onContextMenu: this.onContextMenu,
       style,
     }
     let content
-    if (rowIndex === 0) {
-      content = this.titleRenderer({
-        columnIndex,
-        style,
-        ...props,
-      })
-    } else if (columnIndex === 0) {
+    if (columnIndex === 0) {
       content = <NormalCell {...props}>{rowIndex}</NormalCell>
     } else {
       const index = columnIndex - 1
       const { ids, ships } = this.props
-      const ship = ships[ids[rowIndex - 1]]
+      const ship = ships[ids[rowIndex]]
       const Cell = ShipInfoCells[TYPES[index] as keyof typeof ShipInfoCells]
       content = <Cell ship={ship} {...props} />
     }
@@ -215,8 +216,14 @@ class ShipInfoTableAreaBase extends Component<
     )
   }
 
+  public handleScroll = ({ scrollLeft }: GridOnScrollProps) => {
+    if (this.gridHeader.current) {
+      this.gridHeader.current.scrollTo({ scrollLeft, scrollTop: 0 })
+    }
+  }
+
   public render() {
-    const { ids } = this.props
+    const { ids, ships, sortName, sortOrder } = this.props
     const { activeRow, activeColumn } = this.state
 
     return (
@@ -224,28 +231,34 @@ class ShipInfoTableAreaBase extends Component<
         {process.platform === 'darwin' && <Spacer />}
         <AutoSizer onResize={this.handleResize}>
           {({ height, width }) => (
-            <MultiGrid
-              ids={ids}
-              ref={this.grid}
-              activeRow={activeRow}
-              activeColumn={activeColumn}
-              columnCount={WIDTHS.length}
-              columnWidth={this.getColumnWidth}
-              fixedColumnCount={0}
-              fixedRowCount={1}
-              // handleContentRendered={this.handleContentRendered}
-              height={height - (process.platform === 'darwin' ? 40 : 5)}
-              overscanColumnCount={5}
-              overscanRowCount={5}
-              cellRenderer={this.cellRenderer}
-              rowCount={ids.length + 1}
-              rowHeight={ROW_HEIGHT}
-              scrollToAlignment="start"
-              width={width - 16} // 16: left and right padding (8 + 8)
-              scrollToColumn={0}
-              scrollToRow={0}
-              // onScroll={this.handleScroll}
-            />
+            <>
+              <GridHeader
+                ref={this.gridHeader}
+                columnCount={WIDTHS.length}
+                columnWidth={this.getColumnWidth}
+                height={35}
+                rowCount={1}
+                rowHeight={this.getRowHeight}
+                width={width - 32}
+                itemData={{ sortName, sortOrder }} // to trigger header's re-render
+              >
+                {this.titleRenderer}
+              </GridHeader>
+              <Grid
+                ref={this.grid}
+                columnCount={WIDTHS.length}
+                columnWidth={this.getColumnWidth}
+                height={height - (process.platform === 'darwin' ? 75 : 40)}
+                itemData={map(ids, id => ships[id])}
+                itemKey={this.getItemKey}
+                rowCount={ids.length}
+                rowHeight={this.getRowHeight}
+                width={width - 16}
+                onScroll={this.handleScroll}
+              >
+                {this.cellRenderer}
+              </Grid>
+            </>
           )}
         </AutoSizer>
       </GridWrapper>

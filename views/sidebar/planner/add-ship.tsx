@@ -44,15 +44,6 @@ const ShipList = styled.ul`
   overflow: scroll;
   width: 20em;
 
-  ::-webkit-scrollbar {
-    width: 1em;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: ${props => props.theme.BLUE1};
-    width: 1em;
-  }
-
   span {
     cursor: pointer;
   }

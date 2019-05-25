@@ -17,14 +17,14 @@ const ShipInfo = styled.div`
 
 const GlobalStyle = createGlobalStyle`
   ::-webkit-scrollbar {
-    height: 1em;
-    width: 1em;
+    height: 16px;
+    width: 16px;
   }
 
   ::-webkit-scrollbar-thumb {
     background: ${(props: ThemeProps<{ BLUE1: string }>) => props.theme.BLUE1};
-    height: 1em;
-    width: 1em;
+    height: 16px;
+    width: 16px;
   }
 `
 

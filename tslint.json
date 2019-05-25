@@ -29,6 +29,8 @@
         "react-fontawesome",
         "react-redux",
         "react-virtualized",
+        "react-virtualized-auto-sizer",
+        "react-window",
         "redux",
         "redux-observers",
         "redux-thunk",
