@@ -154,20 +154,6 @@ export const shipTableDataSelectorFactory = memoize(shipId =>
 const handleTypeFilter = (typeId: number, shipTypes: number[]) =>
   (shipTypes || []).includes(typeId)
 
-const handleLvFilter = (lv: number, lvRadio: number) => {
-  switch (lvRadio) {
-    case 1:
-      return lv === 1
-    case 2:
-      return lv >= 2
-    case 3:
-      return lv >= 100
-    case 0:
-    default:
-      return true
-  }
-}
-
 const handleLockedFilter = (locked: number, lockedRadio: number) => {
   switch (lockedRadio) {
     case 1:
@@ -385,19 +371,27 @@ export const allShipRowsMapSelector = createSelector(
     ),
 )
 
+export const shipInfoFiltersSelector = createSelector(
+  [configSelector, fcdSelector],
+  (config, { shiptag = {} }) => ({
+    maxLevel: get(config, 'plugin.ShipInfo.filters.maxLevel', 165),
+    minLevel: get(config, 'plugin.ShipInfo.filters.minLevel', 1),
+  }),
+)
+
 export const filterShipIdsSelector = createSelector(
   [
     allShipRowsSelector,
     shipTypesSelecor,
     expeditionShipsSelector,
     shipInfoConfigSelector,
+    shipInfoFiltersSelector,
   ],
   (
     ships,
     shipTypes,
     expeditionShips,
     {
-      lvRadio,
       lockedRadio,
       expeditionRadio,
       modernizationRadio,
@@ -410,12 +404,14 @@ export const filterShipIdsSelector = createSelector(
       sortName,
       sortOrder,
     },
+    { maxLevel, minLevel },
   ) =>
     fp.flow(
       fp.filter(
         (ship: IShip) =>
           handleTypeFilter(ship.typeId, shipTypes) &&
-          handleLvFilter(ship.lv, lvRadio) &&
+          ship.lv >= minLevel &&
+          ship.lv <= maxLevel &&
           handleLockedFilter(ship.locked, lockedRadio) &&
           handleExpeditionFilter(ship.id, expeditionShips, expeditionRadio) &&
           handleModernizationFilter(ship.isCompleted, modernizationRadio) &&
