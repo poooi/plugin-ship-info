@@ -14,9 +14,12 @@
     "url": "git+https://github.com/poooi/plugin-ship-info.git"
   },
   "author": {
-    "name": "Yunze",
-    "link": "https://github.com/myzwillmake"
+    "name": "かがみ",
+    "link": "https://github.com/KagamiChan"
   },
+  "contributors": [
+    "Yunze (https://github.com/myzWILLmake)"
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/poooi/plugin-ship-info/issues"
