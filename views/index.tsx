@@ -1,10 +1,5 @@
 import React, { ReactElement, StatelessComponent } from 'react'
-import styled, {
-  createGlobalStyle,
-  StyleSheetManager,
-  ThemeProps,
-} from 'styled-components'
-import { WindowEnv } from 'views/components/etc/window-env'
+import styled, { createGlobalStyle, ThemeProps } from 'styled-components'
 
 import { Sidebar } from './sidebar'
 import { TableView } from './table'
@@ -29,15 +24,9 @@ const GlobalStyle = createGlobalStyle`
 `
 
 export const reactClass: StatelessComponent<null> = (): ReactElement => (
-  <WindowEnv.Consumer>
-    {({ window }): ReactElement => (
-      <StyleSheetManager target={window.document.head}>
-        <ShipInfo id="poi-plugin-ship-info">
-          <GlobalStyle />
-          <Sidebar />
-          <TableView />
-        </ShipInfo>
-      </StyleSheetManager>
-    )}
-  </WindowEnv.Consumer>
+  <ShipInfo id="poi-plugin-ship-info">
+    <GlobalStyle />
+    <Sidebar />
+    <TableView />
+  </ShipInfo>
 )
