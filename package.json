@@ -67,7 +67,7 @@
     "husky": "^2.2.0",
     "kcsapi": "^1.190112.0",
     "lint-staged": "^8.1.6",
-    "poi-util-transpile": "^10.3.0",
+    "poi-util-transpile": "^10.3.1",
     "prettier": "^1.17.1",
     "stylelint": "^10.0.1",
     "stylelint-config-standard": "^18.3.0",
