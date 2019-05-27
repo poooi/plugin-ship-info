@@ -410,8 +410,8 @@ export const filterShipIdsSelector = createSelector(
       fp.filter(
         (ship: IShip) =>
           handleTypeFilter(ship.typeId, shipTypes) &&
-          ship.lv >= minLevel &&
-          ship.lv <= maxLevel &&
+          ship.lv >= Math.min(minLevel, maxLevel) &&
+          ship.lv <= Math.max(minLevel, maxLevel) &&
           handleLockedFilter(ship.locked, lockedRadio) &&
           handleExpeditionFilter(ship.id, expeditionShips, expeditionRadio) &&
           handleModernizationFilter(ship.isCompleted, modernizationRadio) &&

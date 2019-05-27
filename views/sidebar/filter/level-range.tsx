@@ -45,7 +45,7 @@ export const LevelRange = connect((state: { config: any }) => ({
         value={min}
         onValueChange={updateMin}
         min={1}
-        max={165}
+        max={1000}
         stepSize={1}
         clampValueOnBlur={true}
       />
@@ -55,7 +55,7 @@ export const LevelRange = connect((state: { config: any }) => ({
         value={max}
         onValueChange={updateMax}
         min={1}
-        max={165}
+        max={1000}
         stepSize={1}
         clampValueOnBlur={true}
       />
