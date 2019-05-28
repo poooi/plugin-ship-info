@@ -79,3 +79,8 @@ declare module 'views/components/etc/icon' {
 declare module 'views/utils/ship-img' {
   export const getShipImgPath: (id: number, type: string, damagaed: boolean, ip?: string, version?: number) => string
 }
+
+
+declare module 'views/create-store' {
+  export const store: any
+}

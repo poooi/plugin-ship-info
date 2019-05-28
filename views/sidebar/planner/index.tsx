@@ -7,10 +7,18 @@ import React, { Dispatch, useCallback, useEffect, useState } from 'react'
 import FontAwesome from 'react-fontawesome'
 import { useTranslation } from 'react-i18next'
 import { connect, DispatchProp } from 'react-redux'
+import { observe } from 'redux-observers'
 import styled from 'styled-components'
 import { Dialog } from 'views/components/etc/overlay'
+import { store } from 'views/create-store'
 
-import { onAddShip, onDisplaceShip, onDPInit, onRemoveShip } from '../../redux'
+import {
+  dataObserver,
+  onAddShip,
+  onDisplaceShip,
+  onDPInit,
+  onRemoveShip,
+} from '../../redux'
 import {
   deckPlannerCurrentSelector,
   deckPlannerShipMapSelector,
@@ -216,6 +224,12 @@ export const Planner = () => {
   const { t } = useTranslation('poi-plugin-ship-info')
 
   const [activeTab, setActiveTab] = useState('area')
+
+  useEffect(() => {
+    const unsubscribe = observe(store, [dataObserver])
+
+    return () => unsubscribe()
+  }, [])
 
   return (
     <>
