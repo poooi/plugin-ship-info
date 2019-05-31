@@ -1,6 +1,7 @@
 // tslint:disable jsx-no-lambda
 
 import { Button, Classes, Intent, Tab, Tabs } from '@blueprintjs/core'
+import cls from 'classnames'
 import { each, findIndex, get } from 'lodash'
 import { rgba } from 'polished'
 import React, { Dispatch, useCallback, useEffect, useState } from 'react'
@@ -279,7 +280,7 @@ export const Planner = () => {
           </Title>
         }
       >
-        <div className={Classes.DIALOG_BODY}>
+        <div className={cls(Classes.DIALOG_BODY, 'ship-info-scrollable')}>
           <PlannerContent activeTab={activeTab} />
         </div>
       </PlannerDialog>

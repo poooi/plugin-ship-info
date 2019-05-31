@@ -11,15 +11,18 @@ const ShipInfo = styled.div`
 `
 
 const GlobalStyle = createGlobalStyle`
-  ::-webkit-scrollbar {
-    height: 16px;
-    width: 16px;
-  }
+  .ship-info-scrollable {
+    ::-webkit-scrollbar {
+      height: 16px;
+      width: 16px;
+    }
 
-  ::-webkit-scrollbar-thumb {
-    background: ${(props: ThemeProps<{ BLUE1: string }>) => props.theme.BLUE1};
-    height: 16px;
-    width: 16px;
+    ::-webkit-scrollbar-thumb {
+      background: ${(props: ThemeProps<{ BLUE1: string }>) =>
+        props.theme.BLUE1};
+      height: 16px;
+      width: 16px;
+    }
   }
 `
 

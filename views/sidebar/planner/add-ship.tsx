@@ -149,7 +149,7 @@ const Menu = compose<ComponentType<{}>>(
                 id={type}
                 title={t(name)}
                 panel={
-                  <ShipList>
+                  <ShipList className="ship-info-scrollable">
                     {_(ships)
                       .filter(
                         ship => type === -1 || type === ship.superTypeIndex,

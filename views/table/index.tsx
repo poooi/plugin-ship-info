@@ -245,6 +245,7 @@ class ShipInfoTableAreaBase extends Component<
                 {this.titleRenderer}
               </GridHeader>
               <Grid
+                className="ship-info-scrollable"
                 ref={this.grid}
                 columnCount={WIDTHS.length}
                 columnWidth={this.getColumnWidth}
