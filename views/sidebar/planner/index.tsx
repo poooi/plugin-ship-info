@@ -1,13 +1,15 @@
 // tslint:disable jsx-no-lambda
 
-import { Button, Classes, Tab, Tabs } from '@blueprintjs/core'
+import { Button, Classes, Intent, Tab, Tabs } from '@blueprintjs/core'
 import { each, findIndex, get } from 'lodash'
 import { rgba } from 'polished'
 import React, { Dispatch, useCallback, useEffect, useState } from 'react'
 import FontAwesome from 'react-fontawesome'
 import { useTranslation } from 'react-i18next'
 import { connect, DispatchProp } from 'react-redux'
+import { Action } from 'redux'
 import { observe } from 'redux-observers'
+import { ThunkDispatch } from 'redux-thunk'
 import styled from 'styled-components'
 import { Dialog } from 'views/components/etc/overlay'
 import { store } from 'views/create-store'
@@ -89,7 +91,14 @@ interface IPlannerContentProps extends DispatchProp {
   vibrant: number
   displayFleetName: boolean
   activeTab: string
+  dispatch: ThunkDispatch<any, void, Action<any>>
 }
+
+const ActionPanel = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`
 
 const PlannerContent = connect((state: { config: any }) => {
   const displayFleetName = get(
@@ -126,6 +135,8 @@ const PlannerContent = connect((state: { config: any }) => {
           }),
         )
       }
+
+      dispatch(reorderShips)
     })
 
     // const handleCaptureImage = useCallback(() => {
@@ -145,6 +156,10 @@ const PlannerContent = connect((state: { config: any }) => {
       window.config.set('plugin.ShipInfo.displayFleetName', !displayFleetName)
     }, [displayFleetName])
 
+    const handleRefresh = useCallback(() => {
+      dispatch(reorderShips)
+    }, [dispatch])
+
     const areas = mapname.map((name, index) => ({
       areaIndex: index,
       color: color[index],
@@ -156,6 +171,15 @@ const PlannerContent = connect((state: { config: any }) => {
 
     return (
       <div>
+        <ActionPanel>
+          <Button
+            intent={Intent.PRIMARY}
+            minimal={true}
+            onClick={handleRefresh}
+          >
+            {t('Refresh')}
+          </Button>
+        </ActionPanel>
         {activeTab === 'area' ? (
           <div>
             <div>
