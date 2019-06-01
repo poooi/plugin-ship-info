@@ -177,7 +177,7 @@ class ShipInfoTableAreaBase extends Component<
     }
     let content
     if (columnIndex === 0) {
-      content = <NormalCell {...props}>{rowIndex}</NormalCell>
+      content = <NormalCell {...props}>{rowIndex + 1}</NormalCell>
     } else {
       const index = columnIndex - 1
       const { ids, ships } = this.props
