@@ -95,6 +95,7 @@ const ShipName = styled.div`
   display: inline-block;
   padding: 0 1ex;
   color: white;
+  user-select: none;
 `
 
 const ShipLevel = styled.div`
@@ -102,6 +103,7 @@ const ShipLevel = styled.div`
   line-height: 1em;
   padding: 0 1ex;
   color: white;
+  user-select: none;
 `
 
 interface IProps extends DispatchProp {
