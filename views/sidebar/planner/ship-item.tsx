@@ -17,7 +17,6 @@ const ShipAvatar = styled.img.attrs<{ left: number }>(({ left }) => ({
   height: 40px;
   position: absolute;
   top: 0px;
-  transition: 0.2s;
 `
 
 const Gradient = styled.div`
@@ -26,7 +25,6 @@ const Gradient = styled.div`
   position: absolute;
   top: 0px;
   left: 0px;
-  transition: 0.3s;
 `
 
 const ShipGridCell = styled.div.attrs({
@@ -36,7 +34,6 @@ const ShipGridCell = styled.div.attrs({
   width: calc(100% / 7 - 4px);
   min-width: 6em;
   max-width: 16em;
-  transition: 0.2s;
   margin: 2px;
   background-color: rgba(255, 255, 255, 0.1);
   text-align: right;
@@ -52,34 +49,15 @@ const ShipGridCell = styled.div.attrs({
 
   ${ShipAvatar} {
     z-index: 0;
-    transition: 0.3s;
   }
 
   ${Gradient} {
     z-index: 0;
-    transition: 0.3s;
-    background: ${props =>
-      props.useAvatar
-        ? `linear-gradient(90deg, rgba(0, 0, 0, 0), ${rgba(props.color, 0.75)})`
-        : rgba(props.color, 0.75)};
-  }
-
-  &:hover {
-    ${Gradient} {
-      transition: 0.3s;
-      background: ${props =>
-        props.useAvatar
-          ? `linear-gradient(
-            90deg, rgba(0, 0, 0, 0),
-            ${rgba(props.color, 0.85)}
-          )`
-          : rgba(props.color, 0.85)};
-    }
+    background: ${props => rgba(props.color, props.useAvatar ? 0.5 : 0.75)};
   }
 
   &:hover ${ShipAvatar} {
     z-index: 5;
-    transition: 0.3s;
   }
 }
 `
