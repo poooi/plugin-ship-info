@@ -19,7 +19,11 @@ import styled from 'styled-components'
 import { Popover } from 'views/components/etc/overlay'
 
 import { IShipSuperType, shipSuperTypeMap } from '../../constants'
-import { IShipInfoMenuData, shipMenuDataSelector } from '../../selectors'
+import {
+  deckPlannerAllShipIdsSelector,
+  IShipInfoMenuData,
+  shipMenuDataSelector,
+} from '../../selectors'
 
 const searchOptions = [
   {
@@ -41,7 +45,7 @@ const ShipList = styled.ul`
   padding: 0;
   margin: 0;
   height: 30em;
-  overflow: scroll;
+  overflow-y: scroll;
   width: 20em;
 
   span {
@@ -64,12 +68,14 @@ const ShipName = styled.span`
 
 interface IProps extends WithTranslation {
   ships: IShipInfoMenuData[]
+  allSelectedId: number[]
   onSelect: (id: number) => void
 }
 
 const Menu = compose<ComponentType<{}>>(
   withTranslation('poi-plugin-ship-info'),
   connect(state => ({
+    allSelectedId: deckPlannerAllShipIdsSelector(state),
     ships: shipMenuDataSelector(state),
   })),
 )(
@@ -116,7 +122,7 @@ const Menu = compose<ComponentType<{}>>(
 
     public render() {
       const { query } = this.state
-      const { ships, t } = this.props
+      const { ships, allSelectedId, t } = this.props
 
       const filtered = _(this.fuse.search(query))
         .map(Number)
@@ -157,6 +163,8 @@ const Menu = compose<ComponentType<{}>>(
                       .filter(
                         ship => !query || (filtered || []).includes(ship.id),
                       )
+                      .filter(ship => !ship.area)
+                      .filter(ship => !allSelectedId.includes(ship.id))
                       .sortBy([
                         ship => (filtered || []).indexOf(ship.id),
                         ship => -ship.lv,

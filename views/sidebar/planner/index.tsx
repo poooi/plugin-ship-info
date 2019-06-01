@@ -256,7 +256,7 @@ const PlannerDialog = styled(Dialog)`
   width: 80vw;
   height: 90vh;
   ${`.${Classes.DIALOG_BODY}`} {
-    overflow: scroll;
+    overflow-y: scroll;
   }
 `
 
