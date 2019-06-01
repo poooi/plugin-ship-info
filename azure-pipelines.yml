@@ -1,6 +1,14 @@
 pool:
   vmImage: 'ubuntu-latest'
 
+trigger:
+  branches:
+    include:
+    - '*'
+  tags:
+    include:
+    - '*'
+
 steps:
 - task: NodeTool@0
   inputs:
@@ -9,9 +17,26 @@ steps:
 
 - script: |
     yarn --frozen-lockfile
-  displayName: 'yarn install'
+  displayName: 'Yarn install'
 
 - script: |
     yarn tsc --noEmit
     yarn tslint --project .
-  displayName: 'typecheck and lint'
+  displayName: 'Typecheck and lint'
+
+- script: |
+    yarn poi-util-transpile --source-map --replace
+  displayName: 'Transpile to JavaScript'
+
+- task: CopyFiles@2
+  inputs:
+    targetFolder: '$(Build.ArtifactStagingDirectory)'
+    Contents: |
+     **/*.*
+     !.git/**/*
+     !node_modules/**/*
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    artifactName: drop
