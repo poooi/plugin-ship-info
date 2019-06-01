@@ -1,6 +1,6 @@
 // tslint:disable jsx-no-lambda
 
-import { Button, Classes, Intent, Tab, Tabs } from '@blueprintjs/core'
+import { Button, Callout, Classes, Intent, Tab, Tabs } from '@blueprintjs/core'
 import cls from 'classnames'
 import { each, findIndex, get } from 'lodash'
 import { rgba } from 'polished'
@@ -188,7 +188,7 @@ const PlannerContent = connect((state: { config: any }) => {
       if (captureSection.current) {
         captureRect(captureSection.current)
       }
-    }, [window])
+    }, [])
 
     return (
       <div>
@@ -206,6 +206,7 @@ const PlannerContent = connect((state: { config: any }) => {
             </Button>
           )}
         </ActionPanel>
+        <Callout intent={Intent.PRIMARY}>{t('helpContent')}</Callout>
         {activeTab === 'area' ? (
           <div>
             <div ref={captureSection}>

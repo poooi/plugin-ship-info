@@ -183,5 +183,6 @@
   "Collection": "コレクションの進捗状況",
   "Show fleet name": "艦隊名を表示",
   "European": "ヨーロッパ",
-  "Solomon Sea": "ソロモン海"
+  "Solomon Sea": "ソロモン海",
+  "helpContent": "現在の計画から艦むすを削除するには、右クリックしてください"
 }

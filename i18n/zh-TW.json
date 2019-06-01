@@ -184,5 +184,6 @@
   "Collection": "收集進度",
   "Show fleet name": "顯示艦隊名",
   "European": "歐洲艦隊",
-  "Solomon Sea": "所羅門海"
+  "Solomon Sea": "所羅門海",
+  "helpContent": "在艦娘上右鍵點擊可以將她從當前計劃中移出"
 }

@@ -80,5 +80,6 @@
   "第二次ベララベラ海戦": "Battle of Vella Lavella",
   "ラバウル空襲": "Bombing of Rabaul",
   "ブーゲンビル島沖海戦": "Battle of Empress Augusta Bay",
-  "セント・ジョージ岬沖海戦": "Battle of Cape St. George"
+  "セント・ジョージ岬沖海戦": "Battle of Cape St. George",
+  "helpContent": "Right click on a ship could remove it from current plan"
 }

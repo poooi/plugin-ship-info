@@ -46,5 +46,6 @@
   "Remodelable": "개장미완",
   "ship_tag": "출격해역: {{map}}",
   "Sally Area": "출격해역",
-  "No Sally Area": "미출격"
+  "No Sally Area": "미출격",
+  "helpContent": "Right click on a ship could remove it from current plan"
 }
