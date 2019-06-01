@@ -223,12 +223,15 @@ class ShipInfoTableAreaBase extends Component<
   }
 
   public render() {
-    const { ids, ships, sortName, sortOrder } = this.props
+    const { ids, ships, sortName, sortOrder, window } = this.props
     const { activeRow, activeColumn } = this.state
+
+    const hasSpacer = process.platform === 'darwin' && !window.isMain
 
     return (
       <GridWrapper>
-        {process.platform === 'darwin' && <Spacer />}
+        {/* leave some space for window handler */}
+        {hasSpacer && <Spacer />}
         <AutoSizer onResize={this.handleResize}>
           {({ height, width }) => (
             <>
@@ -249,7 +252,7 @@ class ShipInfoTableAreaBase extends Component<
                 ref={this.grid}
                 columnCount={WIDTHS.length}
                 columnWidth={this.getColumnWidth}
-                height={height - (process.platform === 'darwin' ? 75 : 40)}
+                height={height - (hasSpacer ? 75 : 40)}
                 itemData={map(ids, id => ships[id])}
                 itemKey={this.getItemKey}
                 rowCount={ids.length}
