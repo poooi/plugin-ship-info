@@ -3,3 +3,4 @@
 
 assets/build.js
 yarn.lock
+*.d.ts
