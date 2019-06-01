@@ -60,7 +60,7 @@ const Name = ({
           src={fileUrl(
             path.resolve(
               __dirname,
-              `../../assets/svg/fleet-indicator-${ship.fleetId + 1}.svg`,
+              `../../assets/images/fleet/${ship.fleetId + 1}.png`,
             ),
           )}
         />

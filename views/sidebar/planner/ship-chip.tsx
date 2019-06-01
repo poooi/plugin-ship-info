@@ -148,12 +148,12 @@ export const ShipChip = compose<
           <span>
             {fleetId > -1 && (
               <img
-                style={{ height: '10px' }}
+                height={16}
                 alt={`fleet: ${fleetId + 1}`}
                 src={fileUrl(
                   path.resolve(
                     __dirname,
-                    `../../../assets/svg/fleet-indicator-${fleetId + 1}.svg`,
+                    `../../../assets/images/fleet/${fleetId + 1}.png`,
                   ),
                 )}
               />
