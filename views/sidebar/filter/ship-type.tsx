@@ -142,7 +142,7 @@ export const ShipTypeCheck = compose<ComponentType<{}>>(
                 onClick={this.handleClickSuperType(checkedTypes, index)}
                 onContextMenu={this.handleRightClickSuperType(index)}
               >
-                {t(`Filter${supertype.name}`)}
+                {t(supertype.name)}
               </SuperTypeOption>
             ))}
           </Checkbox>

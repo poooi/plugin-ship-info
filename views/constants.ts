@@ -41,7 +41,7 @@ export const shipSuperTypeMap: IShipSuperType[] = [
   },
   {
     id: [15, 16, 17, 19, 20, 22],
-    name: 'Others',
+    name: 'Auxiliary',
   },
 ]
 
