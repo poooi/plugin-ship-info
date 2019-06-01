@@ -543,17 +543,24 @@ export const fileUrl = (pathname: string): string =>
     slashes: true,
   })
 
-export const captureRect = async (query: string, mountPoint: HTMLElement) => {
-  const rect = mountPoint.querySelector<HTMLElement>(query)
+export const captureRect = async (rect: HTMLElement) => {
   if (!rect) {
     return
   }
   const { width, height } = rect.getBoundingClientRect()
-  const canvas = await html2canvas(rect, {
-    allowTaint: true,
-    backgroundColor: '#333',
-    height: _.ceil(height, 16),
-    width: _.ceil(width, 16),
-  })
+
+  let canvas
+
+  try {
+    canvas = await html2canvas(rect, {
+      allowTaint: true,
+      backgroundColor: '#333',
+      height: _.ceil(height, 16),
+      width: _.ceil(width, 16),
+    })
+  } catch (e) {
+    console.error(e)
+    return
+  }
   remote.getCurrentWebContents().downloadURL(canvas.toDataURL('image/png'))
 }

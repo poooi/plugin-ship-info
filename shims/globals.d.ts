@@ -16,4 +16,5 @@ interface Window {
   config: IConfig
   language: string
   getStore: (path?: string) => any
+  isMain: boolean
 }

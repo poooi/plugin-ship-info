@@ -1,5 +1,5 @@
 import fp from 'lodash/fp'
-import React, { Dispatch, useCallback } from 'react'
+import React, { forwardRef, Ref, RefObject, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { connect, DispatchProp } from 'react-redux'
 import styled from 'styled-components'
@@ -19,7 +19,7 @@ const getDPAction = (
   shipId: number,
   fill: number,
 ): ThunkAction<void, any, void, Action<any>> => (
-  dispatch: Dispatch<any>,
+  dispatch: ThunkDispatch<any, void, Action<any>>,
   getState: () => any,
 ) => {
   const planMap = deckPlannerShipMapSelector(getState())
@@ -69,52 +69,59 @@ interface IProps extends DispatchProp {
   dispatch: ThunkDispatch<any, void, Action<any>>
 }
 
-export const ShipGrid = connect(state => ({
-  ships: shipMenuDataSelector(state),
-}))(({ ships, dispatch, fill }: IProps) => {
-  const handleClick = useCallback(
-    (shipId: number) => {
-      dispatch(getDPAction(shipId, fill))
-    },
-    [dispatch, fill],
-  )
+export const ShipGrid = connect(
+  state => ({
+    ships: shipMenuDataSelector(state),
+  }),
+  null,
+  null,
+  { forwardRef: true },
+)(
+  forwardRef(({ ships, dispatch, fill }: IProps, ref: Ref<HTMLDivElement>) => {
+    const handleClick = useCallback(
+      (shipId: number) => {
+        dispatch(getDPAction(shipId, fill))
+      },
+      [dispatch, fill],
+    )
 
-  const handleContextmenu = useCallback(
-    (shipId: number) => {
-      dispatch(getDPAction(shipId, -1))
-    },
-    [dispatch],
-  )
+    const handleContextmenu = useCallback(
+      (shipId: number) => {
+        dispatch(getDPAction(shipId, -1))
+      },
+      [dispatch],
+    )
 
-  const { t } = useTranslation(['poi-plugin-ship-info'])
+    const { t } = useTranslation(['poi-plugin-ship-info'])
 
-  return (
-    <div>
-      {shipSuperTypeMap.map(stype => (
-        <div key={stype.name}>
-          <h2>{t(stype.name)}</h2>
-          <Grid>
-            {fp.flow(
-              fp.filter((ship: IShipInfoMenuData) =>
-                stype.id.includes(ship.typeId),
-              ),
-              fp.sortBy([
-                (ship: IShipInfoMenuData) => -ship.lv,
-                ship => -ship.id,
-              ]),
-              fp.map(ship => (
-                <ShipItem
-                  ship={ship}
-                  key={ship.id}
-                  // tslint:disable jsx-no-lambda
-                  onClick={() => handleClick(ship.id)}
-                  onContextmenu={() => handleContextmenu(ship.id)}
-                />
-              )),
-            )(ships)}
-          </Grid>
-        </div>
-      ))}
-    </div>
-  )
-})
+    return (
+      <div ref={ref}>
+        {shipSuperTypeMap.map(stype => (
+          <div key={stype.name}>
+            <h2>{t(stype.name)}</h2>
+            <Grid>
+              {fp.flow(
+                fp.filter((ship: IShipInfoMenuData) =>
+                  stype.id.includes(ship.typeId),
+                ),
+                fp.sortBy([
+                  (ship: IShipInfoMenuData) => -ship.lv,
+                  ship => -ship.id,
+                ]),
+                fp.map(ship => (
+                  <ShipItem
+                    ship={ship}
+                    key={ship.id}
+                    // tslint:disable jsx-no-lambda
+                    onClick={() => handleClick(ship.id)}
+                    onContextmenu={() => handleContextmenu(ship.id)}
+                  />
+                )),
+              )(ships)}
+            </Grid>
+          </div>
+        ))}
+      </div>
+    )
+  }),
+)

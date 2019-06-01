@@ -4,7 +4,16 @@ import { Button, Classes, Intent, Tab, Tabs } from '@blueprintjs/core'
 import cls from 'classnames'
 import { each, findIndex, get } from 'lodash'
 import { rgba } from 'polished'
-import React, { Dispatch, useCallback, useEffect, useState } from 'react'
+import React, {
+  Dispatch,
+  Ref,
+  RefObject,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
 import FontAwesome from 'react-fontawesome'
 import { useTranslation } from 'react-i18next'
 import { connect, DispatchProp } from 'react-redux'
@@ -13,6 +22,7 @@ import { observe } from 'redux-observers'
 import { ThunkDispatch } from 'redux-thunk'
 import styled from 'styled-components'
 import { Dialog } from 'views/components/etc/overlay'
+import { WindowEnv } from 'views/components/etc/window-env'
 import { store } from 'views/create-store'
 
 import {
@@ -170,6 +180,16 @@ const PlannerContent = connect((state: { config: any }) => {
 
     const [fill, setFill] = useState(-1)
 
+    const captureSection = useRef<HTMLDivElement>(null)
+
+    const { window } = useContext(WindowEnv)
+
+    const capture = useCallback(() => {
+      if (captureSection.current) {
+        captureRect(captureSection.current)
+      }
+    }, [window])
+
     return (
       <div>
         <ActionPanel>
@@ -180,10 +200,15 @@ const PlannerContent = connect((state: { config: any }) => {
           >
             {t('Refresh')}
           </Button>
+          {!window.isMain && (
+            <Button intent={Intent.PRIMARY} minimal={true} onClick={capture}>
+              {t('Save to image')}
+            </Button>
+          )}
         </ActionPanel>
         {activeTab === 'area' ? (
           <div>
-            <div>
+            <div ref={captureSection}>
               {areas.map(area => (
                 <Area
                   key={area.color}
@@ -219,7 +244,7 @@ const PlannerContent = connect((state: { config: any }) => {
                 ))}
               </Checkbox>
             </Palette>
-            <ShipGrid fill={fill} />
+            <ShipGrid fill={fill} ref={captureSection as RefObject<any>} />
           </div>
         )}
       </div>
