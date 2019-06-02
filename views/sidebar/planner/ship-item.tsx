@@ -53,11 +53,17 @@ const ShipGridCell = styled.div.attrs({
 
   ${Gradient} {
     z-index: 0;
-    background: ${props => rgba(props.color, props.useAvatar ? 0.5 : 0.75)};
+    background: ${props =>
+      `linear-gradient(to right, transparent, ${rgba(
+        props.color,
+        props.useAvatar ? 0.5 : 0.75,
+      )})`};
   }
 
-  &:hover ${ShipAvatar} {
-    z-index: 5;
+  &:hover {
+    ${ShipAvatar} {
+      z-index: 5;
+    }
   }
 }
 `
@@ -66,6 +72,8 @@ const Text = styled.div`
   z-index: 10;
   position: absolute;
   right: 0;
+  width: 100%;
+  overflow: hidden;
 `
 
 const ShipName = styled.div`
@@ -74,6 +82,10 @@ const ShipName = styled.div`
   padding: 0 1ex;
   color: white;
   user-select: none;
+  max-width: 75%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `
 
 const ShipLevel = styled.div`
