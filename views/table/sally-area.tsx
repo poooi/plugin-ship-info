@@ -35,7 +35,7 @@ export const SallyArea = connect(
 
   return (
     <Tooltip position={Position.TOP} content={t('ship_tag', { map: mapname })}>
-      <Tag style={{ color }}>
+      <Tag minimal={true} style={{ color }}>
         <FontAwesome name="tag" />
       </Tag>
     </Tooltip>
