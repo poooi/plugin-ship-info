@@ -374,7 +374,7 @@ export const allShipRowsMapSelector = createSelector(
 export const shipInfoFiltersSelector = createSelector(
   [configSelector, fcdSelector],
   (config, { shiptag = {} }) => ({
-    maxLevel: get(config, 'plugin.ShipInfo.filters.maxLevel', 165),
+    maxLevel: get(config, 'plugin.ShipInfo.filters.maxLevel', 10000),
     minLevel: get(config, 'plugin.ShipInfo.filters.minLevel', 1),
   }),
 )
