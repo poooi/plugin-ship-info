@@ -197,7 +197,7 @@ const handleModernizationFilter = (
   }
 }
 
-const handleRemodelFilter = memoize((after: number, remodelRadio: number) => {
+const handleRemodelFilter = (after: number, remodelRadio: number) => {
   const remodelable = after !== 0
   switch (remodelRadio) {
     case 1:
@@ -208,7 +208,7 @@ const handleRemodelFilter = memoize((after: number, remodelRadio: number) => {
     default:
       return true
   }
-})
+}
 
 const handleSallyAreaFilter = (
   sallyArea: number | undefined,
