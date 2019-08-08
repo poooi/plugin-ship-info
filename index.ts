@@ -1,5 +1,6 @@
-import { Display, screen } from 'electron'
+import { Display, remote } from 'electron'
 
+const screen = remote.screen
 const { workArea } = screen.getPrimaryDisplay()
 let { x, y, width, height } = global.config.get(
   'plugin.ShipInfo.bounds',
