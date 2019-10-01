@@ -52,7 +52,7 @@ const Name = ({
   return (
     <Cell {...props}>
       {enableAvatar && <Avatar mstId={ship.shipId} height={35} />}
-      <span title={t(ship.name)}>{t(ship.name)}</span>
+      <span title={ship.name}>{t(ship.name)}</span>
       {ship.fleetId > -1 && (
         <img
           alt={`fleet: ${ship.fleetId + 1}`}
