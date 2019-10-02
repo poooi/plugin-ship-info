@@ -348,6 +348,11 @@ export const shipTypes = {
   22: __('AO'),
 }
 
+export const getShipCode = (ship: IShip) =>
+  window.language === 'en-US'
+    ? shipTypes[ship.typeId as keyof typeof shipTypes]
+    : __(ship.type)
+
 export const hexToRGBA = (hex: string, opacity = 1) => {
   if (/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)) {
     const color = hex.substring(1)

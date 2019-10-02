@@ -1,6 +1,7 @@
 import { get, map } from 'lodash'
 import i18next from 'views/env-parts/i18next'
 import { IShip } from '../../types'
+import { getShipCode } from '../../utils'
 
 let _slotitems: any
 let $slotitems: any
@@ -59,9 +60,9 @@ interface IFieldWithKey {
   value: (ship: any) => string
 }
 
-const tlField = (key: string, f = (s: string) => s) => ({
+const tlField = (key: string, f?: (s: any) => string) => ({
   key,
-  value: (ship: any) => __(f(ship[key])),
+  value: (ship: any) => __(f ? f(ship) : ship[key]),
 })
 
 export const fields: Array<IFieldWithKey | string> = [
@@ -70,7 +71,7 @@ export const fields: Array<IFieldWithKey | string> = [
   'yomi',
   'fleetId',
   'sallyArea',
-  tlField('type'),
+  tlField('type', getShipCode),
   'soku',
   'lv',
   'cond',
@@ -120,7 +121,7 @@ export const fields: Array<IFieldWithKey | string> = [
   'losshp',
   'repairtime',
   'inDock',
-  tlField('after', after => get($ships, `${after}.api_name`, 'NA')),
+  tlField('after', ship => get($ships, `${ship.after}.api_name`, 'NA')),
   'afterLevel',
 ]
 

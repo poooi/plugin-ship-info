@@ -12,7 +12,7 @@ import { resolveTime } from 'views/utils/tools'
 import { rgba } from 'polished'
 import { IShip } from 'views/types'
 import { sokuInterpretation } from '../constants'
-import { fileUrl, getTimePerHP, shipTypes } from '../utils'
+import { fileUrl, getShipCode, getTimePerHP } from '../utils'
 import { SallyArea } from './sally-area'
 import { Slotitems } from './slotitems'
 
@@ -70,16 +70,9 @@ const Name = ({
   )
 }
 
-const Type = ({ ship, ...props }: ICellProps) => {
-  const { t } = useTranslation(['resources'])
-  return (
-    <Cell {...props}>
-      {window.language === 'en-US'
-        ? shipTypes[ship.typeId as keyof typeof shipTypes]
-        : t(ship.type)}
-    </Cell>
-  )
-}
+const Type = ({ ship, ...props }: ICellProps) => (
+  <Cell {...props}>{getShipCode(ship)}</Cell>
+)
 
 const Soku = ({ ship, ...props }: ICellProps) => {
   const { soku } = ship
