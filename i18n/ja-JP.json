@@ -121,6 +121,7 @@
   "repairtime": "入渠時間",
   "inDock": "入渠",
   "after": "改造",
+  "afterLevel": "改造レベル",
   "sallyArea": "出擊限定",
   "soku": "速力",
   "Export Data": "データ輸出",

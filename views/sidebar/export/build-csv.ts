@@ -121,6 +121,7 @@ export const fields: Array<IFieldWithKey | string> = [
   'repairtime',
   'inDock',
   tlField('after', after => get($ships, `${after}.api_name`, 'NA')),
+  'afterLevel',
 ]
 
 export const buildCsv = (rows: IShip[], sep = ',', end = '\n') => {

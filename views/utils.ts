@@ -80,6 +80,7 @@ export const getShipInfoData = (
   const repairtime = Math.floor(ship.api_ndock_time / 1000.0)
   const inDock = repairs.includes(ship.api_id)
   const after = parseInt($ship.api_aftershipid!, 10)
+  const afterLevel = $ship.api_afterlv!
   const sallyArea = ship.api_sally_area || 0
   const soku = ship.api_soku
 
@@ -193,6 +194,7 @@ export const getShipInfoData = (
     repairtime,
     inDock,
     after,
+    afterLevel,
     sallyArea,
     soku,
     karyokuNow,
@@ -248,6 +250,7 @@ export const shipInfoShape = {
   losshp: PropTypes.number.isRequired,
   repairtime: PropTypes.number.isRequired,
   after: PropTypes.number.isRequired,
+  afterLevel: PropTypes.number.isRequired,
   sallyArea: PropTypes.number,
   soku: PropTypes.number.isRequired,
   karyokuNow: PropTypes.number.isRequired,
