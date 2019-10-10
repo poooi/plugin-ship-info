@@ -64,7 +64,7 @@
     "poi-util-transpile": "^10.3.4",
     "prettier": "^1.17.1",
     "stylelint": "^10.0.1",
-    "stylelint-config-standard": "^18.3.0",
+    "stylelint-config-standard": "^19.0.0",
     "tslint": "^5.17.0",
     "tslint-config-prettier": "^1.18.0",
     "tslint-plugin-prettier": "^2.0.1",
