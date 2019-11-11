@@ -50,9 +50,8 @@ import {
 
 const __ = i18next.getFixedT(null, ['poi-plugin-ship-info', 'resources'])
 
-export const graphSelector = createSelector(
-  [constSelector],
-  constState => keyBy(constState.$shipgraph, 'api_id'),
+export const graphSelector = createSelector([constSelector], constState =>
+  keyBy(constState.$shipgraph, 'api_id'),
 )
 
 export const shipInfoConfigSelector = createSelector(
@@ -107,15 +106,11 @@ export const shipFleetIdMapSelector = createSelector(
 )
 
 export const shipFleetIdSelectorFactory = memoize(shipId =>
-  createSelector(
-    [shipFleetIdMapSelector],
-    fleetIdMap => fleetIdMap[shipId],
-  ),
+  createSelector([shipFleetIdMapSelector], fleetIdMap => fleetIdMap[shipId]),
 )
 
-export const rawValueConfigSelector = createSelector(
-  [configSelector],
-  config => get(config, 'plugin.ShipInfo.rawValue', false),
+export const rawValueConfigSelector = createSelector([configSelector], config =>
+  get(config, 'plugin.ShipInfo.rawValue', false),
 )
 
 export const shipTableDataSelectorFactory = memoize(shipId =>
@@ -429,17 +424,14 @@ export const filterShipIdsSelector = createSelector(
 )
 
 export const sallyAreaSelectorFactory = memoize(area =>
-  createSelector(
-    [fcdSelector],
-    fcd => ({
-      color: get(fcd, `shiptag.color.${area - 1}`, ''),
-      mapname: get(
-        fcd,
-        `shiptag.mapname.${area - 1}`,
-        __('unknown_area', { area }),
-      ),
-    }),
-  ),
+  createSelector([fcdSelector], fcd => ({
+    color: get(fcd, `shiptag.color.${area - 1}`, ''),
+    mapname: get(
+      fcd,
+      `shiptag.mapname.${area - 1}`,
+      __('unknown_area', { area }),
+    ),
+  })),
 )
 
 export interface IShipInfoMenuData {
@@ -533,15 +525,14 @@ const ourShipsSelector = createSelector<
       .value() as IDictionary<APIMstShip>,
 )
 
-const beforeShipMapSelector = createSelector(
-  [ourShipsSelector],
-  $ships =>
-    _($ships)
-      .filter<APIMstShip>(((ship: APIMstShip) =>
-        +(ship.api_aftershipid || 0) > 0) as any)
-      .map((ship: APIMstShip) => [ship.api_aftershipid, ship.api_id])
-      .fromPairs()
-      .value(),
+const beforeShipMapSelector = createSelector([ourShipsSelector], $ships =>
+  _($ships)
+    .filter<APIMstShip>(
+      ((ship: APIMstShip) => +(ship.api_aftershipid || 0) > 0) as any,
+    )
+    .map((ship: APIMstShip) => [ship.api_aftershipid, ship.api_id])
+    .fromPairs()
+    .value(),
 )
 
 // the chain starts from each ship, thus incomplete if the ship is not the starting one

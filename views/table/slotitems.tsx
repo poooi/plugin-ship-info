@@ -83,11 +83,14 @@ const Slotitem = ({ item, isEx = false }: { item: Item; isEx?: boolean }) => {
 
 export const Slotitems = connect(
   (state, { slot, exslot }: { slot: number[]; exslot: number }) => {
-    const items = map(filter(slot, itemId => itemId > 0), itemId => {
-      const [item = {}, $item = {}] =
-        equipDataSelectorFactory(itemId)(state) || []
-      return { ...$item, ...item }
-    })
+    const items = map(
+      filter(slot, itemId => itemId > 0),
+      itemId => {
+        const [item = {}, $item = {}] =
+          equipDataSelectorFactory(itemId)(state) || []
+        return { ...$item, ...item }
+      },
+    )
     let exitem
     if (exslot > 0) {
       const [item = {}, $item = {}] =
