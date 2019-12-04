@@ -1,4 +1,4 @@
-import { TranslationFunction } from 'i18next'
+import { TFunction } from 'i18next'
 import { get } from 'lodash'
 import React, { Component, ComponentType } from 'react'
 import { withTranslation, WithTranslation } from 'react-i18next'
@@ -13,7 +13,7 @@ interface IProps extends DispatchProp, WithTranslation {
   options: { [key: string]: string }
   default: number
   currentValue: number
-  t: TranslationFunction
+  t: TFunction
 }
 
 export const RadioCheck = compose<

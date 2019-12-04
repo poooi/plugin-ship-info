@@ -1,5 +1,5 @@
 import cls from 'classnames'
-import { TranslationFunction } from 'i18next'
+import { TFunction } from 'i18next'
 import { get, intersection, isEqual, map, size } from 'lodash'
 import PropTypes from 'prop-types'
 import React, { Component, ComponentType } from 'react'
@@ -16,7 +16,7 @@ interface IProps {
   $shipTypes: any
   checked: boolean[]
   checkedAll: boolean
-  t: TranslationFunction
+  t: TFunction
 }
 
 const SuperTypeOption = styled(CheckboxOption)`

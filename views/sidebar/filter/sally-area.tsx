@@ -1,5 +1,5 @@
 import cls from 'classnames'
-import { TranslationFunction } from 'i18next'
+import { TFunction } from 'i18next'
 import { get } from 'lodash'
 import { rgba } from 'polished'
 import PropTypes from 'prop-types'
@@ -16,7 +16,7 @@ interface IProps {
   mapname: string[]
   color: string[]
   displayFleetName: boolean
-  t: TranslationFunction
+  t: TFunction
 }
 
 export const SallyAreaCheck = compose<ComponentType<{}>>(
