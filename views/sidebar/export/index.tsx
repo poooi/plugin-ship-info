@@ -2,7 +2,7 @@ import { Button, ButtonGroup, HTMLSelect } from '@blueprintjs/core'
 import { promisify } from 'bluebird'
 import { clipboard, remote } from 'electron'
 import { outputFile } from 'fs-extra'
-import { map, values } from 'lodash'
+import { map, size, values } from 'lodash'
 import React, { Component, FormEvent, useCallback } from 'react'
 import FA from 'react-fontawesome'
 import { useTranslation, withTranslation, WithTranslation } from 'react-i18next'
@@ -126,31 +126,30 @@ const ExportContent = withTranslation(['poi-plugin-ship-info'])(
       clipboard.writeText(buildCsv(this.getShipData(), sep, end))
     }
 
-    public handleExportToFile = () => {
+    public handleExportToFile = async () => {
       const { t } = this.props
       const bw = remote.getCurrentWindow()
-      dialog.showSaveDialog(
-        bw,
-        {
-          filters: [
-            {
-              extensions: ['csv'],
-              name: 'CSV file',
-            },
-          ],
-          title: t('Position the file to save into'),
-        },
-        async filename => {
-          if (filename) {
-            const { sep, end } = this.state
-            try {
-              await outputFile(filename, buildCsv(this.getShipData(), sep, end))
-            } catch (e) {
-              console.error(e)
-            }
-          }
-        },
-      )
+      const selection = await dialog.showSaveDialog(bw, {
+        filters: [
+          {
+            extensions: ['csv'],
+            name: 'CSV file',
+          },
+        ],
+        title: t('Position the file to save into'),
+      })
+
+      if (!selection.canceled && selection.filePath) {
+        const { sep, end } = this.state
+        try {
+          await outputFile(
+            selection.filePath,
+            buildCsv(this.getShipData(), sep, end),
+          )
+        } catch (e) {
+          console.error(e)
+        }
+      }
     }
 
     public render() {
