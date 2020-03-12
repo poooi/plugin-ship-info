@@ -62,7 +62,7 @@
     "lint-staged": "^9.2.0",
     "poi-util-transpile": "^10.3.4",
     "prettier": "^1.19.1",
-    "stylelint": "^12.0.1",
+    "stylelint": "^13.2.1",
     "stylelint-config-standard": "^20.0.0",
     "tslint": "^5.17.0",
     "tslint-config-prettier": "^1.18.0",
