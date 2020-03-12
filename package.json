@@ -59,7 +59,7 @@
     "babel-eslint": "10.1.0",
     "husky": "^4.2.3",
     "kcsapi": "^1.190112.0",
-    "lint-staged": "^9.2.0",
+    "lint-staged": "^10.0.8",
     "poi-util-transpile": "^10.3.4",
     "prettier": "^1.19.1",
     "stylelint": "^13.2.1",
