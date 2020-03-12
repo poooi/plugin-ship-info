@@ -15,7 +15,6 @@ interface ISallyAreaProps extends DispatchProp {
 }
 
 export const SallyArea = connect(
-  // @ts-ignore
   (state, props: Omit<ISallyAreaProps, 'color' | 'mapname' | 'dispatch'>) => {
     const { area } = props
     const { mapname, color } = sallyAreaSelectorFactory(area)(state)
@@ -35,7 +34,7 @@ export const SallyArea = connect(
 
   return (
     <Tooltip position={Position.TOP} content={t('ship_tag', { map: mapname })}>
-      <Tag minimal={true} style={{ color }}>
+      <Tag minimal style={{ color }}>
         <FontAwesome name="tag" />
       </Tag>
     </Tooltip>

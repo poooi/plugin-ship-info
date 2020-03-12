@@ -102,7 +102,7 @@ export const SallyAreaCheck = compose<ComponentType<{}>>(
           </CheckboxOption>
           {mapname.map((name, idx) => (
             <CheckboxOption
-              key={idx}
+              key={name}
               onClick={this.handleClickBox(idx + 1)}
               style={{
                 backgroundColor: checked[idx + 1] ? rgba(color[idx], 0.75) : '',

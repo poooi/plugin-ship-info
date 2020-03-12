@@ -195,13 +195,13 @@ const PlannerContent = connect((state: { config: any }) => {
         <ActionPanel>
           <Button
             intent={Intent.PRIMARY}
-            minimal={true}
+            minimal
             onClick={handleRefresh}
           >
             {t('Refresh')}
           </Button>
           {!window.isMain && (
-            <Button intent={Intent.PRIMARY} minimal={true} onClick={capture}>
+            <Button intent={Intent.PRIMARY} minimal onClick={capture}>
               {t('Save to image')}
             </Button>
           )}
@@ -284,13 +284,13 @@ export const Planner = () => {
 
   return (
     <>
-      <Button minimal={true} onClick={() => setIsOpen(true)}>
+      <Button minimal onClick={() => setIsOpen(true)}>
         <FontAwesome name="tags" />
       </Button>
       <PlannerDialog
         isOpen={isOpen}
-        autoFocus={true}
-        canOutsideClickClose={true}
+        autoFocus
+        canOutsideClickClose
         onClose={() => setIsOpen(false)}
         title={
           <Title>

@@ -135,7 +135,7 @@ const Menu = compose<ComponentType<{}>>(
             onChange={this.handleQueryChange}
             rightElement={
               <Button
-                minimal={true}
+                minimal
                 onClick={this.handleClear}
                 intent={Intent.WARNING}
               >
@@ -145,9 +145,9 @@ const Menu = compose<ComponentType<{}>>(
           />
 
           <Tabs
-            vertical={true}
+            vertical
             id="ship-selection"
-            renderActiveTabPanelOnly={true}
+            renderActiveTabPanelOnly
           >
             {map(searchOptions, ({ name, value: type }) => (
               <Tab
@@ -202,8 +202,8 @@ const Menu = compose<ComponentType<{}>>(
 
 // separate menu from popover component to prevent unnecessary updates
 export const AddShip = ({ ...props }) => (
-  <Popover hasBackdrop={true}>
-    <Button minimal={true}>
+  <Popover hasBackdrop>
+    <Button minimal>
       <FA name="plus" />
     </Button>
     <Menu {...props} />

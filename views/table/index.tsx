@@ -48,7 +48,7 @@ const GridHeader = styled(Grid)`
   }
 `
 
-interface IShipInfoTableAreaBaseProps extends DispatchProp {
+interface ShipInfoTableAreaBaseProps extends DispatchProp {
   ids: number[]
   ships: Dictionary<IShip>
   window: Window
@@ -56,23 +56,31 @@ interface IShipInfoTableAreaBaseProps extends DispatchProp {
   sortOrder: number
 }
 
-interface IShipInfoTableAreaBaseState {
+interface ShipInfoTableAreaBaseState {
   activeRow: number
   activeColumn: number
 }
 
 class ShipInfoTableAreaBase extends Component<
-  IShipInfoTableAreaBaseProps,
-  IShipInfoTableAreaBaseState
+  ShipInfoTableAreaBaseProps,
+  ShipInfoTableAreaBaseState
 > {
   public tableWidth = sum(WIDTHS)
+
   public grid = createRef<Grid>()
+
   public gridHeader = createRef<Grid>()
+
   public tableArea = createRef<HTMLDivElement>()
-  public activeColumn: number = -1
-  public activeRow: number = -1
-  public columnStopIndex: number = 0
-  public rowStopIndex: number = 0
+
+  public activeColumn = -1
+
+  public activeRow = -1
+
+  public columnStopIndex = 0
+
+  public rowStopIndex = 0
+
   public tableAreaWidth: number
 
   public handleClickTitle = memoize((title: string) => () => {
@@ -95,7 +103,7 @@ class ShipInfoTableAreaBase extends Component<
     }
   }, 100)
 
-  constructor(props: IShipInfoTableAreaBaseProps) {
+  constructor(props: ShipInfoTableAreaBaseProps) {
     super(props)
     this.onClickFactory = memoize(this.onClickFactory)
     this.state = {

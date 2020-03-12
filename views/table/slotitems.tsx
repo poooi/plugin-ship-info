@@ -106,6 +106,6 @@ export const Slotitems = connect(
   <>
     {items &&
       items.map(item => <Slotitem item={item} key={item.api_id || 0} />)}
-    {exitem && <Slotitem item={exitem} isEx={true} />}
+    {exitem && <Slotitem item={exitem} isEx />}
   </>
 ))

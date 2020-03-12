@@ -47,7 +47,7 @@ export const LevelRange = connect((state: { config: any }) => ({
         min={1}
         max={1000}
         stepSize={1}
-        clampValueOnBlur={true}
+        clampValueOnBlur
       />
       <FA name="arrows-alt-h" />
       <NumericInput
@@ -57,7 +57,7 @@ export const LevelRange = connect((state: { config: any }) => ({
         min={1}
         max={1000}
         stepSize={1}
-        clampValueOnBlur={true}
+        clampValueOnBlur
       />
     </Checkbox>
   )

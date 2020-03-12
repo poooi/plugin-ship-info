@@ -35,7 +35,6 @@ interface IProps extends DispatchProp, WithTranslation {
 
 export const ShipChip = compose<
   ComponentType<
-    // @ts-ignore
     Omit<
       IProps,
       | keyof DispatchProp
@@ -97,14 +96,14 @@ export const ShipChip = compose<
 
       return (
         <Chip
-          minimal={true}
-          interactive={true}
+          minimal
+          interactive
           onRemove={this.handleRemove}
           onContextMenu={!(area > 0) ? this.handleRemove : undefined}
         >
           <Popover
             position={Position.TOP}
-            hasBackdrop={true}
+            hasBackdrop
             content={
               <Menu>
                 {others.map(_area => (
@@ -115,7 +114,7 @@ export const ShipChip = compose<
                       <>
                         {t('Move to ')}{' '}
                         <Tag
-                          minimal={true}
+                          minimal
                           style={{
                             color: _area.color,
                           }}

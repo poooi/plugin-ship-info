@@ -17,7 +17,6 @@ import { createSelector } from 'reselect'
 import i18next from 'views/env-parts/i18next'
 import { toRomaji } from 'wanakana'
 
-import { IShip } from './types'
 
 import {
   configSelector,
@@ -40,6 +39,7 @@ import {
 import { APISlotItem } from 'kcsapi/api_get_member/require_info/response'
 import { APIMstShip, APIMstSlotitem } from 'kcsapi/api_start2/getData/response'
 import { any } from 'prop-types'
+import { IShip } from './types'
 import { PLUGIN_KEY } from './redux'
 import {
   getShipInfoData,

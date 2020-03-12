@@ -13,7 +13,8 @@ import { outputJson } from 'fs-extra'
 //   fw.write(path, (''+i).repeat(10000))
 // }
 export default class FileWriter {
-  public writing: boolean = false
+  public writing = false
+
   public _queue: any[] = []
 
   public write = (

@@ -3,6 +3,7 @@ import styled, { createGlobalStyle, ThemeProps } from 'styled-components'
 
 import { Sidebar } from './sidebar'
 import { TableView } from './table'
+
 export { reducer } from './redux'
 
 const ShipInfo = styled.div`

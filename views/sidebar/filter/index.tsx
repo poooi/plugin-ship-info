@@ -29,8 +29,8 @@ const Content = styled.div`
 `
 
 export const Filter = () => (
-  <Popover hasBackdrop={true}>
-    <Button minimal={true}>
+  <Popover hasBackdrop>
+    <Button minimal>
       <FA name="filter" />
     </Button>
     <Container>

@@ -20,8 +20,8 @@ steps:
   displayName: 'Yarn install'
 
 - script: |
-    yarn tsc --noEmit && yarn tslint --project .
-  displayName: 'Typecheck and lint'
+    yarn tsc --noEmit
+  displayName: 'Typecheck'
 
 - script: |
     yarn poi-util-transpile --source-map --replace

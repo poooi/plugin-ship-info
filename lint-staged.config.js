@@ -1,4 +1,4 @@
 module.exports = {
   '*.{css}': 'stylelint',
-  '*.{ts,tsx}': ['tslint --fix', 'git add'],
+  '*.{ts,tsx}': ['eslint --fix', 'git add'],
 }

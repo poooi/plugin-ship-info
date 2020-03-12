@@ -18,7 +18,6 @@ interface IProps extends DispatchProp, WithTranslation {
 
 export const RadioCheck = compose<
   ComponentType<
-    // @ts-ignore
     Omit<IProps, 't' | 'currentValue' | 'dispatch' | 'i18n' | 'tReady'>
   >
 >(
@@ -39,7 +38,7 @@ export const RadioCheck = compose<
     public render() {
       const { label, options, currentValue, t } = this.props
       return (
-        <Checkbox halfWidth={true}>
+        <Checkbox halfWidth>
           <CheckboxLabel>{t(label)}</CheckboxLabel>
           {Object.keys(options).map(key => (
             <CheckboxOption

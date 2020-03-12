@@ -15,8 +15,8 @@ import { IShip } from './types'
 const __ = i18next.getFixedT(null, ['poi-plugin-ship-info', 'resources'])
 
 export const getTimePerHP = (
-  api_lv: number = 1,
-  api_stype: number = 1,
+  api_lv = 1,
+  api_stype = 1,
 ): number => {
   let factor = 0
   if (repairFactor[api_stype] != null) {

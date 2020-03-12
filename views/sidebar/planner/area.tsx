@@ -64,10 +64,10 @@ export const Area = connect<
         id => ((keyShips[id] || {}) as IShipInfoMenuData).superTypeIndex,
       )
       return (
-        <Container interactive={true}>
+        <Container interactive>
           <Header>
             <h5>
-              <Tag style={{ color: area.color }} minimal={true}>
+              <Tag style={{ color: area.color }} minimal>
                 <FA name="tag" />
               </Tag>{' '}
               {area.name}
