@@ -80,7 +80,7 @@ const Menu = compose<ComponentType<{}>>(
   })),
 )(
   class MenuBase extends Component<IProps> {
-    public fuse: Fuse<IShipInfoMenuData>
+    public fuse: Fuse<IShipInfoMenuData, any>
 
     public state = {
       query: '',
