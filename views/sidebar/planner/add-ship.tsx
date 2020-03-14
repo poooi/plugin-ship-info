@@ -144,11 +144,7 @@ const Menu = compose<ComponentType<{}>>(
             }
           />
 
-          <Tabs
-            vertical
-            id="ship-selection"
-            renderActiveTabPanelOnly
-          >
+          <Tabs vertical id="ship-selection" renderActiveTabPanelOnly>
             {map(searchOptions, ({ name, value: type }) => (
               <Tab
                 key={type}

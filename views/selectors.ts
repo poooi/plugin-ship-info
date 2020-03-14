@@ -17,7 +17,6 @@ import { createSelector } from 'reselect'
 import i18next from 'views/env-parts/i18next'
 import { toRomaji } from 'wanakana'
 
-
 import {
   configSelector,
   constSelector,

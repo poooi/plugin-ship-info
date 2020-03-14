@@ -193,11 +193,7 @@ const PlannerContent = connect((state: { config: any }) => {
     return (
       <div>
         <ActionPanel>
-          <Button
-            intent={Intent.PRIMARY}
-            minimal
-            onClick={handleRefresh}
-          >
+          <Button intent={Intent.PRIMARY} minimal onClick={handleRefresh}>
             {t('Refresh')}
           </Button>
           {!window.isMain && (

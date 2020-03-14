@@ -20,6 +20,7 @@ module.exports = {
     parser: '@typescript-eslint/parser',
     plugins: ['import', 'react', 'prettier', '@typescript-eslint'],
     rules: {
+      'prettier/prettier': 'warn',
       'import/extensions': [
         'error',
         'ignorePackages',
@@ -37,6 +38,8 @@ module.exports = {
       'import/prefer-default-export': 'off',
       'no-underscore-dangle': 'off',
       'react/state-in-constructor': 'off',
+      '@typescript-eslint/explicit-function-return-type': 'off',
+      '@typescript-eslint/no-non-null-assertion': 'off',
       '@typescript-eslint/interface-name-prefix': 'off', // FIXME: add this back after rework
       '@typescript-eslint/no-use-before-define': 'off', // FIXME: whitelist `window`
     },
