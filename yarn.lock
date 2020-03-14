@@ -2684,6 +2684,13 @@
   dependencies:
     "@types/react" "*"
 
+"@types/react-table@^7.0.11":
+  version "7.0.11"
+  resolved "https://registry.yarnpkg.com/@types/react-table/-/react-table-7.0.11.tgz#43360b966008a50f61c11f63ae5cd5b3daefea22"
+  integrity sha512-2c1IyfIDRe3age8rOCjWBwskm3jc+Zr4I4i2IAVKU0VBn/cYLWymsXR4YrY61FspjZxiU7u1LfWLZTr/OJnzLQ==
+  dependencies:
+    "@types/react" "*"
+
 "@types/react-textarea-autosize@^4.3.3":
   version "4.3.5"
   resolved "https://registry.yarnpkg.com/@types/react-textarea-autosize/-/react-textarea-autosize-4.3.5.tgz#6c4d2753fa1864c98c0b2b517f67bb1f6e4c46de"
@@ -7194,7 +7201,7 @@ jsx-ast-utils@^2.2.1, jsx-ast-utils@^2.2.3:
     array-includes "^3.0.3"
     object.assign "^4.1.0"
 
-kcsapi@^1.190112.0:
+kcsapi@^1.191214.0:
   version "1.191214.0"
   resolved "https://registry.yarnpkg.com/kcsapi/-/kcsapi-1.191214.0.tgz#7f3fa49710488f646ede3cf720afaea096714870"
   integrity sha512-laI7IZ7m/daAfbgTzdEha6KeC6Tsif59Gb8W3/ETpIl74jDLwv8hy3xcB8IseGZNlup0BPJoCzqPZJq2GOz2vQ==
@@ -9388,6 +9395,11 @@ react-syntax-highlighter@^11.0.2:
     lowlight "~1.11.0"
     prismjs "^1.8.4"
     refractor "^2.4.1"
+
+react-table@^7.0.0:
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/react-table/-/react-table-7.0.0.tgz#3297e454cbffe916626b184f5394d7e7e098fa36"
+  integrity sha512-/RKUYLuqrupUs0qHdjdQLmgwdQ9mgXPnpshqv2T+OQUGhTu0XuLXVc6GOIywemXNf6qjL3dj81O6zALLK74Emw==
 
 react-textarea-autosize@^7.1.0:
   version "7.1.2"

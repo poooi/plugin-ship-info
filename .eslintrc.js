@@ -40,6 +40,7 @@ module.exports = {
       'react/state-in-constructor': 'off',
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/no-non-null-assertion': 'off',
+      'react/prop-types': 'off',
       '@typescript-eslint/interface-name-prefix': 'off', // FIXME: add this back after rework
       '@typescript-eslint/no-use-before-define': 'off', // FIXME: whitelist `window`
     },
