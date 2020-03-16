@@ -19,9 +19,7 @@ declare module 'views/utils/selectors' {
     APIMstStype,
   } from 'kcsapi/api_start2/getData/response'
   import { Selector } from 'reselect'
-  interface Dictionary<T> {
-    [index: string]: T
-  }
+  import { Dictionary } from 'lodash'
 
   export interface IState {
     const: IConstState

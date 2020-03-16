@@ -1,17 +1,33 @@
 import React, { useMemo, FunctionComponent } from 'react'
-import { useTable, useBlockLayout } from 'react-table'
+import { useTable, useBlockLayout, UseTableColumnOptions } from 'react-table'
+import { values, Dictionary } from 'lodash'
 
 import { APIShip } from 'kcsapi/api_port/port/response'
+import { APIMstShip, APIMstStype } from 'kcsapi/api_start2/getData/response'
 
 import { getColumns } from './get-columns'
 
 interface TableProps {
-  ships: APIShip[]
-  shipsMeta: any
+  ships: PoiData<APIShip>
+  shipsMeta: PoiData<APIMstShip>
+  shipTypesMeta: PoiData<APIMstStype>
+  cells: Dictionary<UseTableColumnOptions<APIShip>['Cell']>
 }
 
-export const Table: FunctionComponent<TableProps> = ({ ships, shipsMeta }) => {
-  const columns = useMemo(() => getColumns(), [])
+const getRowId = (row: APIShip) => String(row.api_id)
+
+export const Table: FunctionComponent<TableProps> = ({
+  ships,
+  shipsMeta,
+  shipTypesMeta,
+  cells,
+}) => {
+  const columns = useMemo(
+    () => getColumns({ shipsMeta, shipTypesMeta, cells }),
+    [shipsMeta, shipTypesMeta],
+  )
+
+  const data = useMemo(() => values(ships), [ships])
 
   const {
     getTableProps,
@@ -21,8 +37,9 @@ export const Table: FunctionComponent<TableProps> = ({ ships, shipsMeta }) => {
     headers,
   } = useTable(
     {
-      data: ships,
+      data,
       columns,
+      getRowId,
     },
     useBlockLayout,
   )

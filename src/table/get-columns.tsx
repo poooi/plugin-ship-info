@@ -1,10 +1,27 @@
 import React from 'react'
+import { size, concat, filter, Dictionary } from 'lodash'
 
-import { Column } from 'react-table'
+import { Column, UseTableColumnOptions } from 'react-table'
 
 import { APIShip } from 'kcsapi/api_port/port/response'
+import { APIMstShip, APIMstStype } from 'kcsapi/api_start2/getData/response'
 
-export const getColumns = (): Column<APIShip>[] => [
+interface ColumnDependencies {
+  shipsMeta: PoiData<APIMstShip>
+  shipTypesMeta: PoiData<APIMstStype>
+  cells: Dictionary<UseTableColumnOptions<APIShip>['Cell']>
+}
+
+export const getColumns = ({
+  shipsMeta,
+  shipTypesMeta,
+  cells,
+}: ColumnDependencies): Column<APIShip>[] => [
+  {
+    id: 'index',
+    Header: 'Index',
+    accessor: (_, i) => i,
+  },
   {
     id: 'id',
     Header: 'ID',
@@ -15,13 +32,21 @@ export const getColumns = (): Column<APIShip>[] => [
     id: 'name',
     Header: 'Name',
     width: 220,
-    accessor: row => row.api_ship_id,
+    accessor: row => shipsMeta[row.api_ship_id]?.api_name,
+  },
+  {
+    id: 'tag',
+    Header: 'Area',
+    accessor: row => row.api_sally_area,
+    Cell: cells.tag,
   },
   {
     id: 'type',
     Header: 'Class',
     width: 90,
-    accessor: row => row.api_ship_id,
+    accessor: row => shipsMeta[row.api_ship_id]?.api_stype,
+    Cell: ({ row }) =>
+      shipTypesMeta[shipsMeta[row.original.api_ship_id]?.api_stype]?.api_name,
   },
   {
     id: 'speed',
@@ -105,7 +130,9 @@ export const getColumns = (): Column<APIShip>[] => [
     id: 'equipment',
     Header: 'Equipment',
     width: 180,
-    accessor: row => row.api_slot.concat(row.api_slot_ex),
+    accessor: row =>
+      size(filter(concat(row.api_slot, row.api_slot_ex), i => i > 0)),
+    Cell: cells.equipment,
   },
   {
     id: 'lock',
