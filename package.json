@@ -76,7 +76,7 @@
     "lint-staged": "^10.0.8",
     "poi-util-transpile": "^10.3.4",
     "polished": "^3.4.4",
-    "prettier": "^1.19.1",
+    "prettier": "^2.0.1",
     "react-i18next": "^11.3.3",
     "redux-thunk": "^2.3.0",
     "reselect": "^4.0.0",
