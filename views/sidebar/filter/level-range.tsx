@@ -13,8 +13,8 @@ interface IProps {
 }
 
 export const LevelRange = connect((state: { config: any }) => ({
-  maxLevel: get(state.config, 'plugin.ShipInfo.filters.maxLevel', 10000),
-  minLevel: get(state.config, 'plugin.ShipInfo.filters.minLevel', 1),
+  maxLevel: state.config.plugin?.ShipInfo?.filters?.maxLevel ?? 10000,
+  minLevel: state.config.plugin?.ShipInfo?.filters?.minLevel ?? 1,
 }))(({ minLevel, maxLevel }: IProps) => {
   const [min, setMin] = useState(minLevel)
   const [max, setMax] = useState(maxLevel)
