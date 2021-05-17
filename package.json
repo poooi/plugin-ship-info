@@ -41,7 +41,7 @@
   },
   "devDependencies": {
     "@blueprintjs/core": "^3.24.0",
-    "@commitlint/cli": "^8.0.0",
+    "@commitlint/cli": "^12.1.4",
     "@commitlint/config-conventional": "^8.0.0",
     "@types/bluebird": "^3.5.27",
     "@types/classnames": "^2.2.8",
