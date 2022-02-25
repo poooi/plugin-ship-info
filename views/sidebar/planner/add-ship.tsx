@@ -124,9 +124,10 @@ const Menu = compose<ComponentType<{}>>(
       const { query } = this.state
       const { ships, allSelectedId, t } = this.props
 
-      const filtered = _(this.fuse.search(query))
-        .map(Number)
-        .value() as number[]
+      const filtered = _.map(
+        this.fuse.search(query),
+        (result) => result.item.id,
+      )
       return (
         <Wrapper>
           <InputGroup
