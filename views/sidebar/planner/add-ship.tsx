@@ -74,13 +74,13 @@ interface IProps extends WithTranslation {
 
 const Menu = compose<ComponentType<{}>>(
   withTranslation('poi-plugin-ship-info'),
-  connect(state => ({
+  connect((state) => ({
     allSelectedId: deckPlannerAllShipIdsSelector(state),
     ships: shipMenuDataSelector(state),
   })),
 )(
   class MenuBase extends Component<IProps> {
-    public fuse: Fuse<IShipInfoMenuData, any>
+    public fuse: Fuse<IShipInfoMenuData>
 
     public state = {
       query: '',
@@ -99,7 +99,7 @@ const Menu = compose<ComponentType<{}>>(
 
     public componentDidUpdate = (prevProps: IProps) => {
       if (values(this.props.ships).length !== values(prevProps.ships).length) {
-        this.fuse.list = values(this.props.ships)
+        this.fuse.setCollection(this.props.ships)
         this.forceUpdate()
       }
     }
@@ -154,19 +154,19 @@ const Menu = compose<ComponentType<{}>>(
                   <ShipList className="ship-info-scrollable">
                     {_(ships)
                       .filter(
-                        ship => type === -1 || type === ship.superTypeIndex,
+                        (ship) => type === -1 || type === ship.superTypeIndex,
                       )
                       .filter(
-                        ship => !query || (filtered || []).includes(ship.id),
+                        (ship) => !query || (filtered || []).includes(ship.id),
                       )
-                      .filter(ship => !ship.area)
-                      .filter(ship => !allSelectedId.includes(ship.id))
+                      .filter((ship) => !ship.area)
+                      .filter((ship) => !allSelectedId.includes(ship.id))
                       .sortBy([
-                        ship => (filtered || []).indexOf(ship.id),
-                        ship => -ship.lv,
-                        ship => -ship.exp,
+                        (ship) => (filtered || []).indexOf(ship.id),
+                        (ship) => -ship.lv,
+                        (ship) => -ship.exp,
                       ])
-                      .map(ship => (
+                      .map((ship) => (
                         <ShipItem
                           key={ship.id}
                           onClick={this.handleSelect(ship.id)}
