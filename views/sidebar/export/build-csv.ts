@@ -1,24 +1,28 @@
 import { get, map } from 'lodash'
 import i18next from 'views/env-parts/i18next'
 import { IShip } from '../../types'
+import { getShipCode } from '../../utils'
 
 let _slotitems: any
 let $slotitems: any
 let $ships: any
 
-const __ = i18next.getFixedT(null, ['poi-plugin-ship-info', 'resources'])
+const __ = (s: string) =>
+  i18next.getFixedT(null, ['poi-plugin-ship-info', 'resources'])(s, {
+    keySeparator: 'chiba',
+  })
 
 const getItemName = (index: number) => (ship: any) => {
   const itemId = get(
     _slotitems,
     `${get(ship, `slot.${index}`)}.api_slotitem_id`,
   )
-  return get($slotitems, `${itemId}.api_name`, 'NA')
+  return __(get($slotitems, `${itemId}.api_name`, 'NA'))
 }
 
 const getExItemName = (ship: any) => {
   const itemId = get(_slotitems, `${get(ship, 'exslot')}.api_slotitem_id`)
-  return get($slotitems, `${itemId}.api_name`, 'NA')
+  return __(get($slotitems, `${itemId}.api_name`, 'NA'))
 }
 
 const buildConstFields = (key: string) => [
@@ -56,13 +60,18 @@ interface IFieldWithKey {
   value: (ship: any) => string
 }
 
+const tlField = (key: string, f?: (s: any) => string) => ({
+  key,
+  value: (ship: any) => __(f ? f(ship) : ship[key]),
+})
+
 export const fields: Array<IFieldWithKey | string> = [
   'id',
-  'name',
+  tlField('name'),
   'yomi',
   'fleetId',
   'sallyArea',
-  'type',
+  tlField('type', getShipCode),
   'soku',
   'lv',
   'cond',
@@ -112,10 +121,8 @@ export const fields: Array<IFieldWithKey | string> = [
   'losshp',
   'repairtime',
   'inDock',
-  {
-    key: 'after',
-    value: ship => get($ships, `${ship.after}.api_name`, 'NA'),
-  },
+  tlField('after', ship => get($ships, `${ship.after}.api_name`, 'NA')),
+  'afterLevel',
 ]
 
 export const buildCsv = (rows: IShip[], sep = ',', end = '\n') => {
