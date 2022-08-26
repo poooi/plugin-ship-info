@@ -4,3 +4,5 @@
 assets/build.js
 yarn.lock
 *.d.ts
+.yarn
+.vscode

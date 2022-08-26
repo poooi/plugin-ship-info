@@ -84,7 +84,6 @@
     "stylelint-config-standard": "^20.0.0",
     "typescript": "^3.5.1"
   },
-  "dependencies": {},
   "husky": {
     "hooks": {
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
@@ -93,5 +92,6 @@
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org"
-  }
+  },
+  "packageManager": "yarn@3.2.3"
 }
