@@ -195,11 +195,10 @@ const ExportContent = withTranslation(['poi-plugin-ship-info'])(
 
 export const Export = () => {
   return (
-    <Popover hasBackdrop>
+    <Popover content={<ExportContent />} hasBackdrop>
       <Button minimal>
         <FA name="download" />
       </Button>
-      <ExportContent />
     </Popover>
   )
 }

@@ -199,10 +199,9 @@ const Menu = compose<ComponentType<{}>>(
 
 // separate menu from popover component to prevent unnecessary updates
 export const AddShip = ({ ...props }) => (
-  <Popover hasBackdrop>
+  <Popover content={<Menu {...props} />} hasBackdrop>
     <Button minimal>
       <FA name="plus" />
     </Button>
-    <Menu {...props} />
   </Popover>
 )
