@@ -84,14 +84,13 @@
     "stylelint-config-standard": "^20.0.0",
     "typescript": "^3.5.1"
   },
-  "husky": {
-    "hooks": {
-      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
-      "pre-commit": "lint-staged"
-    }
-  },
   "publishConfig": {
     "registry": "https://registry.npmjs.org"
   },
-  "packageManager": "yarn@3.2.3"
+  "packageManager": "yarn@3.2.3",
+  "dependencies": {
+    "@tanstack/react-table": "^8.21.3",
+    "@tanstack/react-virtual": "^3.13.12",
+    "jotai": "^2.15.0"
+  }
 }

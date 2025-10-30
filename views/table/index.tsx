@@ -1,13 +1,17 @@
-import { debounce, Dictionary, floor, get, map, memoize, sum } from 'lodash'
-import React, { Component, createRef } from 'react'
-import { connect, DispatchProp } from 'react-redux'
-import AutoSizer from 'react-virtualized-auto-sizer'
-import {
-  GridChildComponentProps,
-  GridOnScrollProps,
-  VariableSizeGrid as Grid,
-} from 'react-window'
+import { Dictionary, get, map } from 'lodash'
+import React, { useMemo, useRef, useState, useCallback, useEffect } from 'react'
+import { connect } from 'react-redux'
 import styled from 'styled-components'
+import {
+  useReactTable,
+  getCoreRowModel,
+  getSortedRowModel,
+  ColumnDef,
+  flexRender,
+  SortingState,
+} from '@tanstack/react-table'
+import { useVirtualizer } from '@tanstack/react-virtual'
+import { atom, useAtom, useAtomValue } from 'jotai'
 
 import { WindowEnv } from 'views/components/etc/window-env'
 
@@ -24,34 +28,55 @@ const TYPES = map(ColumnsConfig, 'name')
 const TITLES = map(ColumnsConfig, 'title')
 const SORTABLES = map(ColumnsConfig, 'sortable')
 const CENTER_ALIGNS: boolean[] = map(ColumnsConfig, 'center')
-// width will always unshift 1 extra element for row index
 const WIDTHS = [40].concat(map(ColumnsConfig, 'width'))
 
 const ROW_HEIGHT = 35
 
-const GridWrapper = styled.div`
+// Jotai atoms for active cell tracking
+const activeRowAtom = atom(-1)
+const activeColumnAtom = atom(-1)
+
+const TableWrapper = styled.div`
   flex: 1;
   margin: 0;
   padding: 0;
+  overflow: auto;
+  position: relative;
 `
 
 const Spacer = styled.div`
   height: 35px;
 `
 
-const GridHeader = styled(Grid)`
-  ::-webkit-scrollbar {
-    height: 0;
-    width: 0;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    height: 0;
-    width: 0;
-  }
+const TableContainer = styled.div`
+  display: inline-block;
+  min-width: 100%;
 `
 
-interface ShipInfoTableAreaBaseProps extends DispatchProp {
+const TableHeader = styled.div`
+  display: flex;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: ${(props) => props.theme.DARK_GRAY3};
+`
+
+const TableBody = styled.div`
+  position: relative;
+`
+
+const HeaderCell = styled.div<{ width: number }>`
+  width: ${(props) => props.width}px;
+  flex-shrink: 0;
+`
+
+const Row = styled.div`
+  display: flex;
+  position: absolute;
+  width: 100%;
+`
+
+interface ShipInfoTableAreaBaseProps {
   ids: number[]
   ships: Dictionary<IShipRawData>
   window: Window
@@ -59,234 +84,282 @@ interface ShipInfoTableAreaBaseProps extends DispatchProp {
   sortOrder: number
 }
 
-interface ShipInfoTableAreaBaseState {
-  activeRow: number
-  activeColumn: number
+interface TableRow {
+  id: number
+  shipData: IShipRawData
+  index: number
 }
 
-class ShipInfoTableAreaBase extends Component<
-  ShipInfoTableAreaBaseProps,
-  ShipInfoTableAreaBaseState
-> {
-  public tableWidth = sum(WIDTHS)
+// Cell wrapper components that subscribe to Jotai atoms
+const RowIndexCell: React.FC<{
+  rowIndex: number
+  onClickCell: (columnIndex: number, rowIndex: number) => void
+  onContextMenu: () => void
+}> = ({ rowIndex, onClickCell, onContextMenu }) => {
+  const activeRow = useAtomValue(activeRowAtom)
+  const isHighlighted = activeRow === rowIndex
 
-  public grid = createRef<Grid>()
+  return (
+    <NormalCell
+      isEven={rowIndex % 2 === 1}
+      style={{
+        backgroundColor: isHighlighted ? 'rgba(138, 155, 168, 0.3)' : undefined,
+      }}
+      onClick={() => onClickCell(0, rowIndex)}
+      onContextMenu={onContextMenu}
+    >
+      {rowIndex + 1}
+    </NormalCell>
+  )
+}
 
-  public gridHeader = createRef<Grid>()
+const DataCell: React.FC<{
+  columnIndex: number
+  rowIndex: number
+  shipData: IShipRawData
+  cellType: string
+  onClickCell: (columnIndex: number, rowIndex: number) => void
+  onContextMenu: () => void
+}> = ({
+  columnIndex,
+  rowIndex,
+  shipData,
+  cellType,
+  onClickCell,
+  onContextMenu,
+}) => {
+  const activeRow = useAtomValue(activeRowAtom)
+  const activeColumn = useAtomValue(activeColumnAtom)
+  const isHighlighted = activeColumn === columnIndex || activeRow === rowIndex
 
-  public tableArea = createRef<HTMLDivElement>()
+  const Cell = ShipInfoCells[cellType as keyof typeof ShipInfoCells]
 
-  public activeColumn = -1
+  return (
+    <div
+      style={{
+        backgroundColor: isHighlighted ? 'rgba(138, 155, 168, 0.3)' : undefined,
+      }}
+    >
+      <Cell
+        shipData={shipData}
+        onClick={() => onClickCell(columnIndex, rowIndex)}
+        onContextMenu={onContextMenu}
+      />
+    </div>
+  )
+}
 
-  public activeRow = -1
+const ShipInfoTableAreaBase: React.FC<ShipInfoTableAreaBaseProps> = ({
+  ids,
+  ships,
+  window: windowObj,
+  sortName,
+  sortOrder,
+}) => {
+  const [activeRow, setActiveRow] = useAtom(activeRowAtom)
+  const [activeColumn, setActiveColumn] = useAtom(activeColumnAtom)
+  const tableContainerRef = useRef<HTMLDivElement>(null)
 
-  public columnStopIndex = 0
+  const hasSpacer = process.platform === 'darwin' && !windowObj.isMain
 
-  public rowStopIndex = 0
-
-  public tableAreaWidth: number
-
-  public handleClickTitle = memoize((title: string) => () => {
-    if (this.props.sortName !== title) {
-      const order =
-        title === 'id' || title === 'type' || title === 'name' ? 1 : 0
-      this.saveSortRules(title, order)
-    } else {
-      this.saveSortRules(this.props.sortName, (this.props.sortOrder + 1) % 2)
-    }
-  })
-
-  public handleResize = debounce(({ width }: { width: number }) => {
-    this.tableAreaWidth = width
-    if (this.grid.current) {
-      this.grid.current.resetAfterColumnIndex(0)
-    }
-    if (this.gridHeader.current) {
-      this.gridHeader.current.resetAfterColumnIndex(0)
-    }
-  }, 100)
-
-  constructor(props: ShipInfoTableAreaBaseProps) {
-    super(props)
-    this.onClickFactory = memoize(this.onClickFactory)
-    this.state = {
-      activeColumn: -1,
-      activeRow: -1,
-    }
-    this.tableAreaWidth = props.window.innerWidth
-  }
-
-  public getItemKey = ({
-    columnIndex,
-    data,
-    rowIndex,
-  }: {
-    columnIndex: number
-    data: any
-    rowIndex: number
-  }) =>
-    rowIndex === 0 ? `title-${columnIndex}` : `${data[rowIndex]}-${columnIndex}`
-
-  public onContextMenu = () =>
-    this.setState({
-      activeColumn: -1,
-      activeRow: -1,
-    })
-
-  public onClickFactory =
-    ({ columnIndex, rowIndex }: { columnIndex: number; rowIndex: number }) =>
-    () => {
-      const { activeColumn, activeRow } = this.state
-      const off = activeColumn === columnIndex && activeRow === rowIndex
-      this.setState({
-        activeColumn: off ? -1 : columnIndex,
-        activeRow: off ? -1 : rowIndex,
-      })
-    }
-
-  public getColumnWidth = (index: number) => {
-    // 20: magic number, seems it need to be greater than 16
-    const width = floor(
-      (WIDTHS[index] || 40) *
-        (this.tableAreaWidth - 20 > this.tableWidth
-          ? (this.tableAreaWidth - 20) / this.tableWidth
-          : 1),
-    )
-    return width
-  }
-
-  public getRowHeight = () => ROW_HEIGHT
-
-  public saveSortRules = (name: string, order: number) => {
+  const saveSortRules = useCallback((name: string, order: number) => {
     window.config.set('plugin.ShipInfo.sortName', name)
     window.config.set('plugin.ShipInfo.sortOrder', order)
-  }
+  }, [])
 
-  public cellRenderer = ({
-    columnIndex,
-    rowIndex,
-    style,
-  }: GridChildComponentProps) => {
-    const isHighlighteds =
-      (columnIndex === this.state.activeColumn ||
-        rowIndex === this.state.activeRow) &&
-      !(columnIndex === 0 && rowIndex !== this.state.activeRow) &&
-      !(rowIndex === 0 && columnIndex !== this.state.activeColumn)
-    const props = {
-      centerAlign: CENTER_ALIGNS[columnIndex - 1],
-      isEven: rowIndex % 2 === 1,
-      isHighlighteds,
-      onClick: this.onClickFactory({ columnIndex, rowIndex }),
-      onContextMenu: this.onContextMenu,
-      style,
-    }
-    let content
-    if (columnIndex === 0) {
-      content = <NormalCell {...props}>{rowIndex + 1}</NormalCell>
-    } else {
-      const index = columnIndex - 1
-      const { ids, ships } = this.props
-      const shipData = ships[ids[rowIndex]]
-      const Cell = ShipInfoCells[TYPES[index] as keyof typeof ShipInfoCells]
-      content = <Cell shipData={shipData} {...props} />
-    }
+  const handleClickTitle = useCallback(
+    (columnName: string) => {
+      if (sortName !== columnName) {
+        const order =
+          columnName === 'id' || columnName === 'type' || columnName === 'name'
+            ? 1
+            : 0
+        saveSortRules(columnName, order)
+      } else {
+        saveSortRules(sortName, (sortOrder + 1) % 2)
+      }
+    },
+    [sortName, sortOrder, saveSortRules],
+  )
 
-    return content
-  }
+  const onContextMenu = useCallback(() => {
+    setActiveColumn(-1)
+    setActiveRow(-1)
+  }, [setActiveColumn, setActiveRow])
 
-  public titleRenderer = ({
-    columnIndex,
-    style,
-    ...props
-  }: {
-    columnIndex: number
-    style: React.CSSProperties
-  }) => {
-    if (columnIndex === 0) {
-      return <div style={style} {...props} />
-    }
-    const { sortName, sortOrder } = this.props
-    const index = columnIndex - 1
-    return (
-      <TitleCell
-        {...props}
-        style={style}
-        title={TITLES[index]}
-        sortable={SORTABLES[index]}
-        centerAlign={CENTER_ALIGNS[index]}
-        sorting={sortName === TYPES[index]}
-        up={Boolean(sortOrder)}
-        onClick={this.handleClickTitle(TYPES[index])}
-      />
-    )
-  }
+  const onClickCell = useCallback(
+    (columnIndex: number, rowIndex: number) => {
+      const off = activeColumn === columnIndex && activeRow === rowIndex
+      setActiveColumn(off ? -1 : columnIndex)
+      setActiveRow(off ? -1 : rowIndex)
+    },
+    [activeColumn, activeRow, setActiveColumn, setActiveRow],
+  )
 
-  public handleScroll = ({ scrollLeft }: GridOnScrollProps) => {
-    if (this.gridHeader.current) {
-      this.gridHeader.current.scrollTo({ scrollLeft, scrollTop: 0 })
-    }
-  }
+  // Build table data
+  const data = useMemo<TableRow[]>(
+    () =>
+      ids.map((id, index) => ({
+        id,
+        shipData: ships[id],
+        index,
+      })),
+    [ids, ships],
+  )
 
-  public render() {
-    const { ids, ships, sortName, sortOrder, window } = this.props
-    const { activeRow, activeColumn } = this.state
+  // Define columns
+  const columns = useMemo<ColumnDef<TableRow>[]>(() => {
+    const cols: ColumnDef<TableRow>[] = [
+      {
+        id: 'rowIndex',
+        header: () => <div />,
+        cell: ({ row }) => (
+          <RowIndexCell
+            rowIndex={row.index}
+            onClickCell={onClickCell}
+            onContextMenu={onContextMenu}
+          />
+        ),
+        size: WIDTHS[0],
+        enableSorting: false,
+      },
+    ]
 
-    const hasSpacer = process.platform === 'darwin' && !window.isMain
+    TYPES.forEach((type, index) => {
+      cols.push({
+        id: type,
+        accessorFn: (row) => row.shipData,
+        header: () => (
+          <TitleCell
+            title={TITLES[index]}
+            sortable={SORTABLES[index]}
+            centerAlign={CENTER_ALIGNS[index]}
+            sorting={sortName === type}
+            up={Boolean(sortOrder)}
+            onClick={() => SORTABLES[index] && handleClickTitle(type)}
+          />
+        ),
+        cell: ({ row }) => (
+          <DataCell
+            columnIndex={index + 1}
+            rowIndex={row.index}
+            shipData={row.original.shipData}
+            cellType={type}
+            onClickCell={onClickCell}
+            onContextMenu={onContextMenu}
+          />
+        ),
+        size: WIDTHS[index + 1],
+        enableSorting: SORTABLES[index],
+      })
+    })
 
-    return (
-      <GridWrapper>
-        {/* leave some space for window handler */}
-        {hasSpacer && <Spacer />}
-        <AutoSizer onResize={this.handleResize}>
-          {({ height, width }) => (
-            <>
-              <GridHeader
-                ref={this.gridHeader}
-                columnCount={WIDTHS.length}
-                columnWidth={this.getColumnWidth}
-                height={35}
-                rowCount={1}
-                rowHeight={this.getRowHeight}
-                width={width - 32}
-                itemData={{ sortName, sortOrder }} // to trigger header's re-render
+    return cols
+  }, [sortName, sortOrder, handleClickTitle, onClickCell, onContextMenu])
+
+  // Initialize table with sorting state from Redux
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: sortName, desc: sortOrder === 0 },
+  ])
+
+  // Update sorting state when Redux state changes
+  useEffect(() => {
+    setSorting([{ id: sortName, desc: sortOrder === 0 }])
+  }, [sortName, sortOrder])
+
+  const table = useReactTable({
+    data,
+    columns,
+    state: {
+      sorting,
+    },
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    manualSorting: true, // We're handling sorting via Redux
+  })
+
+  // Virtualizer for rows
+  const rowVirtualizer = useVirtualizer({
+    count: data.length,
+    getScrollElement: () => tableContainerRef.current,
+    estimateSize: () => ROW_HEIGHT,
+    overscan: 10,
+  })
+
+  const virtualRows = rowVirtualizer.getVirtualItems()
+  const totalSize = rowVirtualizer.getTotalSize()
+
+  return (
+    <TableWrapper ref={tableContainerRef} className="ship-info-scrollable">
+      {hasSpacer && <Spacer />}
+      <TableContainer>
+        <TableHeader>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <React.Fragment key={headerGroup.id}>
+              {headerGroup.headers.map((header) => (
+                <HeaderCell key={header.id} width={header.column.getSize()}>
+                  {flexRender(
+                    header.column.columnDef.header,
+                    header.getContext(),
+                  )}
+                </HeaderCell>
+              ))}
+            </React.Fragment>
+          ))}
+        </TableHeader>
+        <TableBody style={{ height: `${totalSize}px` }}>
+          {virtualRows.map((virtualRow) => {
+            const row = table.getRowModel().rows[virtualRow.index]
+            return (
+              <Row
+                key={row.id}
+                style={{
+                  transform: `translateY(${virtualRow.start}px)`,
+                  height: `${virtualRow.size}px`,
+                }}
               >
-                {this.titleRenderer}
-              </GridHeader>
-              <Grid
-                className="ship-info-scrollable"
-                ref={this.grid}
-                columnCount={WIDTHS.length}
-                columnWidth={this.getColumnWidth}
-                height={height - (hasSpacer ? 75 : 40)}
-                itemData={ids}
-                itemKey={this.getItemKey}
-                rowCount={ids.length}
-                rowHeight={this.getRowHeight}
-                width={width - 16}
-                onScroll={this.handleScroll}
-              >
-                {this.cellRenderer}
-              </Grid>
-            </>
-          )}
-        </AutoSizer>
-      </GridWrapper>
-    )
-  }
+                {row.getVisibleCells().map((cell) => (
+                  <HeaderCell key={cell.id} width={cell.column.getSize()}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </HeaderCell>
+                ))}
+              </Row>
+            )
+          })}
+        </TableBody>
+      </TableContainer>
+    </TableWrapper>
+  )
 }
 
-const sortNameSelector = (state: { config: any }): string =>
+interface ReduxState {
+  config: Record<string, any>
+  [key: string]: any
+}
+
+interface MappedProps {
+  ids: number[]
+  ships: Dictionary<IShipRawData>
+  sortName: string
+  sortOrder: number
+}
+
+const sortNameSelector = (state: ReduxState): string =>
   get(state.config, 'plugin.ShipInfo.sortName', 'lv')
 
-const sortOrderSelector = (state: { config: any }): number =>
+const sortOrderSelector = (state: ReduxState): number =>
   get(state.config, 'plugin.ShipInfo.sortOrder', 0)
 
-const ShipInfoTableArea = connect((state: { config: any }) => ({
-  ids: filterShipIdsSelector(state),
-  ships: allShipRowsMapSelector(state),
+const mapStateToProps = (state: ReduxState): MappedProps => ({
+  // @ts-expect-error - Complex reselect selector typing issue
+  ids: filterShipIdsSelector(state as any) as number[],
+  ships: allShipRowsMapSelector(state as any) as Dictionary<IShipRawData>,
   sortName: sortNameSelector(state),
   sortOrder: sortOrderSelector(state),
-}))(ShipInfoTableAreaBase)
+})
+
+const ShipInfoTableArea = connect(mapStateToProps)(ShipInfoTableAreaBase)
 
 export const TableView = (props: object) => (
   <WindowEnv.Consumer>
