@@ -1,167 +1,154 @@
-import cls from 'classnames'
-import { TFunction } from 'i18next'
+import { CheckboxCard, H5 } from '@blueprintjs/core'
 import { get, intersection, isEqual, map, size } from 'lodash'
-import PropTypes from 'prop-types'
-import React, { Component, ComponentType } from 'react'
-import { withTranslation } from 'react-i18next'
-import { connect } from 'react-redux'
-import { compose } from 'redux'
+import React from 'react'
+import { useTranslation } from 'react-i18next'
+import { useSelector } from 'react-redux'
 import styled from 'styled-components'
 
 import { shipSuperTypeMap } from '../../constants'
+import { shipTypesFilterSelector } from '../../selectors'
 import { boolArrayToInt, intToBoolArray, shipTypes } from '../../utils'
-import { Checkbox, CheckboxOption } from '../components/checkbox'
 
-interface IProps {
-  $shipTypes: any
-  checked: boolean[]
-  checkedAll: boolean
-  t: TFunction
-}
-
-const SuperTypeOption = styled(CheckboxOption)`
-  width: calc(100% / 9);
+const ShipTypeContainer = styled.div`
+  margin-bottom: 20px;
 `
 
-const TypeOption = styled(CheckboxOption)`
-  width: 12.5%;
+const CardRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
 `
 
-export const ShipTypeCheck = compose<ComponentType<{}>>(
-  withTranslation(['resources', 'poi-plugin-ship-info']),
-  connect((state: { config: any }, props) => {
-    const $shipTypes = get(state, 'const.$shipTypes', {})
-    const defaultChecked: boolean[] = new Array(size($shipTypes)).fill(true)
+export const ShipTypeCheck: React.FC = () => {
+  const { t } = useTranslation(['resources', 'poi-plugin-ship-info'])
 
-    let checked = intToBoolArray(get(state.config, 'plugin.ShipInfo.shipTypes'))
-    checked =
-      defaultChecked.length === checked.length ? checked : defaultChecked
-    const checkedAll = checked.reduce((a, b) => a && b, true)
+  const shipTypesValue = useSelector(shipTypesFilterSelector)
+  const { $shipTypes, checked, checkedAll } = useSelector((state: any) => {
+    const allShipTypes = get(state, 'const.$shipTypes', {})
+    const defaultChecked: boolean[] = new Array(size(allShipTypes)).fill(true)
+
+    let shipChecked = intToBoolArray(shipTypesValue)
+    shipChecked =
+      defaultChecked.length === shipChecked.length
+        ? shipChecked
+        : defaultChecked
+    const allChecked = shipChecked.reduce((a, b) => a && b, true)
 
     return {
-      $shipTypes,
-      checked,
-      checkedAll,
+      $shipTypes: allShipTypes,
+      checked: shipChecked,
+      checkedAll: allChecked,
     }
-  }),
-)(
-  class TypeView extends Component<IProps> {
-    public getTypeArray = (checked: boolean[], $shipTypes: any) =>
-      checked.reduce(
-        (types: number[], isChecked, index) =>
-          isChecked && index + 1 in $shipTypes
-            ? types.concat([index + 1])
-            : types,
-        [],
-      )
+  })
 
-    public getArrayInclusion = (array: number[], subArray: number[]) =>
-      isEqual(intersection(array, subArray), subArray) && array.length > 0
+  const getTypeArray = (
+    typeChecked: boolean[],
+    types: Record<string, unknown>,
+  ) =>
+    typeChecked.reduce(
+      (result: number[], isChecked, index) =>
+        isChecked && index + 1 in types ? result.concat([index + 1]) : result,
+      [],
+    )
 
-    public getArrayIntersection = (array: number[], subArray: number[]) =>
-      intersection(array, subArray).length > 0 &&
-      subArray.length > intersection(array, subArray).length
+  const getArrayInclusion = (array: number[], subArray: number[]) =>
+    isEqual(intersection(array, subArray), subArray) && array.length > 0
 
-    public handleClickSuperType = (
-      checkedTypes: number[],
-      index: number,
-    ) => () => {
-      const checked = this.props.checked.slice()
+  const handleClickSuperType =
+    (checkedTypes: number[], index: number) => () => {
+      const newChecked = checked.slice()
       const keys = shipSuperTypeMap[index].id
-      if (this.getArrayInclusion(checkedTypes, keys)) {
-        keys.forEach(key => {
-          checked[key - 1] = false
+      if (getArrayInclusion(checkedTypes, keys)) {
+        keys.forEach((key) => {
+          newChecked[key - 1] = false
         })
       } else {
-        keys.forEach(key => {
-          checked[key - 1] = true
+        keys.forEach((key) => {
+          newChecked[key - 1] = true
         })
       }
 
-      window.config.set('plugin.ShipInfo.shipTypes', boolArrayToInt(checked))
+      window.config.set('plugin.ShipInfo.shipTypes', boolArrayToInt(newChecked))
     }
 
-    public handleRightClickSuperType = (index: number) => () => {
-      const checked = this.props.checked.slice()
+  const handleRightClickSuperType =
+    (index: number) => (event: React.MouseEvent) => {
+      event.preventDefault()
+      const newChecked = checked.slice()
       const keys = shipSuperTypeMap[index].id
-      checked.fill(false)
+      newChecked.fill(false)
 
-      keys.forEach(key => {
-        checked[key - 1] = true
+      keys.forEach((key) => {
+        newChecked[key - 1] = true
       })
 
-      window.config.set('plugin.ShipInfo.shipTypes', boolArrayToInt(checked))
+      window.config.set('plugin.ShipInfo.shipTypes', boolArrayToInt(newChecked))
     }
 
-    public handleClickSingleBox = (index: number) => () => {
-      const checked = this.props.checked.slice()
-      let { checkedAll } = this.props
+  const handleClickSingleBox = (index: number) => () => {
+    const newChecked = checked.slice()
 
-      if (index === -1) {
-        checkedAll = !checkedAll
-        checked.fill(checkedAll)
-      } else {
-        checked[index] = !checked[index]
-      }
-
-      window.config.set('plugin.ShipInfo.shipTypes', boolArrayToInt(checked))
+    if (index === -1) {
+      const newCheckedAll = !checkedAll
+      newChecked.fill(newCheckedAll)
+    } else {
+      newChecked[index] = !newChecked[index]
     }
 
-    public handleRightClickSingleBox = (index: number) => () => {
-      const checked = this.props.checked.slice()
-      checked.fill(false)
-      checked[index] = true
+    window.config.set('plugin.ShipInfo.shipTypes', boolArrayToInt(newChecked))
+  }
 
-      window.config.set('plugin.ShipInfo.shipTypes', boolArrayToInt(checked))
+  const handleRightClickSingleBox =
+    (index: number) => (event: React.MouseEvent) => {
+      event.preventDefault()
+      const newChecked = checked.slice()
+      newChecked.fill(false)
+      newChecked[index] = true
+
+      window.config.set('plugin.ShipInfo.shipTypes', boolArrayToInt(newChecked))
     }
 
-    public render() {
-      const { $shipTypes, checked, checkedAll, t } = this.props
-      const checkedTypes = checked.reduce(
-        (types: number[], isChecked, index) =>
-          isChecked && index + 1 in $shipTypes
-            ? types.concat([index + 1])
-            : types,
-        [],
-      )
+  const checkedTypes = getTypeArray(checked, $shipTypes)
 
-      return (
-        <div>
-          <Checkbox>
-            <SuperTypeOption
-              onClick={this.handleClickSingleBox(-1)}
-              checked={checkedAll}
-            >
-              {t('All')}
-            </SuperTypeOption>
-            {shipSuperTypeMap.map((supertype, index) => (
-              <SuperTypeOption
-                key={supertype.name}
-                checked={this.getArrayInclusion(checkedTypes, supertype.id)}
-                partial={this.getArrayIntersection(checkedTypes, supertype.id)}
-                onClick={this.handleClickSuperType(checkedTypes, index)}
-                onContextMenu={this.handleRightClickSuperType(index)}
-              >
-                {t(supertype.name)}
-              </SuperTypeOption>
-            ))}
-          </Checkbox>
-          <Checkbox>
-            {map($shipTypes, (type, key: number) => (
-              <TypeOption
-                key={key}
-                onClick={this.handleClickSingleBox(key - 1)}
-                onContextMenu={this.handleRightClickSingleBox(key - 1)}
-                checked={checked[key - 1]}
-              >
-                {window.language === 'en-US'
-                  ? shipTypes[type.api_id as keyof typeof shipTypes]
-                  : t(type.api_name)}
-              </TypeOption>
-            ))}
-          </Checkbox>
-        </div>
-      )
-    }
-  },
-)
+  return (
+    <ShipTypeContainer>
+      <H5>{t('Ship Type')}</H5>
+      <CardRow>
+        <CheckboxCard
+          onChange={handleClickSingleBox(-1)}
+          checked={checkedAll}
+          compact
+        >
+          {t('All')}
+        </CheckboxCard>
+        {shipSuperTypeMap.map((supertype, index) => (
+          <CheckboxCard
+            key={supertype.name}
+            checked={getArrayInclusion(checkedTypes, supertype.id)}
+            onChange={handleClickSuperType(checkedTypes, index)}
+            onContextMenu={handleRightClickSuperType(index)}
+            compact
+          >
+            {t(supertype.name)}
+          </CheckboxCard>
+        ))}
+      </CardRow>
+      <CardRow>
+        {map($shipTypes, (type, key: number) => (
+          <CheckboxCard
+            key={key}
+            onChange={handleClickSingleBox(key - 1)}
+            onContextMenu={handleRightClickSingleBox(key - 1)}
+            checked={checked[key - 1]}
+            compact
+          >
+            {window.language === 'en-US'
+              ? shipTypes[type.api_id as keyof typeof shipTypes]
+              : t(type.api_name)}
+          </CheckboxCard>
+        ))}
+      </CardRow>
+    </ShipTypeContainer>
+  )
+}

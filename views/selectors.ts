@@ -16,6 +16,7 @@ import fp from 'lodash/fp'
 import { createSelector } from 'reselect'
 import i18next from 'views/env-parts/i18next'
 import { toRomaji } from 'wanakana'
+import { z } from 'zod'
 
 import {
   configSelector,
@@ -47,7 +48,64 @@ import {
   canEquipDaihatsu,
 } from './utils'
 
+// Zod schemas for filter validation
+const yesNoFilterSchema = z.array(z.boolean()).length(2)
+const radioFilterSchema = z.number().int().min(0)
+const sallyAreaSchema = z.array(z.boolean())
+const shipTypesSchema = z.number().int().min(0)
+
 const __ = i18next.getFixedT(null, ['poi-plugin-ship-info', 'resources'])
+
+// Selector factories for reusable filter logic
+const createYesNoFilterSelector = (configKey: string) =>
+  createSelector([configSelector], (config) => {
+    const rawValue = get(config, `plugin.ShipInfo.${configKey}`, [true, true])
+    const result = yesNoFilterSchema.safeParse(rawValue)
+    return result.success ? result.data : [true, true]
+  })
+
+const createRadioFilterSelector = (configKey: string, defaultValue = 0) =>
+  createSelector([configSelector], (config) => {
+    const rawValue = get(config, `plugin.ShipInfo.${configKey}`, defaultValue)
+    const result = radioFilterSchema.safeParse(rawValue)
+    return result.success ? result.data : defaultValue
+  })
+
+// Individual filter selectors using factories
+export const lockedFilterSelector = createYesNoFilterSelector('locked')
+export const expeditionFilterSelector = createYesNoFilterSelector('expedition')
+export const inFleetFilterSelector = createYesNoFilterSelector('inFleet')
+export const sparkleFilterSelector = createYesNoFilterSelector('sparkle')
+export const exSlotFilterSelector = createYesNoFilterSelector('exSlot')
+export const daihatsuFilterSelector = createYesNoFilterSelector('daihatsu')
+export const modernizationFilterSelector =
+  createYesNoFilterSelector('modernization')
+export const remodelFilterSelector = createYesNoFilterSelector('remodel')
+
+export const rawValueFilterSelector = createRadioFilterSelector('rawValue')
+
+export const sallyAreaFilterSelector = createSelector(
+  [configSelector, fcdSelector],
+  (config, { shiptag = {} }) => {
+    const defaultChecked = Array((shiptag.mapname || []).length + 1).fill(true)
+    const rawValue = get(
+      config,
+      'plugin.ShipInfo.sallyAreaChecked',
+      defaultChecked,
+    )
+    const result = sallyAreaSchema.safeParse(rawValue)
+    return result.success ? result.data : defaultChecked
+  },
+)
+
+export const shipTypesFilterSelector = createSelector(
+  [configSelector],
+  (config) => {
+    const rawValue = get(config, 'plugin.ShipInfo.shipTypes', 0)
+    const result = shipTypesSchema.safeParse(rawValue)
+    return result.success ? result.data : 0
+  },
+)
 
 export const graphSelector = createSelector([constSelector], (constState) =>
   keyBy(constState.$shipgraph, 'api_id'),
@@ -55,27 +113,64 @@ export const graphSelector = createSelector([constSelector], (constState) =>
 
 export const shipInfoConfigSelector = createSelector(
   [configSelector, fcdSelector],
-  (config, { shiptag = {} }) => ({
-    daihatsuRadio: get(config, 'plugin.ShipInfo.daihatsuRadio', 0),
-    exSlotRadio: get(config, 'plugin.ShipInfo.exSlotRadio', 0),
-    expeditionRadio: get(config, 'plugin.ShipInfo.expeditionRadio', 0),
-    inFleetRadio: get(config, 'plugin.ShipInfo.inFleetRadio', 0),
-    lockedRadio: get(config, 'plugin.ShipInfo.lockedRadio', 1),
-    lvRadio: get(config, 'plugin.ShipInfo.lvRadio', 2),
-    marriedRadio: get(config, 'plugin.ShipInfo.marriedRadio', 0),
-    modernizationRadio: get(config, 'plugin.ShipInfo.modernizationRadio', 0),
-    pagedLayout: get(config, 'plugin.ShipInfo.pagedLayout', 0),
-    rawValue: get(config, 'plugin.ShipInfo.rawValue', false),
-    remodelRadio: get(config, 'plugin.ShipInfo.remodelRadio', 0),
-    sallyAreaChecked: get(
+  (config, { shiptag = {} }) => {
+    // Helper function to validate yes/no filters
+    const validateYesNo = (key: string) => {
+      const rawValue = get(config, `plugin.ShipInfo.${key}`, [true, true])
+      const result = yesNoFilterSchema.safeParse(rawValue)
+      return result.success ? result.data : [true, true]
+    }
+
+    // Helper function to validate radio filters
+    const validateRadio = (key: string, defaultValue = 0) => {
+      const rawValue = get(config, `plugin.ShipInfo.${key}`, defaultValue)
+      const result = radioFilterSchema.safeParse(rawValue)
+      return result.success ? result.data : defaultValue
+    }
+
+    // Validate sally area checked
+    const defaultSallyAreaChecked = Array(
+      (shiptag.mapname || []).length + 1,
+    ).fill(true)
+    const rawSallyArea = get(
       config,
       'plugin.ShipInfo.sallyAreaChecked',
-      Array((shiptag.mapname || []).length + 1).fill(true),
-    ),
-    sortName: get(config, 'plugin.ShipInfo.sortName', 'lv'),
-    sortOrder: get(config, 'plugin.ShipInfo.sortOrder', 0),
-    sparkleRadio: get(config, 'plugin.ShipInfo.sparkleRadio', 0),
-  }),
+      defaultSallyAreaChecked,
+    )
+    const sallyAreaResult = sallyAreaSchema.safeParse(rawSallyArea)
+    const sallyAreaChecked = sallyAreaResult.success
+      ? sallyAreaResult.data
+      : defaultSallyAreaChecked
+
+    return {
+      // New yes/no filters (array-based)
+      locked: validateYesNo('locked'),
+      expedition: validateYesNo('expedition'),
+      inFleet: validateYesNo('inFleet'),
+      sparkle: validateYesNo('sparkle'),
+      exSlot: validateYesNo('exSlot'),
+      daihatsu: validateYesNo('daihatsu'),
+
+      // Old radio filters (kept for backward compatibility)
+      lockedRadio: validateRadio('lockedRadio', 1),
+      expeditionRadio: validateRadio('expeditionRadio'),
+      inFleetRadio: validateRadio('inFleetRadio'),
+      sparkleRadio: validateRadio('sparkleRadio'),
+      exSlotRadio: validateRadio('exSlotRadio'),
+      daihatsuRadio: validateRadio('daihatsuRadio'),
+      lvRadio: validateRadio('lvRadio', 2),
+      marriedRadio: validateRadio('marriedRadio'),
+      modernizationRadio: validateRadio('modernizationRadio'),
+      remodelRadio: validateRadio('remodelRadio'),
+      rawValue: validateRadio('rawValue'),
+
+      // Other settings
+      pagedLayout: validateRadio('pagedLayout'),
+      sallyAreaChecked,
+      sortName: get(config, 'plugin.ShipInfo.sortName', 'lv'),
+      sortOrder: validateRadio('sortOrder'),
+    }
+  },
 )
 
 const allFleetShipIdSelector = createSelector(
@@ -334,7 +429,11 @@ export const shipTypesSelecor = createSelector(
     (state) => get(state, 'const.$shipTypes', {}),
     (state) => get((state as IState).config, 'plugin.ShipInfo.shipTypes'),
   ],
-  ($shipTypes, shipTypeChecked) => {
+  ($shipTypes, rawShipTypeChecked) => {
+    // Validate ship type value
+    const validationResult = shipTypesSchema.safeParse(rawShipTypeChecked)
+    const shipTypeChecked = validationResult.success ? validationResult.data : 0
+
     const checked = intToBoolArray(shipTypeChecked)
     if (checked.length !== Object.keys($shipTypes).length) {
       return Object.keys($shipTypes).map((s) => +s)

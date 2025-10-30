@@ -1,56 +1,63 @@
-import { TFunction } from 'i18next'
-import { get } from 'lodash'
-import React, { Component, ComponentType } from 'react'
-import { withTranslation, WithTranslation } from 'react-i18next'
-import { connect, DispatchProp } from 'react-redux'
-import { compose } from 'redux'
+import { H5, RadioCard, RadioGroup } from '@blueprintjs/core'
+import React from 'react'
+import { useTranslation } from 'react-i18next'
+import { useSelector } from 'react-redux'
+import styled from 'styled-components'
 
-import { Checkbox, CheckboxLabel, CheckboxOption } from '../components/checkbox'
+import { rawValueFilterSelector } from '../../selectors'
 
-interface IProps extends DispatchProp, WithTranslation {
+const RadioContainer = styled.div`
+  margin-bottom: 20px;
+`
+
+const StyledRadioGroup = styled(RadioGroup)`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+`
+
+const filterSelectors: Record<string, (state: any) => number> = {
+  rawValue: rawValueFilterSelector,
+}
+
+interface IProps {
   configKey: string
   label: string
   options: { [key: string]: string }
   default: number
-  currentValue: number
-  t: TFunction
 }
 
-export const RadioCheck = compose<
-  ComponentType<
-    Omit<IProps, 't' | 'currentValue' | 'dispatch' | 'i18n' | 'tReady'>
-  >
->(
-  withTranslation(['poi-plugin-ship-info']),
-  connect((state: { config: any }, props: IProps) => ({
-    currentValue: get(
-      state.config,
-      `plugin.ShipInfo.${props.configKey}`,
-      props.default || 0,
-    ),
-  })),
-)(
-  class RadioCheckBase extends Component<IProps> {
-    public handleClickRadio = (index: number) => () => {
-      window.config.set(`plugin.ShipInfo.${this.props.configKey}`, index)
-    }
+export const RadioCheck: React.FC<IProps> = ({
+  label,
+  options,
+  configKey,
+  default: defaultValue,
+}) => {
+  const { t } = useTranslation(['poi-plugin-ship-info'])
+  const currentValue = useSelector(
+    filterSelectors[configKey] || (() => defaultValue || 0),
+  )
 
-    public render() {
-      const { label, options, currentValue, t } = this.props
-      return (
-        <Checkbox halfWidth>
-          <CheckboxLabel>{t(label)}</CheckboxLabel>
-          {Object.keys(options).map(key => (
-            <CheckboxOption
-              key={key}
-              onClick={this.handleClickRadio(parseInt(key, 10))}
-              checked={parseInt(key, 10) === currentValue}
-            >
-              {t(options[key])}
-            </CheckboxOption>
-          ))}
-        </Checkbox>
-      )
-    }
-  },
-)
+  const handleChange = (event: React.FormEvent<HTMLInputElement>) => {
+    window.config.set(
+      `plugin.ShipInfo.${configKey}`,
+      parseInt(event.currentTarget.value, 10),
+    )
+  }
+
+  return (
+    <RadioContainer>
+      <H5>{t(label)}</H5>
+      <StyledRadioGroup
+        onChange={handleChange}
+        selectedValue={currentValue.toString()}
+      >
+        {Object.keys(options).map((key) => (
+          <RadioCard key={key} value={key} compact>
+            {t(options[key])}
+          </RadioCard>
+        ))}
+      </StyledRadioGroup>
+    </RadioContainer>
+  )
+}

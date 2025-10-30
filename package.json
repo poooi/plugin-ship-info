@@ -40,7 +40,7 @@
     }
   },
   "devDependencies": {
-    "@blueprintjs/core": "^3.24.0",
+    "@blueprintjs/core": "^5.19.1",
     "@commitlint/cli": "^8.0.0",
     "@commitlint/config-conventional": "^8.0.0",
     "@types/bluebird": "^3.5.27",
@@ -91,6 +91,7 @@
   "dependencies": {
     "@tanstack/react-table": "^8.21.3",
     "@tanstack/react-virtual": "^3.13.12",
-    "jotai": "^2.15.0"
+    "jotai": "^2.15.0",
+    "zod": "^4.1.12"
   }
 }
