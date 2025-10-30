@@ -329,7 +329,7 @@ const getSortFunction = (sortName: string) => {
   }
 }
 
-const shipTypesSelecor = createSelector(
+export const shipTypesSelecor = createSelector(
   [
     (state) => get(state, 'const.$shipTypes', {}),
     (state) => get((state as IState).config, 'plugin.ShipInfo.shipTypes'),
@@ -357,7 +357,7 @@ const fleetShipsInExpeditionSelectorFactory = memoize((fleetId) =>
   ),
 )
 
-const expeditionShipsSelector = createSelector(
+export const expeditionShipsSelector = createSelector(
   [
     (state) => fleetShipsInExpeditionSelectorFactory(0)(state),
     (state) => fleetShipsInExpeditionSelectorFactory(1)(state),
