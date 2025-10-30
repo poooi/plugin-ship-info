@@ -1,4 +1,4 @@
-import { SortingFn } from '@tanstack/react-table'
+import { SortingFn, AccessorFn } from '@tanstack/react-table'
 import type { IShipRawData } from './cells'
 
 export interface TableRow {
@@ -22,6 +22,7 @@ export const ColumnsConfig: Array<{
   title: string
   width: number
   sortingFn?: SortingFn<TableRow>
+  accessorFn: AccessorFn<TableRow>
 }> = [
   {
     certer: false,
@@ -29,6 +30,7 @@ export const ColumnsConfig: Array<{
     sortable: true,
     title: 'ID',
     width: 50,
+    accessorFn: (row) => row.shipData.ship.api_id,
     sortingFn: (rowA, rowB) => {
       return (
         rowA.original.shipData.ship.api_id - rowB.original.shipData.ship.api_id
@@ -41,6 +43,7 @@ export const ColumnsConfig: Array<{
     sortable: true,
     title: 'Name',
     width: 220,
+    accessorFn: (row) => row.shipData.$ship.api_name,
     sortingFn: (rowA, rowB) => {
       const dataA = rowA.original.shipData
       const dataB = rowB.original.shipData
@@ -59,6 +62,7 @@ export const ColumnsConfig: Array<{
     sortable: true,
     title: 'Class',
     width: 90,
+    accessorFn: (row) => row.shipData.$ship.api_stype,
     sortingFn: (rowA, rowB) => {
       const dataA = rowA.original.shipData
       const dataB = rowB.original.shipData
@@ -80,6 +84,7 @@ export const ColumnsConfig: Array<{
     sortable: true,
     title: 'Speed',
     width: 40,
+    accessorFn: (row) => row.shipData.ship.api_soku,
     sortingFn: (rowA, rowB) => {
       const valueA = rowA.original.shipData.ship.api_soku
       const valueB = rowB.original.shipData.ship.api_soku
@@ -92,6 +97,7 @@ export const ColumnsConfig: Array<{
     sortable: true,
     title: 'Level',
     width: 40,
+    accessorFn: (row) => row.shipData.ship.api_lv,
     sortingFn: (rowA, rowB) => {
       const dataA = rowA.original.shipData
       const dataB = rowB.original.shipData
@@ -110,6 +116,7 @@ export const ColumnsConfig: Array<{
     sortable: true,
     title: 'Cond',
     width: 40,
+    accessorFn: (row) => row.shipData.ship.api_cond,
     sortingFn: (rowA, rowB) => {
       const valueA = rowA.original.shipData.ship.api_cond
       const valueB = rowB.original.shipData.ship.api_cond
@@ -122,6 +129,7 @@ export const ColumnsConfig: Array<{
     sortable: true,
     title: 'HP',
     width: 40,
+    accessorFn: (row) => row.shipData.ship.api_maxhp,
     sortingFn: (rowA, rowB) => {
       return (
         rowA.original.shipData.ship.api_maxhp -
@@ -135,6 +143,10 @@ export const ColumnsConfig: Array<{
     sortable: true,
     title: 'Firepower',
     width: 60,
+    accessorFn: (row) => {
+      const value = row.shipData.ship.api_karyoku
+      return Array.isArray(value) ? value[0] : value
+    },
     sortingFn: (rowA, rowB) => {
       const valueA = rowA.original.shipData.ship.api_karyoku
       const valueB = rowB.original.shipData.ship.api_karyoku
@@ -149,6 +161,10 @@ export const ColumnsConfig: Array<{
     sortable: true,
     title: 'Torpedo',
     width: 60,
+    accessorFn: (row) => {
+      const value = row.shipData.ship.api_raisou
+      return Array.isArray(value) ? value[0] : value
+    },
     sortingFn: (rowA, rowB) => {
       const valueA = rowA.original.shipData.ship.api_raisou
       const valueB = rowB.original.shipData.ship.api_raisou
@@ -163,6 +179,10 @@ export const ColumnsConfig: Array<{
     sortable: true,
     title: 'AA',
     width: 60,
+    accessorFn: (row) => {
+      const value = row.shipData.ship.api_taiku
+      return Array.isArray(value) ? value[0] : value
+    },
     sortingFn: (rowA, rowB) => {
       const valueA = rowA.original.shipData.ship.api_taiku
       const valueB = rowB.original.shipData.ship.api_taiku
@@ -177,6 +197,10 @@ export const ColumnsConfig: Array<{
     sortable: true,
     title: 'Armor',
     width: 60,
+    accessorFn: (row) => {
+      const value = row.shipData.ship.api_soukou
+      return Array.isArray(value) ? value[0] : value
+    },
     sortingFn: (rowA, rowB) => {
       const valueA = rowA.original.shipData.ship.api_soukou
       const valueB = rowB.original.shipData.ship.api_soukou
@@ -191,6 +215,10 @@ export const ColumnsConfig: Array<{
     sortable: true,
     title: 'Luck',
     width: 60,
+    accessorFn: (row) => {
+      const value = row.shipData.ship.api_lucky
+      return Array.isArray(value) ? value[0] : value
+    },
     sortingFn: (rowA, rowB) => {
       const valueA = rowA.original.shipData.ship.api_lucky
       const valueB = rowB.original.shipData.ship.api_lucky
@@ -205,6 +233,10 @@ export const ColumnsConfig: Array<{
     sortable: true,
     title: 'Evasion',
     width: 40,
+    accessorFn: (row) => {
+      const value = row.shipData.ship.api_kaihi
+      return Array.isArray(value) ? value[0] : value
+    },
     sortingFn: (rowA, rowB) => {
       const valueA = rowA.original.shipData.ship.api_kaihi
       const valueB = rowB.original.shipData.ship.api_kaihi
@@ -219,6 +251,10 @@ export const ColumnsConfig: Array<{
     sortable: true,
     title: 'ASW',
     width: 40,
+    accessorFn: (row) => {
+      const value = row.shipData.ship.api_taisen
+      return Array.isArray(value) ? value[0] : value
+    },
     sortingFn: (rowA, rowB) => {
       const valueA = rowA.original.shipData.ship.api_taisen
       const valueB = rowB.original.shipData.ship.api_taisen
@@ -233,6 +269,10 @@ export const ColumnsConfig: Array<{
     sortable: true,
     title: 'LOS',
     width: 40,
+    accessorFn: (row) => {
+      const value = row.shipData.ship.api_sakuteki
+      return Array.isArray(value) ? value[0] : value
+    },
     sortingFn: (rowA, rowB) => {
       const valueA = rowA.original.shipData.ship.api_sakuteki
       const valueB = rowB.original.shipData.ship.api_sakuteki
@@ -247,6 +287,7 @@ export const ColumnsConfig: Array<{
     sortable: true,
     title: 'Repair',
     width: 80,
+    accessorFn: (row) => row.shipData.ship.api_ndock_time,
     sortingFn: (rowA, rowB) => {
       const valueA = rowA.original.shipData.ship.api_ndock_time
       const valueB = rowB.original.shipData.ship.api_ndock_time
@@ -259,6 +300,7 @@ export const ColumnsConfig: Array<{
     sortable: false,
     title: 'Equipment',
     width: 180,
+    accessorFn: (row) => row.shipData.ship.api_slot,
   },
   {
     certer: true,
@@ -266,5 +308,6 @@ export const ColumnsConfig: Array<{
     sortable: false,
     title: 'Lock',
     width: 40,
+    accessorFn: (row) => row.shipData.ship.api_locked,
   },
 ]

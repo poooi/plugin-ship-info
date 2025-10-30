@@ -1,4 +1,4 @@
-import { get } from 'lodash'
+import { get as lodashGet } from 'lodash'
 import React, { useMemo, useRef, useState, useCallback, useEffect } from 'react'
 import { connect } from 'react-redux'
 import styled from 'styled-components'
@@ -13,7 +13,7 @@ import {
   FilterFn,
 } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { atom, useAtom, useAtomValue } from 'jotai'
+import { atom, useAtom, useAtomValue, useSetAtom } from 'jotai'
 
 import { WindowEnv } from 'views/components/etc/window-env'
 
@@ -41,9 +41,36 @@ const ROW_HEIGHT = 35
 const activeRowAtom = atom(-1)
 const activeColumnAtom = atom(-1)
 
+// Jotai atoms for filter state
+export const filterShipTypesAtom = atom<number[]>([])
+export const filterExpeditionShipsAtom = atom<number[]>([])
+export const filterConfigAtom = atom<any>({})
+export const filterSettingsAtom = atom<any>({ minLevel: 1, maxLevel: 10000 })
+
+// Derived atom that combines all filter criteria
+export const globalFilterAtom = atom((get) => ({
+  shipTypes: get(filterShipTypesAtom),
+  expeditionShips: get(filterExpeditionShipsAtom),
+  config: get(filterConfigAtom),
+  filters: get(filterSettingsAtom),
+}))
+
+// Cache filter results per row to avoid re-computing for each column
+const filterCache = new Map<number, boolean>()
+
 // Global filter function that applies all filter criteria
+// Note: This is called once per column per row, so we cache the result
 const globalFilterFn: FilterFn<TableRow> = (row, columnId, filterValue) => {
   const { shipData } = row.original
+  const shipId = shipData.ship.api_id
+
+  // Check cache first - if we've already filtered this row, return cached result
+  if (filterCache.has(shipId)) {
+    return filterCache.get(shipId)!
+  }
+
+  console.log(`[Filter Check] Row ${shipId} - Column ${columnId}`)
+
   const { shipTypes, expeditionShips, config, filters } = filterValue as {
     shipTypes: number[]
     expeditionShips: number[]
@@ -52,7 +79,6 @@ const globalFilterFn: FilterFn<TableRow> = (row, columnId, filterValue) => {
   }
 
   const { ship, $ship, fleetIdMap, db } = shipData
-  const shipId = ship.api_id
   const typeId = $ship.api_stype
   const lv = ship.api_lv
   const locked = ship.api_locked
@@ -64,68 +90,196 @@ const globalFilterFn: FilterFn<TableRow> = (row, columnId, filterValue) => {
   const isCompleted = isShipCompleted(ship, $ship)
   const daihatsu = canEquipDaihatsu($ship.api_id, db)
 
+  console.log(`[Filter] Ship ${shipId} (${$ship.api_name}):`, {
+    typeId,
+    lv,
+    locked,
+    fleetId,
+    cond,
+    sallyArea,
+    exslot,
+  })
+
   // Type filter
-  if (!shipTypes.includes(typeId)) return false
+  const typePass = shipTypes.includes(typeId)
+  console.log(
+    `  Type filter: typeId=${typeId}, allowed=${shipTypes}, pass=${typePass}`,
+  )
+  if (!typePass) {
+    console.log(`  ❌ FILTERED OUT by type`)
+    filterCache.set(shipId, false)
+    return false
+  }
 
   // Level range filter
   const { minLevel, maxLevel } = filters
-  if (lv < Math.min(minLevel, maxLevel) || lv > Math.max(minLevel, maxLevel)) {
+  const levelPass =
+    lv >= Math.min(minLevel, maxLevel) && lv <= Math.max(minLevel, maxLevel)
+  console.log(
+    `  Level filter: lv=${lv}, range=[${minLevel},${maxLevel}], pass=${levelPass}`,
+  )
+  if (!levelPass) {
+    console.log(`  ❌ FILTERED OUT by level`)
+    filterCache.set(shipId, false)
     return false
   }
 
   // Locked filter
   const { lockedRadio } = config
-  if (lockedRadio === 1 && locked !== 1) return false
-  if (lockedRadio === 2 && locked !== 0) return false
+  const lockedPass = !(
+    (lockedRadio === 1 && locked !== 1) ||
+    (lockedRadio === 2 && locked !== 0)
+  )
+  console.log(
+    `  Locked filter: locked=${locked}, radio=${lockedRadio}, pass=${lockedPass}`,
+  )
+  if (!lockedPass) {
+    console.log(`  ❌ FILTERED OUT by lock`)
+    filterCache.set(shipId, false)
+    return false
+  }
 
   // Expedition filter
   const { expeditionRadio } = config
   const inExpedition = expeditionShips.includes(shipId)
-  if (expeditionRadio === 1 && !inExpedition) return false
-  if (expeditionRadio === 2 && inExpedition) return false
+  const expeditionPass = !(
+    (expeditionRadio === 1 && !inExpedition) ||
+    (expeditionRadio === 2 && inExpedition)
+  )
+  console.log(
+    `  Expedition filter: inExpedition=${inExpedition}, radio=${expeditionRadio}, pass=${expeditionPass}`,
+  )
+  if (!expeditionPass) {
+    console.log(`  ❌ FILTERED OUT by expedition`)
+    filterCache.set(shipId, false)
+    return false
+  }
 
   // Modernization filter
   const { modernizationRadio } = config
-  if (modernizationRadio === 1 && !isCompleted) return false
-  if (modernizationRadio === 2 && isCompleted) return false
+  const modernizationPass = !(
+    (modernizationRadio === 1 && !isCompleted) ||
+    (modernizationRadio === 2 && isCompleted)
+  )
+  console.log(
+    `  Modernization filter: isCompleted=${isCompleted}, radio=${modernizationRadio}, pass=${modernizationPass}`,
+  )
+  if (!modernizationPass) {
+    console.log(`  ❌ FILTERED OUT by modernization`)
+    filterCache.set(shipId, false)
+    return false
+  }
 
   // Remodel filter
   const { remodelRadio } = config
   const remodelable = after !== 0
-  if (remodelRadio === 1 && !remodelable) return false
-  if (remodelRadio === 2 && remodelable) return false
+  const remodelPass = !(
+    (remodelRadio === 1 && !remodelable) ||
+    (remodelRadio === 2 && remodelable)
+  )
+  console.log(
+    `  Remodel filter: remodelable=${remodelable}, radio=${remodelRadio}, pass=${remodelPass}`,
+  )
+  if (!remodelPass) {
+    console.log(`  ❌ FILTERED OUT by remodel`)
+    filterCache.set(shipId, false)
+    return false
+  }
 
   // Sally area filter
   const { sallyAreaChecked } = config
-  const allChecked = sallyAreaChecked.reduce(
+  // Use empty array as fallback - empty array reduces to true (show all ships)
+  const sallyAreaArray = sallyAreaChecked || []
+  const allChecked = sallyAreaArray.reduce(
     (all: boolean, checked: boolean) => all && checked,
     true,
   )
-  if (!allChecked && !sallyAreaChecked[sallyArea || 0]) return false
+  const sallyPass =
+    allChecked ||
+    (typeof sallyArea !== 'undefined' ? sallyAreaArray[sallyArea || 0] : true)
+  console.log(
+    `  Sally area filter: sallyArea=${sallyArea}, checked=${
+      sallyAreaArray[sallyArea || 0]
+    }, allChecked=${allChecked}, sallyAreaChecked=${JSON.stringify(
+      sallyAreaChecked,
+    )}, pass=${sallyPass}`,
+  )
+  if (!sallyPass) {
+    console.log(`  ❌ FILTERED OUT by sally area`)
+    filterCache.set(shipId, false)
+    return false
+  }
 
   // In fleet filter
   const { inFleetRadio } = config
   const isInFleet = fleetId > -1
-  if (inFleetRadio === 1 && !isInFleet) return false
-  if (inFleetRadio === 2 && isInFleet) return false
+  const inFleetPass = !(
+    (inFleetRadio === 1 && !isInFleet) ||
+    (inFleetRadio === 2 && isInFleet)
+  )
+  console.log(
+    `  In fleet filter: isInFleet=${isInFleet}, radio=${inFleetRadio}, pass=${inFleetPass}`,
+  )
+  if (!inFleetPass) {
+    console.log(`  ❌ FILTERED OUT by in fleet`)
+    filterCache.set(shipId, false)
+    return false
+  }
 
   // Sparkle filter
   const { sparkleRadio } = config
-  if (sparkleRadio === 1 && cond < 50) return false
-  if (sparkleRadio === 2 && cond >= 50) return false
+  const sparklePass = !(
+    (sparkleRadio === 1 && cond < 50) ||
+    (sparkleRadio === 2 && cond >= 50)
+  )
+  console.log(
+    `  Sparkle filter: cond=${cond}, radio=${sparkleRadio}, pass=${sparklePass}`,
+  )
+  if (!sparklePass) {
+    console.log(`  ❌ FILTERED OUT by sparkle`)
+    filterCache.set(shipId, false)
+    return false
+  }
 
   // Ex slot filter
   const { exSlotRadio } = config
-  if (exSlotRadio === 1 && exslot === 0) return false
-  if (exSlotRadio === 2 && exslot !== 0) return false
+  const exSlotPass = !(
+    (exSlotRadio === 1 && exslot === 0) ||
+    (exSlotRadio === 2 && exslot !== 0)
+  )
+  console.log(
+    `  Ex slot filter: exslot=${exslot}, radio=${exSlotRadio}, pass=${exSlotPass}`,
+  )
+  if (!exSlotPass) {
+    console.log(`  ❌ FILTERED OUT by ex slot`)
+    filterCache.set(shipId, false)
+    return false
+  }
 
   // Daihatsu filter
   const { daihatsuRadio } = config
-  if (daihatsuRadio === 1 && !daihatsu) return false
-  if (daihatsuRadio === 2 && daihatsu) return false
+  const daihatsuPass = !(
+    (daihatsuRadio === 1 && !daihatsu) ||
+    (daihatsuRadio === 2 && daihatsu)
+  )
+  console.log(
+    `  Daihatsu filter: daihatsu=${daihatsu}, radio=${daihatsuRadio}, pass=${daihatsuPass}`,
+  )
+  if (!daihatsuPass) {
+    console.log(`  ❌ FILTERED OUT by daihatsu`)
+    filterCache.set(shipId, false)
+    return false
+  }
 
+  console.log(`  ✅ PASSED all filters`)
+
+  // Cache the result
+  filterCache.set(shipId, true)
   return true
 }
+
+// Clear filter cache when filter values change
+let lastFilterValue: any = null
 
 const TableWrapper = styled.div`
   flex: 1;
@@ -253,6 +407,28 @@ const ShipInfoTableAreaBase: React.FC<ShipInfoTableAreaBaseProps> = ({
 
   const hasSpacer = process.platform === 'darwin' && !windowObj.isMain
 
+  // Sync Redux filter data to Jotai atoms
+  const setFilterShipTypes = useSetAtom(filterShipTypesAtom)
+  const setFilterExpeditionShips = useSetAtom(filterExpeditionShipsAtom)
+  const setFilterConfig = useSetAtom(filterConfigAtom)
+  const setFilterSettings = useSetAtom(filterSettingsAtom)
+
+  useEffect(() => {
+    setFilterShipTypes(shipTypes)
+    setFilterExpeditionShips(expeditionShips)
+    setFilterConfig(filterConfig)
+    setFilterSettings(filterSettings)
+  }, [
+    shipTypes,
+    expeditionShips,
+    filterConfig,
+    filterSettings,
+    setFilterShipTypes,
+    setFilterExpeditionShips,
+    setFilterConfig,
+    setFilterSettings,
+  ])
+
   const saveSortRules = useCallback((name: string, order: number) => {
     window.config.set('plugin.ShipInfo.sortName', name)
     window.config.set('plugin.ShipInfo.sortOrder', order)
@@ -298,16 +474,17 @@ const ShipInfoTableAreaBase: React.FC<ShipInfoTableAreaBaseProps> = ({
     [allShipsData],
   )
 
-  // Global filter value that includes all filter criteria
-  const globalFilterValue = useMemo(
-    () => ({
-      shipTypes,
-      expeditionShips,
-      config: filterConfig,
-      filters: filterSettings,
-    }),
-    [shipTypes, expeditionShips, filterConfig, filterSettings],
-  )
+  // Use Jotai atom for global filter (read-only, derived from other atoms)
+  const globalFilterValue = useAtomValue(globalFilterAtom)
+
+  // Clear filter cache when filter value changes
+  useEffect(() => {
+    if (globalFilterValue !== lastFilterValue) {
+      filterCache.clear()
+      lastFilterValue = globalFilterValue
+      console.log('[Filter] Cache cleared due to filter value change')
+    }
+  }, [globalFilterValue])
 
   // Define columns using ColumnsConfig
   const columns = useMemo<ColumnDef<TableRow>[]>(() => {
@@ -315,6 +492,7 @@ const ShipInfoTableAreaBase: React.FC<ShipInfoTableAreaBaseProps> = ({
     const rowIndexColumn: ColumnDef<TableRow> = {
       id: 'rowIndex',
       header: () => <div />,
+      accessorFn: (row) => row.index,
       cell: ({ row }) => (
         <RowIndexCell
           rowIndex={row.index}
@@ -330,7 +508,7 @@ const ShipInfoTableAreaBase: React.FC<ShipInfoTableAreaBaseProps> = ({
     const dataColumns: ColumnDef<TableRow>[] = ColumnsConfig.map(
       (config, index) => ({
         id: config.name,
-        accessorFn: (row) => row.shipData,
+        accessorFn: config.accessorFn,
         header: () => (
           <TitleCell
             title={config.title}
@@ -378,10 +556,15 @@ const ShipInfoTableAreaBase: React.FC<ShipInfoTableAreaBaseProps> = ({
       globalFilter: globalFilterValue,
     },
     onSortingChange: setSorting,
+    onGlobalFilterChange: () => {
+      // Global filter is managed by Jotai atoms
+    },
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     globalFilterFn,
+    enableFilters: true,
+    enableGlobalFilter: true,
   })
 
   // Get filtered rows from table
@@ -457,10 +640,10 @@ interface MappedProps {
 }
 
 const sortNameSelector = (state: ReduxState): string =>
-  get(state.config, 'plugin.ShipInfo.sortName', 'lv')
+  lodashGet(state.config, 'plugin.ShipInfo.sortName', 'lv')
 
 const sortOrderSelector = (state: ReduxState): number =>
-  get(state.config, 'plugin.ShipInfo.sortOrder', 0)
+  lodashGet(state.config, 'plugin.ShipInfo.sortOrder', 0)
 
 const mapStateToProps = (state: ReduxState): MappedProps => ({
   allShipsData: allShipRowsSelector(state as any) as IShipRawData[],
