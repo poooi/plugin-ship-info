@@ -1,16 +1,12 @@
 import { remote } from 'electron'
-import _, { clone, get } from 'lodash'
-import PropTypes from 'prop-types'
+import _, { get } from 'lodash'
 import url from 'url'
 import i18next from 'views/env-parts/i18next'
 
-import { APISlotItem } from 'kcsapi/api_get_member/require_info/response'
 import { APIShip } from 'kcsapi/api_port/port/response'
-import { APIMstShip, APIMstSlotitem } from 'kcsapi/api_start2/getData/response'
-import { Dictionary } from 'views/utils/selectors'
+import { APIMstShip } from 'kcsapi/api_start2/getData/response'
 import html2canvas from '../lib/html2canvas'
 import { repairFactor, shipSuperTypeMap } from './constants'
-import { IShip } from './types'
 
 const __ = i18next.getFixedT(null, ['poi-plugin-ship-info', 'resources'])
 
@@ -35,114 +31,42 @@ export const getTimePerHP = (api_lv = 1, api_stype = 1): number => {
   )
 }
 
-const getValueByLevel = (min: number, max: number, lv: number): number =>
+// Helper functions for computing ship properties from raw data
+export const getValueByLevel = (min: number, max: number, lv: number): number =>
   Math.floor(((max - min) * lv) / 99) + min
 
-/* tslint:disable:object-literal-sort-keys */
-export const getShipInfoData = (
-  ship: APIShip,
-  $ship: APIMstShip,
-  equips: Dictionary<APISlotItem>,
-  $shipTypes: Dictionary<APIMstSlotitem>,
-  fleetIdMap: Dictionary<number>,
-  rawValue = false,
-  repairs: number[] = [],
-  db: object,
-): IShip => {
-  const id = ship.api_id
-  const shipId = $ship.api_id
-  const typeId = $ship.api_stype
-  const fleetId = fleetIdMap[ship.api_id]
-  const type = ($shipTypes[$ship.api_stype] || {}).api_name
-  const name = $ship.api_name
-  const yomi = $ship.api_yomi
-  const sortno = $ship.api_sortno!
-  const lv = ship.api_lv
+export const computeKaryokuNow = (ship: APIShip, $ship: APIMstShip): number =>
+  $ship.api_houg![0] + ship.api_kyouka[0]
 
-  const cond = ship.api_cond
-  const houg = $ship.api_houg!
-  const raig = $ship.api_raig!
-  const tyku = $ship.api_tyku!
-  const souk = $ship.api_souk!
-  const luck = $ship.api_luck!
-  const taik = $ship.api_taik!
-  const kyouka = ship.api_kyouka
+export const computeRaisouNow = (ship: APIShip, $ship: APIMstShip): number =>
+  $ship.api_raig![0] + ship.api_kyouka[1]
 
-  const slot = clone(ship.api_slot)
-  const exslot = ship.api_slot_ex
-  const locked = ship.api_locked
-  const nowhp = ship.api_nowhp
-  const maxhp = ship.api_maxhp
-  const losshp = ship.api_maxhp - ship.api_nowhp
-  const repairtime = Math.floor(ship.api_ndock_time / 1000.0)
-  const inDock = repairs.includes(ship.api_id)
-  const after = parseInt($ship.api_aftershipid!, 10)
-  const sallyArea = ship.api_sally_area || 0
-  const soku = ship.api_soku
+export const computeTaikuNow = (ship: APIShip, $ship: APIMstShip): number =>
+  $ship.api_tyku![0] + ship.api_kyouka[2]
 
-  // Attention this will overwrite some original properties
-  const karyokuNow = houg![0] + kyouka[0]
-  const karyokuMax = ship.api_karyoku[1]
-  const karyoku = rawValue ? karyokuNow : ship.api_karyoku[0]
-  // eslint-disable-next-line no-underscore-dangle
-  const _karyoku = ship.api_karyoku[0]
+export const computeSoukouNow = (ship: APIShip, $ship: APIMstShip): number =>
+  $ship.api_souk![0] + ship.api_kyouka[3]
 
-  const raisouNow = raig![0] + kyouka[1]
-  const raisouMax = ship.api_raisou[1]
-  const raisou = rawValue ? raisouNow : ship.api_raisou[0]
-  // eslint-disable-next-line no-underscore-dangle
-  const _raisou = ship.api_raisou[0]
+export const computeLuckyNow = (ship: APIShip, $ship: APIMstShip): number =>
+  $ship.api_luck![0] + ship.api_kyouka[4]
 
-  const taikuNow = tyku![0] + kyouka[2]
-  const taikuMax = ship.api_taiku[1]
-  const taiku = rawValue ? taikuNow : ship.api_taiku[0]
-  // eslint-disable-next-line no-underscore-dangle
-  const _taiku = ship.api_taiku[0]
+export const isShipCompleted = (ship: APIShip, $ship: APIMstShip): boolean => {
+  const karyokuNow = computeKaryokuNow(ship, $ship)
+  const raisouNow = computeRaisouNow(ship, $ship)
+  const taikuNow = computeTaikuNow(ship, $ship)
+  const soukouNow = computeSoukouNow(ship, $ship)
 
-  const soukouNow = souk![0] + kyouka[3]
-  const soukouMax = ship.api_soukou[1]
-  const soukou = rawValue ? soukouNow : ship.api_soukou[0]
-  // eslint-disable-next-line no-underscore-dangle
-  const _soukou = ship.api_soukou[0]
+  return (
+    karyokuNow >= ship.api_karyoku[1] &&
+    raisouNow >= ship.api_raisou[1] &&
+    taikuNow >= ship.api_taiku[1] &&
+    soukouNow >= ship.api_soukou[1]
+  )
+}
 
-  const luckyNow = luck![0] + kyouka[4]
-  const luckyMax = ship.api_lucky[1]
-  const lucky = rawValue ? luckyNow : ship.api_lucky[0]
-  // eslint-disable-next-line no-underscore-dangle
-  const _lucky = ship.api_lucky[0]
-
-  const isCompleted =
-    karyokuNow >= karyokuMax &&
-    raisouNow >= raisouMax &&
-    taikuNow >= taikuMax &&
-    soukouNow >= soukouMax
-
-  // get raw kaihi, taisen and sakuteki value by substracting effects of equipments
-  let kaihi = ship.api_kaihi[0]
-  let taisen = ship.api_taisen[0]
-  let sakuteki = ship.api_sakuteki[0]
-
-  if (rawValue) {
-    kaihi = getValueByLevel(
-      _.get(db, ['ships', shipId, 'stat', 'evasion'], 0),
-      _.get(db, ['ships', shipId, 'stat', 'evasion_max'], 0),
-      lv,
-    )
-    taisen = getValueByLevel(
-      _.get(db, ['ships', shipId, 'stat', 'asw'], 0),
-      _.get(db, ['ships', shipId, 'stat', 'asw_max'], 0),
-      lv,
-    )
-    sakuteki = getValueByLevel(
-      _.get(db, ['ships', shipId, 'stat', 'los'], 0),
-      _.get(db, ['ships', shipId, 'stat', 'los_max'], 0),
-      lv,
-    )
-  }
-
-  // 24 = 上陸用舟艇, 46 = 特型内火艇
-  const daihatsuItems = _([24, 46]).map(i =>
-    _.find(get(db, 'item_types'), t => t.id_ingame === i),
+export const canEquipDaihatsu = (shipId: number, db: any): boolean => {
+  const daihatsuItems = _([24, 46]).map((i) =>
+    _.find(get(db, 'item_types'), (t) => t.id_ingame === i),
   )
 
   const daihatsuShips = daihatsuItems
@@ -152,133 +76,15 @@ export const getShipInfoData = (
     .flatMap('equipable_on_type')
     .value() as number[]
 
-  const daihatsu =
+  return (
     daihatsuShips.includes(shipId) ||
     daihastuTypes.includes(get(db, ['ships', shipId, 'type']))
-
-  return {
-    id,
-    shipId,
-    typeId,
-    fleetId,
-    type,
-    name,
-    yomi,
-    sortno,
-    lv,
-    cond,
-    karyoku,
-    houg,
-    raisou,
-    raig,
-    taiku,
-    tyku,
-    soukou,
-    souk,
-    lucky,
-    luck,
-    kyouka,
-    kaihi,
-    taisen,
-    sakuteki,
-    slot,
-    exslot,
-    locked,
-    nowhp,
-    maxhp,
-    losshp,
-    repairtime,
-    inDock,
-    after,
-    sallyArea,
-    soku,
-    karyokuNow,
-    karyokuMax,
-    _karyoku,
-    raisouNow,
-    raisouMax,
-    _raisou,
-    taikuNow,
-    taikuMax,
-    _taiku,
-    soukouNow,
-    soukouMax,
-    _soukou,
-    luckyNow,
-    luckyMax,
-    _lucky,
-    isCompleted,
-    daihatsu,
-    taik,
-  }
-}
-
-export const shipInfoShape = {
-  id: PropTypes.number.isRequired,
-  typeId: PropTypes.number.isRequired,
-  fleetId: PropTypes.number.isRequired,
-  type: PropTypes.string.isRequired,
-  name: PropTypes.string.isRequired,
-  yomi: PropTypes.string.isRequired,
-  sortno: PropTypes.number.isRequired,
-  lv: PropTypes.number.isRequired,
-  cond: PropTypes.number.isRequired,
-  karyoku: PropTypes.number.isRequired,
-  houg: PropTypes.arrayOf(PropTypes.number).isRequired,
-  raisou: PropTypes.number.isRequired,
-  raig: PropTypes.arrayOf(PropTypes.number).isRequired,
-  taiku: PropTypes.number.isRequired,
-  tyku: PropTypes.arrayOf(PropTypes.number).isRequired,
-  soukou: PropTypes.number.isRequired,
-  souk: PropTypes.arrayOf(PropTypes.number).isRequired,
-  lucky: PropTypes.number.isRequired,
-  luck: PropTypes.arrayOf(PropTypes.number).isRequired,
-  kyouka: PropTypes.arrayOf(PropTypes.number).isRequired,
-  kaihi: PropTypes.number.isRequired,
-  taisen: PropTypes.number.isRequired,
-  sakuteki: PropTypes.number.isRequired,
-  slot: PropTypes.arrayOf(PropTypes.number).isRequired,
-  exslot: PropTypes.number.isRequired,
-  locked: PropTypes.number.isRequired,
-  nowhp: PropTypes.number.isRequired,
-  maxhp: PropTypes.number.isRequired,
-  losshp: PropTypes.number.isRequired,
-  repairtime: PropTypes.number.isRequired,
-  after: PropTypes.number.isRequired,
-  sallyArea: PropTypes.number,
-  soku: PropTypes.number.isRequired,
-  karyokuNow: PropTypes.number.isRequired,
-  karyokuMax: PropTypes.number.isRequired,
-  raisouNow: PropTypes.number.isRequired,
-  raisouMax: PropTypes.number.isRequired,
-  taikuNow: PropTypes.number.isRequired,
-  taikuMax: PropTypes.number.isRequired,
-  soukouNow: PropTypes.number.isRequired,
-  soukouMax: PropTypes.number.isRequired,
-  luckyNow: PropTypes.number.isRequired,
-  luckyMax: PropTypes.number.isRequired,
-  isCompleted: PropTypes.bool.isRequired,
-  daihatsu: PropTypes.bool.isRequired,
-}
-/* tslint:enable:object-literal-sort-keys */
-
-const jpCollator = new Intl.Collator('ja-JP')
-
-export const nameCompare = (a: IShip, b: IShip) => {
-  if (a.yomi === b.yomi) {
-    if (a.lv !== b.lv) {
-      return a.lv - b.lv
-    }
-    if (a.id !== b.id) {
-      return -(a.id - b.id)
-    }
-  }
-  return jpCollator.compare(a.yomi, b.yomi)
+  )
 }
 
 // katagana to hiragana
 export const katakanaToHiragana = (str: string) =>
-  str.replace(/[\u30a1-\u30f6]/g, match => {
+  str.replace(/[\u30a1-\u30f6]/g, (match) => {
     const chr = match.charCodeAt(0) - 0x60
     return String.fromCharCode(chr)
   })
@@ -286,7 +92,7 @@ export const katakanaToHiragana = (str: string) =>
 export const getKanaSortValues = (str: string) =>
   katakanaToHiragana(str)
     .split('')
-    .map(s => s.charCodeAt(0))
+    .map((s) => s.charCodeAt(0))
 
 // following function is used to convert betweern array of booleans and int
 // leading true value is to ensure the bit length
@@ -296,7 +102,7 @@ export const intToBoolArray = (int = 0) => {
   const boolArray = int
     .toString(2)
     .split('')
-    .map(s => !!+s)
+    .map((s) => !!+s)
   boolArray.shift()
   return boolArray
 }
@@ -304,14 +110,14 @@ export const intToBoolArray = (int = 0) => {
 export const boolArrayToInt = (boolArray: boolean[] = []) => {
   const arr = boolArray.slice()
   arr.unshift(true)
-  const str = arr.map(bool => +bool).join('')
+  const str = arr.map((bool) => +bool).join('')
   return parseInt(str, 2)
 }
 
 export const reverseSuperTypeMap = _(shipSuperTypeMap)
   .flatMap(({ id }, index) =>
     _(id)
-      .map(type => [type, index])
+      .map((type) => [type, index])
       .value(),
   )
   .fromPairs()
@@ -402,22 +208,7 @@ export const solomonShips = [
   {
     name: 'ラバウル空襲',
     ships: [
-      62,
-      66,
-      67,
-      69,
-      68,
-      124,
-      137,
-      138,
-      42,
-      43,
-      46,
-      31,
-      481,
-      485,
-      479,
-      50,
+      62, 66, 67, 69, 68, 124, 137, 138, 42, 43, 46, 31, 481, 485, 479, 50,
     ],
   },
   {
@@ -480,22 +271,7 @@ export const leyteFleets = [
   {
     name: 'IJN First Striking First Section (Kurita)', // 第一遊撃部隊 第一部隊
     ships: [
-      67,
-      66,
-      68,
-      69,
-      131,
-      143,
-      80,
-      62,
-      65,
-      138,
-      50,
-      409,
-      452,
-      425,
-      135,
-      485,
+      67, 66, 68, 69, 131, 143, 80, 62, 65, 138, 50, 409, 452, 425, 135, 485,
     ],
   },
   // 金剛、榛名

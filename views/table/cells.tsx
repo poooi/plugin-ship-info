@@ -9,10 +9,22 @@ import { Avatar } from 'views/components/etc/avatar'
 import { Tooltip } from 'views/components/etc/overlay'
 import { resolveTime } from 'views/utils/tools'
 
+import { APIShip } from 'kcsapi/api_port/port/response'
+import { APIMstShip, APIMstSlotitem } from 'kcsapi/api_start2/getData/response'
+import { APISlotItem } from 'kcsapi/api_get_member/require_info/response'
 import { rgba } from 'polished'
-import { IShip } from 'views/types'
 import { sokuInterpretation } from '../constants'
-import { fileUrl, getTimePerHP, shipTypes } from '../utils'
+import {
+  fileUrl,
+  getTimePerHP,
+  shipTypes,
+  computeKaryokuNow,
+  computeRaisouNow,
+  computeTaikuNow,
+  computeSoukouNow,
+  computeLuckyNow,
+  getValueByLevel,
+} from '../utils'
 import { SallyArea } from './sally-area'
 import { Slotitems } from './slotitems'
 
@@ -27,62 +39,81 @@ export const Cell = styled.div<{ isEven?: boolean }>`
   cursor: default;
   display: flex;
   align-items: center;
-  background-color: ${props => props.isEven && rgba(props.theme.BLUE5, 0.05)};
+  background-color: ${(props) => props.isEven && rgba(props.theme.BLUE5, 0.05)};
 `
 
+// Type for raw ship data
+interface IShipRawData {
+  ship: APIShip
+  $ship: APIMstShip
+  equips: { [key: string]: APISlotItem }
+  $shipTypes: { [key: string]: APIMstSlotitem }
+  fleetIdMap: { [key: string]: number }
+  rawValue: boolean
+  repairs: number[]
+  db: any
+}
+
 interface ICellProps extends HTMLAttributes<HTMLDivElement> {
-  ship: IShip
+  shipData: IShipRawData
 }
 
 const enableAvatarConfigSelector = (state: any) =>
   get(state, ['config', 'poi', 'appearance', 'avatar'], true)
 
-const Id = ({ ship, ...props }: ICellProps) => <Cell {...props}>{ship.id}</Cell>
+const Id = ({ shipData, ...props }: ICellProps) => (
+  <Cell {...props}>{shipData.ship.api_id}</Cell>
+)
 
 const Name = ({
-  ship,
+  shipData,
   enableAvatar,
   ...props
 }: {
-  ship: IShip
+  shipData: IShipRawData
   enableAvatar: boolean
 }) => {
   const { t } = useTranslation(['resources'])
+  const { ship, $ship, fleetIdMap } = shipData
+  const fleetId = fleetIdMap[ship.api_id]
 
   return (
     <Cell {...props}>
-      {enableAvatar && <Avatar mstId={ship.shipId} height={35} />}
-      <span title={t(ship.name)}>{t(ship.name)}</span>
-      {ship.fleetId > -1 && (
+      {enableAvatar && <Avatar mstId={$ship.api_id} height={35} />}
+      <span title={t($ship.api_name)}>{t($ship.api_name)}</span>
+      {fleetId > -1 && (
         <img
-          alt={`fleet: ${ship.fleetId + 1}`}
+          alt={`fleet: ${fleetId + 1}`}
           height={16}
           src={fileUrl(
             path.resolve(
               __dirname,
-              `../../assets/images/fleet/${ship.fleetId + 1}.png`,
+              `../../assets/images/fleet/${fleetId + 1}.png`,
             ),
           )}
         />
       )}
-      <SallyArea area={ship.sallyArea} info_id={ship.id} />
+      <SallyArea area={ship.api_sally_area || 0} info_id={ship.api_id} />
     </Cell>
   )
 }
 
-const Type = ({ ship, ...props }: ICellProps) => {
+const Type = ({ shipData, ...props }: ICellProps) => {
   const { t } = useTranslation(['resources'])
+  const { $ship, $shipTypes } = shipData
+  const type = ($shipTypes[$ship.api_stype] || {}).api_name
+
   return (
     <Cell {...props}>
       {window.language === 'en-US'
-        ? shipTypes[ship.typeId as keyof typeof shipTypes]
-        : t(ship.type)}
+        ? shipTypes[$ship.api_stype as keyof typeof shipTypes]
+        : t(type)}
     </Cell>
   )
 }
 
-const Soku = ({ ship, ...props }: ICellProps) => {
-  const { soku } = ship
+const Soku = ({ shipData, ...props }: ICellProps) => {
+  const soku = shipData.ship.api_soku
   const sokuString =
     sokuInterpretation[soku as keyof typeof sokuInterpretation] || 'Unknown'
   const { t } = useTranslation(['poi-plugin-ship-info'])
@@ -93,30 +124,42 @@ const Soku = ({ ship, ...props }: ICellProps) => {
   )
 }
 
-const Lv = ({ ship, ...props }: ICellProps) => <Cell {...props}>{ship.lv}</Cell>
-
-const Cond = ({ ship, ...props }: ICellProps) => (
-  <Cell {...props}>{ship.cond}</Cell>
+const Lv = ({ shipData, ...props }: ICellProps) => (
+  <Cell {...props}>{shipData.ship.api_lv}</Cell>
 )
 
-const Hp = ({ ship, ...props }: ICellProps) => (
-  <Cell {...props}>
-    <span>
-      {ship.taik[0]}
-      {ship.maxhp - ship.taik[0] > 0 && <sup>+{ship.maxhp - ship.taik[0]}</sup>}
-    </span>
-  </Cell>
+const Cond = ({ shipData, ...props }: ICellProps) => (
+  <Cell {...props}>{shipData.ship.api_cond}</Cell>
 )
+
+const Hp = ({ shipData, ...props }: ICellProps) => {
+  const { ship, $ship } = shipData
+  const taik = $ship.api_taik![0]
+  const maxhp = ship.api_maxhp
+
+  return (
+    <Cell {...props}>
+      <span>
+        {taik}
+        {maxhp - taik > 0 && <sup>+{maxhp - taik}</sup>}
+      </span>
+    </Cell>
+  )
+}
 
 const KaryokuCell = styled(Cell)<{ max: boolean }>`
-  background-color: ${props =>
+  background-color: ${(props) =>
     props.max && rgba(props.theme.RED3, TRANSPARENCY)};
 `
 
-const Karyoku = ({ ship, ...props }: ICellProps) => {
-  const { karyoku, karyokuMax, karyokuNow } = ship
+const Karyoku = ({ shipData, ...props }: ICellProps) => {
+  const { ship, $ship, rawValue } = shipData
+  const karyokuNow = computeKaryokuNow(ship, $ship)
+  const karyokuMax = ship.api_karyoku[1]
+  const karyoku = rawValue ? karyokuNow : ship.api_karyoku[0]
   const karyokuString =
     karyokuNow >= karyokuMax ? 'MAX' : `+${karyokuMax - karyokuNow}`
+
   return (
     <KaryokuCell {...props} max={karyokuNow >= karyokuMax}>
       <span>
@@ -128,14 +171,18 @@ const Karyoku = ({ ship, ...props }: ICellProps) => {
 }
 
 const RaisouCell = styled(Cell)<{ max: boolean }>`
-  background-color: ${props =>
+  background-color: ${(props) =>
     props.max && rgba(props.theme.COBALT3, TRANSPARENCY)};
 `
 
-const Raisou = ({ ship, ...props }: ICellProps) => {
-  const { raisou, raisouMax, raisouNow } = ship
+const Raisou = ({ shipData, ...props }: ICellProps) => {
+  const { ship, $ship, rawValue } = shipData
+  const raisouNow = computeRaisouNow(ship, $ship)
+  const raisouMax = ship.api_raisou[1]
+  const raisou = rawValue ? raisouNow : ship.api_raisou[0]
   const raisouString =
     raisouNow >= raisouMax ? 'MAX' : `+${raisouMax - raisouNow}`
+
   return (
     <RaisouCell {...props} max={raisouNow >= raisouMax}>
       <span>
@@ -147,13 +194,17 @@ const Raisou = ({ ship, ...props }: ICellProps) => {
 }
 
 const TaikuCell = styled(Cell)<{ max: boolean }>`
-  background-color: ${props =>
+  background-color: ${(props) =>
     props.max && rgba(props.theme.ORANGE3, TRANSPARENCY)};
 `
 
-const Taiku = ({ ship, ...props }: ICellProps) => {
-  const { taiku, taikuMax, taikuNow } = ship
+const Taiku = ({ shipData, ...props }: ICellProps) => {
+  const { ship, $ship, rawValue } = shipData
+  const taikuNow = computeTaikuNow(ship, $ship)
+  const taikuMax = ship.api_taiku[1]
+  const taiku = rawValue ? taikuNow : ship.api_taiku[0]
   const taikuString = taikuNow >= taikuMax ? 'MAX' : `+${taikuMax - taikuNow}`
+
   return (
     <TaikuCell {...props} max={taikuNow >= taikuMax}>
       <span>
@@ -165,14 +216,18 @@ const Taiku = ({ ship, ...props }: ICellProps) => {
 }
 
 const SoukouCell = styled(Cell)<{ max: boolean }>`
-  background-color: ${props =>
+  background-color: ${(props) =>
     props.max && rgba(props.theme.INDIGO3, TRANSPARENCY)};
 `
 
-const Soukou = ({ ship, ...props }: ICellProps) => {
-  const { soukou, soukouMax, soukouNow } = ship
+const Soukou = ({ shipData, ...props }: ICellProps) => {
+  const { ship, $ship, rawValue } = shipData
+  const soukouNow = computeSoukouNow(ship, $ship)
+  const soukouMax = ship.api_soukou[1]
+  const soukou = rawValue ? soukouNow : ship.api_soukou[0]
   const soukouString =
     soukouNow >= soukouMax ? 'MAX' : `+${soukouMax - soukouNow}`
+
   return (
     <SoukouCell {...props} max={soukouNow >= soukouMax}>
       <span>
@@ -184,13 +239,17 @@ const Soukou = ({ ship, ...props }: ICellProps) => {
 }
 
 const LuckyCell = styled(Cell)<{ max: boolean }>`
-  background-color: ${props =>
+  background-color: ${(props) =>
     props.max && rgba(props.theme.LIME3, TRANSPARENCY)};
 `
 
-const Lucky = ({ ship, ...props }: ICellProps) => {
-  const { lucky, luckyMax, luckyNow } = ship
+const Lucky = ({ shipData, ...props }: ICellProps) => {
+  const { ship, $ship, rawValue } = shipData
+  const luckyNow = computeLuckyNow(ship, $ship)
+  const luckyMax = ship.api_lucky[1]
+  const lucky = rawValue ? luckyNow : ship.api_lucky[0]
   const luckyString = luckyNow >= luckyMax ? 'MAX' : `+${luckyMax - luckyNow}`
+
   return (
     <LuckyCell {...props} max={luckyNow >= luckyMax}>
       <span>
@@ -201,31 +260,70 @@ const Lucky = ({ ship, ...props }: ICellProps) => {
   )
 }
 
-const Kaihi = ({ ship, ...props }: ICellProps) => (
-  <Cell {...props}>{ship.kaihi || 'NA'}</Cell>
-)
+const Kaihi = ({ shipData, ...props }: ICellProps) => {
+  const { ship, $ship, rawValue, db } = shipData
+  let kaihi = ship.api_kaihi[0]
 
-const Taisen = ({ ship, ...props }: ICellProps) => (
-  <Cell {...props}>
-    <span>
-      {ship.taisen}
-      {ship.kyouka[6] > 0 && <sup>+{ship.kyouka[6]}</sup>}
-    </span>
-  </Cell>
-)
+  if (rawValue) {
+    kaihi = getValueByLevel(
+      get(db, ['ships', $ship.api_id, 'stat', 'evasion'], 0),
+      get(db, ['ships', $ship.api_id, 'stat', 'evasion_max'], 0),
+      ship.api_lv,
+    )
+  }
 
-const Sakuteki = ({ ship, ...props }: ICellProps) => (
-  <Cell {...props}>{ship.sakuteki}</Cell>
-)
+  return <Cell {...props}>{kaihi || 'NA'}</Cell>
+}
 
-const RepairTime = ({ ship, ...props }: ICellProps) => {
-  const { nowhp, maxhp, repairtime, lv, typeId, inDock } = ship
+const Taisen = ({ shipData, ...props }: ICellProps) => {
+  const { ship, $ship, rawValue, db } = shipData
+  let taisen = ship.api_taisen[0]
+
+  if (rawValue) {
+    taisen = getValueByLevel(
+      get(db, ['ships', $ship.api_id, 'stat', 'asw'], 0),
+      get(db, ['ships', $ship.api_id, 'stat', 'asw_max'], 0),
+      ship.api_lv,
+    )
+  }
 
   return (
     <Cell {...props}>
-      {repairtime && (
+      <span>
+        {taisen}
+        {ship.api_kyouka[6] > 0 && <sup>+{ship.api_kyouka[6]}</sup>}
+      </span>
+    </Cell>
+  )
+}
+
+const Sakuteki = ({ shipData, ...props }: ICellProps) => {
+  const { ship, $ship, rawValue, db } = shipData
+  let sakuteki = ship.api_sakuteki[0]
+
+  if (rawValue) {
+    sakuteki = getValueByLevel(
+      get(db, ['ships', $ship.api_id, 'stat', 'los'], 0),
+      get(db, ['ships', $ship.api_id, 'stat', 'los_max'], 0),
+      ship.api_lv,
+    )
+  }
+
+  return <Cell {...props}>{sakuteki}</Cell>
+}
+
+const RepairTime = ({ shipData, ...props }: ICellProps) => {
+  const { ship, $ship, repairs } = shipData
+  const repairtime = Math.floor(ship.api_ndock_time / 1000.0)
+  const inDock = repairs.includes(ship.api_id)
+
+  return (
+    <Cell {...props}>
+      {repairtime > 0 && (
         <Tooltip
-          content={`1HP : ${resolveTime(getTimePerHP(lv, typeId) / 1000)}`}
+          content={`1HP : ${resolveTime(
+            getTimePerHP(ship.api_lv, $ship.api_stype) / 1000,
+          )}`}
         >
           <span>
             {inDock && <FontAwesome name="bath" />}
@@ -237,15 +335,18 @@ const RepairTime = ({ ship, ...props }: ICellProps) => {
   )
 }
 
-const Equipment = ({ ship, ...props }: ICellProps) => (
-  <Cell {...props}>
-    <Slotitems slot={ship.slot} exslot={ship.exslot} />
-  </Cell>
-)
+const Equipment = ({ shipData, ...props }: ICellProps) => {
+  const { ship } = shipData
+  return (
+    <Cell {...props}>
+      <Slotitems slot={ship.api_slot} exslot={ship.api_slot_ex} />
+    </Cell>
+  )
+}
 
-const Lock = ({ ship, ...props }: ICellProps) => (
+const Lock = ({ shipData, ...props }: ICellProps) => (
   <Cell {...props}>
-    {ship.locked === 1 ? <FontAwesome name="lock" /> : ' '}
+    {shipData.ship.api_locked === 1 ? <FontAwesome name="lock" /> : ' '}
   </Cell>
 )
 
@@ -259,9 +360,9 @@ export const Cells = {
   lock: Lock,
   lucky: Lucky,
   lv: Lv,
-  name: connect(state => ({ enableAvatar: enableAvatarConfigSelector(state) }))(
-    Name,
-  ),
+  name: connect((state) => ({
+    enableAvatar: enableAvatarConfigSelector(state),
+  }))(Name),
   raisou: Raisou,
   repairtime: RepairTime,
   sakuteki: Sakuteki,
@@ -271,3 +372,6 @@ export const Cells = {
   taisen: Taisen,
   type: Type,
 }
+
+// Export the IShipRawData type for use in other files
+export type { IShipRawData }

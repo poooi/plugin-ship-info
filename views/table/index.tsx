@@ -11,9 +11,12 @@ import styled from 'styled-components'
 
 import { WindowEnv } from 'views/components/etc/window-env'
 
-import { IShip } from 'views/types'
 import { allShipRowsMapSelector, filterShipIdsSelector } from '../selectors'
-import { Cell as NormalCell, Cells as ShipInfoCells } from './cells'
+import {
+  Cell as NormalCell,
+  Cells as ShipInfoCells,
+  IShipRawData,
+} from './cells'
 import { ColumnsConfig } from './columns-config'
 import { TitleCell } from './title-cell'
 
@@ -50,7 +53,7 @@ const GridHeader = styled(Grid)`
 
 interface ShipInfoTableAreaBaseProps extends DispatchProp {
   ids: number[]
-  ships: Dictionary<IShip>
+  ships: Dictionary<IShipRawData>
   window: Window
   sortName: string
   sortOrder: number
@@ -122,9 +125,7 @@ class ShipInfoTableAreaBase extends Component<
     data: any
     rowIndex: number
   }) =>
-    rowIndex === 0
-      ? `title-${columnIndex}`
-      : `${data[rowIndex].id}-${columnIndex}`
+    rowIndex === 0 ? `title-${columnIndex}` : `${data[rowIndex]}-${columnIndex}`
 
   public onContextMenu = () =>
     this.setState({
@@ -132,20 +133,16 @@ class ShipInfoTableAreaBase extends Component<
       activeRow: -1,
     })
 
-  public onClickFactory = ({
-    columnIndex,
-    rowIndex,
-  }: {
-    columnIndex: number
-    rowIndex: number
-  }) => () => {
-    const { activeColumn, activeRow } = this.state
-    const off = activeColumn === columnIndex && activeRow === rowIndex
-    this.setState({
-      activeColumn: off ? -1 : columnIndex,
-      activeRow: off ? -1 : rowIndex,
-    })
-  }
+  public onClickFactory =
+    ({ columnIndex, rowIndex }: { columnIndex: number; rowIndex: number }) =>
+    () => {
+      const { activeColumn, activeRow } = this.state
+      const off = activeColumn === columnIndex && activeRow === rowIndex
+      this.setState({
+        activeColumn: off ? -1 : columnIndex,
+        activeRow: off ? -1 : rowIndex,
+      })
+    }
 
   public getColumnWidth = (index: number) => {
     // 20: magic number, seems it need to be greater than 16
@@ -189,9 +186,9 @@ class ShipInfoTableAreaBase extends Component<
     } else {
       const index = columnIndex - 1
       const { ids, ships } = this.props
-      const ship = ships[ids[rowIndex]]
+      const shipData = ships[ids[rowIndex]]
       const Cell = ShipInfoCells[TYPES[index] as keyof typeof ShipInfoCells]
-      content = <Cell ship={ship} {...props} />
+      content = <Cell shipData={shipData} {...props} />
     }
 
     return content
@@ -261,7 +258,7 @@ class ShipInfoTableAreaBase extends Component<
                 columnCount={WIDTHS.length}
                 columnWidth={this.getColumnWidth}
                 height={height - (hasSpacer ? 75 : 40)}
-                itemData={map(ids, id => ships[id])}
+                itemData={ids}
                 itemKey={this.getItemKey}
                 rowCount={ids.length}
                 rowHeight={this.getRowHeight}
