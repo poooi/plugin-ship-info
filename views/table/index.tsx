@@ -24,12 +24,8 @@ import {
   shipTypesSelecor,
   expeditionShipsSelector,
 } from '../selectors'
-import {
-  Cell as NormalCell,
-  Cells as ShipInfoCells,
-  IShipRawData,
-} from './cells'
-import { ColumnsConfig, TableRow } from './columns-config'
+import { IShipRawData } from './cells'
+import { columns as dataColumns, TableRow } from './columns-config'
 import { TitleCell } from './title-cell'
 import { isShipCompleted, canEquipDaihatsu } from '../utils'
 
@@ -69,8 +65,6 @@ const globalFilterFn: FilterFn<TableRow> = (row, columnId, filterValue) => {
     return filterCache.get(shipId)!
   }
 
-  console.log(`[Filter Check] Row ${shipId} - Column ${columnId}`)
-
   const { shipTypes, expeditionShips, config, filters } = filterValue as {
     shipTypes: number[]
     expeditionShips: number[]
@@ -90,51 +84,26 @@ const globalFilterFn: FilterFn<TableRow> = (row, columnId, filterValue) => {
   const isCompleted = isShipCompleted(ship, $ship)
   const daihatsu = canEquipDaihatsu($ship.api_id, db)
 
-  console.log(`[Filter] Ship ${shipId} (${$ship.api_name}):`, {
-    typeId,
-    lv,
-    locked,
-    fleetId,
-    cond,
-    sallyArea,
-    exslot,
-  })
-
   // Type filter
-  const typePass = shipTypes.includes(typeId)
-  console.log(
-    `  Type filter: typeId=${typeId}, allowed=${shipTypes}, pass=${typePass}`,
-  )
-  if (!typePass) {
-    console.log(`  ❌ FILTERED OUT by type`)
+  if (!shipTypes.includes(typeId)) {
     filterCache.set(shipId, false)
     return false
   }
 
   // Level range filter
   const { minLevel, maxLevel } = filters
-  const levelPass =
-    lv >= Math.min(minLevel, maxLevel) && lv <= Math.max(minLevel, maxLevel)
-  console.log(
-    `  Level filter: lv=${lv}, range=[${minLevel},${maxLevel}], pass=${levelPass}`,
-  )
-  if (!levelPass) {
-    console.log(`  ❌ FILTERED OUT by level`)
+  if (lv < Math.min(minLevel, maxLevel) || lv > Math.max(minLevel, maxLevel)) {
     filterCache.set(shipId, false)
     return false
   }
 
   // Locked filter
   const { lockedRadio } = config
-  const lockedPass = !(
-    (lockedRadio === 1 && locked !== 1) ||
-    (lockedRadio === 2 && locked !== 0)
-  )
-  console.log(
-    `  Locked filter: locked=${locked}, radio=${lockedRadio}, pass=${lockedPass}`,
-  )
-  if (!lockedPass) {
-    console.log(`  ❌ FILTERED OUT by lock`)
+  if (lockedRadio === 1 && locked !== 1) {
+    filterCache.set(shipId, false)
+    return false
+  }
+  if (lockedRadio === 2 && locked !== 0) {
     filterCache.set(shipId, false)
     return false
   }
@@ -142,30 +111,22 @@ const globalFilterFn: FilterFn<TableRow> = (row, columnId, filterValue) => {
   // Expedition filter
   const { expeditionRadio } = config
   const inExpedition = expeditionShips.includes(shipId)
-  const expeditionPass = !(
-    (expeditionRadio === 1 && !inExpedition) ||
-    (expeditionRadio === 2 && inExpedition)
-  )
-  console.log(
-    `  Expedition filter: inExpedition=${inExpedition}, radio=${expeditionRadio}, pass=${expeditionPass}`,
-  )
-  if (!expeditionPass) {
-    console.log(`  ❌ FILTERED OUT by expedition`)
+  if (expeditionRadio === 1 && !inExpedition) {
+    filterCache.set(shipId, false)
+    return false
+  }
+  if (expeditionRadio === 2 && inExpedition) {
     filterCache.set(shipId, false)
     return false
   }
 
   // Modernization filter
   const { modernizationRadio } = config
-  const modernizationPass = !(
-    (modernizationRadio === 1 && !isCompleted) ||
-    (modernizationRadio === 2 && isCompleted)
-  )
-  console.log(
-    `  Modernization filter: isCompleted=${isCompleted}, radio=${modernizationRadio}, pass=${modernizationPass}`,
-  )
-  if (!modernizationPass) {
-    console.log(`  ❌ FILTERED OUT by modernization`)
+  if (modernizationRadio === 1 && !isCompleted) {
+    filterCache.set(shipId, false)
+    return false
+  }
+  if (modernizationRadio === 2 && isCompleted) {
     filterCache.set(shipId, false)
     return false
   }
@@ -173,39 +134,26 @@ const globalFilterFn: FilterFn<TableRow> = (row, columnId, filterValue) => {
   // Remodel filter
   const { remodelRadio } = config
   const remodelable = after !== 0
-  const remodelPass = !(
-    (remodelRadio === 1 && !remodelable) ||
-    (remodelRadio === 2 && remodelable)
-  )
-  console.log(
-    `  Remodel filter: remodelable=${remodelable}, radio=${remodelRadio}, pass=${remodelPass}`,
-  )
-  if (!remodelPass) {
-    console.log(`  ❌ FILTERED OUT by remodel`)
+  if (remodelRadio === 1 && !remodelable) {
+    filterCache.set(shipId, false)
+    return false
+  }
+  if (remodelRadio === 2 && remodelable) {
     filterCache.set(shipId, false)
     return false
   }
 
   // Sally area filter
   const { sallyAreaChecked } = config
-  // Use empty array as fallback - empty array reduces to true (show all ships)
   const sallyAreaArray = sallyAreaChecked || []
   const allChecked = sallyAreaArray.reduce(
     (all: boolean, checked: boolean) => all && checked,
     true,
   )
-  const sallyPass =
-    allChecked ||
-    (typeof sallyArea !== 'undefined' ? sallyAreaArray[sallyArea || 0] : true)
-  console.log(
-    `  Sally area filter: sallyArea=${sallyArea}, checked=${
-      sallyAreaArray[sallyArea || 0]
-    }, allChecked=${allChecked}, sallyAreaChecked=${JSON.stringify(
-      sallyAreaChecked,
-    )}, pass=${sallyPass}`,
-  )
-  if (!sallyPass) {
-    console.log(`  ❌ FILTERED OUT by sally area`)
+  if (
+    !allChecked &&
+    !(typeof sallyArea !== 'undefined' ? sallyAreaArray[sallyArea || 0] : true)
+  ) {
     filterCache.set(shipId, false)
     return false
   }
@@ -213,73 +161,52 @@ const globalFilterFn: FilterFn<TableRow> = (row, columnId, filterValue) => {
   // In fleet filter
   const { inFleetRadio } = config
   const isInFleet = fleetId > -1
-  const inFleetPass = !(
-    (inFleetRadio === 1 && !isInFleet) ||
-    (inFleetRadio === 2 && isInFleet)
-  )
-  console.log(
-    `  In fleet filter: isInFleet=${isInFleet}, radio=${inFleetRadio}, pass=${inFleetPass}`,
-  )
-  if (!inFleetPass) {
-    console.log(`  ❌ FILTERED OUT by in fleet`)
+  if (inFleetRadio === 1 && !isInFleet) {
+    filterCache.set(shipId, false)
+    return false
+  }
+  if (inFleetRadio === 2 && isInFleet) {
     filterCache.set(shipId, false)
     return false
   }
 
   // Sparkle filter
   const { sparkleRadio } = config
-  const sparklePass = !(
-    (sparkleRadio === 1 && cond < 50) ||
-    (sparkleRadio === 2 && cond >= 50)
-  )
-  console.log(
-    `  Sparkle filter: cond=${cond}, radio=${sparkleRadio}, pass=${sparklePass}`,
-  )
-  if (!sparklePass) {
-    console.log(`  ❌ FILTERED OUT by sparkle`)
+  if (sparkleRadio === 1 && cond < 50) {
+    filterCache.set(shipId, false)
+    return false
+  }
+  if (sparkleRadio === 2 && cond >= 50) {
     filterCache.set(shipId, false)
     return false
   }
 
   // Ex slot filter
   const { exSlotRadio } = config
-  const exSlotPass = !(
-    (exSlotRadio === 1 && exslot === 0) ||
-    (exSlotRadio === 2 && exslot !== 0)
-  )
-  console.log(
-    `  Ex slot filter: exslot=${exslot}, radio=${exSlotRadio}, pass=${exSlotPass}`,
-  )
-  if (!exSlotPass) {
-    console.log(`  ❌ FILTERED OUT by ex slot`)
+  if (exSlotRadio === 1 && exslot === 0) {
+    filterCache.set(shipId, false)
+    return false
+  }
+  if (exSlotRadio === 2 && exslot !== 0) {
     filterCache.set(shipId, false)
     return false
   }
 
   // Daihatsu filter
   const { daihatsuRadio } = config
-  const daihatsuPass = !(
-    (daihatsuRadio === 1 && !daihatsu) ||
-    (daihatsuRadio === 2 && daihatsu)
-  )
-  console.log(
-    `  Daihatsu filter: daihatsu=${daihatsu}, radio=${daihatsuRadio}, pass=${daihatsuPass}`,
-  )
-  if (!daihatsuPass) {
-    console.log(`  ❌ FILTERED OUT by daihatsu`)
+  if (daihatsuRadio === 1 && !daihatsu) {
     filterCache.set(shipId, false)
     return false
   }
-
-  console.log(`  ✅ PASSED all filters`)
+  if (daihatsuRadio === 2 && daihatsu) {
+    filterCache.set(shipId, false)
+    return false
+  }
 
   // Cache the result
   filterCache.set(shipId, true)
   return true
 }
-
-// Clear filter cache when filter values change
-let lastFilterValue: any = null
 
 const TableWrapper = styled.div`
   flex: 1;
@@ -313,12 +240,17 @@ const TableBody = styled.div`
 const HeaderCell = styled.div<{ width: number }>`
   width: ${(props) => props.width}px;
   flex-shrink: 0;
+  height: 100%;
+  display: flex;
+  align-items: stretch;
 `
 
-const Row = styled.div`
+const Row = styled.div<{ $isEven?: boolean }>`
   display: flex;
   position: absolute;
   width: 100%;
+  background-color: ${(props) =>
+    props.$isEven ? 'rgba(0, 123, 255, 0.05)' : 'transparent'};
 `
 
 interface ShipInfoTableAreaBaseProps {
@@ -332,6 +264,18 @@ interface ShipInfoTableAreaBaseProps {
   filterSettings: any
 }
 
+// Styled wrapper for row index cells
+const RowIndexCellWrapper = styled.div<{ $isHighlighted: boolean }>`
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: ${(props) =>
+    props.$isHighlighted ? 'rgba(138, 155, 168, 0.3)' : 'transparent'};
+  cursor: default;
+`
+
 // Cell wrapper components that subscribe to Jotai atoms
 const RowIndexCell: React.FC<{
   rowIndex: number
@@ -342,52 +286,53 @@ const RowIndexCell: React.FC<{
   const isHighlighted = activeRow === rowIndex
 
   return (
-    <NormalCell
-      isEven={rowIndex % 2 === 1}
-      style={{
-        backgroundColor: isHighlighted ? 'rgba(138, 155, 168, 0.3)' : undefined,
-      }}
+    <RowIndexCellWrapper
+      $isHighlighted={isHighlighted}
       onClick={() => onClickCell(0, rowIndex)}
       onContextMenu={onContextMenu}
     >
       {rowIndex + 1}
-    </NormalCell>
+    </RowIndexCellWrapper>
   )
 }
 
-const DataCell: React.FC<{
+// Styled wrapper for cells with highlighting
+const CellWrapperDiv = styled.div<{ $isHighlighted: boolean }>`
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  background-color: ${(props) =>
+    props.$isHighlighted ? 'rgba(138, 155, 168, 0.3)' : 'transparent'};
+`
+
+// Wrapper component for cells with highlighting
+const CellWrapper: React.FC<{
   columnIndex: number
   rowIndex: number
-  shipData: IShipRawData
-  cellType: string
   onClickCell: (columnIndex: number, rowIndex: number) => void
   onContextMenu: () => void
-}> = ({
-  columnIndex,
-  rowIndex,
-  shipData,
-  cellType,
-  onClickCell,
-  onContextMenu,
-}) => {
+  children: React.ReactNode
+}> = ({ columnIndex, rowIndex, onClickCell, onContextMenu, children }) => {
   const activeRow = useAtomValue(activeRowAtom)
   const activeColumn = useAtomValue(activeColumnAtom)
   const isHighlighted = activeColumn === columnIndex || activeRow === rowIndex
 
-  const Cell = ShipInfoCells[cellType as keyof typeof ShipInfoCells]
-
   return (
-    <div
-      style={{
-        backgroundColor: isHighlighted ? 'rgba(138, 155, 168, 0.3)' : undefined,
+    <CellWrapperDiv
+      role="gridcell"
+      tabIndex={0}
+      $isHighlighted={isHighlighted}
+      onClick={() => onClickCell(columnIndex, rowIndex)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          onClickCell(columnIndex, rowIndex)
+        }
       }}
+      onContextMenu={onContextMenu}
     >
-      <Cell
-        shipData={shipData}
-        onClick={() => onClickCell(columnIndex, rowIndex)}
-        onContextMenu={onContextMenu}
-      />
-    </div>
+      {children}
+    </CellWrapperDiv>
   )
 }
 
@@ -414,6 +359,7 @@ const ShipInfoTableAreaBase: React.FC<ShipInfoTableAreaBaseProps> = ({
   const setFilterSettings = useSetAtom(filterSettingsAtom)
 
   useEffect(() => {
+    filterCache.clear()
     setFilterShipTypes(shipTypes)
     setFilterExpeditionShips(expeditionShips)
     setFilterConfig(filterConfig)
@@ -477,16 +423,7 @@ const ShipInfoTableAreaBase: React.FC<ShipInfoTableAreaBaseProps> = ({
   // Use Jotai atom for global filter (read-only, derived from other atoms)
   const globalFilterValue = useAtomValue(globalFilterAtom)
 
-  // Clear filter cache when filter value changes
-  useEffect(() => {
-    if (globalFilterValue !== lastFilterValue) {
-      filterCache.clear()
-      lastFilterValue = globalFilterValue
-      console.log('[Filter] Cache cleared due to filter value change')
-    }
-  }, [globalFilterValue])
-
-  // Define columns using ColumnsConfig
+  // Define columns with row index column and highlighting wrappers
   const columns = useMemo<ColumnDef<TableRow>[]>(() => {
     // Row index column
     const rowIndexColumn: ColumnDef<TableRow> = {
@@ -504,38 +441,41 @@ const ShipInfoTableAreaBase: React.FC<ShipInfoTableAreaBaseProps> = ({
       enableSorting: false,
     }
 
-    // Data columns from ColumnsConfig
-    const dataColumns: ColumnDef<TableRow>[] = ColumnsConfig.map(
-      (config, index) => ({
-        id: config.name,
-        accessorFn: config.accessorFn,
+    // Wrap data columns with title headers and highlighting
+    const wrappedColumns = dataColumns.map((col, index) => {
+      const columnId = col.id as string
+      const meta = col.meta as any
+      const originalCell = col.cell
+
+      return {
+        ...col,
         header: () => (
           <TitleCell
-            title={config.title}
-            sortable={config.sortable}
-            centerAlign={config.certer}
-            sorting={sortName === config.name}
+            title={meta?.title || ''}
+            sortable={meta?.sortable !== false}
+            centerAlign={meta?.center || false}
+            sorting={sortName === columnId}
             up={Boolean(sortOrder)}
-            onClick={() => config.sortable && handleClickTitle(config.name)}
+            onClick={() =>
+              meta?.sortable !== false && handleClickTitle(columnId)
+            }
           />
         ),
-        cell: ({ row }) => (
-          <DataCell
+        cell: (props: any) => (
+          <CellWrapper
             columnIndex={index + 1}
-            rowIndex={row.index}
-            shipData={row.original.shipData}
-            cellType={config.name}
+            rowIndex={props.row.index}
             onClickCell={onClickCell}
             onContextMenu={onContextMenu}
-          />
+          >
+            {typeof originalCell === 'function' ? originalCell(props) : null}
+          </CellWrapper>
         ),
-        size: config.width,
-        enableSorting: config.sortable,
-        sortingFn: config.sortingFn,
-      }),
-    )
+        size: meta?.width || 100,
+      }
+    })
 
-    return [rowIndexColumn, ...dataColumns]
+    return [rowIndexColumn, ...wrappedColumns] as ColumnDef<TableRow>[]
   }, [sortName, sortOrder, handleClickTitle, onClickCell, onContextMenu])
 
   // Initialize table with sorting state from Redux
@@ -605,6 +545,7 @@ const ShipInfoTableAreaBase: React.FC<ShipInfoTableAreaBaseProps> = ({
             return (
               <Row
                 key={row.id}
+                $isEven={virtualRow.index % 2 === 0}
                 style={{
                   transform: `translateY(${virtualRow.start}px)`,
                   height: `${virtualRow.size}px`,
