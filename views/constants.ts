@@ -81,7 +81,7 @@ export const remodelOptions: IFilterOptions = {
 }
 
 export const rawValueOptions: IFilterOptions = {
-  0: 'Equip. Incl.',
+  0: 'Display',
   1: 'Raw Value',
 }
 

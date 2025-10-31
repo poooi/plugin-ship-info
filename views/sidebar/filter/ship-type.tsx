@@ -113,7 +113,7 @@ export const ShipTypeCheck: React.FC = () => {
 
   return (
     <ShipTypeContainer>
-      <H5>{t('Ship Type')}</H5>
+      <H5>{t('Ship types')}</H5>
       <CardRow>
         <CheckboxCard
           onChange={handleClickSingleBox(-1)}

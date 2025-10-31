@@ -41,7 +41,7 @@ const activeColumnAtom = atom(-1)
 export const filterShipTypesAtom = atom<number[]>([])
 export const filterExpeditionShipsAtom = atom<number[]>([])
 export const filterConfigAtom = atom<any>({})
-export const filterSettingsAtom = atom<any>({ minLevel: 1, maxLevel: 10000 })
+export const filterSettingsAtom = atom<any>({ minLevel: 0, maxLevel: 450 })
 
 // Derived atom that combines all filter criteria
 export const globalFilterAtom = atom((get) => ({
@@ -50,6 +50,9 @@ export const globalFilterAtom = atom((get) => ({
   config: get(filterConfigAtom),
   filters: get(filterSettingsAtom),
 }))
+
+// Atom to store filtered ship IDs from the table (for export to use)
+export const filteredShipIdsAtom = atom<number[]>([])
 
 // Cache filter results per row to avoid re-computing for each column
 const filterCache = new Map<number, boolean>()
@@ -97,48 +100,36 @@ const globalFilterFn: FilterFn<TableRow> = (row, columnId, filterValue) => {
     return false
   }
 
-  // Locked filter
-  const { lockedRadio } = config
-  if (lockedRadio === 1 && locked !== 1) {
-    filterCache.set(shipId, false)
-    return false
-  }
-  if (lockedRadio === 2 && locked !== 0) {
-    filterCache.set(shipId, false)
-    return false
-  }
+  // All yes/no filters - using shared filter logic from selectors
+  const filtersToCheck = [
+    { key: 'locked', value: locked === 1 },
+    { key: 'expedition', value: expeditionShips.includes(shipId) },
+    { key: 'modernization', value: isCompleted },
+    { key: 'remodel', value: after !== 0 },
+    { key: 'inFleet', value: fleetId > -1 },
+    { key: 'sparkle', value: cond >= 50 },
+    { key: 'exSlot', value: exslot !== 0 },
+    { key: 'daihatsu', value: daihatsu },
+  ]
 
-  // Expedition filter
-  const { expeditionRadio } = config
-  const inExpedition = expeditionShips.includes(shipId)
-  if (expeditionRadio === 1 && !inExpedition) {
-    filterCache.set(shipId, false)
-    return false
-  }
-  if (expeditionRadio === 2 && inExpedition) {
-    filterCache.set(shipId, false)
-    return false
-  }
+  const filterFailed = filtersToCheck.some(({ key, value }) => {
+    const filterArray = config[key] || [true, true]
+    const [yesChecked, noChecked] = filterArray
 
-  // Modernization filter
-  const { modernizationRadio } = config
-  if (modernizationRadio === 1 && !isCompleted) {
-    filterCache.set(shipId, false)
-    return false
-  }
-  if (modernizationRadio === 2 && isCompleted) {
-    filterCache.set(shipId, false)
-    return false
-  }
+    // If both are checked, no filtering needed
+    if (yesChecked && noChecked) return false
 
-  // Remodel filter
-  const { remodelRadio } = config
-  const remodelable = after !== 0
-  if (remodelRadio === 1 && !remodelable) {
-    filterCache.set(shipId, false)
+    // If both unchecked, filter out
+    if (!yesChecked && !noChecked) return true
+
+    // Check if value matches the filter
+    if (yesChecked && !value) return true
+    if (noChecked && value) return true
+
     return false
-  }
-  if (remodelRadio === 2 && remodelable) {
+  })
+
+  if (filterFailed) {
     filterCache.set(shipId, false)
     return false
   }
@@ -154,51 +145,6 @@ const globalFilterFn: FilterFn<TableRow> = (row, columnId, filterValue) => {
     !allChecked &&
     !(typeof sallyArea !== 'undefined' ? sallyAreaArray[sallyArea || 0] : true)
   ) {
-    filterCache.set(shipId, false)
-    return false
-  }
-
-  // In fleet filter
-  const { inFleetRadio } = config
-  const isInFleet = fleetId > -1
-  if (inFleetRadio === 1 && !isInFleet) {
-    filterCache.set(shipId, false)
-    return false
-  }
-  if (inFleetRadio === 2 && isInFleet) {
-    filterCache.set(shipId, false)
-    return false
-  }
-
-  // Sparkle filter
-  const { sparkleRadio } = config
-  if (sparkleRadio === 1 && cond < 50) {
-    filterCache.set(shipId, false)
-    return false
-  }
-  if (sparkleRadio === 2 && cond >= 50) {
-    filterCache.set(shipId, false)
-    return false
-  }
-
-  // Ex slot filter
-  const { exSlotRadio } = config
-  if (exSlotRadio === 1 && exslot === 0) {
-    filterCache.set(shipId, false)
-    return false
-  }
-  if (exSlotRadio === 2 && exslot !== 0) {
-    filterCache.set(shipId, false)
-    return false
-  }
-
-  // Daihatsu filter
-  const { daihatsuRadio } = config
-  if (daihatsuRadio === 1 && !daihatsu) {
-    filterCache.set(shipId, false)
-    return false
-  }
-  if (daihatsuRadio === 2 && daihatsu) {
     filterCache.set(shipId, false)
     return false
   }
@@ -509,6 +455,13 @@ const ShipInfoTableAreaBase: React.FC<ShipInfoTableAreaBaseProps> = ({
 
   // Get filtered rows from table
   const { rows } = table.getRowModel()
+
+  // Store filtered ship IDs in atom for export to use
+  const setFilteredShipIds = useSetAtom(filteredShipIdsAtom)
+  useEffect(() => {
+    const filteredIds = rows.map((row) => row.original.shipData.ship.api_id)
+    setFilteredShipIds(filteredIds)
+  }, [rows, setFilteredShipIds])
 
   // Virtualizer for rows
   const rowVirtualizer = useVirtualizer({

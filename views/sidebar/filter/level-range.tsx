@@ -1,64 +1,45 @@
 // tslint:disable jsx-no-lambda
-import { NumericInput, Position, RangeSlider } from '@blueprintjs/core'
-import { debounce, get } from 'lodash'
+import { H5, RangeSlider } from '@blueprintjs/core'
+import { debounce } from 'lodash'
 import React, { useCallback, useState } from 'react'
-import FA from 'react-fontawesome'
 import { useTranslation } from 'react-i18next'
-import { connect } from 'react-redux'
+import { useSelector } from 'react-redux'
+import { levelRangeFilterSelector } from '../../selectors'
 import { Checkbox, CheckboxLabel } from '../components/checkbox'
 
-interface IProps {
-  minLevel: number
-  maxLevel: number
-}
-
-export const LevelRange = connect((state: { config: any }) => ({
-  maxLevel: state.config.plugin?.ShipInfo?.filters?.maxLevel ?? 10000,
-  minLevel: state.config.plugin?.ShipInfo?.filters?.minLevel ?? 1,
-}))(({ minLevel, maxLevel }: IProps) => {
-  const [min, setMin] = useState(minLevel)
-  const [max, setMax] = useState(maxLevel)
+export const LevelRange = () => {
+  const levelRange = useSelector(levelRangeFilterSelector)
+  const [range, setRange] = useState<[number, number]>(levelRange)
 
   const { t } = useTranslation('poi-plugin-ship-info')
 
-  const updateMax = useCallback(
-    debounce((v: number) => {
-      setMax(v)
-      window.config.set('plugin.ShipInfo.filters.maxLevel', v)
+  const updateRange = useCallback(
+    debounce((newRange: [number, number]) => {
+      window.config.set('plugin.ShipInfo.filters.minLevel', newRange[0])
+      window.config.set('plugin.ShipInfo.filters.maxLevel', newRange[1])
     }, 500),
-    [setMax],
+    [],
   )
 
-  const updateMin = useCallback(
-    debounce((v: number) => {
-      setMin(v)
-      window.config.set('plugin.ShipInfo.filters.minLevel', v)
-    }, 500),
-    [setMin],
+  const handleRangeChange = useCallback(
+    (newRange: [number, number]) => {
+      setRange(newRange)
+      updateRange(newRange)
+    },
+    [updateRange],
   )
 
   return (
     <Checkbox>
-      <CheckboxLabel>{t('Level')}</CheckboxLabel>
-      <NumericInput
-        buttonPosition="none"
-        value={min}
-        onValueChange={updateMin}
-        min={1}
-        max={1000}
+      <H5>{t('Level')}</H5>
+      <RangeSlider
+        min={0}
+        max={450}
         stepSize={1}
-        clampValueOnBlur
-      />
-      <FA name="arrows-alt-h" />
-      <NumericInput
-        buttonPosition="none"
-        value={max}
-        onValueChange={updateMax}
-        min={1}
-        max={1000}
-        stepSize={1}
-        clampValueOnBlur
+        labelStepSize={90}
+        value={range}
+        onChange={handleRangeChange}
       />
     </Checkbox>
   )
-})
+}

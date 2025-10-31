@@ -38,15 +38,20 @@ export const Filter = () => (
           <YesNoCheck configKey="sparkle" label="Sparkle" />
           <YesNoCheck configKey="exSlot" label="Extra Slot" />
           <YesNoCheck configKey="daihatsu" label="Daihatsu" />
-          <YesNoCheck configKey="modernization" label="Modernization" />
-          <YesNoCheck configKey="remodel" label="Remodel" />
+          <YesNoCheck
+            configKey="modernization"
+            label="Modernization Completed"
+          />
+          <YesNoCheck configKey="remodel" label="Remodelable" />
+        </FilterGrid>
+        <div>
           <RadioCheck
             configKey="rawValue"
             label="Value Type"
             options={rawValueOptions}
             default={0}
           />
-        </FilterGrid>
+        </div>
       </FilterContainer>
     }
     hasBackdrop

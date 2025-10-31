@@ -38,7 +38,6 @@ import {
 
 import { APISlotItem } from 'kcsapi/api_get_member/require_info/response'
 import { APIMstShip, APIMstSlotitem } from 'kcsapi/api_start2/getData/response'
-import { any } from 'prop-types'
 import { PLUGIN_KEY } from './redux'
 import {
   intToBoolArray,
@@ -53,6 +52,10 @@ const yesNoFilterSchema = z.array(z.boolean()).length(2)
 const radioFilterSchema = z.number().int().min(0)
 const sallyAreaSchema = z.array(z.boolean())
 const shipTypesSchema = z.number().int().min(0)
+const levelRangeSchema = z.tuple([
+  z.number().int().min(0).max(450),
+  z.number().int().min(0).max(450),
+])
 
 const __ = i18next.getFixedT(null, ['poi-plugin-ship-info', 'resources'])
 
@@ -150,6 +153,8 @@ export const shipInfoConfigSelector = createSelector(
       sparkle: validateYesNo('sparkle'),
       exSlot: validateYesNo('exSlot'),
       daihatsu: validateYesNo('daihatsu'),
+      modernization: validateYesNo('modernization'),
+      remodel: validateYesNo('remodel'),
 
       // Old radio filters (kept for backward compatibility)
       lockedRadio: validateRadio('lockedRadio', 1),
@@ -244,60 +249,46 @@ export const shipTableDataSelectorFactory = memoize((shipId) =>
 const handleTypeFilter = (typeId: number, shipTypes: number[]) =>
   (shipTypes || []).includes(typeId)
 
-const handleLockedFilter = (locked: number, lockedRadio: number) => {
-  switch (lockedRadio) {
-    case 1:
-      return locked === 1
-    case 2:
-      return locked === 0
-    case 0:
-    default:
-      return true
-  }
+const handleLockedFilter = (locked: number, lockedFilter: boolean[]) => {
+  const [yesChecked, noChecked] = lockedFilter
+  const isLocked = locked === 1
+  if (yesChecked && noChecked) return true
+  if (yesChecked) return isLocked
+  if (noChecked) return !isLocked
+  return false
 }
 
 const handleExpeditionFilter = (
   id: number,
   expeditionShips: number[],
-  expeditionRadio: number,
+  expeditionFilter: boolean[],
 ) => {
-  switch (expeditionRadio) {
-    case 1:
-      return (expeditionShips || []).includes(id)
-    case 2:
-      return !(expeditionShips || []).includes(id)
-    case 0:
-    default:
-      return true
-  }
+  const [yesChecked, noChecked] = expeditionFilter
+  const inExpedition = (expeditionShips || []).includes(id)
+  if (yesChecked && noChecked) return true
+  if (yesChecked) return inExpedition
+  if (noChecked) return !inExpedition
+  return false
 }
 
 const handleModernizationFilter = (
   isCompleted: boolean,
-  modernizationRadio: number,
+  modernizationFilter: boolean[],
 ) => {
-  switch (modernizationRadio) {
-    case 1:
-      return isCompleted
-    case 2:
-      return !isCompleted
-    case 0:
-    default:
-      return true
-  }
+  const [yesChecked, noChecked] = modernizationFilter
+  if (yesChecked && noChecked) return true
+  if (yesChecked) return isCompleted
+  if (noChecked) return !isCompleted
+  return false
 }
 
-const handleRemodelFilter = (after: number, remodelRadio: number) => {
+const handleRemodelFilter = (after: number, remodelFilter: boolean[]) => {
+  const [yesChecked, noChecked] = remodelFilter
   const remodelable = after !== 0
-  switch (remodelRadio) {
-    case 1:
-      return remodelable
-    case 2:
-      return !remodelable
-    case 0:
-    default:
-      return true
-  }
+  if (yesChecked && noChecked) return true
+  if (yesChecked) return remodelable
+  if (noChecked) return !remodelable
+  return false
 }
 
 const handleSallyAreaFilter = (
@@ -316,53 +307,39 @@ const handleSallyAreaFilter = (
     : true
 }
 
-const handleInFleetFilter = (fleetId: number, inFleetRadio: number) => {
+const handleInFleetFilter = (fleetId: number, inFleetFilter: boolean[]) => {
+  const [yesChecked, noChecked] = inFleetFilter
   const isInFleet = fleetId > -1
-  switch (inFleetRadio) {
-    case 1:
-      return isInFleet
-    case 2:
-      return !isInFleet
-    case 0:
-    default:
-      return true
-  }
+  if (yesChecked && noChecked) return true
+  if (yesChecked) return isInFleet
+  if (noChecked) return !isInFleet
+  return false
 }
 
-const handleSparkleFilter = (cond: number, sparkleRadio: number) => {
-  switch (sparkleRadio) {
-    case 1:
-      return cond >= 50
-    case 2:
-      return cond < 50
-    case 0:
-    default:
-      return true
-  }
+const handleSparkleFilter = (cond: number, sparkleFilter: boolean[]) => {
+  const [yesChecked, noChecked] = sparkleFilter
+  const hasSparkle = cond >= 50
+  if (yesChecked && noChecked) return true
+  if (yesChecked) return hasSparkle
+  if (noChecked) return !hasSparkle
+  return false
 }
 
-const handleExSlotFilter = (exslot: number, exSlotRadio: number) => {
-  switch (exSlotRadio) {
-    case 1:
-      return exslot !== 0
-    case 2:
-      return exslot === 0
-    case 0:
-    default:
-      return true
-  }
+const handleExSlotFilter = (exslot: number, exSlotFilter: boolean[]) => {
+  const [yesChecked, noChecked] = exSlotFilter
+  const hasExSlot = exslot !== 0
+  if (yesChecked && noChecked) return true
+  if (yesChecked) return hasExSlot
+  if (noChecked) return !hasExSlot
+  return false
 }
 
-const handleDaihatsuFilter = (daihatsu: boolean, daihatsuRadio: number) => {
-  switch (daihatsuRadio) {
-    case 1:
-      return daihatsu
-    case 2:
-      return !daihatsu
-    case 0:
-    default:
-      return true
-  }
+const handleDaihatsuFilter = (daihatsu: boolean, daihatsuFilter: boolean[]) => {
+  const [yesChecked, noChecked] = daihatsuFilter
+  if (yesChecked && noChecked) return true
+  if (yesChecked) return daihatsu
+  if (noChecked) return !daihatsu
+  return false
 }
 
 // Type for raw ship data returned from shipTableDataSelectorFactory
@@ -482,11 +459,21 @@ export const allShipRowsMapSelector = createSelector(
     ),
 )
 
+export const levelRangeFilterSelector = createSelector(
+  [configSelector],
+  (config) => {
+    const minLevel = get(config, 'plugin.ShipInfo.filters.minLevel', 0)
+    const maxLevel = get(config, 'plugin.ShipInfo.filters.maxLevel', 450)
+    const result = levelRangeSchema.safeParse([minLevel, maxLevel])
+    return result.success ? result.data : ([0, 450] as [number, number])
+  },
+)
+
 export const shipInfoFiltersSelector = createSelector(
-  [configSelector, fcdSelector],
-  (config, { shiptag = {} }) => ({
-    maxLevel: get(config, 'plugin.ShipInfo.filters.maxLevel', 10000),
-    minLevel: get(config, 'plugin.ShipInfo.filters.minLevel', 1),
+  [levelRangeFilterSelector],
+  ([minLevel, maxLevel]) => ({
+    minLevel,
+    maxLevel,
   }),
 )
 
@@ -503,14 +490,14 @@ export const filterShipIdsSelector = createSelector(
     shipTypes,
     expeditionShips,
     {
-      lockedRadio,
-      expeditionRadio,
-      modernizationRadio,
-      remodelRadio,
-      inFleetRadio,
-      exSlotRadio,
-      sparkleRadio,
-      daihatsuRadio,
+      locked,
+      expedition,
+      inFleet,
+      sparkle,
+      exSlot,
+      daihatsu,
+      modernization,
+      remodel,
       sallyAreaChecked,
       sortName,
       sortOrder,
@@ -523,28 +510,28 @@ export const filterShipIdsSelector = createSelector(
         const shipId = ship.api_id
         const typeId = $ship.api_stype
         const lv = ship.api_lv
-        const locked = ship.api_locked
+        const lockedValue = ship.api_locked
         const fleetId = fleetIdMap[shipId]
         const after = parseInt($ship.api_aftershipid || '0', 10)
         const sallyArea = ship.api_sally_area || 0
         const exslot = ship.api_slot_ex
         const cond = ship.api_cond
         const isCompleted = isShipCompleted(ship, $ship)
-        const daihatsu = canEquipDaihatsu($ship.api_id, db)
+        const canDaihatsu = canEquipDaihatsu($ship.api_id, db)
 
         return (
           handleTypeFilter(typeId, shipTypes) &&
           lv >= Math.min(minLevel, maxLevel) &&
           lv <= Math.max(minLevel, maxLevel) &&
-          handleLockedFilter(locked, lockedRadio) &&
-          handleExpeditionFilter(shipId, expeditionShips, expeditionRadio) &&
-          handleModernizationFilter(isCompleted, modernizationRadio) &&
-          handleRemodelFilter(after, remodelRadio) &&
+          handleLockedFilter(lockedValue, locked) &&
+          handleExpeditionFilter(shipId, expeditionShips, expedition) &&
+          handleModernizationFilter(isCompleted, modernization) &&
+          handleRemodelFilter(after, remodel) &&
           handleSallyAreaFilter(sallyArea, sallyAreaChecked) &&
-          handleInFleetFilter(fleetId, inFleetRadio) &&
-          handleExSlotFilter(exslot, exSlotRadio) &&
-          handleSparkleFilter(cond, sparkleRadio) &&
-          handleDaihatsuFilter(daihatsu, daihatsuRadio)
+          handleInFleetFilter(fleetId, inFleet) &&
+          handleExSlotFilter(exslot, exSlot) &&
+          handleSparkleFilter(cond, sparkle) &&
+          handleDaihatsuFilter(canDaihatsu, daihatsu)
         )
       }),
       fp.sortBy(getSortFunction(sortName)),
