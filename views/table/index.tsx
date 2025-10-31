@@ -23,6 +23,9 @@ import {
   shipInfoFiltersSelector,
   shipTypesSelecor,
   expeditionShipsSelector,
+  columnOrderSelector,
+  columnVisibilitySelector,
+  columnPinningSelector,
 } from '../selectors'
 import { IShipRawData } from './cells'
 import { columns as dataColumns, TableRow } from './columns-config'
@@ -160,6 +163,30 @@ const TableWrapper = styled.div`
   padding: 0;
   overflow: auto;
   position: relative;
+
+  /* Show scrollbars */
+  &::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: ${(props) => props.theme.DARK_GRAY5};
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: ${(props) => props.theme.GRAY1};
+    border-radius: 6px;
+
+    &:hover {
+      background: ${(props) => props.theme.GRAY3};
+    }
+  }
+
+  /* Firefox scrollbar styling */
+  scrollbar-width: auto;
+  scrollbar-color: ${(props) => props.theme.GRAY1}
+    ${(props) => props.theme.DARK_GRAY5};
 `
 
 const Spacer = styled.div`
@@ -183,12 +210,36 @@ const TableBody = styled.div`
   position: relative;
 `
 
-const HeaderCell = styled.div<{ width: number }>`
+const HeaderCell = styled.div<{
+  width: number
+  $isPinned?: 'left' | 'right' | false
+  $leftOffset?: number
+}>`
   width: ${(props) => props.width}px;
   flex-shrink: 0;
   height: 100%;
   display: flex;
   align-items: stretch;
+
+  ${(props) =>
+    props.$isPinned &&
+    `
+    position: sticky;
+    ${props.$isPinned === 'left' ? `left: ${props.$leftOffset || 0}px;` : ''}
+    ${props.$isPinned === 'right' ? `right: ${props.$leftOffset || 0}px;` : ''}
+    background: ${props.theme.DARK_GRAY3};
+    z-index: 2;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: ${props.theme.GRAY1};
+      ${props.$isPinned === 'left' ? 'right: 0;' : 'left: 0;'}
+    }
+  `}
 `
 
 const Row = styled.div<{ $isEven?: boolean }>`
@@ -208,6 +259,12 @@ interface ShipInfoTableAreaBaseProps {
   expeditionShips: number[]
   filterConfig: any
   filterSettings: any
+  columnOrder: string[]
+  columnVisibility: Record<string, boolean>
+  columnPinning: {
+    left?: string[]
+    right?: string[]
+  }
 }
 
 // Styled wrapper for row index cells
@@ -291,6 +348,9 @@ const ShipInfoTableAreaBase: React.FC<ShipInfoTableAreaBaseProps> = ({
   expeditionShips,
   filterConfig,
   filterSettings,
+  columnOrder,
+  columnVisibility,
+  columnPinning,
 }) => {
   const [activeRow, setActiveRow] = useAtom(activeRowAtom)
   const [activeColumn, setActiveColumn] = useAtom(activeColumnAtom)
@@ -440,6 +500,9 @@ const ShipInfoTableAreaBase: React.FC<ShipInfoTableAreaBaseProps> = ({
     state: {
       sorting,
       globalFilter: globalFilterValue,
+      columnOrder,
+      columnVisibility,
+      columnPinning,
     },
     onSortingChange: setSorting,
     onGlobalFilterChange: () => {
@@ -451,6 +514,7 @@ const ShipInfoTableAreaBase: React.FC<ShipInfoTableAreaBaseProps> = ({
     globalFilterFn,
     enableFilters: true,
     enableGlobalFilter: true,
+    enableColumnPinning: true,
   })
 
   // Get filtered rows from table
@@ -481,14 +545,25 @@ const ShipInfoTableAreaBase: React.FC<ShipInfoTableAreaBaseProps> = ({
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
             <React.Fragment key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <HeaderCell key={header.id} width={header.column.getSize()}>
-                  {flexRender(
-                    header.column.columnDef.header,
-                    header.getContext(),
-                  )}
-                </HeaderCell>
-              ))}
+              {headerGroup.headers.map((header) => {
+                const isPinned = header.column.getIsPinned()
+                const leftOffset = isPinned
+                  ? header.column.getStart(isPinned)
+                  : undefined
+                return (
+                  <HeaderCell
+                    key={header.id}
+                    width={header.column.getSize()}
+                    $isPinned={isPinned}
+                    $leftOffset={leftOffset}
+                  >
+                    {flexRender(
+                      header.column.columnDef.header,
+                      header.getContext(),
+                    )}
+                  </HeaderCell>
+                )
+              })}
             </React.Fragment>
           ))}
         </TableHeader>
@@ -504,11 +579,25 @@ const ShipInfoTableAreaBase: React.FC<ShipInfoTableAreaBaseProps> = ({
                   height: `${virtualRow.size}px`,
                 }}
               >
-                {row.getVisibleCells().map((cell) => (
-                  <HeaderCell key={cell.id} width={cell.column.getSize()}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </HeaderCell>
-                ))}
+                {row.getVisibleCells().map((cell) => {
+                  const isPinned = cell.column.getIsPinned()
+                  const leftOffset = isPinned
+                    ? cell.column.getStart(isPinned)
+                    : undefined
+                  return (
+                    <HeaderCell
+                      key={cell.id}
+                      width={cell.column.getSize()}
+                      $isPinned={isPinned}
+                      $leftOffset={leftOffset}
+                    >
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </HeaderCell>
+                  )
+                })}
               </Row>
             )
           })}
@@ -529,6 +618,12 @@ interface MappedProps {
   expeditionShips: number[]
   filterConfig: any
   filterSettings: any
+  columnOrder: string[]
+  columnVisibility: Record<string, boolean>
+  columnPinning: {
+    left?: string[]
+    right?: string[]
+  }
   sortName: string
   sortOrder: number
 }
@@ -545,6 +640,15 @@ const mapStateToProps = (state: ReduxState): MappedProps => ({
   expeditionShips: expeditionShipsSelector(state as any) as number[],
   filterConfig: shipInfoConfigSelector(state as any),
   filterSettings: shipInfoFiltersSelector(state as any),
+  columnOrder: columnOrderSelector(state as any) as string[],
+  columnVisibility: columnVisibilitySelector(state as any) as Record<
+    string,
+    boolean
+  >,
+  columnPinning: columnPinningSelector(state as any) as {
+    left?: string[]
+    right?: string[]
+  },
   sortName: sortNameSelector(state),
   sortOrder: sortOrderSelector(state),
 })

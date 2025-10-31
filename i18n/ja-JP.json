@@ -176,5 +176,9 @@
   "Show fleet name": "艦隊名を表示",
   "European": "ヨーロッパ",
   "Solomon Sea": "ソロモン海",
-  "helpContent": "現在の計画から艦むすを削除するには、右クリックしてください"
+  "helpContent": "現在の計画から艦むすを削除するには、右クリックしてください",
+  "Column Configuration": "列の設定",
+  "Visible": "表示",
+  "Hidden": "非表示",
+  "Pin": "固定"
 }

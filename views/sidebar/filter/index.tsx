@@ -5,6 +5,7 @@ import styled from 'styled-components'
 import { Popover } from 'views/components/etc/overlay'
 
 import { rawValueOptions } from '../../constants'
+import { ColumnConfig } from './column-config'
 import { LevelRange } from './level-range'
 import { RadioCheck } from './radio'
 import { SallyAreaCheck } from './sally-area'
@@ -52,6 +53,7 @@ export const Filter = () => (
             default={0}
           />
         </div>
+        <ColumnConfig />
       </FilterContainer>
     }
     hasBackdrop

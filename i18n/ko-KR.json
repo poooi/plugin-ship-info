@@ -46,5 +46,9 @@
   "No Sally Area": "미출격",
   "Display": "표시",
   "Raw Value": "함선의 순수한 값",
-  "helpContent": "Right click on a ship could remove it from current plan"
+  "helpContent": "Right click on a ship could remove it from current plan",
+  "Column Configuration": "열 설정",
+  "Visible": "표시",
+  "Hidden": "숨김",
+  "Pin": "고정"
 }

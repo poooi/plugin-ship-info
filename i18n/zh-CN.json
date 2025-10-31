@@ -177,5 +177,9 @@
   "Show fleet name": "显示舰队名",
   "European": "欧洲舰队",
   "Solomon Sea": "所罗门海",
-  "helpContent": "在舰娘上右键点击可以将她从当前计划中移出"
+  "helpContent": "在舰娘上右键点击可以将她从当前计划中移出",
+  "Column Configuration": "列设置",
+  "Visible": "显示",
+  "Hidden": "隐藏",
+  "Pin": "固定"
 }

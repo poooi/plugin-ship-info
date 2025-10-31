@@ -57,6 +57,14 @@ const levelRangeSchema = z.tuple([
   z.number().int().min(0).max(450),
 ])
 
+// Column configuration schemas - TanStack Table format
+const columnOrderSchema = z.array(z.string())
+const columnVisibilitySchema = z.record(z.string(), z.boolean())
+const columnPinningSchema = z.object({
+  left: z.array(z.string()).optional(),
+  right: z.array(z.string()).optional(),
+})
+
 const __ = i18next.getFixedT(null, ['poi-plugin-ship-info', 'resources'])
 
 // Selector factories for reusable filter logic
@@ -466,6 +474,84 @@ export const levelRangeFilterSelector = createSelector(
     const maxLevel = get(config, 'plugin.ShipInfo.filters.maxLevel', 450)
     const result = levelRangeSchema.safeParse([minLevel, maxLevel])
     return result.success ? result.data : ([0, 450] as [number, number])
+  },
+)
+
+// Default column order and visibility (TanStack Table format)
+const defaultColumnOrder = [
+  'rowIndex', // Row index column (not configurable)
+  'id',
+  'name',
+  'type',
+  'soku',
+  'lv',
+  'cond',
+  'hp',
+  'karyoku',
+  'raisou',
+  'taiku',
+  'soukou',
+  'lucky',
+  'kaihi',
+  'taisen',
+  'sakuteki',
+  'repairtime',
+  'equipment',
+  'lock',
+]
+
+const defaultColumnVisibility: Record<string, boolean> = {}
+
+const defaultColumnPinning = {
+  left: ['rowIndex'], // Row index is always pinned to left
+  right: [],
+}
+
+export const columnOrderSelector = createSelector(
+  [configSelector],
+  (config) => {
+    const rawValue = get(
+      config,
+      'plugin.ShipInfo.columnOrder',
+      defaultColumnOrder,
+    )
+    const result = columnOrderSchema.safeParse(rawValue)
+    return result.success ? result.data : defaultColumnOrder
+  },
+)
+
+export const columnVisibilitySelector = createSelector(
+  [configSelector],
+  (config) => {
+    const rawValue = get(
+      config,
+      'plugin.ShipInfo.columnVisibility',
+      defaultColumnVisibility,
+    )
+    const result = columnVisibilitySchema.safeParse(rawValue)
+    return result.success ? result.data : defaultColumnVisibility
+  },
+)
+
+export const columnPinningSelector = createSelector(
+  [configSelector],
+  (config) => {
+    const rawValue = get(
+      config,
+      'plugin.ShipInfo.columnPinning',
+      defaultColumnPinning,
+    )
+    const result = columnPinningSchema.safeParse(rawValue)
+    // Always ensure rowIndex is pinned to left
+    const pinning = result.success ? result.data : defaultColumnPinning
+    const leftPins = pinning.left || []
+    if (!leftPins.includes('rowIndex')) {
+      return {
+        ...pinning,
+        left: ['rowIndex', ...leftPins],
+      }
+    }
+    return pinning
   },
 )
 

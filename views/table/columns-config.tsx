@@ -27,6 +27,12 @@ const ConnectedName = connect((state) => ({
   enableAvatar: enableAvatarConfigSelector(state),
 }))(CellComponents.Name)
 
+// Export column metadata for use in column configuration
+export const getColumnTitle = (columnId: string): string => {
+  const column = columns.find((col) => col.id === columnId)
+  return (column?.meta as any)?.title || columnId
+}
+
 export const columns: ColumnDef<TableRow, any>[] = [
   columnHelper.accessor((row) => row.shipData.ship.api_id, {
     id: 'id',
