@@ -1,4 +1,4 @@
-import { CheckboxCard, H5 } from '@blueprintjs/core'
+import { H5 } from '@blueprintjs/core'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
@@ -14,6 +14,7 @@ import {
   modernizationFilterSelector,
   remodelFilterSelector,
 } from '../../selectors'
+import { CustomCheckboxCard } from '../components/card-controls'
 
 const YesNoContainer = styled.div`
   margin-bottom: 20px;
@@ -22,7 +23,7 @@ const YesNoContainer = styled.div`
 const CardRow = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
 `
 
 const filterSelectors: Record<string, (state: any) => boolean[]> = {
@@ -55,12 +56,20 @@ export const YesNoCheck: React.FC<IProps> = ({ label, configKey }) => {
     <YesNoContainer>
       <H5>{t(label)}</H5>
       <CardRow>
-        <CheckboxCard checked={checked[0]} onChange={handleToggle(0)} compact>
+        <CustomCheckboxCard
+          checked={checked[0]}
+          onChange={handleToggle(0)}
+          compact
+        >
           {t('Yes')}
-        </CheckboxCard>
-        <CheckboxCard checked={checked[1]} onChange={handleToggle(1)} compact>
+        </CustomCheckboxCard>
+        <CustomCheckboxCard
+          checked={checked[1]}
+          onChange={handleToggle(1)}
+          compact
+        >
           {t('No')}
-        </CheckboxCard>
+        </CustomCheckboxCard>
       </CardRow>
     </YesNoContainer>
   )

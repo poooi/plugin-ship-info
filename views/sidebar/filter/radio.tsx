@@ -1,19 +1,20 @@
-import { H5, RadioCard, RadioGroup } from '@blueprintjs/core'
+import { H5 } from '@blueprintjs/core'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
 import styled from 'styled-components'
 
 import { rawValueFilterSelector } from '../../selectors'
+import { CustomRadioCard } from '../components/card-controls'
 
 const RadioContainer = styled.div`
   margin-bottom: 20px;
 `
 
-const StyledRadioGroup = styled(RadioGroup)`
+const RadioGroup = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
 `
 
 const filterSelectors: Record<string, (state: any) => number> = {
@@ -45,19 +46,25 @@ export const RadioCheck: React.FC<IProps> = ({
     )
   }
 
+  const radioGroupName = `radio-${configKey}`
+
   return (
     <RadioContainer>
       <H5>{t(label)}</H5>
-      <StyledRadioGroup
-        onChange={handleChange}
-        selectedValue={currentValue.toString()}
-      >
+      <RadioGroup>
         {Object.keys(options).map((key) => (
-          <RadioCard key={key} value={key} compact>
+          <CustomRadioCard
+            key={key}
+            value={key}
+            name={radioGroupName}
+            checked={currentValue.toString() === key}
+            onChange={handleChange}
+            compact
+          >
             {t(options[key])}
-          </RadioCard>
+          </CustomRadioCard>
         ))}
-      </StyledRadioGroup>
+      </RadioGroup>
     </RadioContainer>
   )
 }

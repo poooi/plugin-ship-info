@@ -1,4 +1,4 @@
-import { CheckboxCard, H5 } from '@blueprintjs/core'
+import { H5 } from '@blueprintjs/core'
 import { get, intersection, isEqual, map, size } from 'lodash'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
@@ -8,6 +8,7 @@ import styled from 'styled-components'
 import { shipSuperTypeMap } from '../../constants'
 import { shipTypesFilterSelector } from '../../selectors'
 import { boolArrayToInt, intToBoolArray, shipTypes } from '../../utils'
+import { CustomCheckboxCard } from '../components/card-controls'
 
 const ShipTypeContainer = styled.div`
   margin-bottom: 20px;
@@ -16,7 +17,7 @@ const ShipTypeContainer = styled.div`
 const CardRow = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
   margin-bottom: 12px;
 `
 
@@ -115,15 +116,15 @@ export const ShipTypeCheck: React.FC = () => {
     <ShipTypeContainer>
       <H5>{t('Ship types')}</H5>
       <CardRow>
-        <CheckboxCard
+        <CustomCheckboxCard
           onChange={handleClickSingleBox(-1)}
           checked={checkedAll}
           compact
         >
           {t('All')}
-        </CheckboxCard>
+        </CustomCheckboxCard>
         {shipSuperTypeMap.map((supertype, index) => (
-          <CheckboxCard
+          <CustomCheckboxCard
             key={supertype.name}
             checked={getArrayInclusion(checkedTypes, supertype.id)}
             onChange={handleClickSuperType(checkedTypes, index)}
@@ -131,12 +132,12 @@ export const ShipTypeCheck: React.FC = () => {
             compact
           >
             {t(supertype.name)}
-          </CheckboxCard>
+          </CustomCheckboxCard>
         ))}
       </CardRow>
       <CardRow>
         {map($shipTypes, (type, key: number) => (
-          <CheckboxCard
+          <CustomCheckboxCard
             key={key}
             onChange={handleClickSingleBox(key - 1)}
             onContextMenu={handleRightClickSingleBox(key - 1)}
@@ -146,7 +147,7 @@ export const ShipTypeCheck: React.FC = () => {
             {window.language === 'en-US'
               ? shipTypes[type.api_id as keyof typeof shipTypes]
               : t(type.api_name)}
-          </CheckboxCard>
+          </CustomCheckboxCard>
         ))}
       </CardRow>
     </ShipTypeContainer>

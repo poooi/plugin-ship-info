@@ -1,12 +1,15 @@
-import { CheckboxCard, H5 } from '@blueprintjs/core'
+import { H5 } from '@blueprintjs/core'
 import { get } from 'lodash'
-import { rgba } from 'polished'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
 import styled from 'styled-components'
 
 import { sallyAreaFilterSelector } from '../../selectors'
+import {
+  CustomCheckboxCard,
+  CustomColoredCheckboxCard,
+} from '../components/card-controls'
 
 const SallyAreaContainer = styled.div`
   margin-bottom: 20px;
@@ -15,26 +18,7 @@ const SallyAreaContainer = styled.div`
 const CardRow = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-`
-
-const ColoredCheckboxCard = styled(CheckboxCard)<{
-  $cardColor?: string
-  $isChecked?: boolean
-}>`
-  ${(props) =>
-    props.$isChecked &&
-    props.$cardColor &&
-    `
-    background-color: ${rgba(props.$cardColor, 0.75)} !important;
-  `}
-  ${(props) =>
-    !props.$isChecked &&
-    props.$cardColor &&
-    `
-    border-color: ${props.$cardColor} !important;
-    color: ${props.$cardColor} !important;
-  `}
+  gap: 10px;
 `
 
 export const SallyAreaCheck: React.FC = () => {
@@ -90,31 +74,30 @@ export const SallyAreaCheck: React.FC = () => {
     <SallyAreaContainer>
       <H5>{t('Sally Area')}</H5>
       <CardRow>
-        <CheckboxCard
+        <CustomCheckboxCard
           checked={checkedAll}
           onChange={handleClickBox(-1)}
           compact
         >
           {t('All')}
-        </CheckboxCard>
-        <CheckboxCard
+        </CustomCheckboxCard>
+        <CustomCheckboxCard
           checked={checkedArray[0]}
           onChange={handleClickBox(0)}
           compact
         >
           {t('Free')}
-        </CheckboxCard>
+        </CustomCheckboxCard>
         {mapname.map((name: string, idx: number) => (
-          <ColoredCheckboxCard
+          <CustomColoredCheckboxCard
             key={name}
             onChange={handleClickBox(idx + 1)}
             checked={checkedArray[idx + 1]}
-            $cardColor={colorArray[idx]}
-            $isChecked={checkedArray[idx + 1]}
+            cardColor={colorArray[idx]}
             compact
           >
             {t(name)}
-          </ColoredCheckboxCard>
+          </CustomColoredCheckboxCard>
         ))}
       </CardRow>
     </SallyAreaContainer>
