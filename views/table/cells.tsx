@@ -27,6 +27,7 @@ import {
 } from '../utils'
 import { SallyArea } from './sally-area'
 import { Slotitems } from './slotitems'
+import { FleetIcon } from '../components/fleet-icon'
 
 const TRANSPARENCY = 0.5
 
@@ -52,15 +53,8 @@ const ShipName = styled.span`
   min-width: 0;
 `
 
-const FleetNumber = styled.span`
-  color: white;
-  margin-left: 1ex;
-  font-weight: bold;
-  font-family: monospace;
-  user-select: none;
-  -webkit-text-stroke: 1px ${(props) => props.theme.GREEN3};
-  font-size: 2rem;
-  flex-shrink: 0;
+const StyledFleetIcon = styled(FleetIcon)`
+  margin-left: 0.5ex;
 `
 
 interface ICellProps extends HTMLAttributes<HTMLDivElement> {
@@ -90,7 +84,7 @@ export const Name = ({
     <Cell {...props}>
       {enableAvatar && <Avatar mstId={$ship.api_id} height={35} />}
       <ShipName title={t($ship.api_name)}>{t($ship.api_name)}</ShipName>
-      {fleetId > -1 && <FleetNumber>/{fleetId + 1}</FleetNumber>}
+      {fleetId > -1 && <StyledFleetIcon fleetId={fleetId} size="1.5rem" />}
       <SallyArea area={ship.api_sally_area || 0} info_id={ship.api_id} />
     </Cell>
   )

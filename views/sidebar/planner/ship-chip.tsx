@@ -1,6 +1,5 @@
 import { Menu, MenuItem, Position, Tag } from '@blueprintjs/core'
 import { get } from 'lodash'
-import path from 'path'
 import React, { ComponentType, PureComponent } from 'react'
 import FA from 'react-fontawesome'
 import { withTranslation, WithTranslation } from 'react-i18next'
@@ -14,7 +13,8 @@ import {
   shipFleetIdSelectorFactory,
   shipItemSelectorFactory,
 } from '../../selectors'
-import { fileUrl, shipTypes } from '../../utils'
+import { shipTypes } from '../../utils'
+import { FleetIcon } from '../../components/fleet-icon'
 
 const Chip = styled(Tag)`
   margin: 0.5ex 1ex;
@@ -106,7 +106,7 @@ export const ShipChip = compose<
             hasBackdrop
             content={
               <Menu>
-                {others.map(_area => (
+                {others.map((_area) => (
                   <MenuItem
                     key={_area.color}
                     onClick={this.handleDisplace(_area.areaIndex)}
@@ -144,20 +144,7 @@ export const ShipChip = compose<
             )}
           </span>
 
-          <span>
-            {fleetId > -1 && (
-              <img
-                height={16}
-                alt={`fleet: ${fleetId + 1}`}
-                src={fileUrl(
-                  path.resolve(
-                    __dirname,
-                    `../../../assets/images/fleet/${fleetId + 1}.png`,
-                  ),
-                )}
-              />
-            )}
-          </span>
+          <span>{fleetId > -1 && <FleetIcon fleetId={fleetId} />}</span>
         </Chip>
       )
     }
