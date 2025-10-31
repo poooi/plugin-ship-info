@@ -31,6 +31,8 @@ import { Slotitems } from './slotitems'
 const TRANSPARENCY = 0.5
 
 export const Cell = styled.div<{ isEven?: boolean }>`
+  width: 100%;
+  height: 100%;
   white-space: nowrap;
   line-height: 35px;
   vertical-align: middle;
