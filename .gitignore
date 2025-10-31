@@ -74,3 +74,6 @@ typings/
 
 # we're using yarn
 package-lock.json
+
+index.js
+index.js.map

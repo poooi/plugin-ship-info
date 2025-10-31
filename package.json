@@ -5,7 +5,7 @@
   "main": "index.es",
   "scripts": {
     "reset": "git clean -f && git checkout .",
-    "prepack": "poi-util-transpile --sm --replace",
+    "prepack": "tsup",
     "postpublish": "npm run reset",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -43,6 +43,8 @@
     "@blueprintjs/core": "^5.19.1",
     "@commitlint/cli": "^8.0.0",
     "@commitlint/config-conventional": "^8.0.0",
+    "@tanstack/react-table": "^8.21.3",
+    "@tanstack/react-virtual": "^3.13.12",
     "@types/bluebird": "^3.5.27",
     "@types/classnames": "^2.2.8",
     "@types/eslint": "^6.1.8",
@@ -72,6 +74,7 @@
     "fuse.js": "^6.5.3",
     "husky": "^4.2.3",
     "i18next": "^19.3.2",
+    "jotai": "^2.15.0",
     "kcsapi": "^1.190112.0",
     "lint-staged": "^10.0.8",
     "poi-util-transpile": "^10.3.4",
@@ -82,16 +85,13 @@
     "reselect": "^4.0.0",
     "stylelint": "^13.2.1",
     "stylelint-config-standard": "^20.0.0",
-    "typescript": "^3.5.1"
+    "tsup": "^8.5.0",
+    "typescript": "^3.5.1",
+    "zod": "^4.1.12"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org"
   },
   "packageManager": "yarn@3.2.3",
-  "dependencies": {
-    "@tanstack/react-table": "^8.21.3",
-    "@tanstack/react-virtual": "^3.13.12",
-    "jotai": "^2.15.0",
-    "zod": "^4.1.12"
-  }
+  "dependencies": {}
 }

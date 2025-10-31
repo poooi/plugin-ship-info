@@ -44,17 +44,24 @@ export const Cell = styled.div<{ isEven?: boolean }>`
   background-color: ${(props) => props.isEven && rgba(props.theme.BLUE5, 0.05)};
 `
 
-// Type for raw ship data
-interface IShipRawData {
-  ship: APIShip
-  $ship: APIMstShip
-  equips: { [key: string]: APISlotItem }
-  $shipTypes: { [key: string]: APIMstSlotitem }
-  fleetIdMap: { [key: string]: number }
-  rawValue: boolean
-  repairs: number[]
-  db: any
-}
+const ShipName = styled.span`
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex-shrink: 1;
+  min-width: 0;
+`
+
+const FleetNumber = styled.span`
+  color: white;
+  margin-left: 1ex;
+  font-weight: bold;
+  font-family: monospace;
+  user-select: none;
+  -webkit-text-stroke: 1px ${(props) => props.theme.GREEN3};
+  font-size: 2rem;
+  flex-shrink: 0;
+`
 
 interface ICellProps extends HTMLAttributes<HTMLDivElement> {
   shipData: IShipRawData
@@ -82,19 +89,8 @@ export const Name = ({
   return (
     <Cell {...props}>
       {enableAvatar && <Avatar mstId={$ship.api_id} height={35} />}
-      <span title={t($ship.api_name)}>{t($ship.api_name)}</span>
-      {fleetId > -1 && (
-        <img
-          alt={`fleet: ${fleetId + 1}`}
-          height={16}
-          src={fileUrl(
-            path.resolve(
-              __dirname,
-              `../../assets/images/fleet/${fleetId + 1}.png`,
-            ),
-          )}
-        />
-      )}
+      <ShipName title={t($ship.api_name)}>{t($ship.api_name)}</ShipName>
+      {fleetId > -1 && <FleetNumber>/{fleetId + 1}</FleetNumber>}
       <SallyArea area={ship.api_sally_area || 0} info_id={ship.api_id} />
     </Cell>
   )
