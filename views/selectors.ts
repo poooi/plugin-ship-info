@@ -16,6 +16,7 @@ import fp from 'lodash/fp'
 import { createSelector } from 'reselect'
 import i18next from 'views/env-parts/i18next'
 import { toRomaji } from 'wanakana'
+import { z } from 'zod'
 
 import {
   configSelector,
@@ -37,50 +38,157 @@ import {
 
 import { APISlotItem } from 'kcsapi/api_get_member/require_info/response'
 import { APIMstShip, APIMstSlotitem } from 'kcsapi/api_start2/getData/response'
-import { any } from 'prop-types'
-import { IShip } from './types'
 import { PLUGIN_KEY } from './redux'
 import {
-  getShipInfoData,
   intToBoolArray,
   katakanaToHiragana,
   reverseSuperTypeMap,
+  isShipCompleted,
+  canEquipDaihatsu,
 } from './utils'
+
+// Zod schemas for filter validation
+const yesNoFilterSchema = z.array(z.boolean()).length(2)
+const radioFilterSchema = z.number().int().min(0)
+const sallyAreaSchema = z.array(z.boolean())
+const shipTypesSchema = z.number().int().min(0)
+const levelRangeSchema = z.tuple([
+  z.number().int().min(0).max(450),
+  z.number().int().min(0).max(450),
+])
+
+// Column configuration schemas - TanStack Table format
+const columnOrderSchema = z.array(z.string())
+const columnVisibilitySchema = z.record(z.string(), z.boolean())
+const columnPinningSchema = z.object({
+  left: z.array(z.string()).optional(),
+  right: z.array(z.string()).optional(),
+})
 
 const __ = i18next.getFixedT(null, ['poi-plugin-ship-info', 'resources'])
 
-export const graphSelector = createSelector([constSelector], constState =>
+// Selector factories for reusable filter logic
+const createYesNoFilterSelector = (configKey: string) =>
+  createSelector([configSelector], (config) => {
+    const rawValue = get(config, `plugin.ShipInfo.${configKey}`, [true, true])
+    const result = yesNoFilterSchema.safeParse(rawValue)
+    return result.success ? result.data : [true, true]
+  })
+
+const createRadioFilterSelector = (configKey: string, defaultValue = 0) =>
+  createSelector([configSelector], (config) => {
+    const rawValue = get(config, `plugin.ShipInfo.${configKey}`, defaultValue)
+    const result = radioFilterSchema.safeParse(rawValue)
+    return result.success ? result.data : defaultValue
+  })
+
+// Individual filter selectors using factories
+export const lockedFilterSelector = createYesNoFilterSelector('locked')
+export const expeditionFilterSelector = createYesNoFilterSelector('expedition')
+export const inFleetFilterSelector = createYesNoFilterSelector('inFleet')
+export const sparkleFilterSelector = createYesNoFilterSelector('sparkle')
+export const exSlotFilterSelector = createYesNoFilterSelector('exSlot')
+export const daihatsuFilterSelector = createYesNoFilterSelector('daihatsu')
+export const modernizationFilterSelector =
+  createYesNoFilterSelector('modernization')
+export const remodelFilterSelector = createYesNoFilterSelector('remodel')
+
+export const rawValueFilterSelector = createRadioFilterSelector('rawValue')
+
+export const sallyAreaFilterSelector = createSelector(
+  [configSelector, fcdSelector],
+  (config, { shiptag = {} }) => {
+    const defaultChecked = Array((shiptag.mapname || []).length + 1).fill(true)
+    const rawValue = get(
+      config,
+      'plugin.ShipInfo.sallyAreaChecked',
+      defaultChecked,
+    )
+    const result = sallyAreaSchema.safeParse(rawValue)
+    return result.success ? result.data : defaultChecked
+  },
+)
+
+export const shipTypesFilterSelector = createSelector(
+  [configSelector],
+  (config) => {
+    const rawValue = get(config, 'plugin.ShipInfo.shipTypes', 0)
+    const result = shipTypesSchema.safeParse(rawValue)
+    return result.success ? result.data : 0
+  },
+)
+
+export const graphSelector = createSelector([constSelector], (constState) =>
   keyBy(constState.$shipgraph, 'api_id'),
 )
 
 export const shipInfoConfigSelector = createSelector(
   [configSelector, fcdSelector],
-  (config, { shiptag = {} }) => ({
-    daihatsuRadio: get(config, 'plugin.ShipInfo.daihatsuRadio', 0),
-    exSlotRadio: get(config, 'plugin.ShipInfo.exSlotRadio', 0),
-    expeditionRadio: get(config, 'plugin.ShipInfo.expeditionRadio', 0),
-    inFleetRadio: get(config, 'plugin.ShipInfo.inFleetRadio', 0),
-    lockedRadio: get(config, 'plugin.ShipInfo.lockedRadio', 1),
-    lvRadio: get(config, 'plugin.ShipInfo.lvRadio', 2),
-    marriedRadio: get(config, 'plugin.ShipInfo.marriedRadio', 0),
-    modernizationRadio: get(config, 'plugin.ShipInfo.modernizationRadio', 0),
-    pagedLayout: get(config, 'plugin.ShipInfo.pagedLayout', 0),
-    rawValue: get(config, 'plugin.ShipInfo.rawValue', false),
-    remodelRadio: get(config, 'plugin.ShipInfo.remodelRadio', 0),
-    sallyAreaChecked: get(
+  (config, { shiptag = {} }) => {
+    // Helper function to validate yes/no filters
+    const validateYesNo = (key: string) => {
+      const rawValue = get(config, `plugin.ShipInfo.${key}`, [true, true])
+      const result = yesNoFilterSchema.safeParse(rawValue)
+      return result.success ? result.data : [true, true]
+    }
+
+    // Helper function to validate radio filters
+    const validateRadio = (key: string, defaultValue = 0) => {
+      const rawValue = get(config, `plugin.ShipInfo.${key}`, defaultValue)
+      const result = radioFilterSchema.safeParse(rawValue)
+      return result.success ? result.data : defaultValue
+    }
+
+    // Validate sally area checked
+    const defaultSallyAreaChecked = Array(
+      (shiptag.mapname || []).length + 1,
+    ).fill(true)
+    const rawSallyArea = get(
       config,
       'plugin.ShipInfo.sallyAreaChecked',
-      Array((shiptag.mapname || []).length + 1).fill(true),
-    ),
-    sortName: get(config, 'plugin.ShipInfo.sortName', 'lv'),
-    sortOrder: get(config, 'plugin.ShipInfo.sortOrder', 0),
-    sparkleRadio: get(config, 'plugin.ShipInfo.sparkleRadio', 0),
-  }),
+      defaultSallyAreaChecked,
+    )
+    const sallyAreaResult = sallyAreaSchema.safeParse(rawSallyArea)
+    const sallyAreaChecked = sallyAreaResult.success
+      ? sallyAreaResult.data
+      : defaultSallyAreaChecked
+
+    return {
+      // New yes/no filters (array-based)
+      locked: validateYesNo('locked'),
+      expedition: validateYesNo('expedition'),
+      inFleet: validateYesNo('inFleet'),
+      sparkle: validateYesNo('sparkle'),
+      exSlot: validateYesNo('exSlot'),
+      daihatsu: validateYesNo('daihatsu'),
+      modernization: validateYesNo('modernization'),
+      remodel: validateYesNo('remodel'),
+
+      // Old radio filters (kept for backward compatibility)
+      lockedRadio: validateRadio('lockedRadio', 1),
+      expeditionRadio: validateRadio('expeditionRadio'),
+      inFleetRadio: validateRadio('inFleetRadio'),
+      sparkleRadio: validateRadio('sparkleRadio'),
+      exSlotRadio: validateRadio('exSlotRadio'),
+      daihatsuRadio: validateRadio('daihatsuRadio'),
+      lvRadio: validateRadio('lvRadio', 2),
+      marriedRadio: validateRadio('marriedRadio'),
+      modernizationRadio: validateRadio('modernizationRadio'),
+      remodelRadio: validateRadio('remodelRadio'),
+      rawValue: validateRadio('rawValue'),
+
+      // Other settings
+      pagedLayout: validateRadio('pagedLayout'),
+      sallyAreaChecked,
+      sortName: get(config, 'plugin.ShipInfo.sortName', 'lv'),
+      sortOrder: validateRadio('sortOrder'),
+    }
+  },
 )
 
 const allFleetShipIdSelector = createSelector(
   [
-    ...[...Array(4).keys()].map(fleetId =>
+    ...[...Array(4).keys()].map((fleetId) =>
       fleetShipsIdSelectorFactory(fleetId),
     ),
   ],
@@ -99,20 +207,22 @@ interface IDictionary<T> {
 export const shipFleetIdMapSelector = createSelector(
   [shipsSelector, allFleetShipIdSelector],
   (ships: IDictionary<APIShip>, fleetIds: number[][]) =>
-    mapValues(ships, ship =>
-      findIndex(fleetIds, fleetId => includes(fleetId, ship.api_id)),
+    mapValues(ships, (ship) =>
+      findIndex(fleetIds, (fleetId) => includes(fleetId, ship.api_id)),
     ),
 )
 
-export const shipFleetIdSelectorFactory = memoize(shipId =>
-  createSelector([shipFleetIdMapSelector], fleetIdMap => fleetIdMap[shipId]),
+export const shipFleetIdSelectorFactory = memoize((shipId) =>
+  createSelector([shipFleetIdMapSelector], (fleetIdMap) => fleetIdMap[shipId]),
 )
 
-export const rawValueConfigSelector = createSelector([configSelector], config =>
-  get(config, 'plugin.ShipInfo.rawValue', false),
+export const rawValueConfigSelector = createSelector(
+  [configSelector],
+  (config) => get(config, 'plugin.ShipInfo.rawValue', false),
 )
 
-export const shipTableDataSelectorFactory = memoize(shipId =>
+// Returns raw data references instead of computed IShip object for better performance
+export const shipTableDataSelectorFactory = memoize((shipId) =>
   createSelector(
     [
       shipDataSelectorFactory(shipId),
@@ -131,77 +241,62 @@ export const shipTableDataSelectorFactory = memoize(shipId =>
       rawValue,
       repairs = [],
       db,
-    ) =>
-      getShipInfoData(
-        ship!,
-        $ship!,
-        equips!,
-        $shipTypes,
-        fleetIdMap,
-        rawValue,
-        repairs,
-        db,
-      ),
+    ) => ({
+      ship,
+      $ship,
+      equips,
+      $shipTypes,
+      fleetIdMap,
+      rawValue,
+      repairs,
+      db,
+    }),
   ),
 )
 
 const handleTypeFilter = (typeId: number, shipTypes: number[]) =>
   (shipTypes || []).includes(typeId)
 
-const handleLockedFilter = (locked: number, lockedRadio: number) => {
-  switch (lockedRadio) {
-    case 1:
-      return locked === 1
-    case 2:
-      return locked === 0
-    case 0:
-    default:
-      return true
-  }
+const handleLockedFilter = (locked: number, lockedFilter: boolean[]) => {
+  const [yesChecked, noChecked] = lockedFilter
+  const isLocked = locked === 1
+  if (yesChecked && noChecked) return true
+  if (yesChecked) return isLocked
+  if (noChecked) return !isLocked
+  return false
 }
 
 const handleExpeditionFilter = (
   id: number,
   expeditionShips: number[],
-  expeditionRadio: number,
+  expeditionFilter: boolean[],
 ) => {
-  switch (expeditionRadio) {
-    case 1:
-      return (expeditionShips || []).includes(id)
-    case 2:
-      return !(expeditionShips || []).includes(id)
-    case 0:
-    default:
-      return true
-  }
+  const [yesChecked, noChecked] = expeditionFilter
+  const inExpedition = (expeditionShips || []).includes(id)
+  if (yesChecked && noChecked) return true
+  if (yesChecked) return inExpedition
+  if (noChecked) return !inExpedition
+  return false
 }
 
 const handleModernizationFilter = (
   isCompleted: boolean,
-  modernizationRadio: number,
+  modernizationFilter: boolean[],
 ) => {
-  switch (modernizationRadio) {
-    case 1:
-      return isCompleted
-    case 2:
-      return !isCompleted
-    case 0:
-    default:
-      return true
-  }
+  const [yesChecked, noChecked] = modernizationFilter
+  if (yesChecked && noChecked) return true
+  if (yesChecked) return isCompleted
+  if (noChecked) return !isCompleted
+  return false
 }
 
-const handleRemodelFilter = (after: number, remodelRadio: number) => {
+const handleRemodelFilter = (after: number, remodelFilter: boolean[]) => {
+  const [yesChecked, noChecked] = remodelFilter
   const remodelable = after !== 0
-  switch (remodelRadio) {
-    case 1:
-      return remodelable
-    case 2:
-      return !remodelable
-    case 0:
-    default:
-      return true
-  }
+  if (yesChecked && noChecked) return true
+  if (yesChecked) return remodelable
+  if (noChecked) return !remodelable
+  return false
 }
 
 const handleSallyAreaFilter = (
@@ -220,64 +315,62 @@ const handleSallyAreaFilter = (
     : true
 }
 
-const handleInFleetFilter = (fleetId: number, inFleetRadio: number) => {
+const handleInFleetFilter = (fleetId: number, inFleetFilter: boolean[]) => {
+  const [yesChecked, noChecked] = inFleetFilter
   const isInFleet = fleetId > -1
-  switch (inFleetRadio) {
-    case 1:
-      return isInFleet
-    case 2:
-      return !isInFleet
-    case 0:
-    default:
-      return true
-  }
+  if (yesChecked && noChecked) return true
+  if (yesChecked) return isInFleet
+  if (noChecked) return !isInFleet
+  return false
 }
 
-const handleSparkleFilter = (cond: number, sparkleRadio: number) => {
-  switch (sparkleRadio) {
-    case 1:
-      return cond >= 50
-    case 2:
-      return cond < 50
-    case 0:
-    default:
-      return true
-  }
+const handleSparkleFilter = (cond: number, sparkleFilter: boolean[]) => {
+  const [yesChecked, noChecked] = sparkleFilter
+  const hasSparkle = cond >= 50
+  if (yesChecked && noChecked) return true
+  if (yesChecked) return hasSparkle
+  if (noChecked) return !hasSparkle
+  return false
 }
 
-const handleExSlotFilter = (exslot: number, exSlotRadio: number) => {
-  switch (exSlotRadio) {
-    case 1:
-      return exslot !== 0
-    case 2:
-      return exslot === 0
-    case 0:
-    default:
-      return true
-  }
+const handleExSlotFilter = (exslot: number, exSlotFilter: boolean[]) => {
+  const [yesChecked, noChecked] = exSlotFilter
+  const hasExSlot = exslot !== 0
+  if (yesChecked && noChecked) return true
+  if (yesChecked) return hasExSlot
+  if (noChecked) return !hasExSlot
+  return false
 }
 
-const handleDaihatsuFilter = (daihatsu: boolean, daihatsuRadio: number) => {
-  switch (daihatsuRadio) {
-    case 1:
-      return daihatsu
-    case 2:
-      return !daihatsu
-    case 0:
-    default:
-      return true
-  }
+const handleDaihatsuFilter = (daihatsu: boolean, daihatsuFilter: boolean[]) => {
+  const [yesChecked, noChecked] = daihatsuFilter
+  if (yesChecked && noChecked) return true
+  if (yesChecked) return daihatsu
+  if (noChecked) return !daihatsu
+  return false
+}
+
+// Type for raw ship data returned from shipTableDataSelectorFactory
+interface IShipRawData {
+  ship: APIShip
+  $ship: APIMstShip
+  equips: IDictionary<APISlotItem>
+  $shipTypes: IDictionary<APIMstSlotitem>
+  fleetIdMap: IDictionary<number>
+  rawValue: boolean
+  repairs: number[]
+  db: any
 }
 
 const getSortFunction = (sortName: string) => {
   switch (sortName) {
     case 'id':
-      return (ship: IShip) => ship.id
+      return (data: IShipRawData) => data.ship.api_id
     case 'name':
       return [
-        (ship: IShip) => katakanaToHiragana(ship.yomi),
-        (ship: IShip) => ship.lv,
-        (ship: IShip) => -ship.id,
+        (data: IShipRawData) => katakanaToHiragana(data.$ship.api_yomi),
+        (data: IShipRawData) => data.ship.api_lv,
+        (data: IShipRawData) => -data.ship.api_id,
       ]
     case 'lv':
       // Sort rule of level in game (descending):
@@ -285,41 +378,50 @@ const getSortFunction = (sortName: string) => {
       // 2. sortno (ascending)
       // 3. id (descending)
       return [
-        (ship: IShip) => ship.lv,
-        (ship: IShip) => -ship.sortno,
-        (ship: IShip) => -ship.id,
+        (data: IShipRawData) => data.ship.api_lv,
+        (data: IShipRawData) => -data.$ship.api_sortno!,
+        (data: IShipRawData) => -data.ship.api_id,
       ]
     case 'type':
       return [
-        (ship: IShip) => ship.typeId,
-        (ship: IShip) => -ship.sortno,
-        (ship: IShip) => ship.lv,
-        (ship: IShip) => -ship.id,
+        (data: IShipRawData) => data.$ship.api_stype,
+        (data: IShipRawData) => -data.$ship.api_sortno!,
+        (data: IShipRawData) => data.ship.api_lv,
+        (data: IShipRawData) => -data.ship.api_id,
       ]
     case 'hp':
       return [
-        (ship: IShip) => ship.maxhp,
-        (ship: IShip) => -ship.sortno,
-        (ship: IShip) => -ship.id,
+        (data: IShipRawData) => data.ship.api_maxhp,
+        (data: IShipRawData) => -data.$ship.api_sortno!,
+        (data: IShipRawData) => -data.ship.api_id,
       ]
     default:
+      // For other sorts (karyoku, raisou, etc.), access from ship.api_* directly
       return [
-        (ship: IShip) => ship[sortName as keyof IShip],
-        (ship: IShip) => ship.sortno,
-        (ship: IShip) => -ship.id,
+        (data: IShipRawData) => {
+          const apiField = `api_${sortName}` as keyof APIShip
+          const value = data.ship[apiField]
+          return Array.isArray(value) ? value[0] : value
+        },
+        (data: IShipRawData) => data.$ship.api_sortno!,
+        (data: IShipRawData) => -data.ship.api_id,
       ]
   }
 }
 
-const shipTypesSelecor = createSelector(
+export const shipTypesSelecor = createSelector(
   [
-    state => get(state, 'const.$shipTypes', {}),
-    state => get((state as IState).config, 'plugin.ShipInfo.shipTypes'),
+    (state) => get(state, 'const.$shipTypes', {}),
+    (state) => get((state as IState).config, 'plugin.ShipInfo.shipTypes'),
   ],
-  ($shipTypes, shipTypeChecked) => {
+  ($shipTypes, rawShipTypeChecked) => {
+    // Validate ship type value
+    const validationResult = shipTypesSchema.safeParse(rawShipTypeChecked)
+    const shipTypeChecked = validationResult.success ? validationResult.data : 0
+
     const checked = intToBoolArray(shipTypeChecked)
     if (checked.length !== Object.keys($shipTypes).length) {
-      return Object.keys($shipTypes).map(s => +s)
+      return Object.keys($shipTypes).map((s) => +s)
     }
     return checked.reduce(
       (types: number[], check: boolean, index: number) =>
@@ -329,7 +431,7 @@ const shipTypesSelecor = createSelector(
   },
 )
 
-const fleetShipsInExpeditionSelectorFactory = memoize(fleetId =>
+const fleetShipsInExpeditionSelectorFactory = memoize((fleetId) =>
   createSelector(
     [
       fleetInExpeditionSelectorFactory(fleetId),
@@ -339,12 +441,12 @@ const fleetShipsInExpeditionSelectorFactory = memoize(fleetId =>
   ),
 )
 
-const expeditionShipsSelector = createSelector(
+export const expeditionShipsSelector = createSelector(
   [
-    state => fleetShipsInExpeditionSelectorFactory(0)(state),
-    state => fleetShipsInExpeditionSelectorFactory(1)(state),
-    state => fleetShipsInExpeditionSelectorFactory(2)(state),
-    state => fleetShipsInExpeditionSelectorFactory(3)(state),
+    (state) => fleetShipsInExpeditionSelectorFactory(0)(state),
+    (state) => fleetShipsInExpeditionSelectorFactory(1)(state),
+    (state) => fleetShipsInExpeditionSelectorFactory(2)(state),
+    (state) => fleetShipsInExpeditionSelectorFactory(3)(state),
   ],
   (...ids) => ([] as number[]).concat(...ids),
 )
@@ -365,11 +467,99 @@ export const allShipRowsMapSelector = createSelector(
     ),
 )
 
+export const levelRangeFilterSelector = createSelector(
+  [configSelector],
+  (config) => {
+    const minLevel = get(config, 'plugin.ShipInfo.filters.minLevel', 0)
+    const maxLevel = get(config, 'plugin.ShipInfo.filters.maxLevel', 450)
+    const result = levelRangeSchema.safeParse([minLevel, maxLevel])
+    return result.success ? result.data : ([0, 450] as [number, number])
+  },
+)
+
+// Default column order and visibility (TanStack Table format)
+const defaultColumnOrder = [
+  'rowIndex', // Row index column (not configurable)
+  'id',
+  'name',
+  'type',
+  'soku',
+  'lv',
+  'cond',
+  'hp',
+  'karyoku',
+  'raisou',
+  'taiku',
+  'soukou',
+  'lucky',
+  'kaihi',
+  'taisen',
+  'sakuteki',
+  'repairtime',
+  'equipment',
+  'lock',
+]
+
+const defaultColumnVisibility: Record<string, boolean> = {}
+
+const defaultColumnPinning = {
+  left: ['rowIndex'], // Row index is always pinned to left
+  right: [],
+}
+
+export const columnOrderSelector = createSelector(
+  [configSelector],
+  (config) => {
+    const rawValue = get(
+      config,
+      'plugin.ShipInfo.columnOrder',
+      defaultColumnOrder,
+    )
+    const result = columnOrderSchema.safeParse(rawValue)
+    return result.success ? result.data : defaultColumnOrder
+  },
+)
+
+export const columnVisibilitySelector = createSelector(
+  [configSelector],
+  (config) => {
+    const rawValue = get(
+      config,
+      'plugin.ShipInfo.columnVisibility',
+      defaultColumnVisibility,
+    )
+    const result = columnVisibilitySchema.safeParse(rawValue)
+    return result.success ? result.data : defaultColumnVisibility
+  },
+)
+
+export const columnPinningSelector = createSelector(
+  [configSelector],
+  (config) => {
+    const rawValue = get(
+      config,
+      'plugin.ShipInfo.columnPinning',
+      defaultColumnPinning,
+    )
+    const result = columnPinningSchema.safeParse(rawValue)
+    // Always ensure rowIndex is pinned to left
+    const pinning = result.success ? result.data : defaultColumnPinning
+    const leftPins = pinning.left || []
+    if (!leftPins.includes('rowIndex')) {
+      return {
+        ...pinning,
+        left: ['rowIndex', ...leftPins],
+      }
+    }
+    return pinning
+  },
+)
+
 export const shipInfoFiltersSelector = createSelector(
-  [configSelector, fcdSelector],
-  (config, { shiptag = {} }) => ({
-    maxLevel: get(config, 'plugin.ShipInfo.filters.maxLevel', 10000),
-    minLevel: get(config, 'plugin.ShipInfo.filters.minLevel', 1),
+  [levelRangeFilterSelector],
+  ([minLevel, maxLevel]) => ({
+    minLevel,
+    maxLevel,
   }),
 )
 
@@ -382,18 +572,18 @@ export const filterShipIdsSelector = createSelector(
     shipInfoFiltersSelector,
   ],
   (
-    ships,
+    shipsData,
     shipTypes,
     expeditionShips,
     {
-      lockedRadio,
-      expeditionRadio,
-      modernizationRadio,
-      remodelRadio,
-      inFleetRadio,
-      exSlotRadio,
-      sparkleRadio,
-      daihatsuRadio,
+      locked,
+      expedition,
+      inFleet,
+      sparkle,
+      exSlot,
+      daihatsu,
+      modernization,
+      remodel,
       sallyAreaChecked,
       sortName,
       sortOrder,
@@ -401,29 +591,43 @@ export const filterShipIdsSelector = createSelector(
     { maxLevel, minLevel },
   ) =>
     fp.flow(
-      fp.filter(
-        (ship: IShip) =>
-          handleTypeFilter(ship.typeId, shipTypes) &&
-          ship.lv >= Math.min(minLevel, maxLevel) &&
-          ship.lv <= Math.max(minLevel, maxLevel) &&
-          handleLockedFilter(ship.locked, lockedRadio) &&
-          handleExpeditionFilter(ship.id, expeditionShips, expeditionRadio) &&
-          handleModernizationFilter(ship.isCompleted, modernizationRadio) &&
-          handleRemodelFilter(ship.after, remodelRadio) &&
-          handleSallyAreaFilter(ship.sallyArea, sallyAreaChecked) &&
-          handleInFleetFilter(ship.fleetId, inFleetRadio) &&
-          handleExSlotFilter(ship.exslot, exSlotRadio) &&
-          handleSparkleFilter(ship.cond, sparkleRadio) &&
-          handleDaihatsuFilter(ship.daihatsu, daihatsuRadio),
-      ),
+      fp.filter((data: IShipRawData) => {
+        const { ship, $ship, fleetIdMap, db } = data
+        const shipId = ship.api_id
+        const typeId = $ship.api_stype
+        const lv = ship.api_lv
+        const lockedValue = ship.api_locked
+        const fleetId = fleetIdMap[shipId]
+        const after = parseInt($ship.api_aftershipid || '0', 10)
+        const sallyArea = ship.api_sally_area || 0
+        const exslot = ship.api_slot_ex
+        const cond = ship.api_cond
+        const isCompleted = isShipCompleted(ship, $ship)
+        const canDaihatsu = canEquipDaihatsu($ship.api_id, db)
+
+        return (
+          handleTypeFilter(typeId, shipTypes) &&
+          lv >= Math.min(minLevel, maxLevel) &&
+          lv <= Math.max(minLevel, maxLevel) &&
+          handleLockedFilter(lockedValue, locked) &&
+          handleExpeditionFilter(shipId, expeditionShips, expedition) &&
+          handleModernizationFilter(isCompleted, modernization) &&
+          handleRemodelFilter(after, remodel) &&
+          handleSallyAreaFilter(sallyArea, sallyAreaChecked) &&
+          handleInFleetFilter(fleetId, inFleet) &&
+          handleExSlotFilter(exslot, exSlot) &&
+          handleSparkleFilter(cond, sparkle) &&
+          handleDaihatsuFilter(canDaihatsu, daihatsu)
+        )
+      }),
       fp.sortBy(getSortFunction(sortName)),
-      sortOrder ? ship => ship : fp.reverse,
-      fp.map('id'),
-    )(ships),
+      sortOrder ? (data: IShipRawData) => data : fp.reverse,
+      fp.map((data: IShipRawData) => data.ship.api_id),
+    )(shipsData),
 )
 
-export const sallyAreaSelectorFactory = memoize(area =>
-  createSelector([fcdSelector], fcd => ({
+export const sallyAreaSelectorFactory = memoize((area) =>
+  createSelector([fcdSelector], (fcd) => ({
     color: get(fcd, `shiptag.color.${area - 1}`, ''),
     mapname: get(
       fcd,
@@ -447,7 +651,7 @@ export interface IShipInfoMenuData {
   exp: number
 }
 
-export const shipItemSelectorFactory = memoize(shipId =>
+export const shipItemSelectorFactory = memoize((shipId) =>
   createSelector(
     [shipDataSelectorFactory(shipId), fcdSelector],
     (
@@ -477,29 +681,29 @@ export const shipItemSelectorFactory = memoize(shipId =>
 )
 
 export const shipMenuDataSelector = createSelector(
-  [shipsSelector, state => state],
+  [shipsSelector, (state) => state],
   (_ships, state) =>
     fp.flow(
       fp.map((ship: APIShip) => ship.api_id),
-      fp.map(shipId => shipItemSelectorFactory(shipId)(state)!),
+      fp.map((shipId) => shipItemSelectorFactory(shipId)(state)!),
     )(_ships as any),
 )
 
 export const deckPlannerCurrentSelector = createSelector(
   [extensionSelectorFactory(PLUGIN_KEY)],
-  state => ((state as any).planner || {}).current || [],
+  (state) => ((state as any).planner || {}).current || [],
 )
 
-export const deckPlannerAreaSelectorFactory = memoize(areaIndex =>
+export const deckPlannerAreaSelectorFactory = memoize((areaIndex) =>
   createSelector(
     [deckPlannerCurrentSelector],
-    current => current[areaIndex] || [],
+    (current) => current[areaIndex] || [],
   ),
 )
 
 export const deckPlannerAllShipIdsSelector = createSelector(
   [deckPlannerCurrentSelector],
-  current => flatten(current),
+  (current) => flatten(current),
 )
 
 export const deckPlannerShipMapSelector = createSelector(
@@ -507,7 +711,7 @@ export const deckPlannerShipMapSelector = createSelector(
   (current: number[][]) =>
     fromPairs(
       flatMap(current, (ships, areaIndex: number) =>
-        ships.map(id => [id, areaIndex]),
+        ships.map((id) => [id, areaIndex]),
       ),
     ),
 )
@@ -524,7 +728,7 @@ const ourShipsSelector = createSelector<
       .value() as IDictionary<APIMstShip>,
 )
 
-const beforeShipMapSelector = createSelector([ourShipsSelector], $ships =>
+const beforeShipMapSelector = createSelector([ourShipsSelector], ($ships) =>
   _($ships)
     .filter<APIMstShip>(
       ((ship: APIMstShip) => +(ship.api_aftershipid || 0) > 0) as any,
@@ -568,9 +772,9 @@ export const shipUniqueMapSelector = createSelector(
   [uniqueShipIdsSelector, remodelChainsSelector],
   (shipIds, chains: IDictionary<number[]>) =>
     _(shipIds)
-      .flatMap(shipId =>
+      .flatMap((shipId) =>
         _(chains[shipId as any])
-          .map(id => [id, shipId])
+          .map((id) => [id, shipId])
           .value(),
       )
       .fromPairs()
@@ -581,14 +785,14 @@ export const adjustedRemodelChainsSelector = createSelector(
   [remodelChainsSelector, shipUniqueMapSelector],
   (remodelChains, uniqueMap) =>
     _(uniqueMap)
-      .mapValues(uniqueId => remodelChains[uniqueId as any])
+      .mapValues((uniqueId) => remodelChains[uniqueId as any])
       .value(),
 )
 
 export const kai2ShipSelector = createSelector(
   [uniqueShipIdsSelector, adjustedRemodelChainsSelector],
   (ships, remodelChains) =>
-    fp.flow(fp.filter(shipId => remodelChains[shipId as any].length > 3))(
+    fp.flow(fp.filter((shipId) => remodelChains[shipId as any].length > 3))(
       ships,
     ),
 )
@@ -598,7 +802,8 @@ export const uniqueShipCountSelector = createSelector(
   (uniqs, remodelChains, ships) =>
     mapValues(
       remodelChains,
-      shipIds =>
-        fp.filter(ship => shipIds.includes((ship as any).shipId))(ships).length,
+      (shipIds) =>
+        fp.filter((ship) => shipIds.includes((ship as any).shipId))(ships)
+          .length,
     ),
 )

@@ -32,6 +32,7 @@
   "Equipment": "装備",
   "Lock": "ロック",
   "Modernization": "近代化改修",
+  "Modernization Completed": "近代化改修完了",
   "Completed": "完了",
   "Incomplete": "未完",
   "Remodelable": "改造可能",
@@ -44,7 +45,7 @@
   "Fast+": "高速+",
   "Fastest": "最速",
   "Value Type": "數值",
-  "Equip. Incl.": "装備込み",
+  "Display": "表示數值",
   "Raw Value": "艦娘のみ",
   "Paged": "ページング",
   "Yes": "はい",
@@ -175,5 +176,9 @@
   "Show fleet name": "艦隊名を表示",
   "European": "ヨーロッパ",
   "Solomon Sea": "ソロモン海",
-  "helpContent": "現在の計画から艦むすを削除するには、右クリックしてください"
+  "helpContent": "現在の計画から艦むすを削除するには、右クリックしてください",
+  "Column Configuration": "列の設定",
+  "Visible": "表示",
+  "Hidden": "非表示",
+  "Pin": "固定"
 }

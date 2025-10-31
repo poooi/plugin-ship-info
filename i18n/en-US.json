@@ -70,6 +70,10 @@
   "Evasion": "Ev.",
   "ship_tag": "Ship tag: {{map}}",
   "unknown_area": "Unknown area {{area}}, data not updated",
+  "Remodelable": "Remodelable",
+  "Modernization Completed": "Modernization Completed",
+  "Display": "Display",
+  "Raw Value": "Raw Value",
   "ビラ・スタンモーア夜戦": "Battle of Blackett Strait",
   "い号作戦": "Operation I-Go",
   "クラ湾夜戦": "Battle of Kula Gulf",
@@ -81,5 +85,9 @@
   "ラバウル空襲": "Bombing of Rabaul",
   "ブーゲンビル島沖海戦": "Battle of Empress Augusta Bay",
   "セント・ジョージ岬沖海戦": "Battle of Cape St. George",
-  "helpContent": "Right click on a ship could remove it from current plan"
+  "helpContent": "Right click on a ship could remove it from current plan",
+  "Column Configuration": "Column Configuration",
+  "Visible": "Visible",
+  "Hidden": "Hidden",
+  "Pin": "Pin"
 }

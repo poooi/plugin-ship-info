@@ -1,119 +1,122 @@
-import cls from 'classnames'
-import { TFunction } from 'i18next'
+import { CheckboxCard, H5 } from '@blueprintjs/core'
 import { get } from 'lodash'
 import { rgba } from 'polished'
-import PropTypes from 'prop-types'
-import React, { Component, ComponentType } from 'react'
-import { withTranslation } from 'react-i18next'
-import { connect } from 'react-redux'
-import { compose } from 'redux'
+import React from 'react'
+import { useTranslation } from 'react-i18next'
+import { useSelector } from 'react-redux'
+import styled from 'styled-components'
 
-import { Checkbox, CheckboxLabel, CheckboxOption } from '../components/checkbox'
+import { sallyAreaFilterSelector } from '../../selectors'
 
-interface IProps {
-  checked: boolean[]
-  checkedAll: boolean
-  mapname: string[]
-  color: string[]
-  displayFleetName: boolean
-  t: TFunction
-}
+const SallyAreaContainer = styled.div`
+  margin-bottom: 20px;
+`
 
-export const SallyAreaCheck = compose<ComponentType<{}>>(
-  withTranslation(['poi-plugin-ship-info']),
-  connect((state: { config: any }) => {
-    const displayFleetName = get(
+const CardRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+`
+
+const ColoredCheckboxCard = styled(CheckboxCard)<{
+  $cardColor?: string
+  $isChecked?: boolean
+}>`
+  ${(props) =>
+    props.$isChecked &&
+    props.$cardColor &&
+    `
+    background-color: ${rgba(props.$cardColor, 0.75)} !important;
+  `}
+  ${(props) =>
+    !props.$isChecked &&
+    props.$cardColor &&
+    `
+    border-color: ${props.$cardColor} !important;
+    color: ${props.$cardColor} !important;
+  `}
+`
+
+export const SallyAreaCheck: React.FC = () => {
+  const { t } = useTranslation(['poi-plugin-ship-info'])
+
+  const sallyAreaChecked = useSelector(sallyAreaFilterSelector)
+  const { checked, checkedAll, mapname, color } = useSelector((state: any) => {
+    const isFleetName = get(
       state.config,
       'plugin.ShipInfo.displayFleetName',
       false,
     )
-    const mapname = displayFleetName
+    const names = isFleetName
       ? get(state, ['fcd', 'shiptag', 'fleetname', window.language], [])
       : get(state, ['fcd', 'shiptag', 'mapname'], [])
-    const defaultChecked = Array(mapname.length + 1).fill(true)
-    let checked = get(
-      state.config,
-      'plugin.ShipInfo.sallyAreaChecked',
-      defaultChecked,
-    )
+    const defaultChecked: boolean[] = Array(names.length + 1).fill(true)
 
     // reset config values if updated
-    checked = mapname.length + 1 === checked.length ? checked : defaultChecked
-    const checkedAll = checked.reduce((a: boolean, b: boolean) => a && b, true)
+    const areaChecked =
+      names.length + 1 === sallyAreaChecked.length
+        ? sallyAreaChecked
+        : defaultChecked
+    const allChecked = areaChecked.reduce(
+      (a: boolean, b: boolean) => a && b,
+      true,
+    )
 
     return {
-      checked,
-      checkedAll,
+      checked: areaChecked,
+      checkedAll: allChecked,
       color: get(state, 'fcd.shiptag.color', []),
-      displayFleetName,
-      mapname,
+      mapname: names,
     }
-  }),
-)(
-  class SallyAreaCheckBase extends Component<IProps> {
-    public handleClickBox = (index: number) => () => {
-      const checked = this.props.checked.slice()
-      let { checkedAll } = this.props
+  })
 
-      if (index === -1) {
-        checkedAll = !checkedAll
-        checked.fill(checkedAll)
-      } else {
-        checked[index] = !checked[index]
-        checkedAll = checked.reduce((a, b) => a && b, true)
-      }
+  const handleClickBox = (index: number) => () => {
+    const newChecked = (checked as boolean[]).slice()
 
-      window.config.set('plugin.ShipInfo.sallyAreaChecked', checked)
+    if (index === -1) {
+      const newCheckedAll = !checkedAll
+      newChecked.fill(newCheckedAll)
+    } else {
+      newChecked[index] = !newChecked[index]
     }
 
-    public handleChangeDisplayFleetName = () => {
-      window.config.set(
-        'plugin.ShipInfo.displayFleetName',
-        !this.props.displayFleetName,
-      )
-    }
+    window.config.set('plugin.ShipInfo.sallyAreaChecked', newChecked)
+  }
 
-    public render() {
-      const {
-        mapname,
-        color,
-        checked,
-        checkedAll,
-        displayFleetName,
-        t,
-      } = this.props
-      return (
-        <Checkbox>
-          <CheckboxLabel>{t('Sally Area')}</CheckboxLabel>
+  const checkedArray = checked as boolean[]
+  const colorArray = color as string[]
 
-          <CheckboxOption
-            key={-2}
-            checked={checkedAll}
-            onClick={this.handleClickBox(-1)}
+  return (
+    <SallyAreaContainer>
+      <H5>{t('Sally Area')}</H5>
+      <CardRow>
+        <CheckboxCard
+          checked={checkedAll}
+          onChange={handleClickBox(-1)}
+          compact
+        >
+          {t('All')}
+        </CheckboxCard>
+        <CheckboxCard
+          checked={checkedArray[0]}
+          onChange={handleClickBox(0)}
+          compact
+        >
+          {t('Free')}
+        </CheckboxCard>
+        {mapname.map((name: string, idx: number) => (
+          <ColoredCheckboxCard
+            key={name}
+            onChange={handleClickBox(idx + 1)}
+            checked={checkedArray[idx + 1]}
+            $cardColor={colorArray[idx]}
+            $isChecked={checkedArray[idx + 1]}
+            compact
           >
-            {t('All')}
-          </CheckboxOption>
-          <CheckboxOption
-            key={-1}
-            checked={checked[0]}
-            onClick={this.handleClickBox(0)}
-          >
-            {t('Free')}
-          </CheckboxOption>
-          {mapname.map((name, idx) => (
-            <CheckboxOption
-              key={name}
-              onClick={this.handleClickBox(idx + 1)}
-              style={{
-                backgroundColor: checked[idx + 1] ? rgba(color[idx], 0.75) : '',
-                color: !checked[idx + 1] ? color[idx] : '',
-              }}
-            >
-              {t(name)}
-            </CheckboxOption>
-          ))}
-        </Checkbox>
-      )
-    }
-  },
-)
+            {t(name)}
+          </ColoredCheckboxCard>
+        ))}
+      </CardRow>
+    </SallyAreaContainer>
+  )
+}

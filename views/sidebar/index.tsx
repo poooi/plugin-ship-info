@@ -5,6 +5,7 @@ import { ThunkDispatch } from 'redux-thunk'
 import styled from 'styled-components'
 
 import { initStore } from '../redux'
+import { Columns } from './columns'
 import { Export } from './export'
 import { Filter } from './filter'
 import { Planner } from './planner'
@@ -33,6 +34,7 @@ export const Sidebar = connect()(
     return (
       <Wrapper>
         <Planner />
+        <Columns />
         <Filter />
         <Export />
       </Wrapper>

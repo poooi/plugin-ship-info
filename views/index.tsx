@@ -3,6 +3,7 @@ import styled, { createGlobalStyle, ThemeProps } from 'styled-components'
 
 import { Sidebar } from './sidebar'
 import { TableView } from './table'
+import { Provider } from 'jotai'
 
 export { reducer } from './redux'
 
@@ -28,9 +29,11 @@ const GlobalStyle = createGlobalStyle`
 `
 
 export const reactClass: StatelessComponent<null> = (): ReactElement => (
-  <ShipInfo id="poi-plugin-ship-info">
-    <GlobalStyle />
-    <Sidebar />
-    <TableView />
-  </ShipInfo>
+  <Provider>
+    <ShipInfo id="poi-plugin-ship-info">
+      <GlobalStyle />
+      <Sidebar />
+      <TableView />
+    </ShipInfo>
+  </Provider>
 )

@@ -32,6 +32,7 @@
   "Equipment": "装备",
   "Lock": "锁定",
   "Modernization": "改修",
+  "Modernization Completed": "改修完成",
   "Completed": "改修完成",
   "Incomplete": "改修未满",
   "Remodelable": "可以改造",
@@ -44,7 +45,7 @@
   "Fast+": "高速+",
   "Fastest": "最速",
   "Value Type": "数值",
-  "Equip. Incl.": "包含装备",
+  "Display": "显示数值",
   "Raw Value": "裸装数值",
   "Paged": "分页",
   "Yes": "是",
@@ -176,5 +177,9 @@
   "Show fleet name": "显示舰队名",
   "European": "欧洲舰队",
   "Solomon Sea": "所罗门海",
-  "helpContent": "在舰娘上右键点击可以将她从当前计划中移出"
+  "helpContent": "在舰娘上右键点击可以将她从当前计划中移出",
+  "Column Configuration": "列设置",
+  "Visible": "显示",
+  "Hidden": "隐藏",
+  "Pin": "固定"
 }

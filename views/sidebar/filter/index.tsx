@@ -4,102 +4,55 @@ import FA from 'react-fontawesome'
 import styled from 'styled-components'
 import { Popover } from 'views/components/etc/overlay'
 
-import {
-  daihatsuOptions,
-  expeditionOptions,
-  exSlotOptions,
-  inFleetOptions,
-  lockedOptions,
-  lvOptions,
-  modernizationOptions,
-  rawValueOptions,
-  remodelOptions,
-  sparkleOptions,
-} from '../../constants'
-import { Container } from '../components/layout'
+import { rawValueOptions } from '../../constants'
 import { LevelRange } from './level-range'
 import { RadioCheck } from './radio'
 import { SallyAreaCheck } from './sally-area'
 import { ShipTypeCheck } from './ship-type'
+import { YesNoCheck } from './yes-no-check'
 
-const Content = styled.div`
+const FilterContainer = styled.div`
+  padding: 20px;
   max-width: 80vw;
-  display: flex;
-  flex-wrap: wrap;
+  max-height: 80vh;
+  overflow: auto;
+`
+
+const FilterGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
 `
 
 export const Filter = () => (
   <Popover
     content={
-      <Container>
-        <Content>
-          <ShipTypeCheck />
-        </Content>
-        <Content>
-          <LevelRange />
-        </Content>
-        <Content>
-          <RadioCheck
-            configKey="lockedRadio"
-            label="Lock"
-            options={lockedOptions}
-            default={1}
+      <FilterContainer>
+        <ShipTypeCheck />
+        <LevelRange />
+        <SallyAreaCheck />
+        <FilterGrid>
+          <YesNoCheck configKey="locked" label="Lock" />
+          <YesNoCheck configKey="expedition" label="Expedition" />
+          <YesNoCheck configKey="inFleet" label="In Fleet" />
+          <YesNoCheck configKey="sparkle" label="Sparkle" />
+          <YesNoCheck configKey="exSlot" label="Extra Slot" />
+          <YesNoCheck configKey="daihatsu" label="Daihatsu" />
+          <YesNoCheck
+            configKey="modernization"
+            label="Modernization Completed"
           />
-          <RadioCheck
-            configKey="expeditionRadio"
-            label="Expedition"
-            options={expeditionOptions}
-            default={0}
-          />
-          <RadioCheck
-            configKey="inFleetRadio"
-            label="In Fleet"
-            options={inFleetOptions}
-            default={0}
-          />
-          <RadioCheck
-            configKey="modernizationRadio"
-            label="Modernization"
-            options={modernizationOptions}
-            default={0}
-          />
-          <RadioCheck
-            configKey="remodelRadio"
-            label="Remodelable"
-            options={remodelOptions}
-            default={0}
-          />
-          <RadioCheck
-            configKey="sparkleRadio"
-            label="Sparkle"
-            options={sparkleOptions}
-            default={0}
-          />
-          <RadioCheck
-            configKey="exSlotRadio"
-            label="Extra Slot"
-            options={exSlotOptions}
-            default={0}
-          />
-          <RadioCheck
-            configKey="daihatsuRadio"
-            label="Daihatsu"
-            options={daihatsuOptions}
-            default={0}
-          />
-        </Content>
-        <Content>
-          <SallyAreaCheck />
-        </Content>
-        <Content>
+          <YesNoCheck configKey="remodel" label="Remodelable" />
+        </FilterGrid>
+        <div>
           <RadioCheck
             configKey="rawValue"
             label="Value Type"
             options={rawValueOptions}
             default={0}
           />
-        </Content>
-      </Container>
+        </div>
+      </FilterContainer>
     }
     hasBackdrop
   >

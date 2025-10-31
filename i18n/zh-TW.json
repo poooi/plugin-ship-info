@@ -32,6 +32,7 @@
   "Equipment": "裝備",
   "Lock": "鎖定",
   "Modernization": "改修",
+  "Modernization Completed": "改修完成",
   "Completed": "改修完成",
   "Incomplete": "改修未滿",
   "Remodelable": "可以改造",
@@ -44,7 +45,7 @@
   "Fast+": "高速+",
   "Fastest": "最速",
   "Value Type": "數值",
-  "Equip. Incl.": "包含裝備",
+  "Display": "顯示數值",
   "Raw Value": "裸裝數值",
   "Paged": "分頁",
   "Yes": "是",
@@ -176,5 +177,9 @@
   "Show fleet name": "顯示艦隊名",
   "European": "歐洲艦隊",
   "Solomon Sea": "所羅門海",
-  "helpContent": "在艦娘上右鍵點擊可以將她從當前計劃中移出"
+  "helpContent": "在艦娘上右鍵點擊可以將她從當前計劃中移出",
+  "Column Configuration": "列設置",
+  "Visible": "顯示",
+  "Hidden": "隱藏",
+  "Pin": "固定"
 }
