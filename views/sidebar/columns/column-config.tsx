@@ -41,6 +41,9 @@ const ColumnTitle = styled.span`
   display: flex;
   align-items: center;
   line-height: 1.5;
+  margin-left: 1em;
+  margin-right: 1em;
+  font-weight: bold;
 `
 
 const CheckboxGroup = styled.div`
@@ -174,7 +177,7 @@ export const ColumnConfig: React.FC = () => {
                       icon="chevron-up"
                       small
                       minimal
-                      disabled={actualIndex === 1} // Can't move above rowIndex
+                      disabled={actualIndex === 0} // Can't move above rowIndex
                       onClick={() => handleMoveUp(actualIndex)}
                     />
                     <Button
