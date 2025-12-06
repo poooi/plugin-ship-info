@@ -8,7 +8,7 @@ import {
   columnVisibilitySelector,
   columnPinningSelector,
 } from '../../selectors'
-import { getColumnTitle } from '../../table/columns-config'
+import { columns, getColumnTitle } from '../../table/columns-config'
 
 const ColumnConfigContainer = styled.div`
   margin-bottom: 20px;
@@ -84,6 +84,30 @@ const ButtonGroup = styled.div`
   align-items: center;
 `
 
+const HeaderRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+`
+
+const HeaderTitle = styled(H5)`
+  margin: 0;
+`
+
+// Derive default column order from columns definition
+const getDefaultColumnOrder = (): string[] => {
+  const columnIds = columns.map((col) => col.id as string).filter(Boolean)
+  return ['rowIndex', ...columnIds]
+}
+
+const defaultColumnVisibility: Record<string, boolean> = {}
+
+const defaultColumnPinning = {
+  left: ['rowIndex'],
+  right: [],
+}
+
 export const ColumnConfig: React.FC = () => {
   const columnOrder = useSelector(columnOrderSelector)
   const columnVisibility = useSelector(columnVisibilitySelector)
@@ -141,9 +165,21 @@ export const ColumnConfig: React.FC = () => {
     [columnOrder],
   )
 
+  const handleReset = useCallback(() => {
+    window.config.set('plugin.ShipInfo.columnOrder', getDefaultColumnOrder())
+    window.config.set(
+      'plugin.ShipInfo.columnVisibility',
+      defaultColumnVisibility,
+    )
+    window.config.set('plugin.ShipInfo.columnPinning', defaultColumnPinning)
+  }, [])
+
   return (
     <ColumnConfigContainer>
-      <H5>{t('Column Configuration')}</H5>
+      <HeaderRow>
+        <HeaderTitle>{t('Column Configuration')}</HeaderTitle>
+        <Button icon="reset" text={t('Reset')} small onClick={handleReset} />
+      </HeaderRow>
       <ColumnList>
         {columnOrder
           .filter((columnId) => columnId !== 'rowIndex') // Don't show row index in config
