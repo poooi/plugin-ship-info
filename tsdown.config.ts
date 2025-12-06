@@ -1,8 +1,9 @@
-import { defineConfig } from 'tsup'
+import { defineConfig } from 'tsdown'
 
 export default defineConfig({
   entry: { index: 'index-src.ts' },
   outDir: '.',
+  outExtensions: () => ({ js: '.js' }),
   format: ['cjs'],
   external: [
     'react',
@@ -33,4 +34,5 @@ export default defineConfig({
   treeshake: true,
   minify: true,
   shims: false,
+  target: false,
 })
