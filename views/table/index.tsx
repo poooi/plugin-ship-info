@@ -1,4 +1,5 @@
 import { get as lodashGet } from 'lodash'
+import { rgba } from 'polished'
 import React, { useMemo, useRef, useState, useCallback, useEffect } from 'react'
 import { connect } from 'react-redux'
 import styled, { css } from 'styled-components'
@@ -28,7 +29,7 @@ import {
   columnPinningSelector,
 } from '../selectors'
 import { IShipRawData } from './cells'
-import { stickySurface } from '../styles'
+import { poiSurface } from '../styles'
 import { columns as dataColumns, TableRow } from './columns-config'
 import { TitleCell } from './title-cell'
 import { isShipCompleted, canEquipDaihatsu } from '../utils'
@@ -204,11 +205,14 @@ const TableHeader = styled.div`
   position: sticky;
   top: 0;
   z-index: 1;
-  ${(props) => stickySurface(props.theme.DARK_GRAY3)}
+  ${(props) => poiSurface(props.theme.DARK_GRAY3)}
 `
 
 const TableBody = styled.div`
   position: relative;
+  /* No fallback colour: before the variable existed the body had no background
+     of its own, and poi's window was opaque anyway. */
+  ${poiSurface('transparent')}
 `
 
 const HeaderCell = styled.div<{
@@ -230,7 +234,7 @@ const HeaderCell = styled.div<{
       ${props.$isPinned === 'right'
         ? `right: ${props.$leftOffset || 0}px;`
         : ''}
-      ${stickySurface(props.theme.DARK_GRAY3)}
+      ${poiSurface(props.theme.DARK_GRAY3)}
       z-index: 2;
 
       &::after {
@@ -250,7 +254,7 @@ const Row = styled.div<{ $isEven?: boolean }>`
   position: absolute;
   width: 100%;
   background-color: ${(props) =>
-    props.$isEven ? 'rgba(0, 123, 255, 0.05)' : 'transparent'};
+    props.$isEven ? rgba(props.theme.BLUE5, 0.05) : 'transparent'};
 `
 
 interface ShipInfoTableAreaBaseProps {

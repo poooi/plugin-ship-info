@@ -37,7 +37,7 @@ import {
   deckPlannerShipMapSelector,
   shipMenuDataSelector,
 } from '../../selectors'
-import { stickySurface } from '../../styles'
+import { poiSurface } from '../../styles'
 import { captureRect } from '../../utils'
 import { Checkbox, CheckboxLabel, CheckboxOption } from '../components/checkbox'
 import { Area } from './area'
@@ -86,7 +86,7 @@ const Palette = styled.div<{ color: string }>`
   top: 0;
   z-index: 20;
   ${props =>
-    stickySurface(
+    poiSurface(
       rgba(props.theme.variant === 'dark' ? '#000' : '#fff', 0.75),
     )}
   padding-left: 1em;

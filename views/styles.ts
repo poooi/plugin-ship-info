@@ -13,12 +13,18 @@ import { css } from 'styled-components'
  */
 
 /**
- * A surface that has to stay legible over whatever scrolls beneath it — a
- * sticky header, a pinned cell. The blur is a no-op while
- * `--poi-background-color` is opaque, and is what keeps the surface readable
- * once vibrant mode makes it translucent.
+ * The plugin's own take on poi's window surface, for anything that needs to
+ * read as a solid plane rather than as a hole: the table body, a sticky header,
+ * a pinned cell.
+ *
+ * Vibrancy then frames the table instead of passing through every row, which
+ * also gives the stat column tints a predictable backdrop to sit on — at a
+ * fixed alpha they otherwise read completely differently once whatever is
+ * behind them changes. The blur is a no-op while `--poi-background-color` is
+ * opaque, and is what keeps the surface readable once vibrant mode makes it
+ * translucent.
  */
-export const stickySurface = (fallback: string) => css`
+export const poiSurface = (fallback: string) => css`
   background-color: var(--poi-background-color, ${fallback});
   backdrop-filter: blur(12px);
 `

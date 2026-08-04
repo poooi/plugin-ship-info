@@ -31,7 +31,9 @@ import { FleetIcon } from '../components/fleet-icon'
 
 const TRANSPARENCY = 0.5
 
-export const Cell = styled.div<{ isEven?: boolean }>`
+// Striping lives on the row wrapper in ./index, which is the element that
+// actually spans the full width. The `isEven` prop here was never passed.
+export const Cell = styled.div`
   width: 100%;
   height: 100%;
   white-space: nowrap;
@@ -42,7 +44,6 @@ export const Cell = styled.div<{ isEven?: boolean }>`
   cursor: default;
   display: flex;
   align-items: center;
-  background-color: ${(props) => props.isEven && rgba(props.theme.BLUE5, 0.05)};
 `
 
 const ShipName = styled.span`
