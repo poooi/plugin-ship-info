@@ -35,8 +35,11 @@ const searchOptions = [
     .value() as Array<{ name: string; value: number }>),
 ]
 
+// `Classes` resolves to poi's Blueprint (see the externals in tsdown.config),
+// so interpolating it keeps the selector on whichever `bpN-` namespace poi
+// actually loaded instead of hardcoding one.
 const Wrapper = styled.div`
-  .bp3-tab-panel {
+  ${`.${Classes.TAB_PANEL}`} {
     margin-top: 0;
   }
 `
@@ -47,15 +50,33 @@ const ShipList = styled.ul`
   height: 30em;
   overflow-y: scroll;
   width: 20em;
-
-  span {
-    cursor: pointer;
-  }
 `
 
+// These are plain list items rather than a Blueprint menu, so they carry their
+// own surface. `--bp-surface-background-color-default-*` is what poi's vibrant
+// theme overrides with translucent variants, so it covers both the normal and
+// the vibrant background; the fallback is Blueprint's classic menu item
+// overlay, which reads correctly on light and dark alike on poi versions
+// predating the variable.
 const ShipItem = styled.li`
   display: flex;
   padding: 0.5em 1em;
+  border-radius: 4px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(
+      --bp-surface-background-color-default-hover,
+      rgba(143, 153, 168, 0.15)
+    );
+  }
+
+  &:active {
+    background-color: var(
+      --bp-surface-background-color-default-active,
+      rgba(143, 153, 168, 0.3)
+    );
+  }
 `
 
 const ShipLv = styled.span`
@@ -171,10 +192,7 @@ const Menu = compose<ComponentType<{}>>(
                         <ShipItem
                           key={ship.id}
                           onClick={this.handleSelect(ship.id)}
-                          className={cls(
-                            Classes.POPOVER_DISMISS,
-                            Classes.MENU_ITEM,
-                          )}
+                          className={cls(Classes.POPOVER_DISMISS)}
                         >
                           <ShipLv>Lv.{padEnd(String(ship.lv), 4)}</ShipLv>
                           <ShipName>

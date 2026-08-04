@@ -1,4 +1,6 @@
-import styled from 'styled-components'
+import styled, { css } from 'styled-components'
+
+import { controlSurface } from '../../styles'
 
 interface ICheckboxProps {
   halfWidth?: boolean
@@ -46,7 +48,7 @@ export const CheckboxOption = styled.div.attrs({
 
   /* Default state */
   color: ${(props) => props.theme.LIGHT_GRAY5};
-  background-color: ${(props) => props.theme.DARK_GRAY3};
+  ${(props) => controlSurface('rest', props.theme.DARK_GRAY3)}
   border: 1px solid ${(props) => props.theme.DARK_GRAY5};
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 
@@ -77,12 +79,12 @@ export const CheckboxOption = styled.div.attrs({
     ${(props) =>
       !props.checked &&
       !props.partial &&
-      `
-      background-color: ${props.theme.DARK_GRAY4};
-      border-color: ${props.theme.GRAY5};
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-      transform: translateY(-1px);
-    `}
+      css`
+        ${controlSurface('hover', props.theme.DARK_GRAY4)}
+        border-color: ${props.theme.GRAY5};
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+        transform: translateY(-1px);
+      `}
 
     ${(props) =>
       props.checked &&

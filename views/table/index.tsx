@@ -1,7 +1,7 @@
 import { get as lodashGet } from 'lodash'
 import React, { useMemo, useRef, useState, useCallback, useEffect } from 'react'
 import { connect } from 'react-redux'
-import styled from 'styled-components'
+import styled, { css } from 'styled-components'
 import {
   useReactTable,
   getCoreRowModel,
@@ -28,6 +28,7 @@ import {
   columnPinningSelector,
 } from '../selectors'
 import { IShipRawData } from './cells'
+import { stickySurface } from '../styles'
 import { columns as dataColumns, TableRow } from './columns-config'
 import { TitleCell } from './title-cell'
 import { isShipCompleted, canEquipDaihatsu } from '../utils'
@@ -203,7 +204,7 @@ const TableHeader = styled.div`
   position: sticky;
   top: 0;
   z-index: 1;
-  background: ${(props) => props.theme.DARK_GRAY3};
+  ${(props) => stickySurface(props.theme.DARK_GRAY3)}
 `
 
 const TableBody = styled.div`
@@ -223,23 +224,25 @@ const HeaderCell = styled.div<{
 
   ${(props) =>
     props.$isPinned &&
-    `
-    position: sticky;
-    ${props.$isPinned === 'left' ? `left: ${props.$leftOffset || 0}px;` : ''}
-    ${props.$isPinned === 'right' ? `right: ${props.$leftOffset || 0}px;` : ''}
-    background: ${props.theme.DARK_GRAY3};
-    z-index: 2;
+    css`
+      position: sticky;
+      ${props.$isPinned === 'left' ? `left: ${props.$leftOffset || 0}px;` : ''}
+      ${props.$isPinned === 'right'
+        ? `right: ${props.$leftOffset || 0}px;`
+        : ''}
+      ${stickySurface(props.theme.DARK_GRAY3)}
+      z-index: 2;
 
-    &::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      width: 1px;
-      background: ${props.theme.GRAY1};
-      ${props.$isPinned === 'left' ? 'right: 0;' : 'left: 0;'}
-    }
-  `}
+      &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 1px;
+        background: ${props.theme.GRAY1};
+        ${props.$isPinned === 'left' ? 'right: 0;' : 'left: 0;'}
+      }
+    `}
 `
 
 const Row = styled.div<{ $isEven?: boolean }>`

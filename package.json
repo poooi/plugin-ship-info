@@ -54,9 +54,7 @@
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
     "@types/react-fontawesome": "^1.6.8",
-    "@types/react-window": "^1.8.0",
     "@types/redux": "^3.6.0",
-    "@types/styled-components": "^5.1.35",
     "@typescript-eslint/eslint-plugin": "^2.23.0",
     "@typescript-eslint/parser": "^2.23.0",
     "babel-eslint": "10.1.0",
@@ -92,6 +90,8 @@
   "publishConfig": {
     "registry": "https://registry.npmjs.org"
   },
-  "packageManager": "yarn@3.2.3",
+  "resolutions": {
+    "@types/react": "^19.2.2"
+  },
   "dependencies": {}
 }

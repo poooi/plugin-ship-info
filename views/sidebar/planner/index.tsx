@@ -37,6 +37,7 @@ import {
   deckPlannerShipMapSelector,
   shipMenuDataSelector,
 } from '../../selectors'
+import { stickySurface } from '../../styles'
 import { captureRect } from '../../utils'
 import { Checkbox, CheckboxLabel, CheckboxOption } from '../components/checkbox'
 import { Area } from './area'
@@ -84,14 +85,20 @@ const Palette = styled.div<{ color: string }>`
   position: sticky;
   top: 0;
   z-index: 20;
-  background-color: ${props =>
-    rgba(props.theme.variant === 'dark' ? '#000' : '#fff', 0.75)};
+  ${props =>
+    stickySurface(
+      rgba(props.theme.variant === 'dark' ? '#000' : '#fff', 0.75),
+    )}
   padding-left: 1em;
   border-left: 8px solid ${props => props.color || '#000'};
 
+  /* Hover deliberately goes solid for readability, so it wants poi's
+     always-opaque token rather than the vibrancy-aware one. */
   :hover {
-    background-color: ${props =>
-      props.theme.variant === 'dark' ? '#000' : '#fff'};
+    background-color: var(
+      --poi-background-color-opaque,
+      ${props => (props.theme.variant === 'dark' ? '#000' : '#fff')}
+    );
   }
 `
 
@@ -99,7 +106,6 @@ interface IPlannerContentProps extends DispatchProp {
   color: string[]
   mapname: string[]
   current: number[][]
-  vibrant: number
   displayFleetName: boolean
   activeTab: string
   dispatch: ThunkDispatch<any, void, Action<any>>
@@ -126,7 +132,6 @@ const PlannerContent = connect((state: { config: any }) => {
     current: deckPlannerCurrentSelector(state),
     displayFleetName,
     mapname,
-    vibrant: get(state, 'config.poi.vibrant'),
   }
 })(
   ({

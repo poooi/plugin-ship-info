@@ -1,6 +1,8 @@
 import React from 'react'
 import styled from 'styled-components'
 
+import { controlSurface } from '../../styles'
+
 interface CardControlBaseProps {
   checked?: boolean
   onChange?: (event: React.FormEvent<HTMLInputElement>) => void
@@ -25,7 +27,7 @@ const CardBase = styled.label<{ $checked?: boolean; $compact?: boolean }>`
   gap: 8px;
 
   /* Default unchecked state */
-  background-color: ${(props) => props.theme.DARK_GRAY3};
+  ${(props) => controlSurface('rest', props.theme.DARK_GRAY3)}
   border-color: ${(props) => props.theme.GRAY5};
   color: ${(props) => props.theme.LIGHT_GRAY5};
   box-shadow: none;
@@ -41,19 +43,17 @@ const CardBase = styled.label<{ $checked?: boolean; $compact?: boolean }>`
 
   /* Hover effects */
   &:hover {
-    background-color: ${(props) =>
-      props.$checked ? props.theme.BLUE2 : props.theme.DARK_GRAY4};
-
     ${(props) =>
-      props.$checked &&
-      `
-      border-color: ${props.theme.BLUE2};
-    `}
+      props.$checked
+        ? `background-color: ${props.theme.BLUE2}; border-color: ${props.theme.BLUE2};`
+        : controlSurface('hover', props.theme.DARK_GRAY4)}
   }
 
   &:active {
-    background-color: ${(props) =>
-      props.$checked ? props.theme.BLUE4 : props.theme.DARK_GRAY5};
+    ${(props) =>
+      props.$checked
+        ? `background-color: ${props.theme.BLUE4};`
+        : controlSurface('active', props.theme.DARK_GRAY5)}
     box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
   }
 

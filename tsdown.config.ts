@@ -6,6 +6,11 @@ export default defineConfig({
   outExtensions: () => ({ js: '.js' }),
   format: ['cjs'],
   external: [
+    // Bundling Blueprint freezes its `bpN-` class namespace at build time,
+    // which then disagrees with the stylesheet poi loads. poi prepends its own
+    // node_modules for anything required from outside it (lib/module-path),
+    // so leaving this external makes the plugin follow poi's Blueprint major.
+    '@blueprintjs/core',
     'react',
     'react-dom',
     'react-redux',
