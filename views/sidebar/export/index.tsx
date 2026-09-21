@@ -10,7 +10,7 @@ import { useAtomValue } from 'jotai'
 
 import { allShipRowsMapSelector } from '../../selectors'
 import { filteredShipIdsAtom } from '../../table'
-import { IShipRawData } from '../../table/cells'
+import { IShipRawData } from '../../types'
 import { Checkbox, CheckboxLabel } from '../components/checkbox'
 import { Container } from '../components/layout'
 import { buildCsv } from './build-csv'

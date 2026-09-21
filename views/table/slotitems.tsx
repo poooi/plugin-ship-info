@@ -10,7 +10,7 @@ import { Tooltip } from 'views/components/etc/overlay'
 
 import { APISlotItem } from 'kcsapi/api_get_member/require_info/response'
 import { APIMstSlotitem } from 'kcsapi/api_start2/getData/response'
-import { equipDataSelectorFactory } from 'views/utils/selectors'
+import { equipDataSelectorFactory, IState } from 'views/utils/selectors'
 
 const { ROOT } = window
 
@@ -82,7 +82,7 @@ const Slotitem = ({ item, isEx = false }: { item: Item; isEx?: boolean }) => {
 }
 
 export const Slotitems = connect(
-  (state, { slot, exslot }: { slot: number[]; exslot: number }) => {
+  (state: IState, { slot, exslot }: { slot: number[]; exslot: number }) => {
     const items = map(
       filter(slot, itemId => itemId > 0),
       itemId => {

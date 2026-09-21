@@ -3,12 +3,10 @@ interface IConfig {
   set: (path: string, value?: any) => void
 }
 
-declare namespace NodeJS {
-  interface Global {
-    config: IConfig
-  }
-}
-
+// `global` is typed as `typeof globalThis` by @types/node, so the config
+// bridge has to live on the global object itself rather than on the retired
+// `NodeJS.Global` interface.
+declare var config: IConfig
 
 interface Window {
   ROOT: string

@@ -18,6 +18,7 @@ import { atom, useAtom, useAtomValue, useSetAtom } from 'jotai'
 
 import { WindowEnv } from 'views/components/etc/window-env'
 
+import { IShipRawData } from '../types'
 import {
   allShipRowsSelector,
   shipInfoConfigSelector,
@@ -28,7 +29,6 @@ import {
   columnVisibilitySelector,
   columnPinningSelector,
 } from '../selectors'
-import { IShipRawData } from './cells'
 import { poiSurface } from '../styles'
 import { columns as dataColumns, TableRow } from './columns-config'
 import { TitleCell } from './title-cell'

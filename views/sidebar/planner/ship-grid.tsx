@@ -6,6 +6,7 @@ import styled from 'styled-components'
 
 import { Action } from 'redux'
 import { ThunkAction, ThunkDispatch } from 'redux-thunk'
+import { IState } from 'views/utils/selectors'
 import { shipSuperTypeMap } from '../../constants'
 import { onAddShip, onDisplaceShip, onRemoveShip } from '../../redux'
 import {
@@ -70,7 +71,7 @@ interface IProps extends DispatchProp {
 }
 
 export const ShipGrid = connect(
-  state => ({
+  (state: IState) => ({
     ships: shipMenuDataSelector(state),
   }),
   null,

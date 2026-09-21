@@ -54,5 +54,13 @@ declare module 'styled-components' {
     // Blueprint Colors - Other
     TEXT_PRIMARY: string
     TEXT_SECONDARY: string
+
+    // Blueprint Colors - Accents
+    COBALT3: string
+    INDIGO3: string
+    LIME3: string
+
+    // poi theme variant
+    variant: 'light' | 'dark'
   }
 }

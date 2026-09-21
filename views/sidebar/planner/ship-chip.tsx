@@ -7,6 +7,7 @@ import { connect, DispatchProp } from 'react-redux'
 import { compose } from 'redux'
 import styled from 'styled-components'
 import { Popover } from 'views/components/etc/overlay'
+import { IState } from 'views/utils/selectors'
 
 import { onDisplaceShip, onRemoveShip } from '../../redux'
 import {
@@ -50,7 +51,7 @@ export const ShipChip = compose<
   >
 >(
   withTranslation(['resources', 'poi-plugin-ship-info']),
-  connect((state, props: IProps) => ({
+  connect((state: IState, props: IProps) => ({
     ...shipItemSelectorFactory(props.shipId)(state),
     color: get(state, 'fcd.shiptag.color', []),
     fleetId: shipFleetIdSelectorFactory(props.shipId)(state),

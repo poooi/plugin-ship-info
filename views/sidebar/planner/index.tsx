@@ -24,6 +24,7 @@ import styled from 'styled-components'
 import { Dialog } from 'views/components/etc/overlay'
 import { WindowEnv } from 'views/components/etc/window-env'
 import { store } from 'views/create-store'
+import { IState } from 'views/utils/selectors'
 
 import {
   dataObserver,
@@ -117,7 +118,7 @@ const ActionPanel = styled.div`
   align-items: center;
 `
 
-const PlannerContent = connect((state: { config: any }) => {
+const PlannerContent = connect((state: IState) => {
   const displayFleetName = get(
     state.config,
     'plugin.ShipInfo.displayFleetName',

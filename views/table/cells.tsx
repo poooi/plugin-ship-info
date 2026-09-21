@@ -13,6 +13,7 @@ import { APIShip } from 'kcsapi/api_port/port/response'
 import { APIMstShip, APIMstSlotitem } from 'kcsapi/api_start2/getData/response'
 import { APISlotItem } from 'kcsapi/api_get_member/require_info/response'
 import { rgba } from 'polished'
+import { IShipRawData } from 'views/types'
 import { sokuInterpretation } from '../constants'
 import {
   fileUrl,

@@ -5,6 +5,7 @@ import React, { Component, ComponentType } from 'react'
 import FA from 'react-fontawesome'
 import { connect, DispatchProp } from 'react-redux'
 import styled from 'styled-components'
+import { IState } from 'views/utils/selectors'
 
 import { onAddShip } from '../../redux'
 import {
@@ -37,15 +38,12 @@ interface IProps extends DispatchProp {
   others: IArea[]
 }
 
-export const Area = connect<
-  any,
-  any,
-  any,
-  Pick<IProps, 'index' | 'area' | 'others'>
->((state, props: IProps) => ({
-  shipIds: deckPlannerAreaSelectorFactory(props.index)(state),
-  ships: shipMenuDataSelector(state),
-}))(
+export const Area = connect<any, any, any, IState>(
+  (state: IState, props: IProps) => ({
+    shipIds: deckPlannerAreaSelectorFactory(props.index)(state),
+    ships: shipMenuDataSelector(state),
+  }),
+)(
   class AreaBase extends Component<IProps> {
     public handleAddShip = (shipId: number) => {
       this.props.dispatch(

@@ -34,7 +34,6 @@ export default defineConfig({
   ],
   dts: false,
   clean: false,
-  splitting: false,
   sourcemap: true,
   treeshake: true,
   minify: true,

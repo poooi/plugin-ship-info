@@ -37,7 +37,7 @@ import {
 } from 'views/utils/selectors'
 
 import { APISlotItem } from 'kcsapi/api_get_member/require_info/response'
-import { APIMstShip, APIMstSlotitem } from 'kcsapi/api_start2/getData/response'
+import { APIMstShip } from 'kcsapi/api_start2/getData/response'
 import { PLUGIN_KEY } from './redux'
 import {
   intToBoolArray,
@@ -46,6 +46,7 @@ import {
   isShipCompleted,
   canEquipDaihatsu,
 } from './utils'
+import { IShipRawData } from './types'
 
 // Zod schemas for filter validation
 const yesNoFilterSchema = z.array(z.boolean()).length(2)
@@ -236,7 +237,7 @@ export const shipTableDataSelectorFactory = memoize((shipId) =>
     (
       [ship, $ship] = [] as any,
       equips: IDictionary<APISlotItem>,
-      { $shipTypes }: { $shipTypes: IDictionary<APIMstSlotitem> },
+      { $shipTypes = {} }: IConstState,
       fleetIdMap,
       rawValue,
       repairs = [],
@@ -348,18 +349,6 @@ const handleDaihatsuFilter = (daihatsu: boolean, daihatsuFilter: boolean[]) => {
   if (yesChecked) return daihatsu
   if (noChecked) return !daihatsu
   return false
-}
-
-// Type for raw ship data returned from shipTableDataSelectorFactory
-interface IShipRawData {
-  ship: APIShip
-  $ship: APIMstShip
-  equips: IDictionary<APISlotItem>
-  $shipTypes: IDictionary<APIMstSlotitem>
-  fleetIdMap: IDictionary<number>
-  rawValue: boolean
-  repairs: number[]
-  db: any
 }
 
 const getSortFunction = (sortName: string) => {
@@ -716,13 +705,9 @@ export const deckPlannerShipMapSelector = createSelector(
     ),
 )
 
-const ourShipsSelector = createSelector<
-  any,
-  IConstState,
-  IDictionary<APIMstShip>
->(
+const ourShipsSelector = createSelector(
   [constSelector],
-  ({ $ships = {} } = {} as any) =>
+  ({ $ships = {} }: IConstState = {}) =>
     _($ships)
       .pickBy(({ api_sortno }) => Boolean(api_sortno))
       .value() as IDictionary<APIMstShip>,
