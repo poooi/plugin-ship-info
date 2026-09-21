@@ -1,3 +1,7 @@
+import { APISlotItem } from 'kcsapi/api_get_member/require_info/response'
+import { APIShip } from 'kcsapi/api_port/port/response'
+import { APIMstShip, APIMstSlotitem } from 'kcsapi/api_start2/getData/response'
+
 export interface IShip {
   id: number
   typeId: number
@@ -52,4 +56,15 @@ export interface IShip {
   _soukou: number
   _lucky: number
   taik: number[]
+}
+
+export interface IShipRawData {
+  ship: APIShip
+  $ship: APIMstShip
+  equips: Record<number, APISlotItem>
+  $shipTypes: Record<number, APIMstSlotitem>
+  fleetIdMap: Record<number, number>
+  rawValue: boolean
+  repairs: number[]
+  db: any
 }

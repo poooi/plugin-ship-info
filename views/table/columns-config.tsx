@@ -1,7 +1,7 @@
 import React from 'react'
 import { createColumnHelper, ColumnDef } from '@tanstack/react-table'
 import { connect } from 'react-redux'
-import type { IShipRawData } from './cells'
+import type { IShipRawData } from '../types'
 import * as CellComponents from './cells'
 import { enableAvatarConfigSelector } from './cells'
 

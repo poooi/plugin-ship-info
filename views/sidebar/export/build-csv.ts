@@ -1,6 +1,6 @@
 import { get, map } from 'lodash'
 import i18next from 'views/env-parts/i18next'
-import { IShipRawData } from '../../table/cells'
+import { IShipRawData } from '../../types'
 import {
   computeKaryokuNow,
   computeRaisouNow,
