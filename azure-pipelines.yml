@@ -1,13 +1,9 @@
 pool:
   vmImage: 'ubuntu-latest'
 
-trigger:
-  branches:
-    include:
-    - '*'
-  tags:
-    include:
-    - '*'
+# CI moved to GitHub Actions; see .github/workflows/ci.yml.
+trigger: none
+pr: none
 
 steps:
 - task: NodeTool@0
