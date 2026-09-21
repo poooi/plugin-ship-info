@@ -45,3 +45,4 @@ jobs:
             !.git/**
             !node_modules/**
           if-no-files-found: error
+          include-hidden-files: true
