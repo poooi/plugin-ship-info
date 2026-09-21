@@ -37,7 +37,7 @@ import {
 } from 'views/utils/selectors'
 
 import { APISlotItem } from 'kcsapi/api_get_member/require_info/response'
-import { APIMstShip, APIMstSlotitem } from 'kcsapi/api_start2/getData/response'
+import { APIMstShip } from 'kcsapi/api_start2/getData/response'
 import { PLUGIN_KEY } from './redux'
 import {
   intToBoolArray,
@@ -237,7 +237,7 @@ export const shipTableDataSelectorFactory = memoize((shipId) =>
     (
       [ship, $ship] = [] as any,
       equips: IDictionary<APISlotItem>,
-      { $shipTypes }: { $shipTypes: IDictionary<APIMstSlotitem> },
+      { $shipTypes = {} }: IConstState,
       fleetIdMap,
       rawValue,
       repairs = [],
@@ -705,13 +705,9 @@ export const deckPlannerShipMapSelector = createSelector(
     ),
 )
 
-const ourShipsSelector = createSelector<
-  any,
-  IConstState,
-  IDictionary<APIMstShip>
->(
+const ourShipsSelector = createSelector(
   [constSelector],
-  ({ $ships = {} } = {} as any) =>
+  ({ $ships = {} }: IConstState = {}) =>
     _($ships)
       .pickBy(({ api_sortno }) => Boolean(api_sortno))
       .value() as IDictionary<APIMstShip>,

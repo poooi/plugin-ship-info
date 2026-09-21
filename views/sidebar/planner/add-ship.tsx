@@ -17,6 +17,7 @@ import { connect } from 'react-redux'
 import { compose } from 'redux'
 import styled from 'styled-components'
 import { Popover } from 'views/components/etc/overlay'
+import { IState } from 'views/utils/selectors'
 
 import { IShipSuperType, shipSuperTypeMap } from '../../constants'
 import {
@@ -95,7 +96,7 @@ interface IProps extends WithTranslation {
 
 const Menu = compose<ComponentType<{}>>(
   withTranslation('poi-plugin-ship-info'),
-  connect((state) => ({
+  connect((state: IState) => ({
     allSelectedId: deckPlannerAllShipIdsSelector(state),
     ships: shipMenuDataSelector(state),
   })),

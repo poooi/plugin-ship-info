@@ -1,5 +1,5 @@
-import React, { ReactElement, StatelessComponent } from 'react'
-import styled, { createGlobalStyle, ThemeProps } from 'styled-components'
+import React, { ReactElement, FunctionComponent } from 'react'
+import styled, { createGlobalStyle } from 'styled-components'
 
 import { Sidebar } from './sidebar'
 import { TableView } from './table'
@@ -20,15 +20,14 @@ const GlobalStyle = createGlobalStyle`
     }
 
     ::-webkit-scrollbar-thumb {
-      background: ${(props: ThemeProps<{ BLUE1: string }>) =>
-        props.theme.BLUE1};
+      background: ${(props) => props.theme.BLUE1};
       height: 16px;
       width: 16px;
     }
   }
 `
 
-export const reactClass: StatelessComponent<null> = (): ReactElement => (
+export const reactClass: FunctionComponent<null> = (): ReactElement => (
   <Provider>
     <ShipInfo id="poi-plugin-ship-info">
       <GlobalStyle />

@@ -38,7 +38,7 @@ try {
   const initState = JSON.parse(localStorage.getItem(PLUGIN_KEY)!) || {}
   bookmarkInitState = initState
 } catch (e) {
-  console.error(e.stack)
+  console.error(e instanceof Error ? e.stack : e)
 }
 
 const bookmarkReducer = (state = bookmarkInitState, action: AnyAction) => {
@@ -296,7 +296,7 @@ export const initStore = async (
       type: '@@poi-plugin-ship-info@init',
     })
   } catch (e) {
-    console.error(e.stack)
+    console.error(e instanceof Error ? e.stack : e)
   } finally {
     dispatch({
       type: '@@poi-plugin-ship-info@ready',

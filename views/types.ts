@@ -1,6 +1,6 @@
 import { APISlotItem } from 'kcsapi/api_get_member/require_info/response'
 import { APIShip } from 'kcsapi/api_port/port/response'
-import { APIMstShip, APIMstSlotitem } from 'kcsapi/api_start2/getData/response'
+import { APIMstShip, APIMstStype } from 'kcsapi/api_start2/getData/response'
 
 export interface IShip {
   id: number
@@ -62,7 +62,7 @@ export interface IShipRawData {
   ship: APIShip
   $ship: APIMstShip
   equips: Record<number, APISlotItem>
-  $shipTypes: Record<number, APIMstSlotitem>
+  $shipTypes: Record<number, APIMstStype>
   fleetIdMap: Record<number, number>
   rawValue: boolean
   repairs: number[]

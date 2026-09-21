@@ -4,6 +4,7 @@ import FontAwesome from 'react-fontawesome'
 import { useTranslation } from 'react-i18next'
 import { connect, DispatchProp } from 'react-redux'
 import { Tooltip } from 'views/components/etc/overlay'
+import { IState } from 'views/utils/selectors'
 
 import { sallyAreaSelectorFactory } from '../selectors'
 
@@ -15,7 +16,10 @@ interface ISallyAreaProps extends DispatchProp {
 }
 
 export const SallyArea = connect(
-  (state, props: Omit<ISallyAreaProps, 'color' | 'mapname' | 'dispatch'>) => {
+  (
+    state: IState,
+    props: Omit<ISallyAreaProps, 'color' | 'mapname' | 'dispatch'>,
+  ) => {
     const { area } = props
     const { mapname, color } = sallyAreaSelectorFactory(area)(state)
     return {

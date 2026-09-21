@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { connect, DispatchProp } from 'react-redux'
 import styled from 'styled-components'
 import { getShipImgPath } from 'views/utils/ship-img'
+import { IState } from 'views/utils/selectors'
 
 import { deckPlannerShipMapSelector, IShipInfoMenuData } from '../../selectors'
 
@@ -106,7 +107,7 @@ interface IProps extends DispatchProp {
   ship: IShipInfoMenuData
 }
 
-export const ShipItem = connect(state => ({
+export const ShipItem = connect((state: IState) => ({
   color: get(state, 'fcd.shiptag.color', []),
   ip: get(state, 'info.server.ip', '203.104.209.71'),
   mapname: get(state, 'fcd.shiptag.mapname', []),
