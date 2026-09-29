@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - '**'
+    tags:
+      - '**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: Typecheck and build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+
+      - name: Yarn install
+        run: node .yarn/releases/yarn-1.23.0-20220130.1630.cjs install --frozen-lockfile
+
+      - name: Typecheck
+        run: node .yarn/releases/yarn-1.23.0-20220130.1630.cjs tsc --noEmit
+
+      - name: Transpile to JavaScript
+        run: node .yarn/releases/yarn-1.23.0-20220130.1630.cjs poi-util-transpile --source-map --replace
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: drop
+          path: |
+            **/*
+            !.git/**
+            !node_modules/**
+          if-no-files-found: error
+          include-hidden-files: true
