@@ -1,6 +1,7 @@
 {
   "name": "poi-plugin-ship-info",
   "version": "8.1.1",
+  "packageManager": "pnpm@11.20.0",
   "description": "Show detailed information of all owned ship girls",
   "main": "index.es",
   "scripts": {
@@ -58,6 +59,8 @@
     "@typescript-eslint/eslint-plugin": "^2.23.0",
     "@typescript-eslint/parser": "^2.23.0",
     "babel-eslint": "10.1.0",
+    "bluebird": "3.5.5",
+    "classnames": "2.5.1",
     "eslint": "^6.8.0",
     "eslint-config-airbnb": "^18.0.1",
     "eslint-config-poi-plugin": "^3.0.1",
@@ -67,17 +70,20 @@
     "eslint-plugin-prettier": "^3.1.2",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
+    "fs-extra": "8.0.1",
     "fuse.js": "^6.5.3",
     "husky": "^4.2.3",
     "i18next": "^19.3.2",
     "jotai": "^2.15.0",
     "kcsapi": "^1.191214.0",
     "lint-staged": "^10.0.8",
+    "lodash": "4.17.21",
     "poi-util-transpile": "^10.3.4",
     "polished": "^3.4.4",
     "prettier": "^2.0.2",
     "react-i18next": "^11.3.3",
     "react-redux": "^9.2.0",
+    "redux": "4.0.1",
     "redux-thunk": "^2.3.0",
     "reselect": "^4.0.0",
     "styled-components": "^6.1.19",
@@ -89,9 +95,5 @@
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org"
-  },
-  "resolutions": {
-    "@types/react": "^19.2.2"
-  },
-  "dependencies": {}
+  }
 }

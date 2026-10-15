@@ -1,0 +1,6 @@
+overrides:
+  '@types/react': ^19.2.2
+
+allowBuilds:
+  core-js-pure: false
+  husky: true
