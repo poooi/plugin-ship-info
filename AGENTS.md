@@ -23,10 +23,11 @@ Use pnpm directly, with the version pinned in `package.json`:
 ```sh
 pnpm install --frozen-lockfile
 pnpm run check
+pnpm test
 pnpm run build
 git diff --check
 ```
 
 - Run type checks, builds, and relevant behavior checks for runtime changes. For documentation changes, check content, links, and whitespace.
-- `pnpm run check` runs `tsc --noEmit`. `pnpm run lint` and `pnpm run fmt` are the optional Vite+ lint/format tools; formatting is not a required gate.
+- `pnpm run check` runs `tsc --noEmit`. `pnpm test` runs the Vitest suite in `tests/` (`vp test run`). `pnpm run lint` and `pnpm run fmt` are the optional Vite+ lint/format tools; formatting is not a required gate.
 - Preserve the build's host dependency conventions. Verify packaged entry points, translations, and assets when changing packaging.

@@ -99,7 +99,10 @@ importers:
         version: 5.9.3
       vite-plus:
         specifier: ^1.2.0
-        version: 1.2.0(@vitest/ui@5.0.4(vitest@5.0.4))(typescript@5.9.3)(unrun@0.2.17)
+        version: 1.2.0(@vitest/ui@5.0.4)(typescript@5.9.3)(unrun@0.2.17)
+      vitest:
+        specifier: 5.0.4
+        version: 5.0.4(@vitest/browser-preview@5.0.4)(@vitest/ui@5.0.4(vitest@5.0.4))(@voidzero-dev/vite-plus-core@1.2.0(typescript@5.9.3)(unrun@0.2.17))
       zod:
         specifier: ^4.1.12
         version: 4.1.12
@@ -2539,7 +2542,7 @@ snapshots:
 
   obug@3.0.0: {}
 
-  oxfmt@0.73.0(vite-plus@1.2.0(@vitest/ui@5.0.4(vitest@5.0.4))(typescript@5.9.3)(unrun@0.2.17)):
+  oxfmt@0.73.0(vite-plus@1.2.0(@vitest/ui@5.0.4)(typescript@5.9.3)(unrun@0.2.17)):
     dependencies:
       tinypool: 2.2.0
     optionalDependencies:
@@ -2562,7 +2565,7 @@ snapshots:
       '@oxfmt/binding-win32-arm64-msvc': 0.73.0
       '@oxfmt/binding-win32-ia32-msvc': 0.73.0
       '@oxfmt/binding-win32-x64-msvc': 0.73.0
-      vite-plus: 1.2.0(@vitest/ui@5.0.4(vitest@5.0.4))(typescript@5.9.3)(unrun@0.2.17)
+      vite-plus: 1.2.0(@vitest/ui@5.0.4)(typescript@5.9.3)(unrun@0.2.17)
 
   oxlint-tsgolint@7.0.2004:
     optionalDependencies:
@@ -2573,7 +2576,7 @@ snapshots:
       '@oxlint-tsgolint/win32-arm64': 7.0.2004
       '@oxlint-tsgolint/win32-x64': 7.0.2004
 
-  oxlint@1.88.0(oxlint-tsgolint@7.0.2004)(vite-plus@1.2.0(@vitest/ui@5.0.4(vitest@5.0.4))(typescript@5.9.3)(unrun@0.2.17)):
+  oxlint@1.88.0(oxlint-tsgolint@7.0.2004)(vite-plus@1.2.0(@vitest/ui@5.0.4)(typescript@5.9.3)(unrun@0.2.17)):
     optionalDependencies:
       '@oxlint/binding-android-arm-eabi': 1.88.0
       '@oxlint/binding-android-arm64': 1.88.0
@@ -2595,7 +2598,7 @@ snapshots:
       '@oxlint/binding-win32-ia32-msvc': 1.88.0
       '@oxlint/binding-win32-x64-msvc': 1.88.0
       oxlint-tsgolint: 7.0.2004
-      vite-plus: 1.2.0(@vitest/ui@5.0.4(vitest@5.0.4))(typescript@5.9.3)(unrun@0.2.17)
+      vite-plus: 1.2.0(@vitest/ui@5.0.4)(typescript@5.9.3)(unrun@0.2.17)
 
   param-case@3.0.4:
     dependencies:
@@ -2844,7 +2847,7 @@ snapshots:
     dependencies:
       react: 18.3.1
 
-  vite-plus@1.2.0(@vitest/ui@5.0.4(vitest@5.0.4))(typescript@5.9.3)(unrun@0.2.17):
+  vite-plus@1.2.0(@vitest/ui@5.0.4)(typescript@5.9.3)(unrun@0.2.17):
     dependencies:
       '@oxc-project/types': 0.154.0
       '@oxlint/plugins': 1.88.0
@@ -2855,8 +2858,8 @@ snapshots:
       '@vitest/snapshot': 5.0.4
       '@vitest/spy': 5.0.4
       '@vitest/utils': 5.0.4
-      oxfmt: 0.73.0(vite-plus@1.2.0(@vitest/ui@5.0.4(vitest@5.0.4))(typescript@5.9.3)(unrun@0.2.17))
-      oxlint: 1.88.0(oxlint-tsgolint@7.0.2004)(vite-plus@1.2.0(@vitest/ui@5.0.4(vitest@5.0.4))(typescript@5.9.3)(unrun@0.2.17))
+      oxfmt: 0.73.0(vite-plus@1.2.0(@vitest/ui@5.0.4)(typescript@5.9.3)(unrun@0.2.17))
+      oxlint: 1.88.0(oxlint-tsgolint@7.0.2004)(vite-plus@1.2.0(@vitest/ui@5.0.4)(typescript@5.9.3)(unrun@0.2.17))
       oxlint-tsgolint: 7.0.2004
       vite: '@voidzero-dev/vite-plus-core@1.2.0(typescript@5.9.3)(unrun@0.2.17)'
       vitest: 5.0.4(@vitest/browser-preview@5.0.4)(@vitest/ui@5.0.4(vitest@5.0.4))(@voidzero-dev/vite-plus-core@1.2.0(typescript@5.9.3)(unrun@0.2.17))

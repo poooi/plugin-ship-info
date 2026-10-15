@@ -52,4 +52,7 @@ export default defineConfig({
   lint: {
     ignorePatterns: ['lib/**', 'shims/**', 'index.js', 'index.js.map'],
   },
+  test: {
+    setupFiles: ['./tests/setup.ts'],
+  },
 })

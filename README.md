@@ -13,10 +13,18 @@ Use the Node.js version in `.node-version` and the pnpm version pinned in `packa
 npm install --global pnpm@11.20.0
 pnpm install --frozen-lockfile
 pnpm run check
+pnpm test
 pnpm run build
 ```
 
 Optional: `pnpm run lint` and `pnpm run fmt` use the Vite+ lint/format tools.
+
+`pnpm test` runs the Vitest suite (`vp test run`) in `tests/`. The tests exercise
+the real reducers, selectors, CSV builder and file writer against small fixtures,
+mocking poi host modules and isolating persistence boundaries where needed.
+Separate filesystem tests exercise real reads and queued writes in temporary
+directories. Vitest is pinned to the version
+bundled by Vite+ (`5.0.4`) so `tsc --noEmit` can resolve its types.
 
 `vite.config.ts` is excluded from `tsconfig.json` because the Vite+ config types require a newer TypeScript than the pinned 5.9.3.
 
