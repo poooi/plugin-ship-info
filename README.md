@@ -26,6 +26,12 @@ Separate filesystem tests exercise real reads and queued writes in temporary
 directories. Vitest is pinned to the version
 bundled by Vite+ (`5.0.4`) so `tsc --noEmit` can resolve its types.
 
+The jsdom integration tests render the real table and planner menu with React,
+Redux, Jotai, and the UI libraries. They cover sorting, filters, column settings,
+clipboard CSV output, and planner search/selection. Host services and viewport
+geometry are supplied by test fixtures; these tests do not replace visual checks
+inside poi.
+
 `vite.config.ts` is excluded from `tsconfig.json` because the Vite+ config types require a newer TypeScript than the pinned 5.9.3.
 
 [![npm package][npm-badge]][npm]

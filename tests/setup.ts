@@ -4,12 +4,14 @@ import path from 'path'
 import { afterAll } from 'vitest'
 
 // Tests never touch the user's real plugin data: every test file gets its own
-// throwaway APPDATA directory under the OS temp dir.
+// throwaway APPDATA directory under the OS temp dir. Node-environment tests get
+// a minimal `window` stub; jsdom tests keep the real window and only receive
+// the poi fields on top of it.
 const appdataPath = fs.mkdtempSync(path.join(os.tmpdir(), 'ship-info-test-'))
 
 const emptyStore = {}
 
-;(globalThis as any).window = {
+const poiWindow = {
   APPDATA_PATH: appdataPath,
   ROOT: appdataPath,
   config: { get: () => undefined, set: () => undefined },
@@ -18,11 +20,17 @@ const emptyStore = {}
   language: 'en-US',
 }
 
-;(globalThis as any).localStorage = {
-  clear: () => undefined,
-  getItem: () => null,
-  removeItem: () => undefined,
-  setItem: () => undefined,
+if (typeof window !== 'undefined' && typeof window.document !== 'undefined') {
+  Object.assign(window, poiWindow)
+} else {
+  ;(globalThis as any).window = poiWindow
+
+  ;(globalThis as any).localStorage = {
+    clear: () => undefined,
+    getItem: () => null,
+    removeItem: () => undefined,
+    setItem: () => undefined,
+  }
 }
 
 afterAll(() => {
