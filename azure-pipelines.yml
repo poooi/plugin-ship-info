@@ -12,19 +12,21 @@ trigger:
 steps:
 - task: NodeTool@0
   inputs:
-    versionSpec: '>=12.3.1'
+    versionSource: fromFile
+    versionFilePath: .node-version
   displayName: 'Install Node.js'
 
 - script: |
-    yarn --frozen-lockfile
-  displayName: 'Yarn install'
+    npm install --global pnpm@11.20.0
+    pnpm install --frozen-lockfile
+  displayName: 'Install dependencies'
 
 - script: |
-    yarn tsc --noEmit
+    pnpm exec tsc --noEmit
   displayName: 'Typecheck'
 
 - script: |
-    yarn poi-util-transpile --source-map --replace
+    pnpm exec poi-util-transpile --source-map --replace
   displayName: 'Transpile to JavaScript'
 
 - task: CopyFiles@2

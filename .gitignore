@@ -2,8 +2,7 @@
 logs
 *.log
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+pnpm-debug.log*
 
 # Runtime data
 pids
@@ -34,6 +33,7 @@ build/Release
 
 # Dependency directories
 node_modules/
+.pnpm-store/
 jspm_packages/
 
 # TypeScript v1 declaration files
@@ -50,9 +50,6 @@ typings/
 
 # Output of 'npm pack'
 *.tgz
-
-# Yarn Integrity file
-.yarn-integrity
 
 # dotenv environment variables file
 .env
@@ -72,7 +69,7 @@ typings/
 # Serverless directories
 .serverless
 
-# we're using yarn
+# Use pnpm's lockfile
 package-lock.json
 
 index.js
