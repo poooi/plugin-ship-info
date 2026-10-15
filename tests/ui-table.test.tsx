@@ -22,10 +22,61 @@ vi.mock('../lib/html2canvas', () => ({ default: () => undefined }))
 
 import { Export } from '../views/sidebar/export'
 import { filteredShipIdsAtom, TableView } from '../views/table'
+import { mkMstShip, mkShip } from './fixtures'
 import { createHarness } from './ui/harness'
-import { installViewport, restoreViewport, tableState } from './ui/mocks'
+import {
+  installViewport,
+  restoreViewport,
+  shipTypes,
+  tableState,
+  VIEWPORT_HEIGHT,
+} from './ui/mocks'
 
 const SHIP_NAMES = ['Alpha', 'Beta', 'Gamma', 'Delta']
+
+// A window larger than the 350px test viewport (10 rows) so the virtualizer
+// must render only a slice and the atom, not the DOM, must hold the full list.
+const VIRTUAL_SHIP_COUNT = 40
+const VIRTUAL_ROW_HEIGHT = 35
+const VIRTUAL_TOTAL_HEIGHT = VIRTUAL_SHIP_COUNT * VIRTUAL_ROW_HEIGHT
+
+const virtualShips = Object.fromEntries(
+  Array.from({ length: VIRTUAL_SHIP_COUNT }, (_, i) => {
+    const id = i + 1
+    return [id, mkShip({ api_id: id, api_lv: id })]
+  }),
+)
+
+const virtualMstShips = Object.fromEntries(
+  Array.from({ length: VIRTUAL_SHIP_COUNT }, (_, i) => {
+    const id = i + 1
+    return [
+      id,
+      mkMstShip({
+        api_id: id,
+        api_name: `Ship ${id}`,
+        api_sortno: id,
+        api_taik: [30, 30],
+      }),
+    ]
+  }),
+)
+
+const virtualTableState = () =>
+  tableState({
+    const: {
+      $equips: {},
+      $shipgraph: [],
+      $ships: virtualMstShips,
+      $shipTypes: shipTypes,
+    },
+    info: { equips: {}, server: { ip: '1.2.3.4' }, ships: virtualShips },
+  })
+
+const renderedVirtualNames = (container: HTMLElement) =>
+  Array.from(container.querySelectorAll('[role="gridcell"]'))
+    .map((el) => el.textContent ?? '')
+    .filter((text) => /^Ship \d+$/.test(text))
 
 const renderedNames = (container: HTMLElement) =>
   Array.from(container.querySelectorAll('[role="gridcell"]'))
@@ -270,5 +321,71 @@ describe('TableView integration', () => {
       'Delta',
       'Alpha',
     ])
+  })
+
+  it('virtualizes the rendered window without truncating the export ids', async () => {
+    const h = createHarness(virtualTableState())
+    const { container } = h.render(<TableView />)
+    await screen.findByText('Ship 40')
+
+    // Default sort is level descending, so row 0 is Ship 40 (highest level).
+    expect(renderedVirtualNames(container)).toContain('Ship 40')
+    expect(renderedVirtualNames(container)).not.toContain('Ship 1')
+
+    const scroller = container.querySelector(
+      '.ship-info-scrollable',
+    ) as HTMLElement
+    act(() => {
+      scroller.scrollTop = VIRTUAL_TOTAL_HEIGHT - VIEWPORT_HEIGHT
+      scroller.dispatchEvent(new Event('scroll'))
+    })
+
+    await waitFor(() =>
+      expect(renderedVirtualNames(container)).toContain('Ship 1'),
+    )
+    expect(renderedVirtualNames(container)).not.toContain('Ship 40')
+
+    // The DOM is a slice, but the export atom still holds every sorted id.
+    expect(h.jotaiStore.get(filteredShipIdsAtom)).toEqual(
+      Array.from(
+        { length: VIRTUAL_SHIP_COUNT },
+        (_, i) => VIRTUAL_SHIP_COUNT - i,
+      ),
+    )
+  })
+
+  it('highlights the clicked name cell and clears it on toggle or context menu', async () => {
+    const h = createHarness(tableState())
+    h.render(<TableView />)
+    await screen.findByText('Alpha')
+
+    // Column definitions are rebuilt after every selection change, so the
+    // cell element is re-created. Always re-query the live name gridcell.
+    const nameCell = () =>
+      screen.getByText('Alpha').closest('[role="gridcell"]') as HTMLElement
+    const isHighlighted = () =>
+      matchingRules(nameCell()).some(
+        (rule) => rule.style.backgroundColor === 'rgba(138, 155, 168, 0.3)',
+      )
+
+    expect(isHighlighted()).toBe(false)
+
+    fireEvent.click(nameCell())
+    expect(isHighlighted()).toBe(true)
+
+    fireEvent.click(nameCell())
+    expect(isHighlighted()).toBe(false)
+
+    fireEvent.keyDown(nameCell(), { key: ' ' })
+    expect(isHighlighted()).toBe(true)
+
+    fireEvent.keyDown(nameCell(), { key: ' ' })
+    expect(isHighlighted()).toBe(false)
+
+    fireEvent.keyDown(nameCell(), { key: 'Enter' })
+    expect(isHighlighted()).toBe(true)
+
+    fireEvent.contextMenu(nameCell())
+    expect(isHighlighted()).toBe(false)
   })
 })
