@@ -7,7 +7,7 @@ Created by [Yunze](https://github.com/myzwillmake)
 
 ## Development
 
-Use Node.js 24 and the pnpm version pinned in `package.json`.
+Use the Node.js version in `.node-version` and the pnpm version pinned in `package.json`.
 
 ```sh
 npm install --global pnpm@11.20.0
