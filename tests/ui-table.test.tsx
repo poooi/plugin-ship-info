@@ -210,6 +210,67 @@ describe('TableView integration', () => {
     expect(renderedNames(container)).toEqual([])
   })
 
+  it('re-sorts and updates export IDs when ship data changes', async () => {
+    const state = tableState()
+    const h = createHarness(state)
+    const { container } = h.render(<TableView />)
+    await screen.findByText('Alpha')
+
+    // Default level-descending order.
+    expect(renderedNames(container)).toEqual(['Gamma', 'Delta', 'Alpha', 'Beta'])
+    expect(h.jotaiStore.get(filteredShipIdsAtom)).toEqual([3, 4, 1, 2])
+
+    act(() =>
+      h.store.dispatch({
+        type: 'TEST/REPLACE',
+        state: {
+          info: {
+            ...state.info,
+            ships: {
+              ...state.info.ships,
+              2: mkShip({
+                api_cond: 30,
+                api_id: 2,
+                api_lv: 450,
+                api_sally_area: 1,
+              }),
+            },
+          },
+        },
+      }),
+    )
+
+    await waitFor(() =>
+      expect(renderedNames(container)).toEqual([
+        'Beta',
+        'Gamma',
+        'Delta',
+        'Alpha',
+      ]),
+    )
+    expect(h.jotaiStore.get(filteredShipIdsAtom)).toEqual([2, 3, 4, 1])
+  })
+
+  it('restores every row when the level filter is cleared', async () => {
+    const h = createHarness(tableState())
+    const { container } = h.render(<TableView />)
+    await screen.findByText('Alpha')
+
+    act(() =>
+      h.setConfig('plugin.ShipInfo.filters', { maxLevel: 60, minLevel: 0 }),
+    )
+    await waitFor(() => expect(renderedNames(container)).toEqual(['Alpha', 'Beta']))
+    expect(h.jotaiStore.get(filteredShipIdsAtom)).toEqual([1, 2])
+
+    act(() =>
+      h.setConfig('plugin.ShipInfo.filters', { maxLevel: 450, minLevel: 0 }),
+    )
+    await waitFor(() =>
+      expect(renderedNames(container)).toEqual(['Gamma', 'Delta', 'Alpha', 'Beta']),
+    )
+    expect(h.jotaiStore.get(filteredShipIdsAtom)).toEqual([3, 4, 1, 2])
+  })
+
   it('renders the default column order and visibility', async () => {
     const h = createHarness(tableState())
     const { container } = h.render(<TableView />)
@@ -290,8 +351,52 @@ describe('TableView integration', () => {
         (rule) => rule.style.position === 'sticky',
       )
       expect(sticky).toBeTruthy()
-      expect(sticky!.style.left).toBe('40px')
+      expect(sticky!.style.insetInlineStart).toBe('40px')
     })
+  })
+
+  it('maps saved left/right pins to logical start/end offsets in LTR and RTL', async () => {
+    const h = createHarness(tableState())
+    h.render(<TableView />)
+    await screen.findByText('Alpha')
+
+    const pinnedRule = (title: string) =>
+      matchingRules(screen.getByText(title).parentElement!).find(
+        (rule) => rule.style.position === 'sticky',
+      )
+
+    act(() =>
+      h.setConfig('plugin.ShipInfo.columnPinning', {
+        left: ['rowIndex', 'name'],
+        right: ['lock', 'cond'],
+      }),
+    )
+
+    await waitFor(() => {
+      const start = pinnedRule('Name')
+      expect(start).toBeTruthy()
+      expect(start!.style.insetInlineStart).toBe('40px')
+      // The physical side is left to the writing direction.
+      expect(start!.style.left).toBe('')
+
+      const end = pinnedRule('Cond')
+      expect(end).toBeTruthy()
+      expect(end!.style.insetInlineEnd).toBe('0px')
+      expect(end!.style.right).toBe('')
+
+      // The next end-pinned column stacks one column width from the edge.
+      expect(pinnedRule('Lock')!.style.insetInlineEnd).toBe('40px')
+    })
+
+    // Under RTL the emitted logical declarations are unchanged; only the used
+    // side changes, which jsdom cannot lay out -- this checks the CSS contract.
+    document.documentElement.dir = 'rtl'
+    try {
+      expect(pinnedRule('Name')!.style.insetInlineStart).toBe('40px')
+      expect(pinnedRule('Cond')!.style.insetInlineEnd).toBe('0px')
+    } finally {
+      document.documentElement.dir = ''
+    }
   })
 
   it('exports the current (filtered) list through the real Export clipboard host', async () => {

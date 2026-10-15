@@ -4,6 +4,7 @@ import { connect } from 'react-redux'
 import type { IShipRawData } from '../types'
 import * as CellComponents from './cells'
 import { enableAvatarConfigSelector } from './cells'
+import type { ShipInfoTableFeatures } from './table-features'
 
 export interface TableRow {
   id: number
@@ -20,7 +21,7 @@ const katakanaToHiragana = (str: string) => {
 }
 
 // Create column helper
-const columnHelper = createColumnHelper<TableRow>()
+const columnHelper = createColumnHelper<ShipInfoTableFeatures, TableRow>()
 
 // Connected Name component
 const ConnectedName = connect((state) => ({
@@ -33,12 +34,12 @@ export const getColumnTitle = (columnId: string): string => {
   return (column?.meta as any)?.title || columnId
 }
 
-export const columns: ColumnDef<TableRow, any>[] = [
+export const columns: ColumnDef<ShipInfoTableFeatures, TableRow, any>[] = [
   columnHelper.accessor((row) => row.shipData.ship.api_id, {
     id: 'id',
     meta: { title: 'ID', width: 50, center: false, sortable: true },
     cell: ({ row }) => <CellComponents.Id shipData={row.original.shipData} />,
-    sortingFn: (rowA, rowB) =>
+    sortFn: (rowA, rowB) =>
       rowA.original.shipData.ship.api_id - rowB.original.shipData.ship.api_id,
   }),
 
@@ -46,7 +47,7 @@ export const columns: ColumnDef<TableRow, any>[] = [
     id: 'name',
     meta: { title: 'Name', width: 220, center: false, sortable: true },
     cell: ({ row }) => <ConnectedName shipData={row.original.shipData} />,
-    sortingFn: (rowA, rowB) => {
+    sortFn: (rowA, rowB) => {
       const dataA = rowA.original.shipData
       const dataB = rowB.original.shipData
       const yomiA = katakanaToHiragana(dataA.$ship.api_yomi)
@@ -63,7 +64,7 @@ export const columns: ColumnDef<TableRow, any>[] = [
     id: 'type',
     meta: { title: 'Class', width: 90, center: false, sortable: true },
     cell: ({ row }) => <CellComponents.Type shipData={row.original.shipData} />,
-    sortingFn: (rowA, rowB) => {
+    sortFn: (rowA, rowB) => {
       const dataA = rowA.original.shipData
       const dataB = rowB.original.shipData
       if (dataA.$ship.api_stype !== dataB.$ship.api_stype) {
@@ -83,7 +84,7 @@ export const columns: ColumnDef<TableRow, any>[] = [
     id: 'soku',
     meta: { title: 'Speed', width: 40, center: false, sortable: true },
     cell: ({ row }) => <CellComponents.Soku shipData={row.original.shipData} />,
-    sortingFn: (rowA, rowB) => {
+    sortFn: (rowA, rowB) => {
       const valueA = rowA.original.shipData.ship.api_soku
       const valueB = rowB.original.shipData.ship.api_soku
       return (valueA || 0) - (valueB || 0)
@@ -94,7 +95,7 @@ export const columns: ColumnDef<TableRow, any>[] = [
     id: 'lv',
     meta: { title: 'Level', width: 40, center: true, sortable: true },
     cell: ({ row }) => <CellComponents.Lv shipData={row.original.shipData} />,
-    sortingFn: (rowA, rowB) => {
+    sortFn: (rowA, rowB) => {
       const dataA = rowA.original.shipData
       const dataB = rowB.original.shipData
       if (dataA.ship.api_lv !== dataB.ship.api_lv) {
@@ -111,7 +112,7 @@ export const columns: ColumnDef<TableRow, any>[] = [
     id: 'cond',
     meta: { title: 'Cond', width: 40, center: true, sortable: true },
     cell: ({ row }) => <CellComponents.Cond shipData={row.original.shipData} />,
-    sortingFn: (rowA, rowB) => {
+    sortFn: (rowA, rowB) => {
       const valueA = rowA.original.shipData.ship.api_cond
       const valueB = rowB.original.shipData.ship.api_cond
       return (valueA || 0) - (valueB || 0)
@@ -122,7 +123,7 @@ export const columns: ColumnDef<TableRow, any>[] = [
     id: 'hp',
     meta: { title: 'HP', width: 40, center: true, sortable: true },
     cell: ({ row }) => <CellComponents.Hp shipData={row.original.shipData} />,
-    sortingFn: (rowA, rowB) =>
+    sortFn: (rowA, rowB) =>
       rowA.original.shipData.ship.api_maxhp -
       rowB.original.shipData.ship.api_maxhp,
   }),
@@ -138,7 +139,7 @@ export const columns: ColumnDef<TableRow, any>[] = [
       cell: ({ row }) => (
         <CellComponents.Karyoku shipData={row.original.shipData} />
       ),
-      sortingFn: (rowA, rowB) => {
+      sortFn: (rowA, rowB) => {
         const valueA = rowA.original.shipData.ship.api_karyoku
         const valueB = rowB.original.shipData.ship.api_karyoku
         const numA = Array.isArray(valueA) ? valueA[0] : valueA
@@ -159,7 +160,7 @@ export const columns: ColumnDef<TableRow, any>[] = [
       cell: ({ row }) => (
         <CellComponents.Raisou shipData={row.original.shipData} />
       ),
-      sortingFn: (rowA, rowB) => {
+      sortFn: (rowA, rowB) => {
         const valueA = rowA.original.shipData.ship.api_raisou
         const valueB = rowB.original.shipData.ship.api_raisou
         const numA = Array.isArray(valueA) ? valueA[0] : valueA
@@ -180,7 +181,7 @@ export const columns: ColumnDef<TableRow, any>[] = [
       cell: ({ row }) => (
         <CellComponents.Taiku shipData={row.original.shipData} />
       ),
-      sortingFn: (rowA, rowB) => {
+      sortFn: (rowA, rowB) => {
         const valueA = rowA.original.shipData.ship.api_taiku
         const valueB = rowB.original.shipData.ship.api_taiku
         const numA = Array.isArray(valueA) ? valueA[0] : valueA
@@ -201,7 +202,7 @@ export const columns: ColumnDef<TableRow, any>[] = [
       cell: ({ row }) => (
         <CellComponents.Soukou shipData={row.original.shipData} />
       ),
-      sortingFn: (rowA, rowB) => {
+      sortFn: (rowA, rowB) => {
         const valueA = rowA.original.shipData.ship.api_soukou
         const valueB = rowB.original.shipData.ship.api_soukou
         const numA = Array.isArray(valueA) ? valueA[0] : valueA
@@ -222,7 +223,7 @@ export const columns: ColumnDef<TableRow, any>[] = [
       cell: ({ row }) => (
         <CellComponents.Lucky shipData={row.original.shipData} />
       ),
-      sortingFn: (rowA, rowB) => {
+      sortFn: (rowA, rowB) => {
         const valueA = rowA.original.shipData.ship.api_lucky
         const valueB = rowB.original.shipData.ship.api_lucky
         const numA = Array.isArray(valueA) ? valueA[0] : valueA
@@ -243,7 +244,7 @@ export const columns: ColumnDef<TableRow, any>[] = [
       cell: ({ row }) => (
         <CellComponents.Kaihi shipData={row.original.shipData} />
       ),
-      sortingFn: (rowA, rowB) => {
+      sortFn: (rowA, rowB) => {
         const valueA = rowA.original.shipData.ship.api_kaihi
         const valueB = rowB.original.shipData.ship.api_kaihi
         const numA = Array.isArray(valueA) ? valueA[0] : valueA
@@ -264,7 +265,7 @@ export const columns: ColumnDef<TableRow, any>[] = [
       cell: ({ row }) => (
         <CellComponents.Taisen shipData={row.original.shipData} />
       ),
-      sortingFn: (rowA, rowB) => {
+      sortFn: (rowA, rowB) => {
         const valueA = rowA.original.shipData.ship.api_taisen
         const valueB = rowB.original.shipData.ship.api_taisen
         const numA = Array.isArray(valueA) ? valueA[0] : valueA
@@ -285,7 +286,7 @@ export const columns: ColumnDef<TableRow, any>[] = [
       cell: ({ row }) => (
         <CellComponents.Sakuteki shipData={row.original.shipData} />
       ),
-      sortingFn: (rowA, rowB) => {
+      sortFn: (rowA, rowB) => {
         const valueA = rowA.original.shipData.ship.api_sakuteki
         const valueB = rowB.original.shipData.ship.api_sakuteki
         const numA = Array.isArray(valueA) ? valueA[0] : valueA
@@ -301,7 +302,7 @@ export const columns: ColumnDef<TableRow, any>[] = [
     cell: ({ row }) => (
       <CellComponents.RepairTime shipData={row.original.shipData} />
     ),
-    sortingFn: (rowA, rowB) => {
+    sortFn: (rowA, rowB) => {
       const valueA = rowA.original.shipData.ship.api_ndock_time
       const valueB = rowB.original.shipData.ship.api_ndock_time
       return (valueA || 0) - (valueB || 0)
