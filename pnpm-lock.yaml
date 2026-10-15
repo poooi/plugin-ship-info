@@ -46,9 +46,6 @@ importers:
       '@types/react-fontawesome':
         specifier: ^1.6.8
         version: 1.6.8
-      '@types/redux':
-        specifier: ^3.6.0
-        version: 3.6.0
       bluebird:
         specifier: 3.5.5
         version: 3.5.5
@@ -81,16 +78,16 @@ importers:
         version: 11.18.6(i18next@19.9.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react-redux:
         specifier: ^9.2.0
-        version: 9.2.0(@types/react@19.2.2)(react@18.3.1)(redux@4.0.1)
+        version: 9.2.0(@types/react@19.2.2)(react@18.3.1)(redux@5.0.1)
       redux:
-        specifier: 4.0.1
-        version: 4.0.1
+        specifier: 5.0.1
+        version: 5.0.1
       redux-thunk:
-        specifier: ^2.3.0
-        version: 2.4.1(redux@4.0.1)
+        specifier: 3.1.0
+        version: 3.1.0(redux@5.0.1)
       reselect:
-        specifier: ^4.0.0
-        version: 4.1.6
+        specifier: 5.3.0
+        version: 5.3.0
       styled-components:
         specifier: ^6.1.19
         version: 6.1.19(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -703,10 +700,6 @@ packages:
 
   '@types/react@19.2.2':
     resolution: {integrity: sha512-6mDvHUFSjyT2B2yeNx2nUgMxh9LtOWvkhIU3uePn2I2oyNymUAX1NIsdgviM4CH+JSrp2D2hsMvJOkxY+0wNRA==}
-
-  '@types/redux@3.6.0':
-    resolution: {integrity: sha512-ic+60DXHW5seNyqFvfr7Sk5cnXs+HsF9tIeIaxjOuSP5kzgDXC+AzKTYmjAfuLx4Sccm/0vjwBQj3OOkUkwOqg==}
-    deprecated: This is a stub types definition for Redux (https://github.com/reactjs/redux). Redux provides its own type definitions, so you don't need @types/redux installed!
 
   '@types/sizzle@2.3.2':
     resolution: {integrity: sha512-7EJYyKTL7tFR8+gDbB6Wwz/arpGa0Mywk1TJbNzKzHtzbwVmY4HR9WqS5VV7dsBUKQmPNr192jHr/VpBluj/hg==}
@@ -1410,16 +1403,16 @@ packages:
     resolution: {integrity: sha512-wS+hAgJShR0KhEvPJArfuPVN1+Hz1t0Y6n5jLrGQbkb4urgPE/0Rve+1kMB1v/oWgHgm4WIcV+i7F2pTVj+2iQ==}
     engines: {node: '>=0.10.0'}
 
-  redux-thunk@2.4.1:
-    resolution: {integrity: sha512-OOYGNY5Jy2TWvTL1KgAlVy6dcx3siPJ1wTq741EPyUKfn6W6nChdICjZwCd0p8AZBs5kWpZlbkXW2nE/zjUa+Q==}
+  redux-thunk@3.1.0:
+    resolution: {integrity: sha512-NW2r5T6ksUKXCabzhL9z+h206HQw/NJkcLm1GPImRQ8IzfXwRGqjVhKJGauHirT0DAuyy6hjdnMZaRoAcy0Klw==}
     peerDependencies:
-      redux: ^4
+      redux: ^5.0.0
 
-  redux@4.0.1:
-    resolution: {integrity: sha512-R7bAtSkk7nY6O/OYMVR9RiBI+XghjF9rlbl5806HJbQph0LJVHZrU5oaO4q70eUKiqMRqm4y07KLTlMZ2BlVmg==}
+  redux@5.0.1:
+    resolution: {integrity: sha512-M9/ELqF6fy8FwmkpnF0S3YKOqMyoWJ4+CS5Efg2ct3oY9daQvd/Pc71FpGZsVsbl3Cpb+IIcjBDUnnyBdQbq4w==}
 
-  reselect@4.1.6:
-    resolution: {integrity: sha512-ZovIuXqto7elwnxyXbBtCPo9YFEr3uJqj2rRbcOOog1bmu2Ag85M4hixSwFWyaBMKXNgvPaJ9OSu9SkBPIeJHQ==}
+  reselect@5.3.0:
+    resolution: {integrity: sha512-XGoLeRAVzUTcJ1qkxPQhDJyIZ5d6zzZD9nT7AEZOaaU9UbWclhycElmhO+VD5bFeLuzhPBaOV2oXC8uG35ZSpg==}
 
   rolldown@1.0.0-beta.53:
     resolution: {integrity: sha512-Qd9c2p0XKZdgT5AYd+KgAMggJ8ZmCs3JnS9PTMWkyUfteKlfmKtxJbWTHkVakxwXs1Ub7jrRYVeFeF7N0sQxyw==}
@@ -1470,10 +1463,6 @@ packages:
   supports-color@7.2.0:
     resolution: {integrity: sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==}
     engines: {node: '>=8'}
-
-  symbol-observable@1.2.0:
-    resolution: {integrity: sha512-e900nM8RRtGhlV36KGEU9k65K3mPb1WV70OdjfxlG2EAuM1noi/E/BaW/uMhL7bPEssK8QV57vN3esixjUvcXQ==}
-    engines: {node: '>=0.10.0'}
 
   tinybench@6.2.2:
     resolution: {integrity: sha512-nIZ2N2dFpjBsg2hgitKu7mA+FvsIJuGJOwysRngmVRRmWgR/UyPjwJj8c/fT/dhm8EkHnF5EOogRf+0Z2qrimA==}
@@ -2114,10 +2103,6 @@ snapshots:
     dependencies:
       csstype: 3.1.3
 
-  '@types/redux@3.6.0':
-    dependencies:
-      redux: 4.0.1
-
   '@types/sizzle@2.3.2': {}
 
   '@types/stylis@4.2.5': {}
@@ -2682,14 +2667,14 @@ snapshots:
       react-fast-compare: 3.2.2
       warning: 4.0.3
 
-  react-redux@9.2.0(@types/react@19.2.2)(react@18.3.1)(redux@4.0.1):
+  react-redux@9.2.0(@types/react@19.2.2)(react@18.3.1)(redux@5.0.1):
     dependencies:
       '@types/use-sync-external-store': 0.0.6
       react: 18.3.1
       use-sync-external-store: 1.6.0(react@18.3.1)
     optionalDependencies:
       '@types/react': 19.2.2
-      redux: 4.0.1
+      redux: 5.0.1
 
   react-transition-group@4.4.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
@@ -2711,16 +2696,13 @@ snapshots:
     dependencies:
       loose-envify: 1.4.0
 
-  redux-thunk@2.4.1(redux@4.0.1):
+  redux-thunk@3.1.0(redux@5.0.1):
     dependencies:
-      redux: 4.0.1
+      redux: 5.0.1
 
-  redux@4.0.1:
-    dependencies:
-      loose-envify: 1.4.0
-      symbol-observable: 1.2.0
+  redux@5.0.1: {}
 
-  reselect@4.1.6: {}
+  reselect@5.3.0: {}
 
   rolldown@1.0.0-beta.53:
     dependencies:
@@ -2794,8 +2776,6 @@ snapshots:
     dependencies:
       has-flag: 4.0.0
     optional: true
-
-  symbol-observable@1.2.0: {}
 
   tinybench@6.2.2: {}
 

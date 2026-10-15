@@ -43,19 +43,19 @@ declare module 'views/utils/selectors' {
 
   export type IShipData = [APIShip?, APIMstShip?]
 
-  export const configSelector: Selector<IState, any, never>
-  export const constSelector: Selector<IState, IConstState, never>
-  export const extensionSelectorFactory: (id: string) => Selector<IState, any, never>
-  export const fcdSelector: Selector<IState, IFCD, never>
-  export const fleetInExpeditionSelectorFactory: (id: number) => Selector<IState, any, never>
-  export const fleetShipsIdSelectorFactory: (id: number) => Selector<IState, any, never>
-  export const inRepairShipsIdSelector: Selector<IState, any, never>
-  export const shipDataSelectorFactory: (id: number) => Selector<IState, IShipData, never>
-  export const shipEquipDataSelectorFactory: (id: number) => Selector<IState, any, never>
-  export const equipDataSelectorFactory: (id: number) => Selector<IState, any, never>
-  export const shipsSelector: Selector<IState, Dictionary<APIShip>, never>
-  export const stateSelector: Selector<IState, IState, never>
-  export const wctfSelector: Selector<IState, any, never>
+  export const configSelector: Selector<IState, any, []>
+  export const constSelector: Selector<IState, IConstState, []>
+  export const extensionSelectorFactory: (id: string) => Selector<IState, any, []>
+  export const fcdSelector: Selector<IState, IFCD, []>
+  export const fleetInExpeditionSelectorFactory: (id: number) => Selector<IState, any, []>
+  export const fleetShipsIdSelectorFactory: (id: number) => Selector<IState, any, []>
+  export const inRepairShipsIdSelector: Selector<IState, any, []>
+  export const shipDataSelectorFactory: (id: number) => Selector<IState, IShipData, []>
+  export const shipEquipDataSelectorFactory: (id: number) => Selector<IState, any, []>
+  export const equipDataSelectorFactory: (id: number) => Selector<IState, any, []>
+  export const shipsSelector: Selector<IState, Dictionary<APIShip>, []>
+  export const stateSelector: Selector<IState, IState, []>
+  export const wctfSelector: Selector<IState, any, []>
 }
 
 declare module 'views/components/etc/overlay' {
