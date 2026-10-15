@@ -54,7 +54,6 @@
     "@tanstack/react-virtual": "^3.13.12",
     "@testing-library/react": "^16.3.3",
     "@types/fs-extra": "11.0.4",
-    "@types/html2canvas": "^0.0.35",
     "@types/lodash": "4.17.26",
     "@types/react": "18.3.31",
     "@types/react-dom": "18.3.7",
@@ -76,7 +75,7 @@
     "redux-thunk": "3.1.0",
     "reselect": "5.3.0",
     "styled-components": "6.6.0",
-    "typescript": "^5.9.3",
+    "typescript": "7.0.2",
     "vite-plus": "^1.2.0",
     "vitest": "5.0.4",
     "zod": "4.6.7"

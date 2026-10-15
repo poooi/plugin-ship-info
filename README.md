@@ -32,8 +32,6 @@ clipboard CSV output, and planner search/selection. Host services and viewport
 geometry are supplied by test fixtures; these tests do not replace visual checks
 inside poi.
 
-`vite.config.ts` is excluded from `tsconfig.json` because the Vite+ config types require a newer TypeScript than the pinned 5.9.3.
-
 [![npm package][npm-badge]][npm]
 
 [npm-badge]: https://img.shields.io/npm/v/poi-plugin-ship-info.svg?style=flat-square
