@@ -24,18 +24,13 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      - name: Typecheck
-        run: pnpm exec tsc --noEmit
-      - name: Transpile to JavaScript
-        run: pnpm exec poi-util-transpile --source-map --replace
+      - name: Check
+        run: pnpm run check
+      - name: Pack
+        run: pnpm pack
       - name: Upload drop artifact
         uses: actions/upload-artifact@v7
         with:
           name: drop
-          path: |
-            **/*
-            !.git/**
-            !node_modules/**
-            !.pnpm-store/**
-          include-hidden-files: true
+          path: '*.tgz'
           if-no-files-found: error

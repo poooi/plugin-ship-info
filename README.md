@@ -12,9 +12,13 @@ Use the Node.js version in `.node-version` and the pnpm version pinned in `packa
 ```sh
 npm install --global pnpm@11.20.0
 pnpm install --frozen-lockfile
-pnpm exec tsc --noEmit
-pnpm run prepack
+pnpm run check
+pnpm run build
 ```
+
+Optional: `pnpm run lint` and `pnpm run fmt` use the Vite+ lint/format tools.
+
+`vite.config.ts` is excluded from `tsconfig.json` because the Vite+ config types require a newer TypeScript than the pinned 5.9.3.
 
 [![npm package][npm-badge]][npm]
 

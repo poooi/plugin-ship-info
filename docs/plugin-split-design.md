@@ -57,7 +57,7 @@ plugin-ship-info/
 └── .github/workflows/           # Align with main-branch CI at implementation time
 ```
 
-Use pnpm workspaces to manage the three packages and retain tsdown for builds. Keep common TypeScript and build configuration at the root, with plugin-specific entries and necessary differences in each plugin. No additional monorepo orchestration framework is needed initially.
+Use pnpm workspaces to manage the three packages and build libraries with `vp pack` (Vite+). Keep common TypeScript and build configuration at the root, with plugin-specific entries and necessary differences in each plugin. No additional monorepo orchestration framework is needed initially.
 
 These directories and internal package names are proposals. The repository currently contains one plugin at its root. Organize each `src/` around clear ownership with minimal unnecessary movement.
 
