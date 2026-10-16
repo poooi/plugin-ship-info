@@ -54,7 +54,7 @@
   "loadError": "저장된 데이터를 불러오지 못했습니다. 파일 덮어쓰기를 막기 위해 저장을 사용하지 않습니다.",
   "saveError": "데이터를 저장하지 못했습니다. 파일에 쓸 수 있는지 확인하세요.",
   "Deck Planner": "출격 계획",
-  "plannerMovedNotice": "출격 계획이 별도의 \"Navy Staff\" 플러그인으로 이동했습니다.",
-  "plannerMovedInstall": "poi의 설정 > 플러그인 목록에서 \"Navy Staff\"를 찾아 \"설치\"를 클릭합니다.",
+  "plannerMovedNotice": "출격 계획이 별도의 \"작전참모\" 플러그인으로 이동했습니다.",
+  "plannerMovedInstall": "poi의 설정 > 플러그인 목록에서 \"작전참모\"를 찾아 \"설치\"를 클릭합니다.",
   "plannerManualInstall": "수동으로 설치하려면 \"npm 서버에서 직접 설치\"를 선택하고 플러그인 패키지 이름을 입력하세요:"
 }

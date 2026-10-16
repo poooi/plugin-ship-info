@@ -41,7 +41,6 @@ import {
   columnOrderSelector,
   columnPinningSelector,
   columnVisibilitySelector,
-  filterShipIdsSelector,
 } from '../packages/ship-info/src/views/selectors'
 
 const mkState = (): any => ({
@@ -330,54 +329,6 @@ describe('shipMenuDataSelector', () => {
       info: { ...base.info, ships },
     })
     expect(afterRemove.map((s) => s.id).sort((a, b) => a - b)).toEqual([1, 3])
-  })
-})
-
-describe('filterShipIdsSelector', () => {
-  it('passes every ship under default config, sorted by level desc', () => {
-    expect(filterShipIdsSelector(mkState())).toEqual([3, 1, 2])
-  })
-
-  it('applies inclusive level bounds', () => {
-    const state = withShipInfo(mkState(), {
-      filters: { maxLevel: 50, minLevel: 10 },
-    })
-    expect(filterShipIdsSelector(state)).toEqual([1, 2])
-  })
-
-  it('filters by ship type bitmask', () => {
-    const state = withShipInfo(mkState(), { shipTypes: 10 })
-    expect(filterShipIdsSelector(state)).toEqual([1, 2])
-  })
-
-  it('filters by locked flag', () => {
-    const state = withShipInfo(mkState(), { locked: [true, false] })
-    expect(filterShipIdsSelector(state)).toEqual([3, 1])
-  })
-
-  it('filters by fleet membership', () => {
-    const state = withShipInfo(mkState(), { inFleet: [true, false] })
-    expect(filterShipIdsSelector(state)).toEqual([1, 2])
-  })
-
-  it('filters by modernization completion', () => {
-    const state = withShipInfo(mkState(), { modernization: [true, false] })
-    expect(filterShipIdsSelector(state)).toEqual([3, 1])
-  })
-
-  it('filters by sally area tag', () => {
-    const state = withShipInfo(mkState(), {
-      sallyAreaChecked: [true, false, false],
-    })
-    expect(filterShipIdsSelector(state)).toEqual([3, 1])
-  })
-
-  it('produces different results when the input config changes', () => {
-    const base = mkState()
-    const filtered = withShipInfo(mkState(), { locked: [true, false] })
-    expect(filterShipIdsSelector(base)).not.toEqual(
-      filterShipIdsSelector(filtered),
-    )
   })
 })
 

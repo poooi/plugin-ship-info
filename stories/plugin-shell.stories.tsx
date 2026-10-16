@@ -5,7 +5,7 @@ import { expect, screen, userEvent, waitFor, within } from 'storybook/test'
 
 import { host, setSaveDialogResult } from '../preview/adapters/logs'
 import { useScenarioReset, withShipInfo } from '../preview/decorators'
-import { i18n } from '../preview/i18n'
+import { createNavyOnlyI18n, i18n } from '../preview/i18n'
 import {
   persistedPluginFile,
   plannerScenarioState,
@@ -578,6 +578,68 @@ export const PlannerMovedNoticeLocalized: Story = {
     await expect(
       within(dialog).getByText('poi-plugin-navy-staff'),
     ).toBeTruthy()
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Close' }))
+    await waitFor(async () => {
+      await expect(screen.queryByRole('dialog')).toBeNull()
+    })
+  },
+}
+
+export const PlannerMovedNoticeJapanese: Story = {
+  name: 'The migration notice is localized in Japanese',
+  parameters: {
+    shipInfo: {
+      language: 'ja-JP',
+      lifecycle: false,
+      plugin: 'ship-info',
+      state: plannerScenarioState(),
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await userEvent.click(
+      await canvas.findByRole('button', { name: '出擊計画' }),
+    )
+    const dialog = await screen.findByRole('dialog')
+    await expect(within(dialog).getByText(/独立した「作戦参謀」/)).toBeTruthy()
+    await expect(
+      within(dialog).getByText(/「作戦参謀」を見つけて/),
+    ).toBeTruthy()
+    await expect(
+      within(dialog).getByText('poi-plugin-navy-staff'),
+    ).toBeTruthy()
+    // Navy's own bundle resolves the plugin display name with no fallback.
+    expect(createNavyOnlyI18n('ja-JP').t('Navy Staff')).toBe('作戦参謀')
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Close' }))
+    await waitFor(async () => {
+      await expect(screen.queryByRole('dialog')).toBeNull()
+    })
+  },
+}
+
+export const PlannerMovedNoticeKorean: Story = {
+  name: 'The migration notice is localized in Korean',
+  parameters: {
+    shipInfo: {
+      language: 'ko-KR',
+      lifecycle: false,
+      plugin: 'ship-info',
+      state: plannerScenarioState(),
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await userEvent.click(
+      await canvas.findByRole('button', { name: '출격 계획' }),
+    )
+    const dialog = await screen.findByRole('dialog')
+    await expect(within(dialog).getByText(/별도의 "작전참모"/)).toBeTruthy()
+    await expect(within(dialog).getByText(/작전참모"를 찾아/)).toBeTruthy()
+    await expect(
+      within(dialog).getByText('poi-plugin-navy-staff'),
+    ).toBeTruthy()
+    // Navy's own bundle resolves the plugin display name with no fallback.
+    expect(createNavyOnlyI18n('ko-KR').t('Navy Staff')).toBe('작전참모')
     await userEvent.click(within(dialog).getByRole('button', { name: 'Close' }))
     await waitFor(async () => {
       await expect(screen.queryByRole('dialog')).toBeNull()

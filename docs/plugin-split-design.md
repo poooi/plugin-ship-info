@@ -24,7 +24,7 @@ Ship Info source paths below are relative to `packages/ship-info/src/` unless an
 | `packages/navy-staff/src/views/` | Planner UI, reducer/actions, menu selectors, migration, and screenshot capture | Independent plugin main interface; no table sidebar or planner modal |
 | `views/sidebar/index.tsx` | Table sidebar controls and planner migration notice | The former planner entry opens instructions only; initialization is plugin-owned |
 | `views/redux.ts` | `bookmark`, load status, and `ui` | No planner reducer; I/O lives in `views/persistence.ts` |
-| `views/selectors.ts` and `views/utils.ts` | Table filtering, row data, statistics, names, and table utilities | Retain in Ship Info; planner selectors and screenshot imports have been separated |
+| `views/selectors.ts` and `views/utils.ts` | Validated table configuration, row data, and display calculations | Retain in Ship Info; the active filtering and sorting implementation lives in `views/table/` |
 | `packages/shared/src/` | Classification, fleet membership, UI, serialized writes, and persistence lifecycle | Private workspace; callers own identity, data validation, and migration |
 | `packages/*/i18n/` | Self-contained plugin translations | Each plugin uses its own namespace |
 
@@ -38,6 +38,7 @@ Two details need particular attention:
 ```text
 plugin-ship-info/
 ├── AGENTS.md
+├── build/plugin.config.ts       # Common plugin build and host externals
 ├── docs/
 │   └── plugin-split-design.md
 ├── package.json                 # Private workspace root and development commands
@@ -58,7 +59,7 @@ plugin-ship-info/
 └── .github/workflows/           # Align with main-branch CI at implementation time
 ```
 
-Use pnpm workspaces to manage the three packages and build libraries with `vp pack` (Vite+). Keep common TypeScript and build configuration at the root, with plugin-specific entries and necessary differences in each plugin. No additional monorepo orchestration framework is needed initially.
+Use pnpm workspaces to manage the three packages and build libraries with `vp pack` (Vite+). Common TypeScript and build configuration live at the root. Each plugin's `vite.config.ts` re-exports `build/plugin.config.ts`; package-local build commands resolve the entry and output paths from that package. No additional monorepo orchestration framework is needed.
 
 The workspace layer relocates Ship Info and shared code first; Navy Staff is added by the final extraction. The internal package is named `@poi-plugins/ship-info-shared`. It is a private, source-only build dependency with purpose-specific exports, bundled into each consumer. Tests, stories, preview adapters, host declarations, and development tooling stay at the repository root.
 
@@ -161,7 +162,7 @@ Acceptance should cover:
 
 ## 9. Initial defaults and release decisions
 
-- Use Navy Staff as the new plugin title, with Chinese display names `作战参谋` (zh-CN) and `作戰參謀` (zh-TW). Keep the package ID `poi-plugin-navy-staff`. Reuse the existing planner visual conventions and show the planner directly in its main view.
+- Use Navy Staff as the plugin title key, localized as `作戦参謀` (ja-JP), `작전참모` (ko-KR), `作战参谋` (zh-CN), and `作戰參謀` (zh-TW). Ship Info's migration notice uses the same localized display names. Keep the package ID `poi-plugin-navy-staff`. Reuse the existing planner visual conventions and show the planner directly in its main view.
 - Keep a migration notice in Ship Info's original Deck Planner area. It directs users to find Navy Staff in poi's plugin list and click **Install**, and shows the full package name `poi-plugin-navy-staff` alongside the manual installation instructions. It does not retain planner logic or depend on Navy Staff being installed.
 - Preserve existing assignment and synchronization workflows. Retain assignments beyond the current event's area count; event changes must not silently destroy imported data. A new event archive system remains out of scope.
 - Surface import/load failures. Retain the legacy `planner` field in Ship Info until its removal is separately agreed; Navy Staff never deletes it.
