@@ -36,7 +36,7 @@ export const poiSelectors = {
   inRepairShipsIdSelector: (s: any) => s.repairs || [],
   shipDataSelectorFactory: (id: number) => (s: any) => [
     s.info.ships[id],
-    s.const.$ships[id],
+    (s.const.$ships || {})[s.info.ships[id]?.api_ship_id ?? -1],
   ],
   shipEquipDataSelectorFactory: (id: number) => (s: any) =>
     s.info.equips[id] || {},
