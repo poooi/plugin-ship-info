@@ -24,7 +24,7 @@ Ship Info source paths below are relative to `packages/ship-info/src/` unless an
 | `packages/navy-staff/src/views/` | Planner UI, reducer/actions, menu selectors, migration, and screenshot capture | Independent plugin main interface; no table sidebar or planner modal |
 | `views/sidebar/index.tsx` | Table sidebar controls and planner migration notice | The former planner entry opens instructions only; initialization is plugin-owned |
 | `views/redux.ts` | `bookmark`, load status, and `ui` | No planner reducer; I/O lives in `views/persistence.ts` |
-| `views/selectors.ts` and `views/utils.ts` | Table filtering, row data, statistics, names, and table utilities | Retain in Ship Info; planner selectors and screenshot imports have been separated |
+| `views/selectors.ts` and `views/utils.ts` | Validated table configuration, row data, and display calculations | Retain in Ship Info; the active filtering and sorting implementation lives in `views/table/` |
 | `packages/shared/src/` | Classification, fleet membership, UI, serialized writes, and persistence lifecycle | Private workspace; callers own identity, data validation, and migration |
 | `packages/*/i18n/` | Self-contained plugin translations | Each plugin uses its own namespace |
 

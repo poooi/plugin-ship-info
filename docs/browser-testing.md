@@ -4,12 +4,17 @@ The plugin has two independent UI test layers:
 
 | Layer | Runner | State | Scenarios |
 | --- | --- | --- | --- |
-| Node/jsdom | `pnpm test` (`vp test run`) | jsdom via `tests/setup.ts` | 108 tests across 13 files |
+| Node/jsdom | `pnpm test` (`vp test run`) | jsdom via `tests/setup.ts` | Persistence, selectors, reducers, CSV, and UI integration |
 | Browser | `pnpm run test:browser` (`vitest run --config vitest.browser.config.ts`) | Real Chromium via Playwright | 97 story scenarios across 13 files |
 
 The browser project is deliberately a separate Vitest config. It does **not**
 inherit `tests/setup.ts` or the jsdom geometry stubs in `tests/ui/mocks.tsx`,
 and it keeps the Node/jsdom suite passing.
+
+Filtering and sorting are tested through the real table and its exported row
+IDs. The unused legacy filtering selector and its eight dedicated tests were
+removed; the filter and table stories continue to cover their user-visible
+behaviors. See [post-split simplification](post-split-simplification.md).
 
 ## Commands
 
