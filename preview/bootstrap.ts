@@ -17,4 +17,13 @@ if (!browserWindow.config) {
 }
 if (!browserWindow.getStore) browserWindow.getStore = () => ({})
 
+// The plugin reads process.platform (main-window spacer, export line-ending
+// default). Define only that narrow field rather than a broad process shim.
+const browserProcess = (globalThis as any).process
+if (!browserProcess) {
+  ;(globalThis as any).process = { platform: 'linux' }
+} else if (typeof browserProcess.platform !== 'string') {
+  browserProcess.platform = 'linux'
+}
+
 export {}

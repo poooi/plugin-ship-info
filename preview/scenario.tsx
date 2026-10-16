@@ -11,6 +11,7 @@ import { reducer as pluginReducer } from '../views/redux'
 import { setCreateStore } from './adapters/create-store'
 import {
   resetHostState,
+  setFileWriteFailure,
   setInitialFiles,
   setSaveDialogResult,
   type SaveDialogResult,
@@ -30,6 +31,10 @@ export interface ShipInfoParameters {
   files?: Record<string, unknown>
   /** Result returned by the in-memory save dialog. */
   saveDialog?: SaveDialogResult
+  /** Make the in-memory file write reject (export failure path). */
+  fileWriteError?: boolean
+  /** Text direction for the scenario surface. */
+  direction?: 'ltr' | 'rtl'
   /** Bounding box for the decorated story surface. */
   dimensions?: { width: number; height: number }
   /** Per-story theme override; falls back to the toolbar global. */
@@ -58,6 +63,7 @@ export const createScenarioEnvironment = ({
   resetHostState()
   setInitialFiles(parameters.files)
   setSaveDialogResult(parameters.saveDialog)
+  setFileWriteFailure(parameters.fileWriteError)
   setLanguage(language)
 
   const environment = createEnvironment(parameters.state ?? tableState(), {

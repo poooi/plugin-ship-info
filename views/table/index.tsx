@@ -57,11 +57,10 @@ export const globalFilterAtom = atom((get) => ({
 // Atom to store filtered ship IDs from the table (for export to use)
 export const filteredShipIdsAtom = atom<number[]>([])
 
-// Cache filter results per row to avoid re-computing for each column
-const filterCache = new Map<number, boolean>()
-
-// Global filter function that applies all filter criteria
-// Note: This is called once per column per row, so we cache the result
+// Global filter function that applies all filter criteria. There is no
+// hand-rolled cache: TanStack memoizes the filtered row model, so this only
+// re-runs when its inputs change. A module-level cache keyed by ship id went
+// stale when the host changed a ship without touching the filter config.
 const globalFilterFn: FilterFn<ShipInfoTableFeatures, TableRow> = (
   row,
   columnId,
@@ -69,11 +68,6 @@ const globalFilterFn: FilterFn<ShipInfoTableFeatures, TableRow> = (
 ) => {
   const { shipData } = row.original
   const shipId = shipData.ship.api_id
-
-  // Check cache first - if we've already filtered this row, return cached result
-  if (filterCache.has(shipId)) {
-    return filterCache.get(shipId)!
-  }
 
   const { shipTypes, expeditionShips, config, filters } = filterValue as {
     shipTypes: number[]
@@ -96,14 +90,12 @@ const globalFilterFn: FilterFn<ShipInfoTableFeatures, TableRow> = (
 
   // Type filter
   if (!shipTypes.includes(typeId)) {
-    filterCache.set(shipId, false)
     return false
   }
 
   // Level range filter
   const { minLevel, maxLevel } = filters
   if (lv < Math.min(minLevel, maxLevel) || lv > Math.max(minLevel, maxLevel)) {
-    filterCache.set(shipId, false)
     return false
   }
 
@@ -137,7 +129,6 @@ const globalFilterFn: FilterFn<ShipInfoTableFeatures, TableRow> = (
   })
 
   if (filterFailed) {
-    filterCache.set(shipId, false)
     return false
   }
 
@@ -152,12 +143,9 @@ const globalFilterFn: FilterFn<ShipInfoTableFeatures, TableRow> = (
     !allChecked &&
     !(typeof sallyArea !== 'undefined' ? sallyAreaArray[sallyArea || 0] : true)
   ) {
-    filterCache.set(shipId, false)
     return false
   }
 
-  // Cache the result
-  filterCache.set(shipId, true)
   return true
 }
 
@@ -378,7 +366,6 @@ const ShipInfoTableAreaBase: React.FC<ShipInfoTableAreaBaseProps> = ({
   const setFilterSettings = useSetAtom(filterSettingsAtom)
 
   useEffect(() => {
-    filterCache.clear()
     setFilterShipTypes(shipTypes)
     setFilterExpeditionShips(expeditionShips)
     setFilterConfig(filterConfig)

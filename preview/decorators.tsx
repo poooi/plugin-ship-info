@@ -20,6 +20,7 @@ export const withShipInfo: Decorator = (Story, context) => {
   const theme = readVariant(parameters.theme ?? context.globals.theme)
   const language = readLanguage(parameters.language ?? context.globals.locale)
   const dimensions = parameters.dimensions ?? { height: 640, width: 720 }
+  const direction = parameters.direction ?? 'ltr'
   const scenarioKey = `${context.id}|${language}|${theme}`
 
   const environment = useMemo(
@@ -41,10 +42,13 @@ export const withShipInfo: Decorator = (Story, context) => {
     <Providers environment={environment} theme={getTheme(theme)}>
       <div
         data-ship-info-scenario=""
+        dir={direction}
         style={{
           background: theme === 'dark' ? '#1c2127' : '#f6f7f9',
           boxSizing: 'border-box',
-          minHeight: dimensions.height,
+          display: 'flex',
+          flexDirection: 'column',
+          height: dimensions.height,
           padding: 16,
           width: dimensions.width,
         }}

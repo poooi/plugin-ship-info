@@ -11,9 +11,12 @@ export const clipboard = {
 
 export const remote = {
   dialog: {
-    showSaveDialog: async () => {
+    showSaveDialog: async (browserWindow?: unknown, options?: unknown) => {
       const result = { ...host.saveDialog }
-      host.log.saveDialogCalls.push(result)
+      host.log.saveDialogCalls.push({
+        options: options ?? browserWindow,
+        result,
+      })
       return result
     },
   },

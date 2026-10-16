@@ -12,6 +12,8 @@ const FA_TO_ICON: Record<string, IconName> = {
   filter: 'filter',
   lock: 'lock',
   plus: 'plus',
+  'sort-down': 'caret-down',
+  'sort-up': 'caret-up',
   tag: 'tag',
   tags: 'tags',
   times: 'cross',
@@ -19,7 +21,7 @@ const FA_TO_ICON: Record<string, IconName> = {
 
 const FontAwesome = ({ name }: { name?: string }) => {
   const icon: IconName = (name && FA_TO_ICON[name]) || 'help'
-  return <Icon icon={icon} title={name} />
+  return <Icon aria-hidden icon={icon} />
 }
 
 export default FontAwesome

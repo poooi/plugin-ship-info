@@ -7,6 +7,11 @@ export interface SaveDialogResult {
   filePath?: string
 }
 
+export interface SaveDialogCall {
+  options: unknown
+  result: SaveDialogResult
+}
+
 export interface WrittenFile {
   data: unknown
   path: string
@@ -16,7 +21,8 @@ export interface HostLog {
   clipboardWrites: string[]
   downloads: string[]
   files: Record<string, unknown>
-  saveDialogCalls: SaveDialogResult[]
+  saveDialogCalls: SaveDialogCall[]
+  writeErrors: WrittenFile[]
   writtenFiles: WrittenFile[]
 }
 
@@ -25,15 +31,18 @@ const createLog = (): HostLog => ({
   downloads: [],
   files: {},
   saveDialogCalls: [],
+  writeErrors: [],
   writtenFiles: [],
 })
 
 export const host = {
+  failFileWrites: false,
   log: createLog(),
   saveDialog: { canceled: true } as SaveDialogResult,
 }
 
 export const resetHostState = () => {
+  host.failFileWrites = false
   host.log = createLog()
   host.saveDialog = { canceled: true }
 }
@@ -44,4 +53,8 @@ export const setInitialFiles = (files?: Record<string, unknown>) => {
 
 export const setSaveDialogResult = (result?: SaveDialogResult) => {
   host.saveDialog = result ?? { canceled: true }
+}
+
+export const setFileWriteFailure = (fail = false) => {
+  host.failFileWrites = fail
 }
