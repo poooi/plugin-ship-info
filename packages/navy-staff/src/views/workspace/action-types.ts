@@ -7,7 +7,10 @@ export const NAVY_ACTIONS = {
   create: `@@${PLUGIN_KEY}@ws-create`,
   delete: `@@${PLUGIN_KEY}@ws-delete`,
   moveShip: `@@${PLUGIN_KEY}@ws-move-ship`,
+  redo: `@@${PLUGIN_KEY}@ws-redo`,
   removeShip: `@@${PLUGIN_KEY}@ws-remove-ship`,
   rename: `@@${PLUGIN_KEY}@ws-rename`,
+  restore: `@@${PLUGIN_KEY}@ws-restore`,
   select: `@@${PLUGIN_KEY}@ws-select`,
+  undo: `@@${PLUGIN_KEY}@ws-undo`,
 } as const

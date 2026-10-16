@@ -56,6 +56,7 @@ export type NavyOperation =
   | { kind: 'add-ship'; areaId: string; shipId: number }
   | { kind: 'remove-ship'; areaId: string; shipId: number }
   | { kind: 'move-ship'; fromAreaId: string; toAreaId: string; shipId: number }
+  | { kind: 'restore'; from: string }
 
 export interface NavyRevision {
   /** Stable revision ID; the history layer uses it as `previewRevisionId`. */

@@ -1,8 +1,11 @@
+import { get } from 'lodash'
 import { rgba } from 'polished'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
+import { connect } from 'react-redux'
 import styled from 'styled-components'
 import { getShipImgPath } from 'views/utils/ship-img'
+import type { IState } from 'views/utils/selectors'
 
 import type { WorkspaceShipRow } from '../workspace/selectors'
 
@@ -97,13 +100,18 @@ interface IProps {
   color: string
   useAvatar: boolean
   ip: string
-  onClick: () => void
-  onContextmenu: () => void
+  onClick?: () => void
+  onContextmenu?: () => void
 }
 
-// Grid cells are always interactive: manual planning is never blocked by a live
-// sortie tag, and saved ships absent from the roster stay visible.
-export const ShipItem = ({ row, color, useAvatar, ip, onClick, onContextmenu }: IProps) => {
+const ShipItemBase = ({
+  row,
+  color,
+  useAvatar,
+  ip,
+  onClick,
+  onContextmenu,
+}: IProps) => {
   const { t } = useTranslation(['poi-plugin-navy-staff', 'resources'])
   const name = row.live
     ? t(row.name ?? '', { ns: 'resources' })
@@ -119,12 +127,16 @@ export const ShipItem = ({ row, color, useAvatar, ip, onClick, onContextmenu }: 
       useAvatar={useAvatar}
       onClick={onClick}
       onContextMenu={onContextmenu}
-      onKeyDown={(event) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault()
-          onClick()
-        }
-      }}
+      onKeyDown={
+        onClick
+          ? (event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault()
+                onClick()
+              }
+            }
+          : undefined
+      }
     >
       {useAvatar && imageMasterId !== null && (
         <ShipAvatar
@@ -141,3 +153,8 @@ export const ShipItem = ({ row, color, useAvatar, ip, onClick, onContextmenu }: 
     </ShipGridCell>
   )
 }
+
+export const ShipItem = connect((state: IState) => ({
+  ip: get(state, 'info.server.ip', '203.104.209.71'),
+  useAvatar: get(state, ['config', 'poi', 'appearance', 'avatar'], true),
+}))(ShipItemBase)

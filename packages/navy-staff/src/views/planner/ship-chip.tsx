@@ -23,11 +23,13 @@ interface IProps {
   row: WorkspaceShipRow
   others: AreaChoice[]
   planAreaId: string
+  readOnly: boolean
 }
 
 // A saved ship row. There is no automatic reconciliation: the chip never moves
-// itself to a live sortie tag, and removing/moving is always explicit.
-export const ShipChip = ({ row, others, planAreaId }: IProps) => {
+// itself to a live sortie tag, and removing/moving is always explicit. A history
+// preview renders the same chip read-only.
+export const ShipChip = ({ row, others, planAreaId, readOnly }: IProps) => {
   const dispatch = useDispatch<ThunkDispatch<IState, unknown, Action>>()
   const { t } = useTranslation(['poi-plugin-navy-staff', 'resources'])
 
@@ -42,13 +44,16 @@ export const ShipChip = ({ row, others, planAreaId }: IProps) => {
   return (
     <Chip
       minimal
-      interactive
-      onRemove={() => dispatch(removeShipFromArea(planAreaId, row.ownedId))}
-      onContextMenu={() => dispatch(removeShipFromArea(planAreaId, row.ownedId))}
+      interactive={!readOnly}
+      onRemove={readOnly ? undefined : () => dispatch(removeShipFromArea(planAreaId, row.ownedId))}
+      onContextMenu={
+        readOnly ? undefined : () => dispatch(removeShipFromArea(planAreaId, row.ownedId))
+      }
     >
       <Popover
         position={Position.TOP}
         hasBackdrop
+        disabled={readOnly}
         content={
           <Menu>
             {others.map((area) => (

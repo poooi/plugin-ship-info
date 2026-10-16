@@ -237,3 +237,26 @@ Layer 1 (workspaces, captured metadata, v2 migration, usable UI) is implemented 
 - Exported for later layers: workspace types and factories, the operation append helper, plain action creators, thunks, selectors (`areaViewsSelector`, `gridRowsSelector`, `ownerStatusSelector`, `assignedShipIdsSelector`, and related), and the migration/validation helpers.
 
 Verification: `pnpm run check`, `pnpm test` (111 passed), `pnpm run test:browser` (103 passed), `pnpm run build`, `pnpm run build-storybook`, `pnpm run pack`, `pnpm run verify:package`, and `git diff --check` pass. The persistence boundary additionally rejects duplicate workspace ids and duplicate revision ids. Browser regressions cover workspace CRUD and switching, delete/rename confirmation invalidated by a selection change, duplicate/source independence, palette selection not recoloring unedited ships, and an unknown-master row never borrowing owned-ID artwork. Packed-artifact checks cover the v2 migration, legacy archive preservation, independent plugin saves, and no writes after unload. Local GPT-6.1-Sol review findings were fixed and the focused follow-up found no remaining actionable issues. Undo/redo, preview, explicit synchronization, and reference import/export remain for later layers.
+
+## 14. History layer
+
+The linear history from section 6 is implemented in `packages/navy-staff`.
+
+- The durable workspace keeps its revision list and editable cursor. Undo and redo move the cursor; a new edit after undo discards the redo tail. Every revision keeps a stable id and operation time, and its operation kind and summary parameters.
+- Restore resolves the target revision before appending, copies it as one new revision at the cursor (discarding any redo tail), and leaves workspace identity metadata unchanged. A missing target or a target whose content equals the current content is a no-op.
+- The transient `previewRevisionId` lives in React state provided by `NavyStaffContent`, not in the observed persistence slice. Opening or closing a preview therefore dispatches no action and writes no file. Switching workspaces closes the preview, and a preview is invalidated if an edit removes its target. Restore leaves the preview so Undo applies to the restored revision immediately.
+- A preview is read-only in both views and renders captured records only: no live overlay, no fleet badges, and no live-only roster. While previewing, add, move, remove, and rename are disabled; workspace switching stays available.
+- The reusable display-content boundary (`workspace/display.ts`, `buildDisplayContent`) produces both the editable view models (with a live overlay when the owner matches) and the captured-only view models used by previews and the future reference export.
+
+Verification: `pnpm run check`, `pnpm test` (121 passed, including undo/redo, divergent edit, restore of a target in the redo tail, workspace isolation, reloaded cursor/history, and a jsdom test proving preview toggling dispatches nothing), and `pnpm run test:browser` (109 passed, including read-only area and grid previews, a preview showing the captured level while editing shows the live level, restore followed by immediate undo, preview closing on workspace switch, a pending rename closing on preview, and a lifecycle scenario proving preview toggling writes no file).
+
+### Long-history measurement
+
+`scripts/benchmark-navy-history.mjs` is a standalone acceptance measurement (not a unit test, no timing gate). It builds a clearly labeled synthetic corpus in the version 2 serializer shape with full-state revisions and no pruning, then records serialized size, `JSON.stringify` time, and real file-write time on this environment (Node 24.22.0, pinned):
+
+| Scenario | Revisions | Serialized bytes | stringify | write |
+| --- | --- | --- | --- | --- |
+| 100 ops / ~100 ships | 101 | 766,591 (~749 KiB) | 1.5 ms | 0.9 ms |
+| 1000 ops / 480 ships | 1001 | 54,201,352 (~52 MiB) | 79.9 ms | 42.5 ms |
+
+These are synthetic single-run figures on local cached I/O; they are not a durability or slow-disk guarantee, and write latency may be much higher on slower or uncached storage. File growth is linear in retained operations (each retained revision is a full snapshot, so a larger plan raises the per-revision size), and no pruning is implemented. Retention or a compaction strategy remains a separate, visible product decision.

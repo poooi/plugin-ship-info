@@ -15,13 +15,17 @@ import {
 } from '../packages/navy-staff/src/views/plugin-identity'
 import { createPersistence } from '../packages/navy-staff/src/views/persistence'
 import { reducer as navyReducer } from '../packages/navy-staff/src/views/redux'
+import type { NavyWorkspace } from '../packages/navy-staff/src/views/workspace/types'
 import {
   onAddShip,
   onDeleteWorkspace,
   onMoveShip,
+  onRedo,
   onRemoveShip,
   onRenameWorkspace,
+  onRestore,
   onSelectWorkspace,
+  onUndo,
 } from '../packages/navy-staff/src/views/workspace/creators'
 
 type NavySlice = {
@@ -109,7 +113,7 @@ const mkWorkspace = ({
   id?: string
   name?: string
   ownerMemberId?: string | null
-} = {}) => {
+} = {}): NavyWorkspace => {
   const areas = [area('area-1', 0), area('area-2', 1)]
   return {
     createdAt: NOW,
@@ -241,6 +245,99 @@ describe('Navy workspace reducer', () => {
     const state = init(mkNavy([mkWorkspace()], 'ws-1'))
     expect(navyReducer(state, onSelectWorkspace({ id: 'nope' }))).toBe(state)
   })
+
+  it('keeps transient preview out of the durable slice shape', () => {
+    const state = init(mkNavy())
+    expect(Object.keys(state)).toEqual(['error', 'navy', 'ready'])
+    expect(state.navy).not.toHaveProperty('preview')
+  })
+})
+
+describe('Navy history', () => {
+  const add = (state: NavySlice, shipId: number) =>
+    navyReducer(
+      state,
+      onAddShip({ areaId: 'area-1', now: NOW, record: record(shipId), shipId }),
+    )
+  const withHistory = () => {
+    let state = init(mkNavy([mkWorkspace({ current: [[], []] })]))
+    state = add(state, 10)
+    state = add(state, 20)
+    return state
+  }
+  const workspaceOf = (state: NavySlice) => state.navy.workspaces[0]
+  const idsOf = (state: NavySlice) =>
+    Object.values(assignmentsOf(state)).flat()
+
+  it('undo/redo move the cursor and a new edit discards the redo tail', () => {
+    let state = withHistory()
+    expect(workspaceOf(state).cursor).toBe(2)
+    expect(idsOf(state)).toEqual([10, 20])
+
+    state = navyReducer(state, onUndo())
+    expect(workspaceOf(state).cursor).toBe(1)
+    expect(idsOf(state)).toEqual([10])
+
+    state = navyReducer(state, onRedo())
+    expect(workspaceOf(state).cursor).toBe(2)
+    expect(idsOf(state)).toEqual([10, 20])
+
+    state = navyReducer(state, onUndo())
+    state = add(state, 30)
+    expect(workspaceOf(state).revisions).toHaveLength(3)
+    expect(workspaceOf(state).cursor).toBe(2)
+    expect(idsOf(state)).toEqual([10, 30])
+  })
+
+  it('undo and redo are no-ops at the ends of the history', () => {
+    const state = init(mkNavy([mkWorkspace({ current: [[], []] })]))
+    expect(navyReducer(state, onUndo())).toBe(state)
+    expect(navyReducer(state, onRedo())).toBe(state)
+  })
+
+  it('restore resolves and copies a target in the redo tail before truncation', () => {
+    let state = withHistory()
+    const targetId = workspaceOf(state).revisions[2].id
+    // Move the cursor to the start so the target sits in the redo tail.
+    state = navyReducer(state, onUndo())
+    state = navyReducer(state, onUndo())
+    expect(workspaceOf(state).cursor).toBe(0)
+
+    state = navyReducer(state, onRestore({ id: targetId, now: NOW }))
+    // One revision (copy of the target) was appended after the cursor.
+    expect(workspaceOf(state).revisions).toHaveLength(2)
+    expect(workspaceOf(state).cursor).toBe(1)
+    expect(idsOf(state)).toEqual([10, 20])
+    expect(workspaceOf(state).revisions[1].op).toEqual({
+      from: targetId,
+      kind: 'restore',
+    })
+  })
+
+  it('restore is a no-op when the target equals the current content', () => {
+    const state = withHistory()
+    const currentId = workspaceOf(state).revisions[2].id
+    expect(navyReducer(state, onRestore({ id: currentId, now: NOW }))).toBe(state)
+  })
+
+  it('restore rejects a missing target', () => {
+    const state = withHistory()
+    expect(navyReducer(state, onRestore({ id: 'missing', now: NOW }))).toBe(state)
+  })
+
+  it('keeps independent cursors per workspace', () => {
+    const a = mkWorkspace({ id: 'ws-a', current: [[], []] })
+    const b = mkWorkspace({ id: 'ws-b', current: [[], []] })
+    let state = init(mkNavy([a, b], 'ws-a'))
+    state = add(state, 10)
+    const bBefore = state.navy.workspaces.find((w) => w.id === 'ws-b')!
+    expect(bBefore.revisions).toHaveLength(1)
+
+    state = navyReducer(state, onSelectWorkspace({ id: 'ws-b' }))
+    expect(navyReducer(state, onUndo())).toBe(state)
+    const aAfter = state.navy.workspaces.find((w) => w.id === 'ws-a')!
+    expect(aAfter.cursor).toBe(1)
+  })
 })
 
 describe('Navy persistence migration', () => {
@@ -308,6 +405,40 @@ describe('Navy persistence migration', () => {
     })
     persistence.start(store)
     await waitFor(() => sliceOf(store).ready)
+    expect(writes).toHaveLength(0)
+    persistence.stop()
+  })
+
+  it('persists and reloads the cursor and full history', async () => {
+    const store = createStore()
+    const ws = mkWorkspace({ current: [[], []] })
+    const base = ws.revisions[0]
+    ws.revisions = [
+      base,
+      {
+        content: {
+          ...base.content,
+          assignments: { ...base.content.assignments, 'area-1': [10] },
+        },
+        id: 'rev-2',
+        op: { areaId: 'area-1', kind: 'add-ship', shipId: 10 },
+        time: NOW,
+      },
+    ]
+    ws.cursor = 0
+    const { writer, writes } = recordingWriter()
+    const persistence = createPersistence({
+      dataPath: NAVY,
+      isMain: true,
+      legacyDataPath: LEGACY,
+      readFile: readFrom({ [NAVY]: { ...mkNavy([ws]), version: 2 } }),
+      writer,
+    })
+    persistence.start(store)
+    await waitFor(() => sliceOf(store).ready)
+    const loaded = sliceOf(store).navy.workspaces[0]
+    expect(loaded.cursor).toBe(0)
+    expect(loaded.revisions).toHaveLength(2)
     expect(writes).toHaveLength(0)
     persistence.stop()
   })

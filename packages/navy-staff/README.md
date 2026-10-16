@@ -15,12 +15,19 @@ Localized display names:
 The package name remains `poi-plugin-navy-staff`.
 
 Plans which ship girls to send to each sortie area, with an area view and a ship
-grid view, add/move/remove (including tag synchronization with the host), and
-an image export in detached windows.
+grid view, manual add/move/remove, and an image export in detached windows. Live
+sortie tags are never applied automatically; they will be offered through an
+explicit synchronization action in a later layer.
 
 The main view shows the planner tabs directly. It owns its own plugin state and
 saved file (`poi-plugin-navy-staff.json`) and imports an existing sortie plan
 from Ship Info's legacy data the first time it runs.
+
+Each workspace keeps a linear operation history. Undo and redo move the editable
+cursor, a new edit discards the redo tail, and selecting an earlier revision
+opens a read-only preview (captured records only). Restoring a previewed revision
+appends one new undoable revision. History previews are transient and never
+write to the saved file.
 
 Saved files use format `version: 2`, with independent workspaces and captured
 area labels and colors. Existing unversioned and v1 plans migrate on load,

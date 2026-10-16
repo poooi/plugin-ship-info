@@ -493,3 +493,224 @@ export const DuplicateIsIndependentOfSource: Story = {
     await expect((idsOf(duplicateId) as number[]).sort()).toEqual([1, 5])
   },
 }
+
+// A single workspace with two revisions so history controls are available.
+const historyNavy = () => {
+  const navy = mkNavyData({ current: [[1], []] })
+  const workspace = navy.workspaces[0]
+  const base = workspace.revisions[0]
+  workspace.revisions = [
+    base,
+    {
+      content: {
+        ...base.content,
+        assignments: { ...base.content.assignments, 'area-1': [1, 5] },
+      },
+      id: 'rev-2',
+      op: { areaId: 'area-1', kind: 'add-ship', shipId: 5 },
+      time: '2026-01-02T00:00:00.000Z',
+    },
+  ]
+  workspace.cursor = 1
+  return navy
+}
+
+const twoWorkspacesWithHistory = () => {
+  const navy = twoWorkspaceNavy()
+  const first = navy.workspaces[0]
+  const base = first.revisions[0]
+  first.revisions = [
+    base,
+    {
+      content: {
+        ...base.content,
+        assignments: { ...base.content.assignments, 'area-1': [1, 5] },
+      },
+      id: 'rev-1b',
+      op: { areaId: 'area-1', kind: 'add-ship', shipId: 5 },
+      time: '2026-01-02T00:00:00.000Z',
+    },
+  ]
+  first.cursor = 1
+  return navy
+}
+
+export const PreviewClosesWhenSwitchingWorkspace: Story = {
+  name: 'A history preview closes when switching away and does not reappear',
+  parameters: params(withNavy(twoWorkspacesWithHistory())),
+  play: async () => {
+    await openPlanner()
+    const environment = getEnvironment()
+    const select = screen.getByLabelText('Workspace') as HTMLSelectElement
+
+    // Open a preview of the older revision of workspace A.
+    await userEvent.selectOptions(
+      screen.getByLabelText('History') as HTMLSelectElement,
+      'rev-1',
+    )
+    await expect(
+      screen.getByText('Viewing an earlier revision (read-only)'),
+    ).toBeTruthy()
+
+    // Switch to B and back to A.
+    await userEvent.selectOptions(select, 'ws-2')
+    await waitFor(async () => {
+      await expect(plannerSlice(environment).selectedWorkspaceId).toBe('ws-2')
+    })
+    await userEvent.selectOptions(select, 'ws-1')
+    await waitFor(async () => {
+      await expect(plannerSlice(environment).selectedWorkspaceId).toBe('ws-1')
+    })
+
+    // The preview is gone, not resurrected.
+    await expect(
+      screen.queryByText('Viewing an earlier revision (read-only)'),
+    ).toBeNull()
+  },
+}
+
+export const RenameEditorClosedWhenEnteringPreview: Story = {
+  name: 'Entering a preview closes a pending rename and blocks confirmation',
+  parameters: params(withNavy(historyNavy())),
+  play: async () => {
+    await openPlanner()
+
+    // Open the rename editor.
+    await userEvent.click(screen.getByRole('button', { name: 'Rename' }))
+    await expect(screen.getByLabelText('Workspace name')).toBeTruthy()
+
+    // Enter a preview by selecting the older revision.
+    await userEvent.selectOptions(
+      screen.getByLabelText('History') as HTMLSelectElement,
+      'rev-1',
+    )
+    await waitFor(async () => {
+      await expect(
+        screen.getByText('Viewing an earlier revision (read-only)'),
+      ).toBeTruthy()
+    })
+
+    // The pending rename editor is closed and cannot be confirmed.
+    await expect(screen.queryByLabelText('Workspace name')).toBeNull()
+    await expect(screen.queryByRole('button', { name: 'Confirm' })).toBeNull()
+  },
+}
+
+// A saved record for ship 3 (level 5) while the live roster has Gamma Lv.150,
+// plus a second revision so history controls are available.
+const savedVsLiveNavy = () => {
+  const navy = mkNavyData({ current: [[3], []], ownerMemberId: '123' })
+  const workspace = navy.workspaces[0]
+  const base = workspace.revisions[0]
+  base.content.ships = {
+    '3': {
+      level: 5,
+      masterId: 3,
+      name: 'Gamma',
+      observedAt: '2026-01-01T00:00:00.000Z',
+      ownedId: 3,
+      typeId: 3,
+      typeLabel: 'CL',
+    },
+  }
+  workspace.revisions = [
+    base,
+    {
+      content: { ...base.content, name: 'Renamed' },
+      id: 'rev-2',
+      op: { kind: 'rename', name: 'Renamed' },
+      time: '2026-01-02T00:00:00.000Z',
+    },
+  ]
+  workspace.cursor = 1
+  return navy
+}
+
+export const PreviewShowsSavedLevelNotLive: Story = {
+  name: 'A preview shows the captured level, not the current live level',
+  parameters: params(withNavy(savedVsLiveNavy())),
+  play: async () => {
+    await openPlanner()
+
+    // Editing overlays the live level (Gamma Lv.150).
+    await expect(within(areaCard('E1')).getByText(/Lv\.150/)).toBeTruthy()
+
+    // Previewing the older revision shows the captured level (Lv.5).
+    await userEvent.selectOptions(
+      screen.getByLabelText('History') as HTMLSelectElement,
+      'rev-1',
+    )
+    await waitFor(async () => {
+      await expect(
+        screen.getByText('Viewing an earlier revision (read-only)'),
+      ).toBeTruthy()
+    })
+    await expect(within(areaCard('E1')).getByText(/Lv\.5/)).toBeTruthy()
+    await expect(within(areaCard('E1')).queryByText(/Lv\.150/)).toBeNull()
+  },
+}
+
+export const PreviewIsReadOnlyInBothViews: Story = {
+  name: 'A preview is read-only in both the area and grid views',
+  parameters: params(withNavy(historyNavy())),
+  play: async () => {
+    await openPlanner()
+    const environment = getEnvironment()
+
+    await userEvent.selectOptions(
+      screen.getByLabelText('History') as HTMLSelectElement,
+      'rev-1',
+    )
+    await waitFor(async () => {
+      await expect(
+        screen.getByText('Viewing an earlier revision (read-only)'),
+      ).toBeTruthy()
+    })
+
+    // Area view: no live picker and no chip removal.
+    await expect(
+      within(areaCard('E1')).queryByRole('button', { name: 'Add ship' }),
+    ).toBeNull()
+    await expect(
+      screen.queryByRole('button', { name: 'Remove tag' }),
+    ).toBeNull()
+
+    // Grid view: no palette and clicking a cell changes nothing.
+    await userEvent.click(screen.getByRole('tab', { name: 'Ship Grid' }))
+    await expect(screen.queryByRole('button', { name: 'None' })).toBeNull()
+    const before = [...assignedShipIds(environment)].sort()
+    await userEvent.click(screen.getByRole('button', { name: /Lv\./ }))
+    await expect([...assignedShipIds(environment)].sort()).toEqual(before)
+  },
+}
+
+export const RestoreThenUndo: Story = {
+  name: 'Restore appends one revision and Undo immediately works',
+  parameters: params(withNavy(historyNavy())),
+  play: async () => {
+    await openPlanner()
+    const environment = getEnvironment()
+
+    await userEvent.selectOptions(
+      screen.getByLabelText('History') as HTMLSelectElement,
+      'rev-1',
+    )
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Restore this revision' }),
+    )
+
+    await waitFor(async () => {
+      const workspace = plannerSlice(environment).workspaces[0]
+      await expect(workspace.cursor).toBe(2)
+      await expect(workspace.revisions).toHaveLength(3)
+    })
+    // Restoring leaves preview, so Undo operates on the restored revision.
+    await expect(
+      screen.queryByText('Viewing an earlier revision (read-only)'),
+    ).toBeNull()
+    await userEvent.click(screen.getByRole('button', { name: 'Undo' }))
+    await waitFor(async () => {
+      await expect(plannerSlice(environment).workspaces[0].cursor).toBe(1)
+    })
+  },
+}

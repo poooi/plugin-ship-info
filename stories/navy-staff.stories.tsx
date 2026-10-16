@@ -7,6 +7,7 @@ import { WindowEnv } from 'views/components/etc/window-env'
 
 import { createNavyOnlyI18n } from '../preview/i18n'
 import { host } from '../preview/adapters/logs'
+import { mkNavyData } from '../tests/ui/fixtures'
 import {
   assignedShipIds,
   NAVY_PLUGIN_DATA_PATH,
@@ -287,5 +288,63 @@ export const UpgradesStoredFileAndSaves: Story = {
     await expect(
       (host.log.files[NAVY_PLUGIN_DATA_PATH] as any)?.version,
     ).toBe(2)
+  },
+}
+
+const previewFileNavy = () => {
+  const navy = mkNavyData({ current: [[1], []], ownerMemberId: '123' })
+  const workspace = navy.workspaces[0]
+  const base = workspace.revisions[0]
+  workspace.revisions = [
+    base,
+    {
+      content: { ...base.content, name: 'Renamed' },
+      id: 'rev-2',
+      op: { kind: 'rename', name: 'Renamed' },
+      time: '2026-01-02T00:00:00.000Z',
+    },
+  ]
+  workspace.cursor = 1
+  return { ...navy, version: 2 }
+}
+
+export const HistoryPreviewWritesNothing: Story = {
+  name: 'Opening and closing a history preview writes no file',
+  parameters: {
+    shipInfo: {
+      dimensions: { width: 1400, height: 760 },
+      files: { [NAVY_PLUGIN_DATA_PATH]: previewFileNavy() },
+      lifecycle: true,
+      plugin: 'navy-staff',
+      state: plannerScenarioState(),
+    },
+  },
+  play: async () => {
+    await playOnMainView()
+    const environment = getEnvironment()
+    await waitFor(() => {
+      expect(environment.store.getState()['poi-plugin-navy-staff'].ready).toBe(true)
+    })
+
+    const fileText = () => JSON.stringify(host.log.files[NAVY_PLUGIN_DATA_PATH])
+    const before = fileText()
+
+    await userEvent.selectOptions(
+      screen.getByLabelText('History') as HTMLSelectElement,
+      'rev-1',
+    )
+    await expect(
+      screen.getByText('Viewing an earlier revision (read-only)'),
+    ).toBeTruthy()
+
+    await userEvent.selectOptions(
+      screen.getByLabelText('History') as HTMLSelectElement,
+      'rev-2',
+    )
+    await expect(
+      screen.queryByText('Viewing an earlier revision (read-only)'),
+    ).toBeNull()
+
+    expect(fileText()).toBe(before)
   },
 }

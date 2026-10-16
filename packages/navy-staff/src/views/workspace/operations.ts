@@ -104,3 +104,7 @@ export const assignedShipIds = (content: NavyWorkspaceContent): number[] => {
   }
   return ids
 }
+
+/** Stable serialization used to detect an unchanged restore target. */
+export const contentFingerprint = (content: NavyWorkspaceContent): string =>
+  JSON.stringify(content)

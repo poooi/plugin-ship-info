@@ -87,3 +87,13 @@ export const onMoveShip = ({
   record,
   now,
 })
+
+export const onUndo = () => ({ type: NAVY_ACTIONS.undo })
+
+export const onRedo = () => ({ type: NAVY_ACTIONS.redo })
+
+export const onRestore = ({ id, now }: { id: string; now: string }) => ({
+  type: NAVY_ACTIONS.restore,
+  id,
+  now,
+})

@@ -1,4 +1,8 @@
 import { mkMstShip, mkShip } from '../fixtures'
+import type {
+  NavyData,
+  NavyWorkspace,
+} from '../../packages/navy-staff/src/views/workspace/types'
 
 // Pure fixture state factories shared by every UI consumer (jsdom tests,
 // Storybook, real Chromium tests). Deliberately free of jsdom geometry and of
@@ -110,7 +114,7 @@ export const mkNavyWorkspace = ({
   name?: string
   ownerMemberId?: string | null
   areas?: ReturnType<typeof mkNavyArea>[]
-} = {}) => {
+} = {}): NavyWorkspace => {
   const resolvedAreas =
     areas ?? [
       mkNavyArea({ id: 'area-1', label: 'E1', color: '#ff0000', tagSlot: 0 }),
@@ -136,7 +140,9 @@ export const mkNavyWorkspace = ({
   }
 }
 
-export const mkNavyData = (options: Parameters<typeof mkNavyWorkspace>[0] = {}) => {
+export const mkNavyData = (
+  options: Parameters<typeof mkNavyWorkspace>[0] = {},
+): NavyData => {
   const workspace = mkNavyWorkspace(options)
   return {
     legacyArchive: {} as Record<string, unknown>,

@@ -5,6 +5,7 @@ import { NAVY_ACTIONS } from './action-types'
 import {
   appendRevision,
   contentAtCursor,
+  contentFingerprint,
   moveShip,
   placeShip,
   removeShipFromArea,
@@ -51,6 +52,37 @@ export const navyReducer = (
       }
       if (state.selectedWorkspaceId === action.id) return state
       return { ...state, selectedWorkspaceId: action.id as string }
+    }
+    case NAVY_ACTIONS.undo: {
+      const workspace = selectedWorkspace(state)
+      if (!workspace || workspace.cursor <= 0) return state
+      return replaceWorkspace(state, { ...workspace, cursor: workspace.cursor - 1 })
+    }
+    case NAVY_ACTIONS.redo: {
+      const workspace = selectedWorkspace(state)
+      if (!workspace || workspace.cursor >= workspace.revisions.length - 1) {
+        return state
+      }
+      return replaceWorkspace(state, { ...workspace, cursor: workspace.cursor + 1 })
+    }
+    case NAVY_ACTIONS.restore: {
+      const workspace = selectedWorkspace(state)
+      if (!workspace) return state
+      const target = workspace.revisions.find((revision) => revision.id === action.id)
+      if (!target) return state
+      const current = contentAtCursor(workspace)
+      if (contentFingerprint(target.content) === contentFingerprint(current)) {
+        return state
+      }
+      return replaceWorkspace(
+        state,
+        appendRevision(
+          workspace,
+          { from: action.id as string, kind: 'restore' },
+          target.content,
+          action.now as string,
+        ),
+      )
     }
     case NAVY_ACTIONS.delete: {
       const workspaces = state.workspaces.filter(

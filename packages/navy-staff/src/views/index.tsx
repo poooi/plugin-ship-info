@@ -19,6 +19,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react'
@@ -32,6 +33,7 @@ import { extensionSelectorFactory, IState } from 'views/utils/selectors'
 
 import { Checkbox, CheckboxLabel, CheckboxOption } from '@poi-plugins/ship-info-shared/ui/checkbox'
 import { poiSurface } from '@poi-plugins/ship-info-shared/ui/styles'
+import { HistoryBar } from './history'
 import { captureRect } from './planner/capture'
 import { Area } from './planner/area'
 import { ShipGrid } from './planner/ship-grid'
@@ -45,10 +47,18 @@ import {
   onSelectWorkspace,
 } from './workspace/actions'
 import {
-  areaViewsSelector,
+  PreviewContext,
+  usePreview,
+  type PreviewTarget,
+} from './workspace/preview'
+import {
+  capturedDisplayContent,
+  editingDisplayContentSelector,
   ownerStatusSelector,
   selectedWorkspaceIdSelector,
+  selectedWorkspaceSelector,
   workspacesSelector,
+  type DisplayContent,
 } from './workspace/selectors'
 
 export { reducer } from './redux'
@@ -108,7 +118,7 @@ const OwnerNote = styled.span`
   opacity: 0.8;
 `
 
-const WorkspaceManager = () => {
+const WorkspaceManager = ({ readOnly }: { readOnly: boolean }) => {
   const dispatch = useDispatch<ThunkDispatch<IState, unknown, Action>>()
   const workspaces = useSelector(workspacesSelector)
   const selectedId = useSelector(selectedWorkspaceIdSelector)
@@ -122,13 +132,21 @@ const WorkspaceManager = () => {
 
   const selected = workspaces.find((workspace) => workspace.id === selectedId)
 
-  // A pending rename/delete must never apply to a different workspace than the
-  // one it was opened for. Reset both whenever the selection changes.
   useEffect(() => {
     setRenaming(false)
     setRenameTarget(null)
     setDeleteTarget(null)
   }, [selectedId])
+
+  // Entering a read-only preview closes any pending rename/delete so a stale
+  // confirmation cannot mutate content while previewing.
+  useEffect(() => {
+    if (readOnly) {
+      setRenaming(false)
+      setRenameTarget(null)
+      setDeleteTarget(null)
+    }
+  }, [readOnly])
 
   const ownerNote = ownerStatus.matches
     ? t('Live roster linked')
@@ -160,6 +178,7 @@ const WorkspaceManager = () => {
           />
           <Button
             intent={Intent.PRIMARY}
+            disabled={readOnly}
             onClick={() => {
               dispatch(
                 onRenameWorkspace({
@@ -193,7 +212,7 @@ const WorkspaceManager = () => {
           </Button>
           <Button
             icon="edit"
-            disabled={!selected}
+            disabled={!selected || readOnly}
             onClick={() => {
               if (!selected) return
               setNameDraft(selected.revisions[selected.cursor].content.name)
@@ -240,17 +259,19 @@ const WorkspaceManager = () => {
   )
 }
 
-interface IPlannerContentProps {
+const PlannerContent = ({
+  activeTab,
+  display,
+  readOnly,
+}: {
   activeTab: string
-}
-
-const PlannerContent = ({ activeTab }: IPlannerContentProps) => {
-  const dispatch = useDispatch<ThunkDispatch<IState, unknown, Action>>()
-  const areas = useSelector(areaViewsSelector)
-  const ownerStatus = useSelector(ownerStatusSelector)
+  display: DisplayContent
+  readOnly: boolean
+}) => {
   const displayFleetName = useSelector((state: IState) =>
     get(state.config, DISPLAY_FLEET_NAME_CONFIG, false),
   )
+  const ownerStatus = useSelector(ownerStatusSelector)
   const { t } = useTranslation('poi-plugin-navy-staff')
   const [fill, setFill] = useState<string | null>(null)
   const captureSection = useRef<HTMLDivElement>(null)
@@ -264,13 +285,13 @@ const PlannerContent = ({ activeTab }: IPlannerContentProps) => {
     if (captureSection.current) captureRect(captureSection.current)
   }, [])
 
-  const areaChoices = areas.map((area) => ({
+  const areaChoices = display.areas.map((area) => ({
     color: area.color,
     id: area.id,
     label: resolveAreaLabel(area, displayFleetName),
   }))
 
-  const fillArea = areas.find((area) => area.id === fill)
+  const fillArea = display.areas.find((area) => area.id === fill)
 
   return (
     <div>
@@ -287,17 +308,18 @@ const PlannerContent = ({ activeTab }: IPlannerContentProps) => {
         )}
       </ActionPanel>
       <Callout intent={Intent.PRIMARY}>{t('helpContent')}</Callout>
-      {areas.length === 0 ? (
+      {display.areas.length === 0 ? (
         <Callout>{t('No areas captured')}</Callout>
       ) : activeTab === 'area' ? (
         <div>
           <div ref={captureSection}>
-            {areas.map((area) => (
+            {display.areas.map((area) => (
               <Area
                 key={area.id}
                 area={area}
                 others={areaChoices.filter((choice) => choice.id !== area.id)}
                 displayFleetName={displayFleetName}
+                readOnly={readOnly}
                 canAdd={ownerStatus.matches}
               />
             ))}
@@ -305,24 +327,31 @@ const PlannerContent = ({ activeTab }: IPlannerContentProps) => {
         </div>
       ) : (
         <div>
-          <Palette color={fillArea?.color ?? '#000'}>
-            <Checkbox>
-              <CheckboxLabel>{t('Palette')}</CheckboxLabel>
-              <CheckboxOption key="none" checked={fill === null} onClick={() => setFill(null)}>
-                {t('None')}
-              </CheckboxOption>
-              {areas.map((area) => (
-                <CheckboxOption
-                  key={area.id}
-                  checked={fill === area.id}
-                  onClick={() => setFill(area.id)}
-                >
-                  {resolveAreaLabel(area, displayFleetName)}
+          {!readOnly && (
+            <Palette color={fillArea?.color ?? '#000'}>
+              <Checkbox>
+                <CheckboxLabel>{t('Palette')}</CheckboxLabel>
+                <CheckboxOption key="none" checked={fill === null} onClick={() => setFill(null)}>
+                  {t('None')}
                 </CheckboxOption>
-              ))}
-            </Checkbox>
-          </Palette>
-          <ShipGrid fill={fill} ref={captureSection as RefObject<any>} />
+                {display.areas.map((area) => (
+                  <CheckboxOption
+                    key={area.id}
+                    checked={fill === area.id}
+                    onClick={() => setFill(area.id)}
+                  >
+                    {resolveAreaLabel(area, displayFleetName)}
+                  </CheckboxOption>
+                ))}
+              </Checkbox>
+            </Palette>
+          )}
+          <ShipGrid
+            display={display}
+            fill={fill}
+            readOnly={readOnly}
+            ref={captureSection as RefObject<any>}
+          />
         </div>
       )}
     </div>
@@ -345,10 +374,45 @@ const Body = styled.div`
 
 const NavyStaffContent = () => {
   const [activeTab, setActiveTab] = useState('area')
+  const [preview, setPreview] = useState<PreviewTarget | null>(null)
   const { t } = useTranslation('poi-plugin-navy-staff')
   const slice = useSelector(extensionSelectorFactory(PLUGIN_KEY)) as
     | { error?: string | null; ready?: boolean }
     | undefined
+  const workspace = useSelector(selectedWorkspaceSelector)
+  const workspaces = useSelector(workspacesSelector)
+  const selectedWorkspaceId = useSelector(selectedWorkspaceIdSelector)
+  const editingDisplay = useSelector(editingDisplayContentSelector)
+
+  const previewRevision = useMemo(() => {
+    if (!preview || !workspace || preview.workspaceId !== workspace.id) return undefined
+    return workspace.revisions.find((revision) => revision.id === preview.revisionId)
+  }, [preview, workspace])
+
+  // A preview is closed when the workspace switches or its target disappears
+  // (an edit after undo truncates the redo tail). The selected id is a
+  // dependency so a preview never reappears when returning to a workspace.
+  useEffect(() => {
+    if (!preview) return
+    if (preview.workspaceId !== selectedWorkspaceId) {
+      setPreview(null)
+      return
+    }
+    const target = workspaces.find((w) => w.id === preview.workspaceId)
+    if (!target || !target.revisions.some((r) => r.id === preview.revisionId)) {
+      setPreview(null)
+    }
+  }, [preview, workspaces, selectedWorkspaceId])
+
+  const previewing = Boolean(previewRevision)
+  const display = previewRevision
+    ? capturedDisplayContent(previewRevision.content)
+    : editingDisplay
+
+  const contextValue = useMemo(
+    () => ({ setTarget: setPreview, target: preview }),
+    [preview],
+  )
 
   return (
     <Wrapper id="poi-plugin-navy-staff">
@@ -365,10 +429,11 @@ const NavyStaffContent = () => {
         {slice?.error ? (
           <Callout intent={Intent.DANGER}>{t('loadError')}</Callout>
         ) : slice?.ready ? (
-          <>
-            <WorkspaceManager />
-            <PlannerContent activeTab={activeTab} />
-          </>
+          <PreviewContext.Provider value={contextValue}>
+            <WorkspaceManager readOnly={previewing} />
+            <HistoryBar />
+            <PlannerContent activeTab={activeTab} display={display} readOnly={previewing} />
+          </PreviewContext.Provider>
         ) : (
           <Callout>{t('loading')}</Callout>
         )}

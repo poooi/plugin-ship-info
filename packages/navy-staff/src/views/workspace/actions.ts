@@ -36,9 +36,12 @@ export {
   onCreateWorkspace,
   onDeleteWorkspace,
   onMoveShip,
+  onRedo,
   onRemoveShip,
   onRenameWorkspace,
+  onRestore,
   onSelectWorkspace,
+  onUndo,
 } from './creators'
 
 // --- Thunks ------------------------------------------------------------------

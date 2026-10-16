@@ -40,10 +40,11 @@ interface IProps {
   area: WorkspaceAreaView
   others: AreaChoice[]
   displayFleetName: boolean
+  readOnly: boolean
   canAdd: boolean
 }
 
-export const Area = ({ area, others, displayFleetName, canAdd }: IProps) => {
+export const Area = ({ area, others, displayFleetName, readOnly, canAdd }: IProps) => {
   const dispatch = useDispatch<ThunkDispatch<IState, unknown, Action>>()
   const { t } = useTranslation('poi-plugin-navy-staff')
 
@@ -62,7 +63,7 @@ export const Area = ({ area, others, displayFleetName, canAdd }: IProps) => {
           </Tag>{' '}
           {label}
         </h5>
-        {canAdd && (
+        {!readOnly && canAdd && (
           <div>
             <AddShip onSelect={(id) => dispatch(addShipToArea(area.id, id))} />
           </div>
@@ -84,6 +85,7 @@ export const Area = ({ area, others, displayFleetName, canAdd }: IProps) => {
                   row={row}
                   others={others}
                   planAreaId={area.id}
+                  readOnly={readOnly}
                 />
               )),
             )(groups[key])}
