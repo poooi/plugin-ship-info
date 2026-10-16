@@ -12,7 +12,8 @@
 - `views/index.tsx`: main interface; `views/table/`: ship information table.
 - `views/sidebar/`: sidebar controls, including the planner in `planner/`.
 - `views/selectors.ts` and `views/utils.ts`: derived data and utility functions.
-- `views/redux.ts` and `views/file-writer.ts`: state and persistence.
+- `views/redux.ts`: plugin state and actions.
+- `views/lifecycle.ts`, `views/persistence.ts`, and `views/file-writer.ts`: plugin lifecycle, persisted-data loading, and serialized writes.
 - `i18n/`: translations; `shims/`: local dependency and poi type declarations.
 - `vite.config.ts`: Vite+ build (`pack`), lint, and format configuration with poi-provided external dependencies.
 

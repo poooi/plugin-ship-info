@@ -10,6 +10,8 @@ import {
   persistedPluginFile,
   plannerScenarioState,
   plannerSlice,
+  PLUGIN_DATA_PATH,
+  PLUGIN_KEY,
 } from '../preview/planner-fixtures'
 import { getEnvironment } from '../preview/scenario'
 import { reactClass as ShipInfo } from '../views'
@@ -84,6 +86,9 @@ const meta = {
       // The shell is 1200x680; size the themed scenario surface so the whole
       // root sits inside it instead of overflowing onto the white preview.
       dimensions: { width: 1400, height: 760 },
+      // Integrated root stories opt into the real lifecycle: mounting the UI
+      // no longer loads or saves by itself.
+      lifecycle: true,
       state: plannerScenarioState(),
     },
   },
@@ -132,6 +137,61 @@ export const MountsWithPersistedPlanner: Story = {
     await expect(rootRect.top).toBeGreaterThanOrEqual(surfaceRect.top)
     await expect(rootRect.right).toBeLessThanOrEqual(surfaceRect.right)
     await expect(rootRect.bottom).toBeLessThanOrEqual(surfaceRect.bottom)
+  },
+}
+
+export const SavesWithoutPlannerOpen: Story = {
+  name: 'Plugin state is saved with the planner UI closed',
+  parameters: { shipInfo: { state: plannerScenarioState() } },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await expect(await canvas.findByText('Alpha')).toBeTruthy()
+
+    const environment = getEnvironment()
+    await waitFor(async () => {
+      await expect(environment.store.getState()[PLUGIN_KEY].ready).toBe(true)
+    })
+
+    // The planner dialog is never opened; persistence is lifecycle-owned.
+    await expect(screen.queryByRole('dialog')).toBeNull()
+
+    // Any plugin state change is saved even without the planner UI mounted.
+    environment.store.dispatch({
+      isExtend: false,
+      type: `@@${PLUGIN_KEY}@extend`,
+    })
+    await waitFor(async () => {
+      await expect(host.log.writtenFiles.length).toBe(1)
+    })
+    await expect(host.log.writtenFiles[0].path).toBe(PLUGIN_DATA_PATH)
+  },
+}
+
+export const CorruptFileSurfacesLoadError: Story = {
+  name: 'A corrupt persisted file surfaces an error and disables saving',
+  parameters: {
+    shipInfo: {
+      state: plannerScenarioState(),
+      files: { [PLUGIN_DATA_PATH]: '{ not valid json' },
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await expect(await canvas.findByText('Alpha')).toBeTruthy()
+
+    const environment = getEnvironment()
+    await waitFor(async () => {
+      await expect(environment.store.getState()[PLUGIN_KEY].error).toBe('load')
+    })
+    await expect(host.log.toasts.length).toBe(1)
+
+    // Saving stays disabled: a state change must not overwrite the source file.
+    environment.store.dispatch({
+      isExtend: false,
+      type: `@@${PLUGIN_KEY}@extend`,
+    })
+    await expect(host.log.writtenFiles).toEqual([])
+    await expect(host.log.files[PLUGIN_DATA_PATH]).toBe('{ not valid json')
   },
 }
 

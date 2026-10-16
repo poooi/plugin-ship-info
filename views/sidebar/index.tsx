@@ -1,10 +1,7 @@
 import { rgba } from 'polished'
-import React, { useEffect } from 'react'
-import { connect } from 'react-redux'
-import { ThunkDispatch } from 'redux-thunk'
+import React from 'react'
 import styled from 'styled-components'
 
-import { initStore } from '../redux'
 import { Columns } from './columns'
 import { Export } from './export'
 import { Filter } from './filter'
@@ -25,19 +22,11 @@ const Wrapper = styled.div`
   padding-bottom: 20px;
 `
 
-export const Sidebar = connect()(
-  ({ dispatch }: { dispatch: ThunkDispatch<void, any, any> }) => {
-    useEffect(() => {
-      dispatch(initStore)
-    }, [])
-
-    return (
-      <Wrapper>
-        <Planner />
-        <Columns />
-        <Filter />
-        <Export />
-      </Wrapper>
-    )
-  },
+export const Sidebar = () => (
+  <Wrapper>
+    <Planner />
+    <Columns />
+    <Filter />
+    <Export />
+  </Wrapper>
 )

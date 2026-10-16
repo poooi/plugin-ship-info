@@ -181,5 +181,7 @@
   "Column Configuration": "列设置",
   "Visible": "显示",
   "Hidden": "隐藏",
-  "Pin": "固定"
+  "Pin": "固定",
+  "loadError": "无法读取已保存的舰娘信息数据。为避免覆盖文件，已停用保存。",
+  "saveError": "无法保存舰娘信息数据。请确认文件可写入。"
 }

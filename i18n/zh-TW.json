@@ -181,5 +181,7 @@
   "Column Configuration": "列設置",
   "Visible": "顯示",
   "Hidden": "隱藏",
-  "Pin": "固定"
+  "Pin": "固定",
+  "loadError": "無法讀取已儲存的艦娘資訊資料。為避免覆寫檔案，已停用儲存。",
+  "saveError": "無法儲存艦娘資訊資料。請確認檔案可寫入。"
 }

@@ -15,4 +15,9 @@ interface Window {
   language: string
   getStore: (path?: string) => any
   isMain: boolean
+  /** poi host toast; used to surface a non-silent load failure. */
+  toast?: (
+    content: string,
+    options?: { type?: 'error' | 'info' | 'success' | 'warning' },
+  ) => void
 }

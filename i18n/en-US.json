@@ -89,5 +89,7 @@
   "Column Configuration": "Column Configuration",
   "Visible": "Visible",
   "Hidden": "Hidden",
-  "Pin": "Pin"
+  "Pin": "Pin",
+  "loadError": "Could not load saved Ship Info data. Saving is disabled to avoid overwriting your file.",
+  "saveError": "Could not save Ship Info data. Check that the file is writable."
 }

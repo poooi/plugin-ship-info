@@ -18,16 +18,13 @@ import FontAwesome from 'react-fontawesome'
 import { useTranslation } from 'react-i18next'
 import { connect, DispatchProp } from 'react-redux'
 import { Action } from 'redux'
-import { observe } from 'redux-observers'
 import { ThunkDispatch } from 'redux-thunk'
 import styled from 'styled-components'
 import { Dialog } from 'views/components/etc/overlay'
 import { WindowEnv } from 'views/components/etc/window-env'
-import { store } from 'views/create-store'
 import { IState } from 'views/utils/selectors'
 
 import {
-  dataObserver,
   onAddShip,
   onDisplaceShip,
   onDPInit,
@@ -277,12 +274,6 @@ export const Planner = () => {
   const { t } = useTranslation('poi-plugin-ship-info')
 
   const [activeTab, setActiveTab] = useState('area')
-
-  useEffect(() => {
-    const unsubscribe = observe(store, [dataObserver])
-
-    return () => unsubscribe()
-  }, [])
 
   return (
     <>

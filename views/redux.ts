@@ -1,19 +1,9 @@
-import { readJson } from 'fs-extra'
-import { get, omit } from 'lodash'
-import path from 'path'
+import { omit } from 'lodash'
 import { AnyAction, combineReducers } from 'redux'
-import { observer } from 'redux-observers'
 
-import { extensionSelectorFactory } from 'views/utils/selectors'
+import { ACTIONS, PLUGIN_KEY } from './plugin-identity'
 
-import { Dispatch } from 'react'
-import FileWriter from './file-writer'
-
-export const PLUGIN_KEY = 'poi-plugin-ship-info'
-
-const { APPDATA_PATH } = window
-
-export const DATA_PATH = path.join(APPDATA_PATH, `${PLUGIN_KEY}.json`)
+export { DATA_PATH, PLUGIN_KEY } from './plugin-identity'
 
 let bookmarkInitState = {}
 
@@ -184,14 +174,30 @@ const uiReducer = (state = uiInitState, action: AnyAction) => {
 
 const readyReducer = (state = false, action: AnyAction) => {
   const { type } = action
-  if (type === `@@${PLUGIN_KEY}@ready`) {
+  if (type === ACTIONS.ready) {
     return true
+  }
+  if (type === ACTIONS.loadStart) {
+    return false
+  }
+  return state
+}
+
+// Transient load-status marker. It is never persisted: the persistence layer
+// strips it before writing and only writes after a successful load.
+const errorReducer = (state: string | null = null, action: AnyAction) => {
+  if (action.type === ACTIONS.loadStart) {
+    return null
+  }
+  if (action.type === ACTIONS.loadError) {
+    return typeof action.error === 'string' ? action.error : 'load'
   }
   return state
 }
 
 export const reducer = combineReducers({
   bookmark: bookmarkReducer,
+  error: errorReducer,
   planner: plannerReducer,
   ready: readyReducer,
   ui: uiReducer,
@@ -270,48 +276,3 @@ export const onDelete = ({ bookmark }: { bookmark: string }) => ({
   bookmark,
   type: '@@poi-plugin-ship-info@delete',
 })
-
-export const initStore = async (
-  dispatch: Dispatch<any>,
-  getState: () => any,
-) => {
-  try {
-    const data = await readJson(DATA_PATH)
-
-    const mapname = get(getState(), 'fcd.shbiptag.mapname', [])
-
-    const { planner = [] } = data
-
-    if (planner.length < mapname.length) {
-      const len = mapname.length - planner.length
-      data.planner = [...planner, ...new Array(len).fill([])]
-    } else if (planner.length > mapname.length) {
-      const newCurrent = planner.slice(0, mapname.length)
-      data.planner = newCurrent
-    }
-
-    dispatch({
-      data,
-      type: '@@poi-plugin-ship-info@init',
-    })
-  } catch (e) {
-    console.error(e instanceof Error ? e.stack : e)
-  } finally {
-    dispatch({
-      type: '@@poi-plugin-ship-info@ready',
-    })
-  }
-}
-
-const fileWriter = new FileWriter()
-
-// observers
-export const dataObserver = observer(
-  extensionSelectorFactory(PLUGIN_KEY),
-  (dispatch, current = {}) => {
-    // avoid initial state overwrites file
-    if (current.ready) {
-      fileWriter.write(DATA_PATH, current)
-    }
-  },
-)

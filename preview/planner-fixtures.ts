@@ -12,7 +12,7 @@ import { DATA_PATH } from '../views/redux'
 // module never imports views/redux just to read the constant.
 export const PLUGIN_KEY = 'poi-plugin-ship-info'
 
-/** Absolute path `initStore` reads the persisted plugin state from. */
+/** Absolute path the plugin persistence lifecycle reads/writes. */
 export const PLUGIN_DATA_PATH = DATA_PATH
 
 const mst = (over: Record<string, any>) =>
@@ -146,7 +146,7 @@ export const plannerSlice = (environment: {
   current: number[][]
 }
 
-/** Seed content for `initStore`, keyed by the persisted plugin data path. */
+/** Seed content for the persistence lifecycle, keyed by the plugin data path. */
 export const persistedPluginFile = (planner: {
   archive?: object
   current: number[][]
