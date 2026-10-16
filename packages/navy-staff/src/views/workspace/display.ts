@@ -1,7 +1,7 @@
 // Reusable display-content boundary. It turns one durable workspace content
-// snapshot into read-only view models. Editing uses the live overlay when the
-// owner matches; previews and future reference exports pass `allowLive: false`
-// so they show captured records only.
+// snapshot into read-only view models. Editing uses the live overlay when
+// allowed; previews and future reference exports pass `allowLive: false` so they
+// show captured records only.
 
 import { reverseSuperTypeMap, type IPlannerShipData } from '../planner/selectors'
 import type { NavyShipRecord, NavyWorkspaceContent } from './types'

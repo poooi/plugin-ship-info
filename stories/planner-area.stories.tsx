@@ -27,8 +27,8 @@ const params = (options?: PlannerScenarioOptions) => ({
   shipInfo: { plugin: 'navy-staff' as const, state: plannerScenarioState(options) },
 })
 
-const withNavy = (navy: unknown): PlannerScenarioOptions => ({
-  extra: { [NAVY]: { error: null, navy, ready: true } },
+const withNavy = (navy: unknown, account = '123'): PlannerScenarioOptions => ({
+  extra: { [NAVY]: { account, error: null, navy, ready: true } },
 })
 
 const waitForOverlayFocus = () =>
@@ -156,12 +156,12 @@ export const SavedShipWithoutRosterStaysVisible: Story = {
   },
 }
 
-export const CrossAccountOwnerDisablesLivePicker: Story = {
-  name: 'A workspace owned by another account shows saved data and no live picker',
+export const DifferentAccountFileShowsSavedData: Story = {
+  name: 'A loaded account file that differs from the host shows saved data only',
   parameters: params({
     ...withNavy(
       (() => {
-        const navy = mkNavyData({ current: [[1]], ownerMemberId: 'other-account' })
+        const navy = mkNavyData({ current: [[1]] })
         const content = navy.workspaces[0].revisions[0].content
         content.ships = {
           '1': {
@@ -176,12 +176,13 @@ export const CrossAccountOwnerDisablesLivePicker: Story = {
         }
         return navy
       })(),
+      '202',
     ),
   }),
   play: async () => {
     await openPlanner()
-    await expect(screen.getByText('Saved data (different account)')).toBeTruthy()
-    // The saved record renders; the live picker is unavailable.
+    // The saved record renders; the live picker is unavailable while the loaded
+    // account file (202) differs from the host account (123).
     await expect(within(areaCard('E1')).getByText(/Alpha/)).toBeTruthy()
     await expect(
       within(areaCard('E1')).queryByRole('button', { name: 'Add ship' }),
@@ -599,7 +600,7 @@ export const RenameEditorClosedWhenEnteringPreview: Story = {
 // A saved record for ship 3 (level 5) while the live roster has Gamma Lv.150,
 // plus a second revision so history controls are available.
 const savedVsLiveNavy = () => {
-  const navy = mkNavyData({ current: [[3], []], ownerMemberId: '123' })
+  const navy = mkNavyData({ current: [[3], []] })
   const workspace = navy.workspaces[0]
   const base = workspace.revisions[0]
   base.content.ships = {

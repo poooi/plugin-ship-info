@@ -60,6 +60,7 @@ const waitFor = async (predicate: () => boolean, timeout = 1000) => {
 }
 
 const enoent = () => Object.assign(new Error('ENOENT'), { code: 'ENOENT' })
+const noAccounts = async () => []
 
 const recordingWriter = () => {
   const writes: Array<{ data: any; path: string }> = []
@@ -107,19 +108,16 @@ const mkWorkspace = ({
   current = [[], []],
   id = 'ws-1',
   name = 'Plan',
-  ownerMemberId = '123',
 }: {
   current?: number[][]
   id?: string
   name?: string
-  ownerMemberId?: string | null
 } = {}): NavyWorkspace => {
   const areas = [area('area-1', 0), area('area-2', 1)]
   return {
     createdAt: NOW,
     cursor: 0,
     id,
-    ownerMemberId,
     revisions: [
       {
         content: {
@@ -248,7 +246,7 @@ describe('Navy workspace reducer', () => {
 
   it('keeps transient preview out of the durable slice shape', () => {
     const state = init(mkNavy())
-    expect(Object.keys(state)).toEqual(['error', 'navy', 'ready'])
+    expect(Object.keys(state)).toEqual(['account', 'error', 'navy', 'ready'])
     expect(state.navy).not.toHaveProperty('preview')
   })
 })
@@ -366,7 +364,7 @@ describe('Navy persistence migration', () => {
     const persistence = createPersistence({
       dataPath: NAVY,
       isMain: true,
-      legacyDataPath: LEGACY,
+      legacyShipInfoDataPath: LEGACY, listAccountFiles: noAccounts,
       onError: opts.onError,
       readFile: readFrom(files),
       writer: opts.writer ?? writer,
@@ -397,7 +395,7 @@ describe('Navy persistence migration', () => {
     const persistence = createPersistence({
       dataPath: NAVY,
       isMain: true,
-      legacyDataPath: LEGACY,
+      legacyShipInfoDataPath: LEGACY, listAccountFiles: noAccounts,
       readFile: readFrom({
         [NAVY]: { ...mkNavy([mkWorkspace({ current: [[1], []] })]), version: 2 },
       }),
@@ -430,7 +428,7 @@ describe('Navy persistence migration', () => {
     const persistence = createPersistence({
       dataPath: NAVY,
       isMain: true,
-      legacyDataPath: LEGACY,
+      legacyShipInfoDataPath: LEGACY, listAccountFiles: noAccounts,
       readFile: readFrom({ [NAVY]: { ...mkNavy([ws]), version: 2 } }),
       writer,
     })
@@ -454,7 +452,7 @@ describe('Navy persistence migration', () => {
       const persistence = createPersistence({
         dataPath: NAVY,
         isMain: true,
-        legacyDataPath: LEGACY,
+        legacyShipInfoDataPath: LEGACY, listAccountFiles: noAccounts,
         onError,
         readFile: readFrom({ [NAVY]: bad }),
         writer,
@@ -492,7 +490,7 @@ describe('Navy persistence migration', () => {
       const persistence = createPersistence({
         dataPath: NAVY,
         isMain: true,
-        legacyDataPath: LEGACY,
+        legacyShipInfoDataPath: LEGACY, listAccountFiles: noAccounts,
         onError,
         readFile: readFrom({ [NAVY]: { ...bad, version: 2 } }),
         writer,
@@ -527,7 +525,7 @@ describe('Navy persistence migration', () => {
       const persistence = createPersistence({
         dataPath: NAVY,
         isMain: true,
-        legacyDataPath: LEGACY,
+        legacyShipInfoDataPath: LEGACY, listAccountFiles: noAccounts,
         onError,
         readFile: readFrom({ [NAVY]: { ...bad, version: 2 } }),
         writer,
@@ -565,6 +563,54 @@ describe('Navy persistence migration', () => {
     persistence.stop()
   })
 
+  it('does not import Ship Info when another account file already exists', async () => {
+    const store = createStore()
+    const { writer, writes } = recordingWriter()
+    const persistence = createPersistence({
+      dataPath: NAVY,
+      isMain: true,
+      legacyShipInfoDataPath: LEGACY,
+      listAccountFiles: async () => ['202.json'],
+      readFile: readFrom({
+        [LEGACY]: { planner: { archive: { a: [[1]] }, current: [[5]] } },
+      }),
+      writer,
+    })
+    persistence.start(store)
+    await waitFor(() => sliceOf(store).ready)
+    const navy = sliceOf(store).navy
+    // A second account starts empty rather than copying the same owned IDs.
+    expect(navy.workspaces).toEqual([])
+    expect(navy.legacyArchive).toEqual({})
+    expect(writes[0].data.version).toBe(2)
+    expect(writes[0].data.workspaces).toEqual([])
+    persistence.stop()
+  })
+
+  it('uses an existing account file and never imports Ship Info', async () => {
+    const store = createStore()
+    const { writer, writes } = recordingWriter()
+    const persistence = createPersistence({
+      dataPath: NAVY,
+      isMain: true,
+      legacyShipInfoDataPath: LEGACY,
+      listAccountFiles: async () => [],
+      readFile: readFrom({
+        [NAVY]: { ...mkNavy([mkWorkspace({ current: [[1], []] })]), version: 2 },
+        [LEGACY]: { planner: { archive: {}, current: [[7]] } },
+      }),
+      writer,
+    })
+    persistence.start(store)
+    await waitFor(() => sliceOf(store).ready)
+    const ids = Object.values(
+      sliceOf(store).navy.workspaces[0].revisions[0].content.assignments,
+    ).flat()
+    expect(ids).toEqual([1])
+    expect(writes).toHaveLength(0)
+    persistence.stop()
+  })
+
   it('creates an empty v2 root when both files are missing', async () => {
     const store = createStore()
     const { persistence, writes } = start(store, {})
@@ -586,7 +632,7 @@ describe('Navy persistence migration', () => {
     const persistence = createPersistence({
       dataPath: NAVY,
       isMain: true,
-      legacyDataPath: LEGACY,
+      legacyShipInfoDataPath: LEGACY, listAccountFiles: noAccounts,
       onError,
       readFile,
       writer,
@@ -621,7 +667,7 @@ describe('Navy persistence migration', () => {
     const persistence = createPersistence({
       dataPath: NAVY,
       isMain: true,
-      legacyDataPath: LEGACY,
+      legacyShipInfoDataPath: LEGACY, listAccountFiles: noAccounts,
       readFile: readFrom({
         [LEGACY]: { planner: { archive: {}, current: [[1]] } },
       }),

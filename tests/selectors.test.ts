@@ -102,8 +102,9 @@ const mkState = (): any => ({
   },
   repairs: [] as number[],
   [PLUGIN_KEY]: {
+    account: '123',
     error: null,
-    navy: mkNavyData({ current: [[1, 2], [3]], ownerMemberId: '123' }),
+    navy: mkNavyData({ current: [[1, 2], [3]] }),
     ready: true,
   },
 })
@@ -125,7 +126,7 @@ describe('workspace selectors', () => {
     expect(gridRowsSelector(state).map((row) => row.ownedId).sort()).toEqual([1, 2, 3])
   })
 
-  it('overlays live names when the owner matches', () => {
+  it('overlays live names when the loaded account matches the host', () => {
     const state = mkState()
     const row = areaViewsSelector(state)[0].ships[0]
     expect(row.live).toBe(true)

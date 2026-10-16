@@ -12,8 +12,12 @@ import {
   type PersistenceOptions as EngineOptions,
 } from '@poi-plugins/ship-info-shared/persistence'
 import {
+  ACCOUNT_DIR,
+  isAccountFileName,
+  listAccountFiles as defaultListAccountFiles,
+} from './account'
+import {
   ACTIONS,
-  DATA_PATH,
   DISPLAY_FLEET_NAME_CONFIG,
   LEGACY_DATA_PATH,
   LEGACY_DISPLAY_FLEET_NAME_CONFIG,
@@ -106,15 +110,12 @@ const parseWorkspace = (value: unknown, reason: 'invalid'): NavyWorkspace => {
   if (!isRecord(value)) {
     throw toPersistedDataError(reason, 'workspace is not an object', undefined)
   }
-  const { id, createdAt, ownerMemberId, revisions, cursor } = value
+  const { id, createdAt, revisions, cursor } = value
   if (typeof id !== 'string' || id.length === 0) {
     throw toPersistedDataError(reason, 'workspace has no id', undefined)
   }
   if (typeof createdAt !== 'string') {
     throw toPersistedDataError(reason, 'workspace has no createdAt', undefined)
-  }
-  if (ownerMemberId !== null && typeof ownerMemberId !== 'string') {
-    throw toPersistedDataError(reason, 'workspace owner is not a string', undefined)
   }
   if (!Array.isArray(revisions) || revisions.length === 0) {
     throw toPersistedDataError(reason, 'workspace has no revisions', undefined)
@@ -176,7 +177,7 @@ const parseWorkspace = (value: unknown, reason: 'invalid'): NavyWorkspace => {
 }
 
 // The Navy file is authoritative: an existing but invalid/unreadable file is an
-// error and never falls back to the legacy Ship Info file.
+// error and never falls back to the legacy file.
 export const parseNavyData = (raw: unknown): NavyData => {
   if (!isRecord(raw)) {
     throw toPersistedDataError('invalid', 'persisted data is not an object', undefined)
@@ -253,58 +254,55 @@ const actions: PersistenceActions<NavyData> = {
   ready: () => ({ type: ACTIONS.ready }),
 }
 
-export type NavyPersistenceOptions = Partial<
-  Pick<
-    EngineOptions<NavyData>,
-    | 'dataPath'
-    | 'isMain'
-    | 'onError'
-    | 'onWriteError'
-    | 'readFile'
-    | 'select'
-    | 'writer'
-  >
-> & {
-  /** Legacy Ship Info file to import from (override in tests). */
-  legacyDataPath?: string
+export interface NavyPersistenceOptions {
+  /** Account-scoped file to read and write. */
+  dataPath: string
+  isMain?: boolean
+  onError?: (error: PersistedDataError) => void
+  onWriteError?: (error: PersistedDataError) => void
+  readFile?: (filePath: string) => Promise<unknown>
+  select?: (state: unknown) => unknown
+  writer?: EngineOptions<NavyData>['writer']
+  /** Lists the account directory (override in tests). */
+  listAccountFiles?: (dir: string) => Promise<string[]>
+  /** Legacy Ship Info file (override in tests). */
+  legacyShipInfoDataPath?: string
 }
 
 const EMPTY_DATA = emptyNavyData()
 
-// Migration from the legacy Ship Info file. The new file must be written
-// successfully before persistence is enabled; a failed initial write leaves
-// saving disabled and the legacy file untouched.
-const migrateFromLegacy = async (
+const readLegacyShipInfo = async (
   context: Parameters<NonNullable<EngineOptions<NavyData>['load']>>[0],
-  legacyDataPath: string,
-): Promise<NavyData> => {
-  let legacyRaw: unknown
+  legacyShipInfoDataPath: string,
+): Promise<NavyData | undefined> => {
+  let raw: unknown
   try {
-    legacyRaw = await context.readFile(legacyDataPath)
+    raw = await context.readFile(legacyShipInfoDataPath)
   } catch (error) {
-    if (isEnoent(error)) {
-      legacyRaw = undefined
-    } else {
-      throw toPersistedDataError(
-        'legacy',
-        'failed to read legacy persisted data',
-        error,
-      )
-    }
+    if (isEnoent(error)) return undefined
+    throw toPersistedDataError('legacy', 'failed to read legacy Ship Info data', error)
   }
+  return navyDataFromLegacyPlanner(parseLegacyPlanner(raw))
+}
 
-  // A delayed legacy read from an unloaded generation must not write over a
-  // newer import. The engine's writeAndWait also refuses stale writes.
-  if (context.isStale()) {
-    return EMPTY_DATA
-  }
-
-  // No legacy file at all: initialize an empty durable root (no workspaces).
-  // A present legacy file, even without a planner, converts to one workspace.
-  const navy =
-    legacyRaw === undefined
-      ? EMPTY_DATA
-      : navyDataFromLegacyPlanner(parseLegacyPlanner(legacyRaw))
+/**
+ * Initializes a fresh account file. The engine already drained the writer before
+ * calling load, so the directory listing reflects flushed writes.
+ *
+ * The released Ship Info plan goes to the first initialized account only: if any
+ * account-shaped file already exists, start empty rather than copy the same
+ * owned IDs into a second account. Directory presence alone is not consumption
+ * (a failed initialization can retry).
+ */
+const initializeAccountFile = async (
+  context: Parameters<NonNullable<EngineOptions<NavyData>['load']>>[0],
+  listAccountFiles: (dir: string) => Promise<string[]>,
+  legacyShipInfoDataPath: string,
+): Promise<NavyData> => {
+  const files = await listAccountFiles(ACCOUNT_DIR)
+  const navy = files.some(isAccountFileName)
+    ? EMPTY_DATA
+    : (await readLegacyShipInfo(context, legacyShipInfoDataPath)) ?? EMPTY_DATA
 
   if (context.isStale()) {
     return EMPTY_DATA
@@ -318,19 +316,21 @@ const migrateFromLegacy = async (
   } catch (error) {
     throw toPersistedDataError(
       'migrate',
-      'failed to write the migrated persisted data',
+      'failed to write the initialized persisted data',
       error,
     )
   }
-
   return navy
 }
 
-export const createPersistence = (options: NavyPersistenceOptions = {}) => {
-  const legacyDataPath = options.legacyDataPath ?? LEGACY_DATA_PATH
+export const createPersistence = (options: NavyPersistenceOptions) => {
+  const listAccountFiles = options.listAccountFiles ?? defaultListAccountFiles
+  const legacyShipInfoDataPath =
+    options.legacyShipInfoDataPath ?? LEGACY_DATA_PATH
+
   return createEngine<NavyData>({
     actions,
-    dataPath: options.dataPath ?? DATA_PATH,
+    dataPath: options.dataPath,
     isMain: options.isMain,
     onError: options.onError,
     onWriteError: options.onWriteError,
@@ -361,7 +361,7 @@ export const createPersistence = (options: NavyPersistenceOptions = {}) => {
             undefined,
           )
         }
-        // The Navy file exists: never fall back to the legacy file. Migrate
+        // The account file exists: never fall back to a legacy source. Migrate
         // before validating the current format; a current file is unchanged.
         let migrated: Record<string, unknown>
         try {
@@ -399,16 +399,17 @@ export const createPersistence = (options: NavyPersistenceOptions = {}) => {
         if (context.isStale()) {
           return EMPTY_DATA
         }
-        navy = await migrateFromLegacy(context, legacyDataPath)
+        navy = await initializeAccountFile(
+          context,
+          listAccountFiles,
+          legacyShipInfoDataPath,
+        )
       }
 
       if (context.isStale()) {
         return navy
       }
-      // Import the legacy display option only when it is still unset. Doing
-      // this on every successful current-generation load (not only inside
-      // migration) resumes a config import that an unload interrupted after the
-      // Navy file was already written, while preserving explicit false/true.
+      // Import the legacy display option only when it is still unset.
       applyLegacyDisplayFleetName()
       return navy
     },

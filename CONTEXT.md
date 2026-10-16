@@ -5,8 +5,11 @@ Navy Staff organizes ships into sortie plans. These terms distinguish editable p
 ## Language
 
 **Workspace**:
-A named, independently editable sortie plan with its own area information and operation history.
+A named, independently editable sortie plan with its own area information and operation history. A workspace has no owner association; it lives inside one account file.
 _Avoid_: Project (as a second level above a workspace).
+
+**Account file**:
+The Navy Staff JSON file for one teitoku (member ID). Each account's workspaces, history, and legacy archive live in its own file. Navy Staff has never released, so there is no unscoped Navy file compatibility; the released Ship Info plan is imported once into the first account file that is created.
 
 **Planning area**:
 A group to which ships are assigned in a plan, initially corresponding to a sortie-tag slot. It is not necessarily one unique geographical sea area.

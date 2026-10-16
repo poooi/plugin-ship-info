@@ -15,8 +15,8 @@ const params = (options?: PlannerScenarioOptions) => ({
   shipInfo: { plugin: 'navy-staff' as const, state: plannerScenarioState(options) },
 })
 
-const withNavy = (navy: unknown): PlannerScenarioOptions => ({
-  extra: { 'poi-plugin-navy-staff': { error: null, navy, ready: true } },
+const withNavy = (navy: unknown, account = '123'): PlannerScenarioOptions => ({
+  extra: { 'poi-plugin-navy-staff': { account, error: null, navy, ready: true } },
 })
 
 // Reads the gradient a grid cell paints, which carries the assignment color.
@@ -201,7 +201,7 @@ export const UnknownMasterRowHasNoArtwork: Story = {
   parameters: params({
     ...withNavy(
       (() => {
-        const navy = mkNavyData({ current: [[99], []], ownerMemberId: '123' })
+        const navy = mkNavyData({ current: [[99], []] })
         navy.workspaces[0].revisions[0].content.ships = {
           '99': {
             level: null,

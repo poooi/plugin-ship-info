@@ -77,8 +77,8 @@ export interface AddShipProps {
 }
 
 // The picker lists eligible live-roster ships only. It is empty (and the button
-// hidden by the caller) when the workspace owner does not match the loaded
-// account, so a different account's roster can never be assigned.
+// hidden by the caller) when the live roster is unavailable, so another
+// account's roster can never be assigned.
 const Menu = ({ onSelect }: AddShipProps) => {
   const { t } = useTranslation('poi-plugin-navy-staff')
   const ships = useSelector(livePickerRowsSelector)

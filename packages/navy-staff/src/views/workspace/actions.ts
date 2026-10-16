@@ -8,7 +8,7 @@ import type { IState } from 'views/utils/selectors'
 import { shipTypeLabelKeys } from '@poi-plugins/ship-info-shared/ship-types'
 
 import { shipMenuDataSelector } from '../planner/selectors'
-import { freshWorkspaceAreas, verifiedOwnerMemberId } from './capture'
+import { freshWorkspaceAreas } from './capture'
 import {
   onAddShip,
   onCreateWorkspace,
@@ -18,8 +18,8 @@ import {
 } from './creators'
 import { contentAtCursor } from './operations'
 import {
+  liveRosterAvailableSelector,
   navyDataSelector,
-  ownerStatusSelector,
   selectedWorkspaceSelector,
 } from './selectors'
 import {
@@ -48,14 +48,15 @@ export {
 
 type NavyThunk = ThunkAction<void, IState, unknown, Action>
 
-// Live enrichment is only allowed while the selected workspace's owner matches
-// the loaded account. A mismatched roster must never overwrite saved records.
+// Live enrichment is only allowed while the live roster is available (the
+// loaded account file matches the host). A mismatched roster must never
+// overwrite saved records.
 const recordForShip = (
   state: IState,
   shipId: number,
   now: string,
 ): NavyShipRecord | null => {
-  if (!ownerStatusSelector(state).matches) return null
+  if (!liveRosterAvailableSelector(state)) return null
   const live = shipMenuDataSelector(state).find((item) => item.id === shipId)
   if (!live) return null
   return {
@@ -76,7 +77,6 @@ export const createWorkspace = (name: string): NavyThunk => (dispatch, getState)
     areas: freshWorkspaceAreas(state, now),
     name,
     now,
-    ownerMemberId: verifiedOwnerMemberId(state),
     op: { kind: 'create' },
   })
   dispatch(onCreateWorkspace({ workspace }))
@@ -91,7 +91,6 @@ export const duplicateWorkspace = (id: string): NavyThunk => (dispatch, getState
     createdAt: now,
     cursor: 0,
     id: newNavyId('ws'),
-    ownerMemberId: found.ownerMemberId,
     revisions: [
       createRevision(
         { from: found.id, kind: 'duplicate' },

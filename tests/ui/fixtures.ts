@@ -107,12 +107,10 @@ export const mkNavyArea = (over: Partial<NavyFixtureArea> = {}) => ({
 export const mkNavyWorkspace = ({
   current = [[3]],
   name = 'Plan',
-  ownerMemberId = '123',
   areas,
 }: {
   current?: number[][]
   name?: string
-  ownerMemberId?: string | null
   areas?: ReturnType<typeof mkNavyArea>[]
 } = {}): NavyWorkspace => {
   const resolvedAreas =
@@ -128,7 +126,6 @@ export const mkNavyWorkspace = ({
     createdAt: AREA_TIME,
     cursor: 0,
     id: 'ws-1',
-    ownerMemberId,
     revisions: [
       {
         content: { areas: resolvedAreas, assignments, name, ships: {} },
@@ -165,6 +162,6 @@ export const plannerState = (over: Record<string, any> = {}) => ({
     server: { ip: '1.2.3.4' },
     ships: plannerShips,
   },
-  [NAVY_PLUGIN_KEY]: { error: null, navy: mkNavyData(), ready: true },
+  [NAVY_PLUGIN_KEY]: { account: '123', error: null, navy: mkNavyData(), ready: true },
   ...over,
 })

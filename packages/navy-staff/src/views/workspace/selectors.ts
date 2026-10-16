@@ -1,6 +1,6 @@
 // Workspace selectors. They derive the selected workspace's content, history
 // position, and display content. Editing display content is overlaid with the
-// live roster only when the workspace owner matches the loaded account.
+// live roster only when the loaded account file matches the current host.
 
 import { get } from 'lodash'
 import { createSelector } from 'reselect'
@@ -8,9 +8,9 @@ import { createSelector } from 'reselect'
 import { extensionSelectorFactory, IState } from 'views/utils/selectors'
 
 import { shipFleetIdMapSelector } from '@poi-plugins/ship-info-shared/fleet'
+import { normalizeMemberId } from '../account'
 import { PLUGIN_KEY } from '../plugin-identity'
 import { shipMenuDataSelector, type IPlannerShipData } from '../planner/selectors'
-import { hostOwnerMemberId } from './capture'
 import {
   buildDisplayContent,
   emptyDisplayContent,
@@ -80,34 +80,46 @@ export const canRedoSelector = createSelector(
     Boolean(workspace && workspace.cursor < workspace.revisions.length - 1),
 )
 
-export const ownerMemberIdSelector = (state: IState): string | null =>
-  hostOwnerMemberId(state)
-
-export interface OwnerStatus {
-  hostOwnerMemberId: string | null
-  matches: boolean
-  workspaceOwnerMemberId: string | null
-}
-
-export const ownerStatusSelector = createSelector(
-  [selectedWorkspaceSelector, ownerMemberIdSelector],
-  (workspace, hostOwner): OwnerStatus => {
-    const workspaceOwnerMemberId = workspace?.ownerMemberId ?? null
-    return {
-      hostOwnerMemberId: hostOwner,
-      matches:
-        workspaceOwnerMemberId !== null && workspaceOwnerMemberId === hostOwner,
-      workspaceOwnerMemberId,
-    }
-  },
+// The transient account file currently loaded, or null when not ready. It names
+// the account whose data is in the slice; it is never persisted.
+export const loadedAccountIdSelector = createSelector(
+  [
+    (state: IState) =>
+      extensionSelectorFactory(PLUGIN_KEY)(state) as
+        | { account?: string | null; ready?: boolean }
+        | undefined,
+  ],
+  (slice): string | null => (slice?.ready ? slice.account ?? null : null),
 )
 
-/** Live roster overlay, empty unless the selected workspace owner matches. */
+/** Normalized member id currently reported by the host, or null. */
+export const hostMemberIdSelector = (state: IState): string | null =>
+  normalizeMemberId(get(state, 'info.basic.api_member_id'))
+
+const rosterLoadedSelector = (state: IState): boolean => {
+  const ships = get(state, 'info.ships')
+  return Boolean(
+    ships && typeof ships === 'object' && Object.keys(ships as object).length > 0,
+  )
+}
+
+/**
+ * Live roster data may be used only when the ready file account matches the
+ * current host account and the roster has loaded. The account file itself is
+ * the ownership boundary.
+ */
+export const liveRosterAvailableSelector = createSelector(
+  [loadedAccountIdSelector, hostMemberIdSelector, rosterLoadedSelector],
+  (loaded, host, rosterLoaded): boolean =>
+    loaded !== null && host !== null && loaded === host && rosterLoaded,
+)
+
+/** Live roster overlay, empty unless the loaded account matches the host. */
 const liveRowsByIdSelector = createSelector(
-  [ownerStatusSelector, (state: IState) => shipMenuDataSelector(state)],
-  (ownerStatus, liveRows): Map<number, IPlannerShipData> => {
+  [liveRosterAvailableSelector, (state: IState) => shipMenuDataSelector(state)],
+  (available, liveRows): Map<number, IPlannerShipData> => {
     const map = new Map<number, IPlannerShipData>()
-    if (!ownerStatus.matches) return map
+    if (!available) return map
     for (const row of liveRows) map.set(row.id, row)
     return map
   },
@@ -116,13 +128,13 @@ const liveRowsByIdSelector = createSelector(
 const fleetIdMapSelector = (state: IState): Record<number, number> =>
   get(state, 'info.ships') ? shipFleetIdMapSelector(state) : {}
 
-/** Display content for the editable current revision (live overlay when owned). */
+/** Display content for the editable current revision (live overlay when live). */
 export const editingDisplayContentSelector = createSelector(
-  [selectedContentSelector, ownerStatusSelector, liveRowsByIdSelector, fleetIdMapSelector],
-  (content, ownerStatus, liveById, fleetIdMap): DisplayContent =>
+  [selectedContentSelector, liveRosterAvailableSelector, liveRowsByIdSelector, fleetIdMapSelector],
+  (content, liveAvailable, liveById, fleetIdMap): DisplayContent =>
     content
       ? buildDisplayContent(content, {
-          allowLive: ownerStatus.matches,
+          allowLive: liveAvailable,
           fleetIdMap,
           liveById,
         })
@@ -156,7 +168,7 @@ export const assignedShipIdsSelector = createSelector(
   },
 )
 
-/** Live picker rows, empty unless the owner matches. */
+/** Live picker rows, empty unless the live roster is available. */
 export const livePickerRowsSelector = createSelector(
   [liveRowsByIdSelector],
   (liveById): IPlannerShipData[] => [...liveById.values()],

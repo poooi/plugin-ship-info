@@ -278,10 +278,21 @@ const navyHasWorkspace = (data, id) =>
   Array.isArray(data?.workspaces) &&
   data.workspaces.some((workspace) => workspace?.id === id)
 
+// The host reports member id 101, so Navy Staff writes one account file there.
+const navyAccountFile = (appdata) =>
+  path.join(appdata, 'poi-plugin-navy-staff', '101.json')
+
 const createHost = () => {
   const pluginReducers = {}
   const config = {}
-  const rootReducer = (state = { config: {}, ext: {} }, action) => {
+  const rootReducer = (
+    state = {
+      config: {},
+      ext: {},
+      info: { basic: { api_member_id: '101' } },
+    },
+    action,
+  ) => {
     if (action.type === 'TEST/SET_CONFIG') {
       return {
         ...state,
@@ -421,7 +432,6 @@ const makeNavyWorkspace = (marker) => {
     createdAt: now,
     cursor: 0,
     id: `ws-smoke-${marker}`,
-    ownerMemberId: null,
     revisions: [
       {
         content: {
@@ -512,7 +522,7 @@ const runScenario = async (name, selected, seedLegacy) => {
     }
 
     if (seedLegacy) {
-      const navyFile = path.join(appdata, 'poi-plugin-navy-staff.json')
+      const navyFile = navyAccountFile(appdata)
       await waitFor(() => fs.existsSync(navyFile), `${name} navy file`)
       const migrated = readJsonSafe(navyFile)
       check(
@@ -535,7 +545,10 @@ const runScenario = async (name, selected, seedLegacy) => {
     }
     const files = {}
     for (const entry of entries) {
-      const file = path.join(appdata, `${entry.pluginKey}.json`)
+      const file =
+        entry.pluginKey === 'poi-plugin-navy-staff'
+          ? navyAccountFile(appdata)
+          : path.join(appdata, `${entry.pluginKey}.json`)
       await waitFor(() => {
         const data = readJsonSafe(file)
         return entry.pluginKey === 'poi-plugin-navy-staff'

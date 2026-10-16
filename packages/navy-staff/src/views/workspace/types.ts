@@ -70,8 +70,6 @@ export interface NavyRevision {
 export interface NavyWorkspace {
   id: string
   createdAt: string
-  /** Normalized owner member id, or null when unknown. */
-  ownerMemberId: string | null
   revisions: NavyRevision[]
   /** Index of the editable revision. */
   cursor: number
@@ -112,13 +110,11 @@ export const createWorkspace = ({
   areas,
   name,
   now,
-  ownerMemberId,
   op = { kind: 'create' },
 }: {
   areas: NavyArea[]
   name: string
   now: string
-  ownerMemberId: string | null
   op?: NavyOperation
 }): NavyWorkspace => {
   const content: NavyWorkspaceContent = {
@@ -131,7 +127,6 @@ export const createWorkspace = ({
     createdAt: now,
     cursor: 0,
     id: newNavyId('ws'),
-    ownerMemberId,
     revisions: [createRevision(op, content, now)],
   }
 }

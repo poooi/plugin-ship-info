@@ -6,11 +6,12 @@ import {
   PersistedDataError,
   type PersistenceWriter,
 } from '@poi-plugins/ship-info-shared/persistence'
-import { createPersistence } from './persistence'
+import { createAccountSupervisor } from './account-supervisor'
 
 // Navy Staff owns its initialization and persistence independently of Ship Info.
 // The shared FileWriter is injected per plugin, keyed by its own symbol, so a
 // plugin module reload cannot let an old queued save overwrite a newer edit.
+// Each account (teitoku member id) gets its own file; see ./account-supervisor.
 
 const __ = i18next.getFixedT(null, ['poi-plugin-navy-staff', 'resources'])
 
@@ -41,16 +42,17 @@ const notifyWriteError = (error: PersistedDataError): void => {
   }
 }
 
-const persistence = createPersistence({
+const supervisor = createAccountSupervisor({
+  store,
+  writer: getHostWriter(),
   onError: notifyLoadError,
   onWriteError: notifyWriteError,
-  writer: getHostWriter(),
 })
 
 export const pluginDidLoad = (): void => {
-  persistence.start(store)
+  supervisor.start()
 }
 
 export const pluginWillUnload = (): void => {
-  persistence.stop()
+  supervisor.stop()
 }

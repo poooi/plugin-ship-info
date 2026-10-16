@@ -1,7 +1,7 @@
 // Legacy -> version 2 conversion. The old format stored only positional group
 // slots and owned ship IDs, so area labels and ship display records cannot be
-// reconstructed. Neutral labels are used and ownership stays unknown; missing
-// host data never blocks the structural migration.
+// reconstructed. Neutral labels are used; missing host data never blocks the
+// structural migration.
 
 import {
   NAVY_DEFAULT_AREA_COLOR,
@@ -41,7 +41,6 @@ export const navyDataFromLegacyPlanner = (
     createdAt: now,
     cursor: 0,
     id: newNavyId('ws'),
-    ownerMemberId: null,
     revisions: [createRevision({ kind: 'migrated' }, content, now)],
   }
   return {

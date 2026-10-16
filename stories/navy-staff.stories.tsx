@@ -10,7 +10,8 @@ import { host } from '../preview/adapters/logs'
 import { mkNavyData } from '../tests/ui/fixtures'
 import {
   assignedShipIds,
-  NAVY_PLUGIN_DATA_PATH,
+  navyAccountFile,
+  persistedNavyFile,
   persistedPluginFile,
   plannerScenarioState,
   plannerSlice,
@@ -233,16 +234,16 @@ export const DetachedDisplayOptionUsesGlobalConfig: Story = {
   },
 }
 
-export const UpgradesStoredFileAndSaves: Story = {
-  name: 'A v0 Navy file is upgraded to v2 and later saves keep v2',
+export const AccountFileIsAuthoritative: Story = {
+  name: 'An existing account file is used and never falls back to Ship Info',
   parameters: {
     shipInfo: {
       dimensions: { width: 1400, height: 760 },
       files: {
-        [NAVY_PLUGIN_DATA_PATH]: {
-          planner: { archive: {}, current: [[1]] },
-          ready: true,
-        },
+        // Ship Info legacy carries a different plan (ship 7).
+        ...persistedPluginFile({ current: [[7]] }),
+        // The account file (ship 1) is authoritative when present.
+        ...persistedNavyFile(mkNavyData({ current: [[1], []] }), '123'),
       },
       lifecycle: true,
       plugin: 'navy-staff',
@@ -256,28 +257,23 @@ export const UpgradesStoredFileAndSaves: Story = {
       expect(environment.store.getState()['poi-plugin-navy-staff'].ready).toBe(true)
     })
 
-    // The v0 file was upgraded in place to the v2 workspace root.
-    await waitFor(() => {
-      expect((host.log.files[NAVY_PLUGIN_DATA_PATH] as any)?.version).toBe(2)
-    })
-    expect((host.log.files[NAVY_PLUGIN_DATA_PATH] as any)?.selectedWorkspaceId).toBeTruthy()
-    expect((host.log.files[NAVY_PLUGIN_DATA_PATH] as any)?.legacyArchive).toEqual({})
+    const file = navyAccountFile('123')
+    // The account plan is loaded, not the legacy Ship Info plan.
+    expect(assignedShipIds(environment)).toContain(1)
+    expect(assignedShipIds(environment)).not.toContain(7)
 
-    // The migrated workspace has an unknown owner, so start a fresh workspace
-    // bound to the loaded roster, then add a ship through the live picker.
-    await userEvent.click(
-      await within(view).findByRole('button', { name: 'New workspace' }),
-    )
-    await userEvent.click(
-      await within(view).findByRole('button', { name: 'Add ship' }),
-    )
+    // Two captured areas each expose an Add ship button; use the first area's.
+    const addShipButtons = await within(view).findAllByRole('button', {
+      name: 'Add ship',
+    })
+    await userEvent.click(addShipButtons[0])
     const popover = document.querySelector(
       `.${Classes.POPOVER_CONTENT}`,
     ) as HTMLElement
     await userEvent.click(await within(popover).findByText('Epsilon'))
 
     await waitFor(() => {
-      const saved = host.log.files[NAVY_PLUGIN_DATA_PATH] as any
+      const saved = host.log.files[file] as any
       const ids = saved.workspaces.flatMap((workspace: any) =>
         Object.values(
           workspace.revisions[workspace.cursor].content.assignments,
@@ -285,14 +281,12 @@ export const UpgradesStoredFileAndSaves: Story = {
       )
       expect(ids).toContain(5)
     })
-    await expect(
-      (host.log.files[NAVY_PLUGIN_DATA_PATH] as any)?.version,
-    ).toBe(2)
+    await expect((host.log.files[file] as any)?.version).toBe(2)
   },
 }
 
 const previewFileNavy = () => {
-  const navy = mkNavyData({ current: [[1], []], ownerMemberId: '123' })
+  const navy = mkNavyData({ current: [[1], []] })
   const workspace = navy.workspaces[0]
   const base = workspace.revisions[0]
   workspace.revisions = [
@@ -313,7 +307,7 @@ export const HistoryPreviewWritesNothing: Story = {
   parameters: {
     shipInfo: {
       dimensions: { width: 1400, height: 760 },
-      files: { [NAVY_PLUGIN_DATA_PATH]: previewFileNavy() },
+      files: persistedNavyFile(previewFileNavy(), '123'),
       lifecycle: true,
       plugin: 'navy-staff',
       state: plannerScenarioState(),
@@ -326,7 +320,8 @@ export const HistoryPreviewWritesNothing: Story = {
       expect(environment.store.getState()['poi-plugin-navy-staff'].ready).toBe(true)
     })
 
-    const fileText = () => JSON.stringify(host.log.files[NAVY_PLUGIN_DATA_PATH])
+    const file = navyAccountFile('123')
+    const fileText = () => JSON.stringify(host.log.files[file])
     const before = fileText()
 
     await userEvent.selectOptions(
@@ -346,5 +341,54 @@ export const HistoryPreviewWritesNothing: Story = {
     ).toBeNull()
 
     expect(fileText()).toBe(before)
+  },
+}
+
+const accountNavy = (ids: number[]) => ({
+  ...mkNavyData({ current: [ids, []] }),
+  version: 2,
+})
+
+export const AccountSwitchLoadsPerAccountFile: Story = {
+  name: 'Switching account loads that account file and shows no binding control',
+  parameters: {
+    shipInfo: {
+      dimensions: { width: 1400, height: 760 },
+      files: {
+        ...persistedNavyFile(accountNavy([1]), '101'),
+        ...persistedNavyFile(accountNavy([2]), '202'),
+      },
+      lifecycle: true,
+      plugin: 'navy-staff',
+      state: plannerScenarioState({
+        extra: { info: { basic: { api_member_id: '101' } } },
+        mapname: ['E1'],
+      }),
+    },
+  },
+  play: async () => {
+    await playOnMainView()
+    const environment = getEnvironment()
+    const navyState = () => environment.store.getState()['poi-plugin-navy-staff']
+    await waitFor(() => {
+      expect(navyState().ready).toBe(true)
+    })
+
+    // Account 101's plan is loaded.
+    expect(assignedShipIds(environment)).toContain(1)
+
+    // Switch the host account to 202; the supervisor switches account files.
+    environment.store.dispatch({
+      type: 'TEST/REPLACE',
+      state: { info: { basic: { api_member_id: '202' } } },
+    })
+    await waitFor(() => {
+      expect(assignedShipIds(environment)).toContain(2)
+    })
+    expect(assignedShipIds(environment)).not.toContain(1)
+
+    // No per-workspace account binding control exists.
+    expect(screen.queryByText('Live roster linked')).toBeNull()
+    expect(screen.queryByText(/Saved data \(/)).toBeNull()
   },
 }

@@ -54,7 +54,8 @@ import {
 import {
   capturedDisplayContent,
   editingDisplayContentSelector,
-  ownerStatusSelector,
+  liveRosterAvailableSelector,
+  loadedAccountIdSelector,
   selectedWorkspaceIdSelector,
   selectedWorkspaceSelector,
   workspacesSelector,
@@ -113,16 +114,10 @@ const ManagerBar = styled.div`
   flex-wrap: wrap;
 `
 
-const OwnerNote = styled.span`
-  font-size: 0.85em;
-  opacity: 0.8;
-`
-
 const WorkspaceManager = ({ readOnly }: { readOnly: boolean }) => {
   const dispatch = useDispatch<ThunkDispatch<IState, unknown, Action>>()
   const workspaces = useSelector(workspacesSelector)
   const selectedId = useSelector(selectedWorkspaceIdSelector)
-  const ownerStatus = useSelector(ownerStatusSelector)
   const { t } = useTranslation('poi-plugin-navy-staff')
 
   const [renaming, setRenaming] = useState(false)
@@ -147,12 +142,6 @@ const WorkspaceManager = ({ readOnly }: { readOnly: boolean }) => {
       setDeleteTarget(null)
     }
   }, [readOnly])
-
-  const ownerNote = ownerStatus.matches
-    ? t('Live roster linked')
-    : ownerStatus.workspaceOwnerMemberId === null
-      ? t('Saved data (owner unknown)')
-      : t('Saved data (different account)')
 
   return (
     <ManagerBar>
@@ -253,8 +242,6 @@ const WorkspaceManager = ({ readOnly }: { readOnly: boolean }) => {
           )}
         </>
       )}
-
-      {selected && <OwnerNote>{ownerNote}</OwnerNote>}
     </ManagerBar>
   )
 }
@@ -271,7 +258,7 @@ const PlannerContent = ({
   const displayFleetName = useSelector((state: IState) =>
     get(state.config, DISPLAY_FLEET_NAME_CONFIG, false),
   )
-  const ownerStatus = useSelector(ownerStatusSelector)
+  const liveAvailable = useSelector(liveRosterAvailableSelector)
   const { t } = useTranslation('poi-plugin-navy-staff')
   const [fill, setFill] = useState<string | null>(null)
   const captureSection = useRef<HTMLDivElement>(null)
@@ -320,7 +307,7 @@ const PlannerContent = ({
                 others={areaChoices.filter((choice) => choice.id !== area.id)}
                 displayFleetName={displayFleetName}
                 readOnly={readOnly}
-                canAdd={ownerStatus.matches}
+                canAdd={liveAvailable}
               />
             ))}
           </div>
@@ -382,12 +369,19 @@ const NavyStaffContent = () => {
   const workspace = useSelector(selectedWorkspaceSelector)
   const workspaces = useSelector(workspacesSelector)
   const selectedWorkspaceId = useSelector(selectedWorkspaceIdSelector)
+  const loadedAccountId = useSelector(loadedAccountIdSelector)
   const editingDisplay = useSelector(editingDisplayContentSelector)
 
   const previewRevision = useMemo(() => {
     if (!preview || !workspace || preview.workspaceId !== workspace.id) return undefined
     return workspace.revisions.find((revision) => revision.id === preview.revisionId)
   }, [preview, workspace])
+
+  // An account switch closes any preview, even if a revision id happened to
+  // coincide across accounts.
+  useEffect(() => {
+    setPreview(null)
+  }, [loadedAccountId])
 
   // A preview is closed when the workspace switches or its target disappears
   // (an edit after undo truncates the redo tail). The selected id is a

@@ -21,9 +21,13 @@ This is a pnpm workspace for poi plugins:
 - `tests/`, `stories/`, `preview/`, `shims/`, `.storybook/` and the shared
   configs live at the repository root.
 
-The extracted Navy Staff implementation imports an existing Ship Info sortie
-plan the first time it runs. Ship Info keeps saving its own file and leaves the
-legacy `planner` field untouched.
+Navy Staff stores one JSON file per teitoku (member ID): each account's
+workspaces, history, and legacy archive live in its own file, with no
+per-workspace account binding. Navy Staff has never released, so it does not read
+an old unscoped Navy file. The released Ship Info plan is imported once, while no
+Navy Staff account file exists yet: the first created account consumes it, later
+runs do not re-import, and Ship Info keeps saving its own file with its legacy
+`planner` field untouched.
 
 ## Installation in poi
 

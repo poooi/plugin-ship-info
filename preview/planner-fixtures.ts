@@ -1,8 +1,10 @@
 import './bootstrap'
 
+import path from 'path'
+
 import { mkMstShip, mkShip } from '../tests/fixtures'
 import { mkNavyArea, mkNavyData, tableState } from '../tests/ui/fixtures'
-import { DATA_PATH as NAVY_DATA_PATH } from '../packages/navy-staff/src/views/plugin-identity'
+import { ACCOUNT_DIR } from '../packages/navy-staff/src/views/account'
 import { DATA_PATH as SHIP_INFO_DATA_PATH } from '../packages/ship-info/src/views/plugin-identity'
 
 // Planner / Navy Staff and integrated-shell browser fixtures. Built on the
@@ -15,7 +17,10 @@ export const NAVY_PLUGIN_KEY = 'poi-plugin-navy-staff'
 
 /** Absolute paths the plugin persistence lifecycles read/write. */
 export const PLUGIN_DATA_PATH = SHIP_INFO_DATA_PATH
-export const NAVY_PLUGIN_DATA_PATH = NAVY_DATA_PATH
+/** Account directory and a helper for a specific account file. */
+export const NAVY_ACCOUNT_DIR = ACCOUNT_DIR
+export const navyAccountFile = (memberId: string) =>
+  path.join(ACCOUNT_DIR, `${memberId}.json`)
 
 const mst = (over: Record<string, any>) =>
   mkMstShip({ api_taik: [30, 30], ...over })
@@ -91,7 +96,6 @@ export interface PlannerScenarioOptions {
   extra?: Record<string, any>
   mapname?: string[]
   mstShips?: Record<number, any>
-  ownerMemberId?: string | null
   ships?: Record<number, any>
 }
 
@@ -110,7 +114,6 @@ export const plannerScenarioState = (
     extra,
     mapname = plannerAreaNames,
     mstShips = plannerMstShips,
-    ownerMemberId = '123',
     ships = plannerOwnedShips,
   } = options
 
@@ -147,11 +150,11 @@ export const plannerScenarioState = (
       ui: {},
     },
     [NAVY_PLUGIN_KEY]: {
+      account: '123',
       error: null,
       navy: mkNavyData({
         areas,
         current: current ?? mapname.map(() => []),
-        ownerMemberId,
       }),
       ready: true,
     },
@@ -191,15 +194,9 @@ export const persistedPluginFile = (planner: {
   },
 })
 
-/** Seed the Navy Staff file (authoritative when present). */
-export const persistedNavyFile = (planner: {
-  archive?: object
-  current: number[][]
-}) => ({
-  [NAVY_PLUGIN_DATA_PATH]: {
-    planner: { archive: {}, ...planner },
-    ready: true,
-  },
+/** Seed an account-scoped Navy file (authoritative when present). */
+export const persistedNavyFile = (navy: object, memberId = '123') => ({
+  [navyAccountFile(memberId)]: { ...navy, version: 2 },
 })
 
 // Re-export the capture adapter surface so capture stories reset and inspect a
