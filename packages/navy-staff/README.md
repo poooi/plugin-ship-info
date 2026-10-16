@@ -16,12 +16,15 @@ The package name remains `poi-plugin-navy-staff`.
 
 Plans which ship girls to send to each sortie area, with an area view and a ship
 grid view, manual add/move/remove, and an image export in detached windows. Live
-sortie tags are never applied automatically; they will be offered through an
-explicit synchronization action in a later layer.
+sortie tags are never applied automatically. Separate actions preview and apply
+updates to area information and actual sortie tags as undoable revisions.
 
 The main view shows the planner tabs directly. It owns its own plugin state and
-saved file (`poi-plugin-navy-staff.json`) and imports an existing sortie plan
-from Ship Info's legacy data the first time it runs.
+saved files (`poi-plugin-navy-staff/<member ID>.json`), one per teitoku. The first
+account file imports an existing sortie plan from Ship Info's legacy data; once
+an account file exists, later accounts start empty. The Ship Info source stays
+untouched. No unscoped Navy Staff file is imported because Navy Staff has not
+been released.
 
 Each workspace keeps a linear operation history. Undo and redo move the editable
 cursor, a new edit discards the redo tail, and selecting an earlier revision
@@ -39,9 +42,17 @@ as load errors.
 
 Create, rename, duplicate, switch, and delete workspaces from the planner.
 Captured areas and saved ships remain visible when the host event or roster
-changes. New workspaces associate with the loaded account; live ship details
-are shown only for the matching owner. Imported legacy plans retain unknown
-ownership until explicitly associated with an account.
+changes. Workspaces belong to their account file without a separate binding
+step. Live ship details are shown only while the loaded file matches the host
+account and its roster is available.
+
+Export the current plan or a historical revision as compressed share text, then
+copy it or save it to a text file. Paste or open a reference inside the plugin
+to view it read-only without changing any workspace. References contain master
+IDs and levels, captured area labels and colors, and timestamps. Names and types
+come from poi's current master data; missing masters display `???` while keeping
+the ID and level. Only the exact current reference version is accepted.
+Website viewing and QR generation are not included.
 
 ## Install
 

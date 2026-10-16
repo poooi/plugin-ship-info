@@ -174,6 +174,37 @@ export const livePickerRowsSelector = createSelector(
   (liveById): IPlannerShipData[] => [...liveById.values()],
 )
 
+export interface RawRosterShip {
+  masterId: number | null
+  level: number | null
+}
+
+/**
+ * Raw owned roster values keyed by owned ID (`api_ship_id`/`api_lv`), used by a
+ * current export so a live ship with missing master metadata still exports its
+ * raw values. Empty unless the loaded account matches the host and the roster is
+ * loaded; a mismatched account must never overlay.
+ */
+export const rawRosterShipsSelector = createSelector(
+  [liveRosterAvailableSelector, (state: IState) => get(state, 'info.ships')],
+  (available, ships): Map<number, RawRosterShip> => {
+    const map = new Map<number, RawRosterShip>()
+    if (!available || !ships || typeof ships !== 'object') return map
+    for (const key of Object.keys(ships as Record<string, unknown>)) {
+      const ownedId = Number(key)
+      const raw = (ships as Record<string, { api_ship_id?: unknown; api_lv?: unknown }>)[key]
+      if (!Number.isInteger(ownedId) || !raw) continue
+      map.set(ownedId, {
+        level: Number.isInteger(raw.api_lv) ? (raw.api_lv as number) : null,
+        masterId: Number.isInteger(raw.api_ship_id)
+          ? (raw.api_ship_id as number)
+          : null,
+      })
+    }
+    return map
+  },
+)
+
 /**
  * Read-only display content for a captured revision. Live data is never used,
  * so previews and reference exports show only captured records.

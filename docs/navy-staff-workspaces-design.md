@@ -124,7 +124,7 @@ Include:
 
 For a current-plan export, resolve displayed live ship details once at export time and freeze them into the reference. Historical exports use that revision's captured details without substituting today's levels or tags. Explicitly identify missing details rather than fetching replacement data from a future viewer's game session.
 
-The compact sharing direction omits ship names and type labels. The plugin and future viewer bundle a public master-ID catalog to resolve them without a user's game session or network access. This changes the earlier fully self-contained-display proposal: the share code fixes assignments, forms, levels, and area labels, while ship names/types depend on the viewer's catalog. An older catalog shows an explicit ID placeholder for a new ship until the viewer's catalog is updated; it must not guess or drop that entry. A legacy entry with no recoverable master ID needs an unknown entry, not an owned ID misinterpreted as a master ID. The encoding experiment measures known numeric IDs and a numeric unknown-ID case, not that missing-ID schema decision.
+The compact sharing direction omits ship names and type labels. The plugin resolves names and types from the current poi Redux store masters at view time; it bundles no catalog and uses no static name snapshot. The share code fixes assignments, forms, levels, and area labels, while ship names/types depend on the viewer's current masters. A row whose master metadata is missing (a master ID absent from the current masters, or a null master ID) stays valid: the master ID and level are preserved and the display shows a `???` fallback. Owned-game IDs are never substituted for master IDs. The encoding experiment measures known numeric IDs and a numeric unknown-ID case; it is historical evidence, not the schema decision.
 
 Use a compact projection for the share format rather than serializing the editable workspace or its full display records: schema version, title, capture/export times, locale, one captured display label and color per group, and ordered `[masterId, level]` entries. Snapshot capture time describes the saved plan state, not a promise that every ship value was observed simultaneously. Per-ship observation times and alternative translated labels are not part of the minimal experiment. A master-ID-only variant without levels is measured separately as a lower-information option, not an equivalent replacement. See the [encoding experiment](navy-staff-sharing-experiment.md) for measured sizes and verification limits.
 
@@ -132,19 +132,18 @@ Do not include unassigned roster entries, account identifiers, local paths, conf
 
 The plugin offers **Open reference** from pasted text or a text file. This is the reference-import operation: decode and validate a snapshot, then open a separate read-only view alongside the editable workspace, with a visible reference title and capture/export times. It does not create, merge into, or overwrite a workspace. Opening or closing it does not change the selected workspace, write plugin state, or create history. References need no persistent library in the first release. Searching and switching views are allowed; assigning ships, syncing, and saving as an editable workspace are not.
 
-A future web viewer may render the same plan data without Electron, poi globals, host translations, game artwork, or access to a game session; its own bundled catalog would supply names and types. Its decoding, rendering, WASM integration, and deployment are outside the current deliverable. Keep the reference data contract separate from host data capture, but do not build a browser viewer or require browser compatibility acceptance to deliver plugin import/viewing. `fleet.poi.moe` remains the intended future address, not an available viewing service promised by this feature.
+A future web viewer may render the same plan data without Electron, poi globals, host translations, game artwork, or access to a game session; it would supply names and types from its own data source. Its decoding, rendering, WASM integration, and deployment are outside the current deliverable. Keep the reference data contract separate from host data capture, but do not build a browser viewer or require browser compatibility acceptance to deliver plugin import/viewing. `fleet.poi.moe` remains the intended future address, not an available viewing service promised by this feature.
 
 ## 8. Reference share text
 
 The plugin's reference format is compact UTF-8 JSON compressed with native Node
 Brotli (quality 11, generic mode, input-size hint) and encoded as unpadded
-Base64url. A share code is the canonical raw form `ns1:b:PAYLOAD`; decoding also
-accepts the URL/QR PoC's `ns1:g:` gzip form for compatibility with the earlier
-experiment. Compression and text encoding solve different problems; gzip remains
-only a decode-side compatibility codec, not a second export mode. The
+Base64url. A share code is the canonical raw form `ns1:b:PAYLOAD`. Compression
+and text encoding solve different problems. The
 [compression experiment](navy-staff-sharing-experiment.md#compression-and-browser-wasm-comparison)
 measured roughly 13% smaller compact JSON with Brotli 11 versus gzip, which is
-why Brotli is the export codec.
+why Brotli is the export codec; its gzip and `ns1:g:` forms are historical PoC
+evidence, not accepted input and not a second export mode.
 
 This is a plugin-only text format. Website decoding, browser WASM, QR
 integration, and scan-to-open delivery are deferred; `fleet.poi.moe` remains an
@@ -162,11 +161,11 @@ reference-view error and never touch workspace data. Compressed input,
 decompressed output, and raw input length are bounded at this external-input
 seam, with `maxOutputLength` passed to the native decompressor to prevent
 decompression bombs. Render fields as text, never executable markup or host
-paths. Brotli and gzip integrity checks detect many accidental changes but do not
-authenticate the sender. The plugin bundles a public master-ID catalog so names
-and types resolve without a user's game session or network access; an unknown ID
-shows an explicit `#ID` placeholder and a missing master ID stays an explicit
-unknown.
+paths. Decoding and schema validation reject malformed data but do not
+authenticate the sender; no additional checksum is added. Names and types resolve
+from the current poi Redux store masters; nothing is bundled, fetched, or
+persisted. A row whose master metadata is missing shows `???` while keeping its
+master ID and level.
 
 No target chat service or message-length limit has been specified. Do not claim
 every plan fits one message or invent a product hard cap from an assumed platform
@@ -202,7 +201,7 @@ These are proposed review layers, not instructions to publish PRs before the des
 - History preview is read-only and produces no writes; undo selects an editable state. Restore with a redo tail copies its target before truncation and follows the documented linear-history example.
 - Reference content remains identical after host data changes. Opening a reference cannot dispatch workspace mutations or write persistence. History exports contain historical display data.
 - Pasted/file reference import opens read-only inside Navy Staff without a website or network request. It never creates, merges, or overwrites an editable workspace. Website decoding and physical QR scanning are not acceptance gates for this stage.
-- Codec tests cover Brotli and gzip JSON round trips, whitespace wrapping, Base64url canonical/truncation rejection, unsupported versions and codecs, size limits, unexpected fields, and schema rejection. Measure representative payloads and test copy/paste in intended sharing channels.
+- Codec tests cover Brotli JSON round trips, exact-current-version enforcement (older, newer, and missing versions rejected), Base64url canonical/truncation rejection, unsupported codecs (including no gzip fallback), size limits, unexpected fields, schema rejection, and projection with supplied masters where missing metadata shows `???` and keeps the master ID and level. Measure representative payloads and test copy/paste in intended sharing channels.
 - Browser tests exercise workspace selection, history, sync previews, both planning views, pasted/file references, and read-only controls. Run type checks, relevant tests, builds, and packed-artifact verification for implementation changes.
 
 This design-only change requires document/link and whitespace checks, not runtime-suite claims. Remaining product review points are the proposed live-tag behavior, linear redo/retention semantics, and measured share-text sizes with real copy/paste samples.
@@ -227,7 +226,7 @@ Sol accepted the adjudication with qualifications for write-trigger isolation, u
 
 ## 13. Implementation progress
 
-Layer 1 (workspaces, captured metadata, durable root, usable UI) is implemented in `packages/navy-staff`. The account-file layer below supersedes the earlier single-file/owner approach; it is in progress and its runtime/tests are not recorded here yet.
+Layer 1 (workspaces, captured metadata, durable root, usable UI) is implemented in `packages/navy-staff`. The account-file layer in section 15 supersedes the earlier single-file/owner approach.
 
 - Durable root `{ version, selectedWorkspaceId, workspaces, legacyArchive }`; each workspace has a stable local id, creation time, a revision list, and an editable cursor. Revisions carry a stable id and operation time. The root lives in one file per account (see section 3); there is no per-workspace owner field.
 - Each revision's content holds the workspace name, stable local area ids with captured map label, localized fleet labels, color, tag-slot hint, and capture time, plus area-keyed assignments and saved ship display records.
@@ -238,7 +237,7 @@ Layer 1 (workspaces, captured metadata, durable root, usable UI) is implemented 
 - A single `appendRevision` helper is in place so the history layer needs no further storage migration.
 - Exported for later layers: workspace types and factories, the operation append helper, plain action creators, thunks, selectors (`areaViewsSelector`, `gridRowsSelector`, `assignedShipIdsSelector`, and related), and the import/validation helpers.
 
-Verification: `pnpm run check`, `pnpm test` (111 passed), `pnpm run test:browser` (103 passed), `pnpm run build`, `pnpm run build-storybook`, `pnpm run pack`, `pnpm run verify:package`, and `git diff --check` pass. The persistence boundary additionally rejects duplicate workspace ids and duplicate revision ids. Browser regressions cover workspace CRUD and switching, delete/rename confirmation invalidated by a selection change, duplicate/source independence, palette selection not recoloring unedited ships, and an unknown-master row never borrowing owned-ID artwork. Packed-artifact checks cover the durable root, legacy archive preservation, independent plugin saves, and no writes after unload. Local GPT-6.1-Sol review findings were fixed and the focused follow-up found no remaining actionable issues. Undo/redo and preview are recorded in section 14; explicit synchronization is recorded in section 15; reference import/export remains for a later layer.
+Verification: `pnpm run check`, `pnpm test` (111 passed), `pnpm run test:browser` (103 passed), `pnpm run build`, `pnpm run build-storybook`, `pnpm run pack`, `pnpm run verify:package`, and `git diff --check` pass. The persistence boundary additionally rejects duplicate workspace ids and duplicate revision ids. Browser regressions cover workspace CRUD and switching, delete/rename confirmation invalidated by a selection change, duplicate/source independence, palette selection not recoloring unedited ships, and an unknown-master row never borrowing owned-ID artwork. Packed-artifact checks cover the durable root, legacy archive preservation, independent plugin saves, and no writes after unload. Local GPT-6.1-Sol review findings were fixed and the focused follow-up found no remaining actionable issues. Undo/redo and preview are recorded in section 14; explicit synchronization is recorded in section 16, and reference import/export in section 17.
 
 ## 14. History layer
 
@@ -248,7 +247,7 @@ The linear history from section 6 is implemented in `packages/navy-staff`.
 - Restore resolves the target revision before appending, copies it as one new revision at the cursor (discarding any redo tail), and leaves workspace identity metadata unchanged. A missing target or a target whose content equals the current content is a no-op.
 - The transient `previewRevisionId` lives in React state provided by `NavyStaffContent`, not in the observed persistence slice. Opening or closing a preview therefore dispatches no action and writes no file. Switching workspaces closes the preview, and a preview is invalidated if an edit removes its target. Restore leaves the preview so Undo applies to the restored revision immediately.
 - A preview is read-only in both views and renders captured records only: no live overlay, no fleet badges, and no live-only roster. While previewing, add, move, remove, and rename are disabled; workspace switching stays available.
-- The reusable display-content boundary (`workspace/display.ts`, `buildDisplayContent`) produces both the editable view models (with a live overlay when live data is available for the loaded account) and the captured-only view models used by previews and the future reference export.
+- The reusable display-content boundary (`workspace/display.ts`, `buildDisplayContent`) produces both the editable view models (with a live overlay when live data is available for the loaded account) and the captured-only view models used by previews and reference export.
 
 Verification: `pnpm run check`, `pnpm test` (121 passed, including undo/redo, divergent edit, restore of a target in the redo tail, workspace isolation, reloaded cursor/history, and a jsdom test proving preview toggling dispatches nothing), and `pnpm run test:browser` (109 passed, including read-only area and grid previews, a preview showing the captured level while editing shows the live level, restore followed by immediate undo, preview closing on workspace switch, a pending rename closing on preview, and a lifecycle scenario proving preview toggling writes no file).
 
@@ -269,7 +268,7 @@ The account-file layer replaces workspace binding with `APPDATA/poi-plugin-navy-
 
 Only released Ship Info data is a legacy import source. When the requested account file is missing, the first account file may import that plan and archive; the presence of any account JSON file prevents repeated imports for later accounts. Ship Info remains untouched. No unscoped Navy Staff file is probed or imported, and workspaces contain no owner/binding field.
 
-Verification: type checking, full unit tests, the focused lifecycle suite (10 tests), browser tests (110 tests), both plugin builds, and fresh packed-artifact verification passed. Lifecycle coverage includes A-to-B-to-A history isolation, a pending A save while switching to B, identity loss after loading, stale loads, duplicate initialization, and detached windows. Local GPT-6.1-Sol review found no remaining actionable account-isolation issue. Explicit synchronization is recorded in section 16; reference import/export follows.
+Verification: type checking, full unit tests, the focused lifecycle suite (10 tests), browser tests (110 tests), both plugin builds, and fresh packed-artifact verification passed. Lifecycle coverage includes A-to-B-to-A history isolation, a pending A save while switching to B, identity loss after loading, stale loads, duplicate initialization, and detached windows. Local GPT-6.1-Sol review found no remaining actionable account-isolation issue. Explicit synchronization is recorded in section 16; reference import/export is recorded in section 17.
 
 ## 16. Explicit synchronization layer
 
@@ -284,3 +283,14 @@ The manual synchronization from sections 4-5 is implemented in `packages/navy-st
 - The runtime source generation is a transient reference identity of the host `fcd.shiptag`; it is not a persisted event id and never establishes continuity. No per-workspace owner or binding exists.
 
 Verification: type checking, all 155 unit tests, all 118 Chromium browser tests, fresh packaging and package verification, and whitespace checks passed. Eight integrated browser scenarios cover metadata updates and undo, tag application, cancellation without writes, no-op acceptance, history preview, workspace/account switching, and stale roster rejection. Local Codex GPT-6.1-Sol review found an omitted unknown-master candidate; the raw-roster fix and regression were verified, with no remaining actionable findings.
+
+## 17. Reference layer
+
+The read-only reference layer is implemented under `packages/navy-staff/src/views/reference`.
+
+- Encode and decode a compact reference with native Node Brotli and unpadded Base64url (`ns1:b:`). One exact current schema version covers both the wire structure and the meaning of master IDs; older and newer versions are rejected, and there is no compatibility path or gzip/alternative-codec decode.
+- Validate strictly at the input boundary: exact version, Base64url alphabet and canonical form, bounded input/compressed/decompressed sizes (with `maxOutputLength`), JSON and schema checks, exact fields only, and `#RRGGBB` colors. Owner IDs, local paths, and history cannot enter.
+- Project a decoded reference for display using the current poi Redux store masters, supplied by the caller; nothing is bundled, fetched, or persisted. Groups and repeated occurrences are preserved. A row whose master metadata is missing shows `???` while keeping its master ID and level.
+- Import pasted text or a text file into a separate read-only view. It never creates, merges into, or overwrites an editable workspace. Website decoding, browser WASM, QR, and URL export remain deferred; the URL/QR and gzip findings in the encoding experiment are historical PoC evidence, not this feature.
+
+Verification: type checking, all 171 unit tests, all 127 Chromium browser tests, both plugin builds, the static Storybook build, fresh packages and packed-artifact verification, and whitespace checks passed. Real native-codec tests cover exact version rejection, schema and size boundaries, and missing-master projection. Browser scenarios cover paste/file import without workspace mutations, current versus historical levels, raw IDs/levels without master metadata, import with no account or masters, stale asynchronous file reads, empty groups, area labels in the type grid, localized copy/save failures, and account-supervisor disposal. Local Codex GPT-6.1-Sol review identified a current-export raw-roster omission; the fix and focused follow-up were verified.

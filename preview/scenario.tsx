@@ -168,4 +168,8 @@ export const disposeScenario = (environment?: Environment): void => {
     persistence.stop()
   }
   currentPersistences = []
+  for (const supervisor of currentSupervisors) {
+    supervisor.stop()
+  }
+  currentSupervisors = []
 }

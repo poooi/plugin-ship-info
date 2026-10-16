@@ -57,13 +57,22 @@ export const hostAliases: HostAlias[] = [
 ]
 
 // The vendored capture renderer is imported relatively, which Vite aliases do
-// not intercept; this pre-plugin stubs it (capture is a later layer).
+// not intercept; this pre-plugin stubs it (capture is a later layer). It also
+// maps the reference module's relative `./codec.ts` import (which needs
+// `node:zlib`) to the browser mock.
 export const poiHostResolver = (): Plugin => ({
   enforce: 'pre',
   name: 'poi-preview-host-resolver',
-  resolveId(source) {
+  resolveId(source, importer) {
     if (source.endsWith('/lib/html2canvas') || source === 'lib/html2canvas') {
       return resolve('./adapters/html2canvas.ts')
+    }
+    if (
+      source === './codec.ts' &&
+      importer &&
+      /[\\/]views[\\/]reference[\\/]/u.test(importer)
+    ) {
+      return resolve('./adapters/reference-codec.ts')
     }
     return null
   },

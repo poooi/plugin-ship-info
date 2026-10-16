@@ -16,7 +16,7 @@ import {
   plannerScenarioState,
   plannerSlice,
 } from '../preview/planner-fixtures'
-import { getEnvironment } from '../preview/scenario'
+import { disposeScenario, getEnvironment } from '../preview/scenario'
 import { reactClass as NavyStaff } from '../packages/navy-staff/src/views'
 import { reactClass as ShipInfo } from '../packages/ship-info/src/views'
 
@@ -390,5 +390,43 @@ export const AccountSwitchLoadsPerAccountFile: Story = {
     // No per-workspace account binding control exists.
     expect(screen.queryByText('Live roster linked')).toBeNull()
     expect(screen.queryByText(/Saved data \(/)).toBeNull()
+  },
+}
+
+export const DisposeStopsAccountSupervisor: Story = {
+  name: 'Disposing the scenario stops account switching from writing new files',
+  parameters: {
+    shipInfo: {
+      dimensions: { width: 1400, height: 760 },
+      files: persistedNavyFile(mkNavyData({ current: [[1], []] }), '101'),
+      lifecycle: true,
+      plugin: 'navy-staff',
+      state: plannerScenarioState({
+        extra: { info: { basic: { api_member_id: '101' } } },
+        mapname: ['E1'],
+      }),
+    },
+  },
+  play: async () => {
+    await playOnMainView()
+    const environment = getEnvironment()
+    const navyState = () => environment.store.getState()['poi-plugin-navy-staff']
+    await waitFor(() => {
+      expect(navyState().ready).toBe(true)
+    })
+
+    // Stop the scenario's supervisor while retaining the old store.
+    disposeScenario(environment)
+    const writesBefore = host.log.writtenFiles.length
+
+    // An account change on the retained store must not create a new account file.
+    environment.store.dispatch({
+      type: 'TEST/REPLACE',
+      state: { info: { basic: { api_member_id: '202' } } },
+    })
+    await new Promise((resolve) => setTimeout(resolve, 30))
+
+    expect(host.log.files[navyAccountFile('202')]).toBeUndefined()
+    expect(host.log.writtenFiles.length).toBe(writesBefore)
   },
 }

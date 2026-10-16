@@ -39,6 +39,8 @@ import { Area } from './planner/area'
 import { ShipGrid } from './planner/ship-grid'
 import { resolveAreaLabel } from './planner/types'
 import { DISPLAY_FLEET_NAME_CONFIG, PLUGIN_KEY } from './plugin-identity'
+import { ReferenceTools } from './reference'
+import { captureReference } from './reference/capture'
 import { SyncBar } from './sync'
 import {
   createWorkspace,
@@ -57,6 +59,7 @@ import {
   editingDisplayContentSelector,
   liveRosterAvailableSelector,
   loadedAccountIdSelector,
+  rawRosterShipsSelector,
   selectedWorkspaceIdSelector,
   selectedWorkspaceSelector,
   workspacesSelector,
@@ -409,6 +412,31 @@ const NavyStaffContent = () => {
     [preview],
   )
 
+  // Reference tools stay mounted regardless of planning readiness: import and
+  // viewing work with no account, workspace, or master data loaded (unknown
+  // masters render `???`). Export needs a ready selected workspace.
+  const displayFleetName = useSelector((state: IState) =>
+    get(state.config, DISPLAY_FLEET_NAME_CONFIG, false),
+  )
+  const rawRosterShips = useSelector(rawRosterShipsSelector)
+  const captureReferenceForExport = useCallback(
+    () =>
+      captureReference(display, {
+        captureTime:
+          previewRevision?.time ??
+          workspace?.revisions[workspace.cursor]?.time ??
+          new Date().toISOString(),
+        displayFleetName,
+        exportTime: new Date().toISOString(),
+        locale: window.language,
+        // Current export overlays raw owned values (gated to a matching loaded
+        // account); a historical preview keeps the captured values.
+        rawShips: previewRevision ? undefined : rawRosterShips,
+        title: display.name,
+      }),
+    [display, displayFleetName, previewRevision, rawRosterShips, workspace],
+  )
+
   return (
     <Wrapper id="poi-plugin-navy-staff">
       <NavGlobalStyle />
@@ -433,6 +461,10 @@ const NavyStaffContent = () => {
         ) : (
           <Callout>{t('loading')}</Callout>
         )}
+        <ReferenceTools
+          exportDisabled={!(slice?.ready && workspace)}
+          onExportCapture={captureReferenceForExport}
+        />
       </Body>
     </Wrapper>
   )
