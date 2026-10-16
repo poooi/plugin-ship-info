@@ -79,6 +79,72 @@ export const plannerMstShips = {
   5: mst({ api_id: 5, api_name: 'Epsilon', api_sortno: 50, api_stype: 4, api_yomi: 'イプシロン' }),
 }
 
+const AREA_TIME = '2026-01-01T00:00:00.000Z'
+
+export interface NavyFixtureArea {
+  id: string
+  label: string
+  fleetLabels?: Record<string, string>
+  color: string
+  tagSlot: number
+}
+
+export const mkNavyArea = (over: Partial<NavyFixtureArea> = {}) => ({
+  capturedAt: AREA_TIME,
+  color: '#ff0000',
+  fleetLabels: {},
+  id: 'area-1',
+  label: 'E1',
+  tagSlot: 0,
+  ...over,
+})
+
+/** A v2 workspace. `current` seeds per-area owned IDs positionally. */
+export const mkNavyWorkspace = ({
+  current = [[3]],
+  name = 'Plan',
+  ownerMemberId = '123',
+  areas,
+}: {
+  current?: number[][]
+  name?: string
+  ownerMemberId?: string | null
+  areas?: ReturnType<typeof mkNavyArea>[]
+} = {}) => {
+  const resolvedAreas =
+    areas ?? [
+      mkNavyArea({ id: 'area-1', label: 'E1', color: '#ff0000', tagSlot: 0 }),
+      mkNavyArea({ id: 'area-2', label: 'E2', color: '#00ff00', tagSlot: 1 }),
+    ]
+  const assignments: Record<string, number[]> = {}
+  resolvedAreas.forEach((area, index) => {
+    assignments[area.id] = [...(current[index] ?? [])]
+  })
+  return {
+    createdAt: AREA_TIME,
+    cursor: 0,
+    id: 'ws-1',
+    ownerMemberId,
+    revisions: [
+      {
+        content: { areas: resolvedAreas, assignments, name, ships: {} },
+        id: 'rev-1',
+        op: { kind: 'initial' },
+        time: AREA_TIME,
+      },
+    ],
+  }
+}
+
+export const mkNavyData = (options: Parameters<typeof mkNavyWorkspace>[0] = {}) => {
+  const workspace = mkNavyWorkspace(options)
+  return {
+    legacyArchive: {} as Record<string, unknown>,
+    selectedWorkspaceId: workspace.id,
+    workspaces: [workspace],
+  }
+}
+
 export const plannerState = (over: Record<string, any> = {}) => ({
   ...tableState(),
   const: {
@@ -87,7 +153,12 @@ export const plannerState = (over: Record<string, any> = {}) => ({
     $ships: plannerMstShips,
     $shipTypes: { ...shipTypes, 4: { api_name: 'CLT' } },
   },
-  info: { equips: {}, server: { ip: '1.2.3.4' }, ships: plannerShips },
-  [NAVY_PLUGIN_KEY]: { planner: { archive: {}, current: [[3]] }, ready: true },
+  info: {
+    basic: { api_member_id: '123' },
+    equips: {},
+    server: { ip: '1.2.3.4' },
+    ships: plannerShips,
+  },
+  [NAVY_PLUGIN_KEY]: { error: null, navy: mkNavyData(), ready: true },
   ...over,
 })

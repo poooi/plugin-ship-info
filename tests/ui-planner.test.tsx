@@ -32,15 +32,15 @@ afterEach(() => {
 })
 
 describe('AddShip planner menu search', () => {
-  it('lists only owned ships that are neither selected nor tagged', () => {
+  it('lists live roster ships that are not already assigned', () => {
     renderMenu()
 
     expect(screen.getByText('Alpha')).toBeTruthy()
     expect(screen.getByText('Beta')).toBeTruthy()
+    expect(screen.getByText('Delta')).toBeTruthy()
     expect(screen.getByText('Epsilon')).toBeTruthy()
-    // Gamma is already in the planner, Delta is tagged with a sally area
+    // Gamma is already assigned to the selected workspace.
     expect(screen.queryByText('Gamma')).toBeNull()
-    expect(screen.queryByText('Delta')).toBeNull()
   })
 
   it('matches by ship name', () => {
@@ -72,15 +72,12 @@ describe('AddShip planner menu search', () => {
     expect(screen.getByText('Epsilon')).toBeTruthy()
   })
 
-  it('never surfaces already selected or tagged ships through search', () => {
+  it('never surfaces already assigned ships through search', () => {
     renderMenu()
     const input = screen.getByPlaceholderText('Search')
 
     fireEvent.change(input, { target: { value: 'gamma' } })
     expect(screen.queryByText('Gamma')).toBeNull()
-
-    fireEvent.change(input, { target: { value: 'delta' } })
-    expect(screen.queryByText('Delta')).toBeNull()
   })
 
   it('invokes the selection callback with the ship id', () => {

@@ -1,6 +1,6 @@
 # Navy Staff workspaces, history, and references
 
-Status: design proposal; no runtime implementation in this change. Product requirements are distinguished below from proposed behavior that still needs review. This extends the completed [plugin split](plugin-split-design.md), which deliberately preserved a single plan. Domain terms are defined in [CONTEXT.md](../CONTEXT.md).
+Status: implementation in progress; the delivery status and verification are recorded in section 13. The design below defines the intended behavior across the stack. This extends the completed [plugin split](plugin-split-design.md), which deliberately preserved a single plan. Domain terms are defined in [CONTEXT.md](../CONTEXT.md).
 
 Current delivery scope: reference snapshots are imported and viewed read-only inside Navy Staff. Website decoding and deployment are deferred. Keep the URL/QR PoC as experimental evidence, not a dependency of the plugin feature; do not add browser WASM support or advertise scan-to-open website viewing in this stage.
 
@@ -16,7 +16,7 @@ Current delivery scope: reference snapshots are imported and viewed read-only in
 
 Do not add collaboration, cloud storage, automatic fleet composition, editable imports, or a new corruption-recovery system. Keep the existing file-missing and version-migration policies.
 
-## 2. What the current implementation does
+## 2. Baseline before this enhancement
 
 - `planner/redux.ts` stores one `current: number[][]` and an opaque `archive` object. The latter is not a working workspace system.
 - `views/index.tsx` renders groups directly from `fcd.shiptag.mapname`, localized `fleetname`, and `color`. Its effect also reconciles assignments with live sortie tags and removes ships missing from the loaded roster.
@@ -222,3 +222,18 @@ DeepSeek V4.1 Flash through OpenCode Go and Codex GPT-6.1-Sol independently revi
 The canonical wire prefix was clarified. DeepSeek withdrew the claims that the sample necessarily exceeds most messaging limits, that separate encoding/schema versions conflict, and that 512-character evaluation was not already gated. The proposed fingerprint-based proof of event continuity was also rejected. No evidence justified adding server/world identity machinery or multipart sharing. Per-slot mismatch correction remains necessary to prevent incorrect mappings; automatic background tag badges are deferred.
 
 Sol accepted the adjudication with qualifications for write-trigger isolation, unknown ship types, and synchronization candidate freshness; those qualifications are included above. DeepSeek reread the amended document and reported no remaining blockers. The primary agent checked the amendments and local document links/whitespace. Alphabet suitability, actual sharing-channel behavior, and long-history performance remain implementation acceptance work, not completed checks.
+
+## 13. Implementation progress
+
+Layer 1 (workspaces, captured metadata, v2 migration, usable UI) is implemented in `packages/navy-staff`.
+
+- Durable v2 root `{ version: 2, selectedWorkspaceId, workspaces, legacyArchive }`; each workspace has a stable local id, creation time, normalized `ownerMemberId` (or null), a revision list, and an editable cursor. Revisions carry a stable id and operation time.
+- Each revision's content holds the workspace name, stable local area ids with captured map label, localized fleet labels, color, tag-slot hint, and capture time, plus area-keyed assignments and saved ship display records.
+- Ordered v0/v1 to v2 migration preserves every area slot and owned id with neutral labels, keeps ownership unknown, and round-trips the opaque archive; existing-file migration, legacy Ship Info import, and missing-both initialization all emit the same v2 shape. A v1/v0 Navy file without a planner is invalid; only the legacy absent-file import may create an empty plan.
+- The observed persistence payload is the durable root only; transient view state stays outside the slice. The persistence boundary validates nested areas, ship records, assignments, and the selected-workspace reference, and rejects malformed data without reset or filtering.
+- UI offers create, rename, duplicate, switch, and confirmed delete. Both planning views render captured areas and include saved ships missing from the roster plus an Unknown type group. Live roster overlay, the ship picker, fleet badges, and live enrichment are gated on a matching workspace owner; a fresh workspace binds the owner only from a verified loaded roster.
+- The two automatic reconciliation paths were removed: rendering no longer moves, adds, or removes assignments from live sortie tags, and chips/cells remain manually editable. The Refresh action and live-tag badges are gone.
+- A single `appendRevision` helper is in place so the history layer needs no further storage migration; undo/preview are intentionally not exposed yet.
+- Exported for later layers: workspace types and factories, the operation append helper, plain action creators, thunks, selectors (`areaViewsSelector`, `gridRowsSelector`, `ownerStatusSelector`, `assignedShipIdsSelector`, and related), and the migration/validation helpers.
+
+Verification: `pnpm run check`, `pnpm test` (111 passed), `pnpm run test:browser` (103 passed), `pnpm run build`, `pnpm run build-storybook`, `pnpm run pack`, `pnpm run verify:package`, and `git diff --check` pass. The persistence boundary additionally rejects duplicate workspace ids and duplicate revision ids. Browser regressions cover workspace CRUD and switching, delete/rename confirmation invalidated by a selection change, duplicate/source independence, palette selection not recoloring unedited ships, and an unknown-master row never borrowing owned-ID artwork. Packed-artifact checks cover the v2 migration, legacy archive preservation, independent plugin saves, and no writes after unload. Local GPT-6.1-Sol review findings were fixed and the focused follow-up found no remaining actionable issues. Undo/redo, preview, explicit synchronization, and reference import/export remain for later layers.

@@ -1,9 +1,10 @@
 import { AnyAction, combineReducers } from 'redux'
 
 import { ACTIONS } from './plugin-identity'
-import { plannerReducer } from './planner/redux'
+import { navyReducer } from './workspace/reducer'
 
 export { DATA_PATH, PLUGIN_KEY } from './plugin-identity'
+export { navyReducer } from './workspace/reducer'
 
 const readyReducer = (state = false, action: AnyAction) => {
   if (action.type === ACTIONS.ready) {
@@ -27,8 +28,10 @@ const errorReducer = (state: string | null = null, action: AnyAction) => {
   return state
 }
 
+// Only durable workspace data lives in `navy`. Transient view state (history
+// previews, references, dialogs, search, tabs) stays out of the observed slice.
 export const reducer = combineReducers({
   error: errorReducer,
-  planner: plannerReducer,
+  navy: navyReducer,
   ready: readyReducer,
 })

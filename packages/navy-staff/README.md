@@ -22,12 +22,19 @@ The main view shows the planner tabs directly. It owns its own plugin state and
 saved file (`poi-plugin-navy-staff.json`) and imports an existing sortie plan
 from Ship Info's legacy data the first time it runs.
 
-Saved files use format `version: 1`. Existing files without a version are
-upgraded on load; older supported formats migrate in order before editing is
-enabled. Ship Info imports accept its unversioned and v1 formats and leave the
-source untouched. Only a missing Navy file triggers an import; if both files
-are missing, Navy Staff creates an empty v1 plan. Unsupported newer formats
-are left untouched and reported as load errors.
+Saved files use format `version: 2`, with independent workspaces and captured
+area labels and colors. Existing unversioned and v1 plans migrate on load,
+preserving their assignments and opaque archive. Ship Info imports accept its
+unversioned and v1 formats and leave the source untouched. Only a missing Navy
+file triggers an import; if both files are missing, Navy Staff creates an empty
+workspace collection. Unsupported newer formats are left untouched and reported
+as load errors.
+
+Create, rename, duplicate, switch, and delete workspaces from the planner.
+Captured areas and saved ships remain visible when the host event or roster
+changes. New workspaces associate with the loaded account; live ship details
+are shown only for the matching owner. Imported legacy plans retain unknown
+ownership until explicitly associated with an account.
 
 ## Install
 

@@ -1,0 +1,13 @@
+import { PLUGIN_KEY } from '../plugin-identity'
+
+// Action type constants live in their own module so the pure reducer does not
+// import the thunk module (and through it the host selectors).
+export const NAVY_ACTIONS = {
+  addShip: `@@${PLUGIN_KEY}@ws-add-ship`,
+  create: `@@${PLUGIN_KEY}@ws-create`,
+  delete: `@@${PLUGIN_KEY}@ws-delete`,
+  moveShip: `@@${PLUGIN_KEY}@ws-move-ship`,
+  removeShip: `@@${PLUGIN_KEY}@ws-remove-ship`,
+  rename: `@@${PLUGIN_KEY}@ws-rename`,
+  select: `@@${PLUGIN_KEY}@ws-select`,
+} as const

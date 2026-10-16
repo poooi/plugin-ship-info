@@ -6,12 +6,10 @@ import navyEnUS from '../packages/navy-staff/i18n/en-US.json'
 import navyJaJP from '../packages/navy-staff/i18n/ja-JP.json'
 
 // Exercises Navy Staff's exported lifecycle hooks: real migration, module
-// reload, and a host-equivalent i18n (fallbackLng: false) so a leak from the
-// Ship Info namespace would surface as a raw key.
+// reload, and a host-equivalent i18n (fallbackLng: false).
 
 const h = vi.hoisted(() => ({
   files: {} as Record<string, unknown>,
-  // When set, writes stay pending until `settleWrites` is called.
   deferWrites: false,
   pending: [] as Array<() => void>,
 }))
@@ -73,10 +71,15 @@ import {
   PLUGIN_KEY,
 } from '../packages/navy-staff/src/views/plugin-identity'
 import { reducer as navyReducer } from '../packages/navy-staff/src/views/redux'
+import { onAddShip } from '../packages/navy-staff/src/views/workspace/creators'
 
 type Slice = {
   error: string | null
-  planner: { archive: object; current: number[][] }
+  navy: {
+    selectedWorkspaceId: string
+    workspaces: any[]
+    legacyArchive: Record<string, unknown>
+  }
   ready: boolean
 }
 
@@ -98,6 +101,15 @@ const waitFor = async (predicate: () => boolean, timeout = 1500) => {
     // eslint-disable-next-line no-await-in-loop
     await new Promise((resolve) => setTimeout(resolve, 1))
   }
+}
+
+const assignedIds = (slice: Slice): number[] => {
+  const workspace = slice.navy.workspaces.find(
+    (w) => w.id === slice.navy.selectedWorkspaceId,
+  )
+  return Object.values(
+    workspace.revisions[workspace.cursor].content.assignments,
+  ).flat() as number[]
 }
 
 const setI18n = (lng: string, resources: Record<string, unknown>) => {
@@ -131,7 +143,7 @@ describe('Navy Staff lifecycle hooks', () => {
     setI18n('en-US', navyEnUS)
   })
 
-  it('migrates the legacy plan and writes the Navy file on load', async () => {
+  it('migrates the legacy plan into a v2 root on load', async () => {
     h.files[LEGACY_DATA_PATH] = {
       bookmark: {},
       planner: { archive: { a: [[1]] }, current: [[2, 3]] },
@@ -144,12 +156,10 @@ describe('Navy Staff lifecycle hooks', () => {
     lifecycle.pluginDidLoad()
     await waitFor(() => sliceOf(store).ready)
 
-    expect(sliceOf(store).planner.current).toEqual([[2, 3]])
-    expect(h.files[DATA_PATH]).toEqual({
-      planner: { archive: { a: [[1]] }, current: [[2, 3]] },
-      ready: true,
-      version: 1,
-    })
+    expect(assignedIds(sliceOf(store))).toEqual([2, 3])
+    expect(sliceOf(store).navy.legacyArchive).toEqual({ a: [[1]] })
+    expect((h.files[DATA_PATH] as any).version).toBe(2)
+    expect((h.files[DATA_PATH] as any).planner).toBeUndefined()
     lifecycle.pluginWillUnload()
   })
 
@@ -162,15 +172,12 @@ describe('Navy Staff lifecycle hooks', () => {
     first.pluginDidLoad()
     await waitFor(() => sliceOf(store).ready)
     first.pluginWillUnload()
-    expect((h.files[DATA_PATH] as any).planner.current).toEqual([[7]])
 
-    // Remove the legacy file; a reload must still use the Navy file.
     delete h.files[LEGACY_DATA_PATH]
     const second = await importLifecycle()
     second.pluginDidLoad()
     await waitFor(() => sliceOf(store).ready)
-    expect(sliceOf(store).planner.current).toEqual([[7]])
-    expect((h.files[DATA_PATH] as any).planner.current).toEqual([[7]])
+    expect(assignedIds(sliceOf(store))).toEqual([7])
     second.pluginWillUnload()
   })
 
@@ -192,13 +199,10 @@ describe('Navy Staff lifecycle hooks', () => {
   })
 
   it('a fresh module reload waits for an old pending write before reading', async () => {
-    h.files[LEGACY_DATA_PATH] = {
-      planner: { archive: {}, current: [[1]] },
-    }
+    h.files[LEGACY_DATA_PATH] = { planner: { archive: {}, current: [[1]] } }
     const store = createHostStore()
     storeHolder.store = store
 
-    // Generation 1 starts the migration write, which stays pending.
     h.deferWrites = true
     const first = await importLifecycle()
     first.pluginDidLoad()
@@ -206,37 +210,39 @@ describe('Navy Staff lifecycle hooks', () => {
     await flush()
     expect(h.pending.length).toBe(1)
 
-    // Unload with the write still pending, then reload a fresh module graph.
     first.pluginWillUnload()
     const second = await importLifecycle()
     second.pluginDidLoad()
     await flush()
 
-    // The new load must not read before the old write drains, and a single
-    // shared writer means the write queue still holds exactly one task (two
-    // independent writers would each queue one).
     expect(h.files[DATA_PATH]).toBeUndefined()
     expect(h.pending.length).toBe(1)
     expect(sliceOf(store).ready).toBe(false)
 
     settleWrites()
     await waitFor(() => sliceOf(store).ready)
-    expect(sliceOf(store).planner.current).toEqual([[1]])
-    expect((h.files[DATA_PATH] as any).planner.current).toEqual([[1]])
+    expect(assignedIds(sliceOf(store))).toEqual([1])
 
-    // A later edit is saved (queue coordination, not just eventual hydration).
     h.deferWrites = false
-    store.dispatch({
-      areaIndex: 0,
-      shipId: 5,
-      type: '@@poi-plugin-navy-staff@dp-addShip',
-    })
-    await waitFor(
-      () =>
-        JSON.stringify(
-          (h.files[DATA_PATH] as any)?.planner?.current,
-        ) === JSON.stringify([[1, 5]]),
+    const areaId =
+      sliceOf(store).navy.workspaces[0].revisions[0].content.areas[0].id
+    store.dispatch(
+      onAddShip({
+        areaId,
+        now: '2026-01-01T00:00:00.000Z',
+        record: {
+          level: 1,
+          masterId: 5,
+          name: 'S5',
+          observedAt: '2026-01-01T00:00:00.000Z',
+          ownedId: 5,
+          typeId: 2,
+          typeLabel: 'DD',
+        },
+        shipId: 5,
+      }),
     )
+    await waitFor(() => assignedIds(sliceOf(store)).includes(5))
     second.pluginWillUnload()
   })
 

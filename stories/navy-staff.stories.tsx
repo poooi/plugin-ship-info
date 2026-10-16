@@ -8,6 +8,7 @@ import { WindowEnv } from 'views/components/etc/window-env'
 import { createNavyOnlyI18n } from '../preview/i18n'
 import { host } from '../preview/adapters/logs'
 import {
+  assignedShipIds,
   NAVY_PLUGIN_DATA_PATH,
   persistedPluginFile,
   plannerScenarioState,
@@ -108,10 +109,7 @@ export const BothPluginsIndependent: Story = {
     await userEvent.click(within(popover).getByText('Epsilon'))
 
     await waitFor(() => {
-      expect(
-        getEnvironment().store.getState()['poi-plugin-navy-staff'].planner
-          .current.flat(),
-      ).toContain(5)
+      expect(assignedShipIds(getEnvironment())).toContain(5)
     })
     // The Ship Info slice is untouched by the Navy edit.
     expect(getEnvironment().store.getState()['poi-plugin-ship-info']).toBe(
@@ -163,11 +161,7 @@ export const MigratedPlanSmallerMap: Story = {
   play: async () => {
     const view = await playOnMainView()
     await waitFor(async () => {
-      await expect(plannerSlice(getEnvironment()).current).toEqual([
-        [1],
-        [2],
-        [3],
-      ])
+      await expect(assignedShipIds(getEnvironment())).toEqual([1, 2, 3])
     })
     await expect(
       within(view).queryByRole('heading', { level: 5, name: /E2/ }),
@@ -193,7 +187,7 @@ export const MigratedPlanUnloadedRoster: Story = {
       Object.keys(getEnvironment().store.getState().info.ships).length,
     ).toBe(0)
     await waitFor(async () => {
-      await expect(plannerSlice(getEnvironment()).current).toEqual([[1], [2]])
+      await expect(assignedShipIds(getEnvironment())).toEqual([1, 2])
     })
   },
 }
@@ -239,7 +233,7 @@ export const DetachedDisplayOptionUsesGlobalConfig: Story = {
 }
 
 export const UpgradesStoredFileAndSaves: Story = {
-  name: 'A v0 Navy file is upgraded to v1 and later saves keep v1',
+  name: 'A v0 Navy file is upgraded to v2 and later saves keep v2',
   parameters: {
     shipInfo: {
       dimensions: { width: 1400, height: 760 },
@@ -258,19 +252,21 @@ export const UpgradesStoredFileAndSaves: Story = {
     const view = await playOnMainView()
     const environment = getEnvironment()
     await waitFor(() => {
-      expect(environment.store.getState()['poi-plugin-navy-staff'].ready).toBe(
-        true,
-      )
+      expect(environment.store.getState()['poi-plugin-navy-staff'].ready).toBe(true)
     })
 
-    // The v0 file was upgraded in place, preserving the plan.
+    // The v0 file was upgraded in place to the v2 workspace root.
     await waitFor(() => {
-      expect((host.log.files[NAVY_PLUGIN_DATA_PATH] as any)?.version).toBe(1)
+      expect((host.log.files[NAVY_PLUGIN_DATA_PATH] as any)?.version).toBe(2)
     })
-    expect(
-      (host.log.files[NAVY_PLUGIN_DATA_PATH] as any)?.planner?.current,
-    ).toEqual([[1]])
+    expect((host.log.files[NAVY_PLUGIN_DATA_PATH] as any)?.selectedWorkspaceId).toBeTruthy()
+    expect((host.log.files[NAVY_PLUGIN_DATA_PATH] as any)?.legacyArchive).toEqual({})
 
+    // The migrated workspace has an unknown owner, so start a fresh workspace
+    // bound to the loaded roster, then add a ship through the live picker.
+    await userEvent.click(
+      await within(view).findByRole('button', { name: 'New workspace' }),
+    )
     await userEvent.click(
       await within(view).findByRole('button', { name: 'Add ship' }),
     )
@@ -280,12 +276,16 @@ export const UpgradesStoredFileAndSaves: Story = {
     await userEvent.click(await within(popover).findByText('Epsilon'))
 
     await waitFor(() => {
-      expect(
-        (host.log.files[NAVY_PLUGIN_DATA_PATH] as any)?.planner?.current?.flat(),
-      ).toContain(5)
+      const saved = host.log.files[NAVY_PLUGIN_DATA_PATH] as any
+      const ids = saved.workspaces.flatMap((workspace: any) =>
+        Object.values(
+          workspace.revisions[workspace.cursor].content.assignments,
+        ).flat(),
+      )
+      expect(ids).toContain(5)
     })
     await expect(
       (host.log.files[NAVY_PLUGIN_DATA_PATH] as any)?.version,
-    ).toBe(1)
+    ).toBe(2)
   },
 }

@@ -19,19 +19,18 @@ import {
   LEGACY_DISPLAY_FLEET_NAME_CONFIG,
   PLUGIN_KEY,
 } from './plugin-identity'
-
-export interface PlannerData {
-  archive: Record<string, unknown>
-  current: number[][]
-}
-
-export interface ParsedNavyData {
-  planner: PlannerData
-}
+import {
+  migrateV1ToV2,
+  navyDataFromLegacyPlanner,
+  readLegacyPlanner,
+  type LegacyPlannerData,
+} from './workspace/migration'
+import { emptyNavyData, type NavyData, type NavyWorkspace } from './workspace/types'
 
 // Ordered file-format migrations; version 0 is an absent `version` field and the
-// current version is the step count. Step 0 only stamps the version.
-const migrations: readonly PersistedMigration[] = [(data) => data]
+// current version is the step count. Step 0 stamps v1; step 1 converts the v1
+// planner shape into the version 2 workspace root.
+const migrations: readonly PersistedMigration[] = [(data) => data, migrateV1ToV2]
 const CURRENT_VERSION = migrations.length
 
 // Legacy Ship Info sources are accepted unversioned (v0) or at v1; a future
@@ -57,75 +56,180 @@ const validateLegacyVersion = (raw: Record<string, unknown>): void => {
   }
 }
 
-const isShipId = (value: unknown): value is number => Number.isInteger(value)
+const isStringArray = (value: unknown): value is number[] =>
+  Array.isArray(value) && value.every((id) => Number.isInteger(id))
 
-const isShipIdArea = (value: unknown): value is number[] =>
-  Array.isArray(value) && value.every(isShipId)
+const isNullableString = (value: unknown): value is string | null =>
+  value === null || typeof value === 'string'
+const isNullableInt = (value: unknown): value is number | null =>
+  value === null || Number.isInteger(value)
 
-const parsePlanner = (
-  planner: unknown,
-  reason: 'invalid' | 'legacy',
-): PlannerData => {
-  if (!isRecord(planner)) {
-    throw toPersistedDataError(
-      reason,
-      'persisted planner is not an object',
-      undefined,
-    )
+const parseArea = (value: unknown, reason: 'invalid'): string => {
+  if (!isRecord(value)) {
+    throw toPersistedDataError(reason, 'area is not an object', undefined)
   }
-  const { archive, current } = planner
-  if (!Array.isArray(current) || !current.every(isShipIdArea)) {
-    throw toPersistedDataError(
-      reason,
-      'persisted planner.current is not an array of ship id arrays',
-      undefined,
-    )
+  const { id, label, fleetLabels, color, tagSlot, capturedAt } = value
+  if (typeof id !== 'string' || id.length === 0) {
+    throw toPersistedDataError(reason, 'area has no id', undefined)
   }
-  if (archive !== undefined && !isRecord(archive)) {
-    throw toPersistedDataError(
-      reason,
-      'persisted planner.archive is not an object',
-      undefined,
-    )
+  if (typeof label !== 'string' || typeof color !== 'string') {
+    throw toPersistedDataError(reason, 'area label/color is not a string', undefined)
   }
-  return { archive: (archive as Record<string, unknown>) ?? {}, current }
+  if (!isRecord(fleetLabels) || !Object.values(fleetLabels).every((v) => typeof v === 'string')) {
+    throw toPersistedDataError(reason, 'area fleetLabels are malformed', undefined)
+  }
+  if (!Number.isInteger(tagSlot) || typeof capturedAt !== 'string') {
+    throw toPersistedDataError(reason, 'area slot/time is malformed', undefined)
+  }
+  return id
+}
+
+const parseShipRecord = (value: unknown, reason: 'invalid'): void => {
+  if (!isRecord(value)) {
+    throw toPersistedDataError(reason, 'ship record is not an object', undefined)
+  }
+  const { ownedId, masterId, name, typeId, typeLabel, level, observedAt } = value
+  if (
+    !Number.isInteger(ownedId) ||
+    !isNullableInt(masterId) ||
+    !isNullableString(name) ||
+    !isNullableInt(typeId) ||
+    !isNullableString(typeLabel) ||
+    !isNullableInt(level) ||
+    typeof observedAt !== 'string'
+  ) {
+    throw toPersistedDataError(reason, 'ship record is malformed', undefined)
+  }
+}
+
+const parseWorkspace = (value: unknown, reason: 'invalid'): NavyWorkspace => {
+  if (!isRecord(value)) {
+    throw toPersistedDataError(reason, 'workspace is not an object', undefined)
+  }
+  const { id, createdAt, ownerMemberId, revisions, cursor } = value
+  if (typeof id !== 'string' || id.length === 0) {
+    throw toPersistedDataError(reason, 'workspace has no id', undefined)
+  }
+  if (typeof createdAt !== 'string') {
+    throw toPersistedDataError(reason, 'workspace has no createdAt', undefined)
+  }
+  if (ownerMemberId !== null && typeof ownerMemberId !== 'string') {
+    throw toPersistedDataError(reason, 'workspace owner is not a string', undefined)
+  }
+  if (!Array.isArray(revisions) || revisions.length === 0) {
+    throw toPersistedDataError(reason, 'workspace has no revisions', undefined)
+  }
+  if (
+    typeof cursor !== 'number' ||
+    !Number.isInteger(cursor) ||
+    cursor < 0 ||
+    cursor >= revisions.length
+  ) {
+    throw toPersistedDataError(reason, 'workspace cursor is out of range', undefined)
+  }
+  const revisionIds = new Set<string>()
+  for (const revision of revisions) {
+    if (!isRecord(revision) || !isRecord(revision.content) || !isRecord(revision.op)) {
+      throw toPersistedDataError(reason, 'revision is malformed', undefined)
+    }
+    if (typeof revision.id !== 'string' || typeof revision.time !== 'string') {
+      throw toPersistedDataError(reason, 'revision has no id/time', undefined)
+    }
+    if (revisionIds.has(revision.id)) {
+      throw toPersistedDataError(reason, 'duplicate revision id', undefined)
+    }
+    revisionIds.add(revision.id)
+    const content = revision.content
+    if (
+      typeof content.name !== 'string' ||
+      !Array.isArray(content.areas) ||
+      !isRecord(content.assignments) ||
+      !isRecord(content.ships)
+    ) {
+      throw toPersistedDataError(reason, 'revision content is malformed', undefined)
+    }
+    const areaIds = new Set<string>()
+    for (const area of content.areas) {
+      const areaId = parseArea(area, reason)
+      if (areaIds.has(areaId)) {
+        throw toPersistedDataError(reason, 'duplicate area id', undefined)
+      }
+      areaIds.add(areaId)
+    }
+    for (const [key, ids] of Object.entries(content.assignments)) {
+      if (!areaIds.has(key)) {
+        throw toPersistedDataError(
+          reason,
+          'assignment references an unknown area',
+          undefined,
+        )
+      }
+      if (!isStringArray(ids)) {
+        throw toPersistedDataError(reason, 'assignment is malformed', undefined)
+      }
+    }
+    for (const record of Object.values(content.ships)) {
+      parseShipRecord(record, reason)
+    }
+  }
+  return value as unknown as NavyWorkspace
 }
 
 // The Navy file is authoritative: an existing but invalid/unreadable file is an
 // error and never falls back to the legacy Ship Info file.
-export const parseNavyPersisted = (raw: unknown): ParsedNavyData => {
+export const parseNavyData = (raw: unknown): NavyData => {
   if (!isRecord(raw)) {
+    throw toPersistedDataError('invalid', 'persisted data is not an object', undefined)
+  }
+  const { selectedWorkspaceId, workspaces, legacyArchive } = raw
+  if (typeof selectedWorkspaceId !== 'string') {
+    throw toPersistedDataError('invalid', 'persisted data has no selected workspace', undefined)
+  }
+  if (!Array.isArray(workspaces)) {
+    throw toPersistedDataError('invalid', 'persisted workspaces are not an array', undefined)
+  }
+  if (legacyArchive !== undefined && !isRecord(legacyArchive)) {
+    throw toPersistedDataError('invalid', 'persisted legacyArchive is not an object', undefined)
+  }
+  const parsed = workspaces.map((workspace) => parseWorkspace(workspace, 'invalid'))
+  const workspaceIds = new Set<string>()
+  for (const workspace of parsed) {
+    if (workspaceIds.has(workspace.id)) {
+      throw toPersistedDataError('invalid', 'duplicate workspace id', undefined)
+    }
+    workspaceIds.add(workspace.id)
+  }
+  const selectedExists = parsed.some((workspace) => workspace.id === selectedWorkspaceId)
+  if (parsed.length === 0 ? selectedWorkspaceId !== '' : !selectedExists) {
     throw toPersistedDataError(
       'invalid',
-      'persisted data is not an object',
+      'selected workspace does not exist',
       undefined,
     )
   }
-  if (!('planner' in raw)) {
-    throw toPersistedDataError(
-      'invalid',
-      'persisted data has no planner',
-      undefined,
-    )
+  return {
+    legacyArchive: (legacyArchive as Record<string, unknown>) ?? {},
+    selectedWorkspaceId,
+    workspaces: parsed,
   }
-  return { planner: parsePlanner(raw.planner, 'invalid') }
 }
 
-// Legacy import reads only planner.current/archive, never bookmarks or UI.
-// A legacy file without a planner is treated as an empty plan.
-export const parseLegacyPlanner = (raw: unknown): PlannerData => {
+// Legacy import reads only planner.current/archive, never bookmarks or UI. A
+// legacy file without a planner is treated as an empty plan; a present but
+// invalid planner is an error.
+export const parseLegacyPlanner = (raw: unknown): LegacyPlannerData => {
   if (!isRecord(raw)) {
-    throw toPersistedDataError(
-      'legacy',
-      'legacy data is not an object',
-      undefined,
-    )
+    throw toPersistedDataError('legacy', 'legacy data is not an object', undefined)
   }
   validateLegacyVersion(raw)
   if (!('planner' in raw) || raw.planner === undefined) {
     return { archive: {}, current: [] }
   }
-  return parsePlanner(raw.planner, 'legacy')
+  try {
+    return readLegacyPlanner(raw)
+  } catch (error) {
+    throw toPersistedDataError('legacy', 'legacy planner is invalid', error)
+  }
 }
 
 const applyLegacyDisplayFleetName = (): void => {
@@ -142,8 +246,8 @@ const applyLegacyDisplayFleetName = (): void => {
   }
 }
 
-const actions: PersistenceActions<PlannerData> = {
-  init: (data) => ({ data: { planner: data }, type: ACTIONS.init }),
+const actions: PersistenceActions<NavyData> = {
+  init: (data) => ({ data: { navy: data }, type: ACTIONS.init }),
   loadError: () => ({ error: 'load', type: ACTIONS.loadError }),
   loadStart: () => ({ type: ACTIONS.loadStart }),
   ready: () => ({ type: ACTIONS.ready }),
@@ -151,7 +255,7 @@ const actions: PersistenceActions<PlannerData> = {
 
 export type NavyPersistenceOptions = Partial<
   Pick<
-    EngineOptions<PlannerData>,
+    EngineOptions<NavyData>,
     | 'dataPath'
     | 'isMain'
     | 'onError'
@@ -165,15 +269,15 @@ export type NavyPersistenceOptions = Partial<
   legacyDataPath?: string
 }
 
+const EMPTY_DATA = emptyNavyData()
+
 // Migration from the legacy Ship Info file. The new file must be written
 // successfully before persistence is enabled; a failed initial write leaves
 // saving disabled and the legacy file untouched.
-const EMPTY_PLAN: PlannerData = { archive: {}, current: [] }
-
 const migrateFromLegacy = async (
-  context: Parameters<NonNullable<EngineOptions<PlannerData>['load']>>[0],
+  context: Parameters<NonNullable<EngineOptions<NavyData>['load']>>[0],
   legacyDataPath: string,
-): Promise<PlannerData> => {
+): Promise<NavyData> => {
   let legacyRaw: unknown
   try {
     legacyRaw = await context.readFile(legacyDataPath)
@@ -192,20 +296,23 @@ const migrateFromLegacy = async (
   // A delayed legacy read from an unloaded generation must not write over a
   // newer import. The engine's writeAndWait also refuses stale writes.
   if (context.isStale()) {
-    return EMPTY_PLAN
+    return EMPTY_DATA
   }
 
-  const plan =
-    legacyRaw === undefined ? EMPTY_PLAN : parseLegacyPlanner(legacyRaw)
+  // No legacy file at all: initialize an empty durable root (no workspaces).
+  // A present legacy file, even without a planner, converts to one workspace.
+  const navy =
+    legacyRaw === undefined
+      ? EMPTY_DATA
+      : navyDataFromLegacyPlanner(parseLegacyPlanner(legacyRaw))
 
   if (context.isStale()) {
-    return EMPTY_PLAN
+    return EMPTY_DATA
   }
 
   try {
     await context.writeAndWait(context.dataPath, {
-      planner: plan,
-      ready: true,
+      ...navy,
       version: CURRENT_VERSION,
     })
   } catch (error) {
@@ -216,12 +323,12 @@ const migrateFromLegacy = async (
     )
   }
 
-  return plan
+  return navy
 }
 
 export const createPersistence = (options: NavyPersistenceOptions = {}) => {
   const legacyDataPath = options.legacyDataPath ?? LEGACY_DATA_PATH
-  return createEngine<PlannerData>({
+  return createEngine<NavyData>({
     actions,
     dataPath: options.dataPath ?? DATA_PATH,
     isMain: options.isMain,
@@ -230,16 +337,22 @@ export const createPersistence = (options: NavyPersistenceOptions = {}) => {
     readFile: options.readFile,
     select: options.select ?? extensionSelectorFactory(PLUGIN_KEY),
     writer: options.writer,
+    // Persist the explicit durable root only; never the whole runtime slice.
     prepareWrite: (slice) => {
-      const { error: _error, ...persisted } = slice
-      return { ...persisted, version: CURRENT_VERSION }
+      const navy = (slice?.navy ?? EMPTY_DATA) as NavyData
+      return {
+        legacyArchive: navy.legacyArchive,
+        selectedWorkspaceId: navy.selectedWorkspaceId,
+        version: CURRENT_VERSION,
+        workspaces: navy.workspaces,
+      }
     },
     load: async (context) => {
-      let plan: PlannerData
+      let navy: NavyData
       try {
         const raw = await context.readFile(context.dataPath)
         if (context.isStale()) {
-          return EMPTY_PLAN
+          return EMPTY_DATA
         }
         if (!isRecord(raw)) {
           throw toPersistedDataError(
@@ -250,15 +363,20 @@ export const createPersistence = (options: NavyPersistenceOptions = {}) => {
         }
         // The Navy file exists: never fall back to the legacy file. Migrate
         // before validating the current format; a current file is unchanged.
-        const migrated = migratePersistedVersion(raw, migrations)
-        plan = parseNavyPersisted(migrated).planner
+        let migrated: Record<string, unknown>
+        try {
+          migrated = migratePersistedVersion(raw, migrations)
+        } catch (error) {
+          if (error instanceof PersistedDataError) throw error
+          throw toPersistedDataError('invalid', 'persisted migration failed', error)
+        }
+        navy = parseNavyData(migrated)
         if (migrated !== raw) {
           if (context.isStale()) {
-            return plan
+            return navy
           }
-          const { error: _error, ...payload } = migrated
           try {
-            await context.writeAndWait(context.dataPath, payload)
+            await context.writeAndWait(context.dataPath, migrated)
           } catch (error) {
             throw toPersistedDataError(
               'migrate',
@@ -279,20 +397,20 @@ export const createPersistence = (options: NavyPersistenceOptions = {}) => {
           )
         }
         if (context.isStale()) {
-          return EMPTY_PLAN
+          return EMPTY_DATA
         }
-        plan = await migrateFromLegacy(context, legacyDataPath)
+        navy = await migrateFromLegacy(context, legacyDataPath)
       }
 
       if (context.isStale()) {
-        return plan
+        return navy
       }
       // Import the legacy display option only when it is still unset. Doing
       // this on every successful current-generation load (not only inside
       // migration) resumes a config import that an unload interrupted after the
       // Navy file was already written, while preserving explicit false/true.
       applyLegacyDisplayFleetName()
-      return plan
+      return navy
     },
   })
 }

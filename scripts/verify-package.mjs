@@ -172,9 +172,12 @@ const verifyPackage = (pkg) => {
     !entry.includes('@poi-plugins/ship-info-shared'),
     `${pkg.name}: entry references the private shared package`,
   )
+  // A dependency specifier must not use the workspace: protocol after bundling.
+  // Match only quoted specifiers so a minified object property like
+  // `{ workspace: e }` is not mistaken for one.
   check(
-    !entry.includes('workspace:'),
-    `${pkg.name}: entry references workspace:`,
+    !/['"]workspace:/.test(entry),
+    `${pkg.name}: entry references the workspace: protocol`,
   )
   check(
     !entry.includes('/packages/shared'),
@@ -259,6 +262,21 @@ const readJsonSafe = (file) => {
     return undefined
   }
 }
+
+// True when any workspace revision assigns `shipId` (legacy positional import).
+const navyHasAssignment = (data, shipId) =>
+  Array.isArray(data?.workspaces) &&
+  data.workspaces.some((workspace) =>
+    (workspace?.revisions ?? []).some((revision) =>
+      Object.values(revision?.content?.assignments ?? {}).some(
+        (ids) => Array.isArray(ids) && ids.includes(shipId),
+      ),
+    ),
+  )
+
+const navyHasWorkspace = (data, id) =>
+  Array.isArray(data?.workspaces) &&
+  data.workspaces.some((workspace) => workspace?.id === id)
 
 const createHost = () => {
   const pluginReducers = {}
@@ -390,10 +408,50 @@ const loadBuilt = (pkg) => {
   return built
 }
 
-// A plugin-specific change that forces a save (Navy ignores Ship Info extend).
+// A recognizable opaque legacy archive so the migration round-trip is checked
+// without interpreting its contents.
+const LEGACY_ARCHIVE = { opaque: 'legacy-archive-v1', keep: { nested: true } }
+
+// A minimal, schema-consistent workspace for the real NAVY_ACTIONS.create
+// action shape ({ type: `@@<key>@ws-create`, workspace }).
+const makeNavyWorkspace = (marker) => {
+  const now = new Date().toISOString()
+  const areaId = `area-smoke-${marker}`
+  return {
+    createdAt: now,
+    cursor: 0,
+    id: `ws-smoke-${marker}`,
+    ownerMemberId: null,
+    revisions: [
+      {
+        content: {
+          areas: [
+            {
+              capturedAt: now,
+              color: '#8a9ba8',
+              fleetLabels: {},
+              id: areaId,
+              label: `Area ${marker}`,
+              tagSlot: 0,
+            },
+          ],
+          assignments: { [areaId]: [marker] },
+          name: `Smoke ${marker}`,
+          ships: {},
+        },
+        id: `rev-smoke-${marker}`,
+        op: { kind: 'create' },
+        time: now,
+      },
+    ],
+  }
+}
+
+// A plugin-specific change that forces a save. Each plugin ignores the other's
+// action types; Navy uses its public workspace create action.
 const forceSaveAction = (pluginKey, marker = 1) =>
   pluginKey === 'poi-plugin-navy-staff'
-    ? { areaIndex: 0, shipId: marker, type: `@@${pluginKey}@dp-addShip` }
+    ? { type: `@@${pluginKey}@ws-create`, workspace: makeNavyWorkspace(marker) }
     : {
         bookmark: `smoke-${marker}`,
         settings: {},
@@ -417,7 +475,7 @@ const runScenario = async (name, selected, seedLegacy) => {
         path.join(appdata, 'poi-plugin-ship-info.json'),
         JSON.stringify({
           bookmark: {},
-          planner: { archive: {}, current: [[5]] },
+          planner: { archive: LEGACY_ARCHIVE, current: [[5]] },
           ready: true,
           ui: {},
         }),
@@ -456,10 +514,19 @@ const runScenario = async (name, selected, seedLegacy) => {
     if (seedLegacy) {
       const navyFile = path.join(appdata, 'poi-plugin-navy-staff.json')
       await waitFor(() => fs.existsSync(navyFile), `${name} navy file`)
-      const plan = readJsonSafe(navyFile)?.planner
+      const migrated = readJsonSafe(navyFile)
       check(
-        JSON.stringify(plan?.current) === JSON.stringify([[5]]),
-        `${name}: Navy did not import legacy plan (${JSON.stringify(plan?.current)})`,
+        migrated?.version === 2,
+        `${name}: migrated Navy file is not version 2 (${migrated?.version})`,
+      )
+      check(
+        navyHasAssignment(migrated, 5),
+        `${name}: Navy did not import the legacy assignment 5`,
+      )
+      check(
+        JSON.stringify(migrated?.legacyArchive) ===
+          JSON.stringify(LEGACY_ARCHIVE),
+        `${name}: Navy did not preserve the opaque legacy archive`,
       )
     }
 
@@ -472,24 +539,30 @@ const runScenario = async (name, selected, seedLegacy) => {
       await waitFor(() => {
         const data = readJsonSafe(file)
         return entry.pluginKey === 'poi-plugin-navy-staff'
-          ? data?.planner?.current?.[0]?.includes(1)
+          ? data?.version === 2 && navyHasWorkspace(data, 'ws-smoke-1')
           : data?.bookmark?.['smoke-1']?.name === 'smoke-1'
       }, `${name} ${entry.name} saved`)
       files[entry.pluginKey] = file
     }
     if (seedLegacy) {
+      const shipInfoData = readJsonSafe(files['poi-plugin-ship-info'])
       check(
-        JSON.stringify(
-          readJsonSafe(files['poi-plugin-ship-info'])?.planner?.current,
-        ) === '[[5]]',
+        JSON.stringify(shipInfoData?.planner?.current) === '[[5]]',
         `${name}: Ship Info did not preserve the legacy plan`,
+      )
+      check(
+        JSON.stringify(shipInfoData?.planner?.archive) ===
+          JSON.stringify(LEGACY_ARCHIVE),
+        `${name}: Ship Info did not preserve the legacy archive`,
       )
     }
     const snapshots = {}
     for (const [key, file] of Object.entries(files)) {
+      // Navy Staff migrated to workspace file format 2; Ship Info stays at 1.
+      const expectedVersion = key === 'poi-plugin-navy-staff' ? 2 : 1
       check(
-        readJsonSafe(file)?.version === 1,
-        `${name}: ${key} was not saved at file-format version 1`,
+        readJsonSafe(file)?.version === expectedVersion,
+        `${name}: ${key} was not saved at file-format version ${expectedVersion}`,
       )
       snapshots[key] = fs.readFileSync(file, 'utf8')
     }

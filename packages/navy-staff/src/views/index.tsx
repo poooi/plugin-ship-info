@@ -4,17 +4,17 @@ import {
   Button,
   Callout,
   Classes,
+  HTMLSelect,
+  InputGroup,
   Intent,
   Switch,
   Tab,
   Tabs,
 } from '@blueprintjs/core'
 import cls from 'classnames'
-import { each, findIndex, get } from 'lodash'
+import { get } from 'lodash'
 import { rgba } from 'polished'
 import React, {
-  Dispatch,
-  Ref,
   RefObject,
   useCallback,
   useContext,
@@ -23,38 +23,36 @@ import React, {
   useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
-import { connect, DispatchProp, useSelector } from 'react-redux'
-import { Action } from 'redux'
-import { ThunkDispatch } from 'redux-thunk'
+import { useDispatch, useSelector } from 'react-redux'
+import type { Action } from 'redux'
+import type { ThunkDispatch } from 'redux-thunk'
 import styled, { createGlobalStyle } from 'styled-components'
 import { WindowEnv } from 'views/components/etc/window-env'
-import {
-  extensionSelectorFactory,
-  IState,
-} from 'views/utils/selectors'
+import { extensionSelectorFactory, IState } from 'views/utils/selectors'
 
 import { Checkbox, CheckboxLabel, CheckboxOption } from '@poi-plugins/ship-info-shared/ui/checkbox'
 import { poiSurface } from '@poi-plugins/ship-info-shared/ui/styles'
 import { captureRect } from './planner/capture'
-import {
-  onAddShip,
-  onDisplaceShip,
-  onDPInit,
-  onRemoveShip,
-} from './planner/redux'
-import {
-  deckPlannerCurrentSelector,
-  deckPlannerShipMapSelector,
-  shipMenuDataSelector,
-} from './planner/selectors'
 import { Area } from './planner/area'
 import { ShipGrid } from './planner/ship-grid'
+import { resolveAreaLabel } from './planner/types'
 import { DISPLAY_FLEET_NAME_CONFIG, PLUGIN_KEY } from './plugin-identity'
+import {
+  createWorkspace,
+  duplicateWorkspace,
+  onDeleteWorkspace,
+  onRenameWorkspace,
+  onSelectWorkspace,
+} from './workspace/actions'
+import {
+  areaViewsSelector,
+  ownerStatusSelector,
+  selectedWorkspaceIdSelector,
+  workspacesSelector,
+} from './workspace/selectors'
 
 export { reducer } from './redux'
 
-// Self-contained scrollbar styling: Navy must not depend on Ship Info's global
-// styles being mounted to look right (including in a detached window).
 const NavGlobalStyle = createGlobalStyle`
   .navy-staff-scrollable {
     ::-webkit-scrollbar {
@@ -70,217 +68,266 @@ const NavGlobalStyle = createGlobalStyle`
   }
 `
 
-// Reconciles the plan with the host's tag/roster state. It must never run
-// before the host roster has loaded, otherwise imported assignments would be
-// silently erased. Out-of-range tags are handled by the reducer (which grows
-// areas) instead of being dropped.
-const reorderShips = (dispatch: Dispatch<any>, getState: () => any) => {
-  const state = getState()
-  const ships = shipMenuDataSelector(state)
-  if (ships.length === 0) {
-    return
-  }
-  const planMap = deckPlannerShipMapSelector(state)
-
-  each(ships, ship => {
-    if (ship.area! > 0) {
-      if (!(ship.id in planMap)) {
-        dispatch(
-          onAddShip({
-            areaIndex: ship.area! - 1,
-            shipId: ship.id,
-          }),
-        )
-      } else if (ship.area! - 1 !== planMap[ship.id]) {
-        dispatch(
-          onDisplaceShip({
-            fromAreaIndex: planMap[ship.id],
-            shipId: ship.id,
-            toAreaIndex: ship.area! - 1,
-          }),
-        )
-      }
-    }
-  })
-
-  each(Object.keys(planMap), shipId => {
-    if (findIndex(ships, ship => ship.id === +shipId) < 0) {
-      dispatch(
-        onRemoveShip({
-          areaIndex: planMap[shipId],
-          shipId: +shipId,
-        }),
-      )
-    }
-  })
-}
-
 const Palette = styled.div<{ color: string }>`
   position: sticky;
   top: 0;
   z-index: 20;
-  ${props =>
+  ${(props) =>
     poiSurface(
       rgba(props.theme.variant === 'dark' ? '#000' : '#fff', 0.75),
     )}
   padding-left: 1em;
-  border-left: 8px solid ${props => props.color || '#000'};
+  border-left: 8px solid ${(props) => props.color || '#000'};
 
-  /* Hover deliberately goes solid for readability, so it wants poi's
-     always-opaque token rather than the vibrancy-aware one. */
   :hover {
     background-color: var(
       --poi-background-color-opaque,
-      ${props => (props.theme.variant === 'dark' ? '#000' : '#fff')}
+      ${(props) => (props.theme.variant === 'dark' ? '#000' : '#fff')}
     );
   }
 `
-
-interface IPlannerContentProps extends DispatchProp {
-  color: string[]
-  displayFleetName: boolean
-  mapname: string[]
-  current: number[][]
-  activeTab: string
-  dispatch: ThunkDispatch<any, void, Action<any>>
-}
 
 const ActionPanel = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 1em;
+  flex-wrap: wrap;
 `
 
-const PlannerContent = connect((state: IState) => {
-  const displayFleetName = get(state.config, DISPLAY_FLEET_NAME_CONFIG, false)
-  const mapname = displayFleetName
-    ? get(state, ['fcd', 'shiptag', 'fleetname', window.language], [])
-    : get(state, ['fcd', 'shiptag', 'mapname'], [])
+const ManagerBar = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.5em 1em 0;
+  flex-wrap: wrap;
+`
 
-  return {
-    color: get(state, 'fcd.shiptag.color', []),
-    current: deckPlannerCurrentSelector(state),
-    displayFleetName,
-    mapname,
-  }
-})(
-  ({
-    mapname,
-    color,
-    current,
-    displayFleetName,
-    dispatch,
-    activeTab,
-  }: IPlannerContentProps) => {
-    useEffect(() => {
-      if (current.length !== mapname.length) {
-        dispatch(
-          onDPInit({
-            color,
-            mapname,
-          }),
-        )
-      }
+const OwnerNote = styled.span`
+  font-size: 0.85em;
+  opacity: 0.8;
+`
 
-      dispatch(reorderShips)
-    })
+const WorkspaceManager = () => {
+  const dispatch = useDispatch<ThunkDispatch<IState, unknown, Action>>()
+  const workspaces = useSelector(workspacesSelector)
+  const selectedId = useSelector(selectedWorkspaceIdSelector)
+  const ownerStatus = useSelector(ownerStatusSelector)
+  const { t } = useTranslation('poi-plugin-navy-staff')
 
-    const { t } = useTranslation(['poi-plugin-navy-staff'])
+  const [renaming, setRenaming] = useState(false)
+  const [renameTarget, setRenameTarget] = useState<string | null>(null)
+  const [nameDraft, setNameDraft] = useState('')
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
 
-    const handleChangeDisplayFleetName = useCallback(() => {
-      window.config.set(DISPLAY_FLEET_NAME_CONFIG, !displayFleetName)
-    }, [displayFleetName])
+  const selected = workspaces.find((workspace) => workspace.id === selectedId)
 
-    const handleRefresh = useCallback(() => {
-      dispatch(reorderShips)
-    }, [dispatch])
+  // A pending rename/delete must never apply to a different workspace than the
+  // one it was opened for. Reset both whenever the selection changes.
+  useEffect(() => {
+    setRenaming(false)
+    setRenameTarget(null)
+    setDeleteTarget(null)
+  }, [selectedId])
 
-    const areas = mapname.map((name, index) => ({
-      areaIndex: index,
-      color: color[index],
-      name,
-      ships: [],
-    }))
+  const ownerNote = ownerStatus.matches
+    ? t('Live roster linked')
+    : ownerStatus.workspaceOwnerMemberId === null
+      ? t('Saved data (owner unknown)')
+      : t('Saved data (different account)')
 
-    const [fill, setFill] = useState(-1)
+  return (
+    <ManagerBar>
+      <HTMLSelect
+        aria-label={t('Workspace')}
+        value={selectedId}
+        onChange={(event) => dispatch(onSelectWorkspace({ id: event.currentTarget.value }))}
+      >
+        {workspaces.length === 0 && <option value="">{t('No workspace')}</option>}
+        {workspaces.map((workspace) => (
+          <option key={workspace.id} value={workspace.id}>
+            {workspace.revisions[workspace.cursor].content.name}
+          </option>
+        ))}
+      </HTMLSelect>
 
-    const captureSection = useRef<HTMLDivElement>(null)
-
-    // The WindowEnv context `window` can be the detached external window, which
-    // (blank, nodeIntegration=no) has no `config`; preference writes must use
-    // the renderer's global `window.config`.
-    const { window: displayWindow } = useContext(WindowEnv)
-
-    const capture = useCallback(() => {
-      if (captureSection.current) {
-        captureRect(captureSection.current)
-      }
-    }, [])
-
-    return (
-      <div>
-        <ActionPanel>
-          <Button intent={Intent.PRIMARY} minimal onClick={handleRefresh}>
-            {t('Refresh')}
-          </Button>
-          <Switch
-            checked={displayFleetName}
-            label={t('Show fleet name')}
-            onChange={handleChangeDisplayFleetName}
+      {renaming && renameTarget ? (
+        <>
+          <InputGroup
+            aria-label={t('Workspace name')}
+            value={nameDraft}
+            onChange={(event) => setNameDraft(event.currentTarget.value)}
           />
-          {!displayWindow.isMain && (
-            <Button intent={Intent.PRIMARY} minimal onClick={capture}>
-              {t('Save to image')}
+          <Button
+            intent={Intent.PRIMARY}
+            onClick={() => {
+              dispatch(
+                onRenameWorkspace({
+                  id: renameTarget,
+                  name: nameDraft,
+                  now: new Date().toISOString(),
+                }),
+              )
+              setRenaming(false)
+              setRenameTarget(null)
+            }}
+          >
+            {t('Confirm')}
+          </Button>
+          <Button
+            onClick={() => {
+              setRenaming(false)
+              setRenameTarget(null)
+            }}
+          >
+            {t('Cancel')}
+          </Button>
+        </>
+      ) : (
+        <>
+          <Button
+            icon="add"
+            onClick={() => dispatch(createWorkspace(`${t('Workspace')} ${workspaces.length + 1}`))}
+          >
+            {t('New workspace')}
+          </Button>
+          <Button
+            icon="edit"
+            disabled={!selected}
+            onClick={() => {
+              if (!selected) return
+              setNameDraft(selected.revisions[selected.cursor].content.name)
+              setRenameTarget(selected.id)
+              setRenaming(true)
+            }}
+          >
+            {t('Rename')}
+          </Button>
+          <Button
+            icon="duplicate"
+            disabled={!selected}
+            onClick={() => selected && dispatch(duplicateWorkspace(selected.id))}
+          >
+            {t('Duplicate')}
+          </Button>
+          {deleteTarget ? (
+            <>
+              <Button
+                intent={Intent.DANGER}
+                onClick={() => {
+                  dispatch(onDeleteWorkspace({ id: deleteTarget }))
+                  setDeleteTarget(null)
+                }}
+              >
+                {t('Delete permanently')}
+              </Button>
+              <Button onClick={() => setDeleteTarget(null)}>{t('Cancel')}</Button>
+            </>
+          ) : (
+            <Button
+              icon="trash"
+              disabled={!selected}
+              onClick={() => selected && setDeleteTarget(selected.id)}
+            >
+              {t('Delete')}
             </Button>
           )}
-        </ActionPanel>
-        <Callout intent={Intent.PRIMARY}>{t('helpContent')}</Callout>
-        {activeTab === 'area' ? (
-          <div>
-            <div ref={captureSection}>
-              {areas.map(area => (
-                <Area
-                  key={area.color}
-                  area={area}
-                  index={area.areaIndex}
-                  others={areas.filter(
-                    ({ areaIndex }) => areaIndex !== area.areaIndex,
-                  )}
-                />
-              ))}
-            </div>
-          </div>
-        ) : (
-          <div>
-            <Palette color={color[fill]}>
-              <Checkbox>
-                <CheckboxLabel>{t('Palette')}</CheckboxLabel>
-                <CheckboxOption
-                  key={-1}
-                  checked={fill === -1}
-                  onClick={() => setFill(-1)}
-                >
-                  {t('None')}
-                </CheckboxOption>
-                {areas.map(area => (
-                  <CheckboxOption
-                    key={area.color}
-                    onClick={() => setFill(area.areaIndex)}
-                    checked={fill === area.areaIndex}
-                  >
-                    {area.name}
-                  </CheckboxOption>
-                ))}
-              </Checkbox>
-            </Palette>
-            <ShipGrid fill={fill} ref={captureSection as RefObject<any>} />
-          </div>
+        </>
+      )}
+
+      {selected && <OwnerNote>{ownerNote}</OwnerNote>}
+    </ManagerBar>
+  )
+}
+
+interface IPlannerContentProps {
+  activeTab: string
+}
+
+const PlannerContent = ({ activeTab }: IPlannerContentProps) => {
+  const dispatch = useDispatch<ThunkDispatch<IState, unknown, Action>>()
+  const areas = useSelector(areaViewsSelector)
+  const ownerStatus = useSelector(ownerStatusSelector)
+  const displayFleetName = useSelector((state: IState) =>
+    get(state.config, DISPLAY_FLEET_NAME_CONFIG, false),
+  )
+  const { t } = useTranslation('poi-plugin-navy-staff')
+  const [fill, setFill] = useState<string | null>(null)
+  const captureSection = useRef<HTMLDivElement>(null)
+  const { window: displayWindow } = useContext(WindowEnv)
+
+  const handleChangeDisplayFleetName = useCallback(() => {
+    window.config.set(DISPLAY_FLEET_NAME_CONFIG, !displayFleetName)
+  }, [displayFleetName])
+
+  const capture = useCallback(() => {
+    if (captureSection.current) captureRect(captureSection.current)
+  }, [])
+
+  const areaChoices = areas.map((area) => ({
+    color: area.color,
+    id: area.id,
+    label: resolveAreaLabel(area, displayFleetName),
+  }))
+
+  const fillArea = areas.find((area) => area.id === fill)
+
+  return (
+    <div>
+      <ActionPanel>
+        <Switch
+          checked={displayFleetName}
+          label={t('Show fleet name')}
+          onChange={handleChangeDisplayFleetName}
+        />
+        {!displayWindow.isMain && (
+          <Button intent={Intent.PRIMARY} minimal onClick={capture}>
+            {t('Save to image')}
+          </Button>
         )}
-      </div>
-    )
-  },
-)
+      </ActionPanel>
+      <Callout intent={Intent.PRIMARY}>{t('helpContent')}</Callout>
+      {areas.length === 0 ? (
+        <Callout>{t('No areas captured')}</Callout>
+      ) : activeTab === 'area' ? (
+        <div>
+          <div ref={captureSection}>
+            {areas.map((area) => (
+              <Area
+                key={area.id}
+                area={area}
+                others={areaChoices.filter((choice) => choice.id !== area.id)}
+                displayFleetName={displayFleetName}
+                canAdd={ownerStatus.matches}
+              />
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div>
+          <Palette color={fillArea?.color ?? '#000'}>
+            <Checkbox>
+              <CheckboxLabel>{t('Palette')}</CheckboxLabel>
+              <CheckboxOption key="none" checked={fill === null} onClick={() => setFill(null)}>
+                {t('None')}
+              </CheckboxOption>
+              {areas.map((area) => (
+                <CheckboxOption
+                  key={area.id}
+                  checked={fill === area.id}
+                  onClick={() => setFill(area.id)}
+                >
+                  {resolveAreaLabel(area, displayFleetName)}
+                </CheckboxOption>
+              ))}
+            </Checkbox>
+          </Palette>
+          <ShipGrid fill={fill} ref={captureSection as RefObject<any>} />
+        </div>
+      )}
+    </div>
+  )
+}
 
 const Wrapper = styled.div`
   display: flex;
@@ -296,9 +343,6 @@ const Body = styled.div`
   padding: 0 1em 1em;
 `
 
-// The planner tabs are the plugin's main view (no sidebar button or modal).
-// Everything that mutates the plan is gated on `ready` so edits cannot happen
-// while the asynchronous load/migration is still running.
 const NavyStaffContent = () => {
   const [activeTab, setActiveTab] = useState('area')
   const { t } = useTranslation('poi-plugin-navy-staff')
@@ -321,7 +365,10 @@ const NavyStaffContent = () => {
         {slice?.error ? (
           <Callout intent={Intent.DANGER}>{t('loadError')}</Callout>
         ) : slice?.ready ? (
-          <PlannerContent activeTab={activeTab} />
+          <>
+            <WorkspaceManager />
+            <PlannerContent activeTab={activeTab} />
+          </>
         ) : (
           <Callout>{t('loading')}</Callout>
         )}

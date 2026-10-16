@@ -1,14 +1,10 @@
-import { Dictionary, get } from 'lodash'
 import { rgba } from 'polished'
 import React from 'react'
-import FA from 'react-fontawesome'
 import { useTranslation } from 'react-i18next'
-import { connect, DispatchProp } from 'react-redux'
 import styled from 'styled-components'
 import { getShipImgPath } from 'views/utils/ship-img'
-import { IState } from 'views/utils/selectors'
 
-import { deckPlannerShipMapSelector, IPlannerShipData } from './selectors'
+import type { WorkspaceShipRow } from '../workspace/selectors'
 
 const ShipAvatar = styled.img.attrs<{ left: number }>(({ left }) => ({
   style: {
@@ -54,7 +50,7 @@ const ShipGridCell = styled.div.attrs({
 
   ${Gradient} {
     z-index: 0;
-    background: ${props =>
+    background: ${(props) =>
       `linear-gradient(to right, transparent, ${rgba(
         props.color,
         props.useAvatar ? 0.5 : 0.75,
@@ -66,7 +62,6 @@ const ShipGridCell = styled.div.attrs({
       z-index: 5;
     }
   }
-}
 `
 
 const Text = styled.div`
@@ -97,71 +92,52 @@ const ShipLevel = styled.div`
   user-select: none;
 `
 
-interface IProps extends DispatchProp {
-  planMap: Dictionary<number>
-  color: string[]
+interface IProps {
+  row: WorkspaceShipRow
+  color: string
+  useAvatar: boolean
+  ip: string
   onClick: () => void
   onContextmenu: () => void
-  ip: string
-  useAvatar: boolean
-  ship: IPlannerShipData
 }
 
-export const ShipItem = connect((state: IState) => ({
-  color: get(state, 'fcd.shiptag.color', []),
-  ip: get(state, 'info.server.ip', '203.104.209.71'),
-  mapname: get(state, 'fcd.shiptag.mapname', []),
-  planMap: deckPlannerShipMapSelector(state),
-  useAvatar: get(state, ['config', 'poi', 'appearance', 'avatar'], true),
-}))(
-  ({ ship, planMap, color, onClick, onContextmenu, ip, useAvatar }: IProps) => {
-    const { t } = useTranslation('resources')
+// Grid cells are always interactive: manual planning is never blocked by a live
+// sortie tag, and saved ships absent from the roster stay visible.
+export const ShipItem = ({ row, color, useAvatar, ip, onClick, onContextmenu }: IProps) => {
+  const { t } = useTranslation(['poi-plugin-navy-staff', 'resources'])
+  const name = row.live
+    ? t(row.name ?? '', { ns: 'resources' })
+    : row.name ?? `#${row.ownedId}`
+  // A known master id is required to load artwork. An unknown master must not
+  // borrow another ship's image.
+  const imageMasterId = row.masterId
 
-    const bgColor = color[ship.area! - 1] || color[planMap[ship.id]] || '#000'
-
-    // Tagged ships are host-authoritative: the planner must not assign, move or
-    // erase them, so they expose neither pointer nor keyboard activation.
-    const interactive = !(ship.area! > 0)
-
-    return (
-      <ShipGridCell
-        aria-label={`${t(ship.name)} Lv.${ship.lv}`}
-        color={bgColor}
-        useAvatar={useAvatar}
-        onClick={interactive ? onClick : undefined}
-        onContextMenu={interactive ? onContextmenu : undefined}
-        onKeyDown={
-          interactive
-            ? (event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                  event.preventDefault()
-                  onClick()
-                }
-              }
-            : undefined
+  return (
+    <ShipGridCell
+      aria-label={`${name} Lv.${row.level ?? '?'}`}
+      color={color}
+      useAvatar={useAvatar}
+      onClick={onClick}
+      onContextMenu={onContextmenu}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          onClick()
         }
-      >
-        {useAvatar && (
-          <ShipAvatar
-            src={getShipImgPath(ship.shipId, 'remodel', false, ip)}
-            left={Math.round(ship.avatarOffset! * 40)}
-          />
-        )}
-        <Gradient />
-        <Text>
-          <ShipLevel>Lv.{ship.lv}</ShipLevel>
-          <br />
-          <ShipName>
-            {t(ship.name)}
-            {ship.area! > 0 && (
-              <>
-                {' '}
-                <FA name="tag" />
-              </>
-            )}
-          </ShipName>
-        </Text>
-      </ShipGridCell>
-    )
-  },
-)
+      }}
+    >
+      {useAvatar && imageMasterId !== null && (
+        <ShipAvatar
+          src={getShipImgPath(imageMasterId, 'remodel', false, ip)}
+          left={Math.round((row.avatarOffset ?? 0.555) * 40)}
+        />
+      )}
+      <Gradient />
+      <Text>
+        <ShipLevel>Lv.{row.level ?? '?'}</ShipLevel>
+        <br />
+        <ShipName>{name}</ShipName>
+      </Text>
+    </ShipGridCell>
+  )
+}

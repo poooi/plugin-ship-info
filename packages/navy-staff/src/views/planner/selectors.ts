@@ -1,11 +1,10 @@
 import { APIShip } from 'kcsapi/api_port/port/response'
 import { APIMstShip } from 'kcsapi/api_start2/getData/response'
-import _, { flatMap, flatten, fromPairs, get, map, memoize } from 'lodash'
+import _, { get, map, memoize } from 'lodash'
 import { createSelector } from 'reselect'
 import { toRomaji } from 'wanakana'
 import {
   constSelector,
-  extensionSelectorFactory,
   fcdSelector,
   shipDataSelectorFactory,
   shipsSelector,
@@ -13,14 +12,13 @@ import {
 } from 'views/utils/selectors'
 
 import { shipSuperTypeMap } from '@poi-plugins/ship-info-shared/ship-types'
-import { PLUGIN_KEY } from '../plugin-identity'
 
 interface IDictionary<T> {
   [index: string]: T
 }
 
-// api_stype to super-type index, derived from the shared super-type map. Only
-// the planner builds this reverse view.
+// api_stype to super-type index, derived from the shared super-type map. Unknown
+// types are represented by -1 at the call site.
 export const reverseSuperTypeMap = _(shipSuperTypeMap)
   .flatMap(({ id }, index) =>
     _(id)
@@ -45,8 +43,7 @@ export interface IPlannerShipData {
 }
 
 // Builds one menu entry from an owned ship, its master data and the configured
-// avatar margin. Shared by the per-ship selector and the whole-roster selector
-// so both stay in lockstep.
+// avatar margin.
 const mapShipMenuItem = (
   ship: APIShip | undefined,
   $ship: APIMstShip | undefined,
@@ -62,18 +59,15 @@ const mapShipMenuItem = (
         name: $ship.api_name,
         romaji: toRomaji($ship.api_yomi),
         shipId: $ship.api_id,
-        superTypeIndex: reverseSuperTypeMap[$ship.api_stype] || 0,
+        superTypeIndex: reverseSuperTypeMap[$ship.api_stype] ?? -1,
         typeId: $ship.api_stype,
         yomi: $ship.api_yomi,
       }
     : undefined
 
 // The menu depends only on the owned roster, its master data and the avatar
-// margins. Narrowing the host `const`/`fcd` selectors here keeps the result
-// identity stable when unrelated parts of the root state change, so AddShip
-// does not rebuild its Fuse index needlessly. Both stay `undefined` when data
-// is absent instead of returning a fresh fallback that would break that
-// stability.
+// margins. Both stay `undefined` when data is absent instead of returning a
+// fresh fallback that would break result stability.
 const masterShipsSelector = (
   state: IState,
 ): IDictionary<APIMstShip> | undefined => constSelector(state).$ships
@@ -99,31 +93,4 @@ export const shipMenuDataSelector = createSelector(
     map(ships, (ship: APIShip) =>
       mapShipMenuItem(ship, $ships?.[ship.api_ship_id ?? -1], marginMagics),
     ).filter((item): item is IPlannerShipData => item !== undefined),
-)
-
-export const deckPlannerCurrentSelector = createSelector(
-  [extensionSelectorFactory(PLUGIN_KEY)],
-  (state) => ((state as any).planner || {}).current || [],
-)
-
-export const deckPlannerAreaSelectorFactory = memoize((areaIndex) =>
-  createSelector(
-    [deckPlannerCurrentSelector],
-    (current) => current[areaIndex] || [],
-  ),
-)
-
-export const deckPlannerAllShipIdsSelector = createSelector(
-  [deckPlannerCurrentSelector],
-  (current) => flatten(current),
-)
-
-export const deckPlannerShipMapSelector = createSelector(
-  [deckPlannerCurrentSelector],
-  (current: number[][]) =>
-    fromPairs(
-      flatMap(current, (ships, areaIndex: number) =>
-        ships.map((id) => [id, areaIndex]),
-      ),
-    ),
 )

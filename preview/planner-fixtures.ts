@@ -1,7 +1,7 @@
 import './bootstrap'
 
 import { mkMstShip, mkShip } from '../tests/fixtures'
-import { tableState } from '../tests/ui/fixtures'
+import { mkNavyArea, mkNavyData, tableState } from '../tests/ui/fixtures'
 import { DATA_PATH as NAVY_DATA_PATH } from '../packages/navy-staff/src/views/plugin-identity'
 import { DATA_PATH as SHIP_INFO_DATA_PATH } from '../packages/ship-info/src/views/plugin-identity'
 
@@ -91,14 +91,14 @@ export interface PlannerScenarioOptions {
   extra?: Record<string, any>
   mapname?: string[]
   mstShips?: Record<number, any>
+  ownerMemberId?: string | null
   ships?: Record<number, any>
 }
 
 /**
- * Full host state for planner/shell stories. `current` defaults to one empty
- * area per map name; pass tagged `ships` to make the planner's tag authority
- * observable. Both plugin slices are seeded with `ready: true` so component
- * stories can render without running a lifecycle.
+ * Full host state for planner/shell stories. `current` seeds per-area owned IDs
+ * positionally into a v2 workspace. Both plugin slices are seeded with
+ * `ready: true` so component stories can render without running a lifecycle.
  */
 export const plannerScenarioState = (
   options: PlannerScenarioOptions = {},
@@ -110,10 +110,19 @@ export const plannerScenarioState = (
     extra,
     mapname = plannerAreaNames,
     mstShips = plannerMstShips,
+    ownerMemberId = '123',
     ships = plannerOwnedShips,
   } = options
 
   const base = tableState()
+  const areas = mapname.map((label, index) =>
+    mkNavyArea({
+      color: color[index] ?? '#ff0000',
+      id: `area-${index + 1}`,
+      label,
+      tagSlot: index,
+    }),
+  )
   const state: Record<string, any> = {
     ...base,
     config: config ?? base.config,
@@ -128,6 +137,7 @@ export const plannerScenarioState = (
     },
     info: {
       ...base.info,
+      basic: { api_member_id: '123' },
       ships,
     },
     [SHIP_INFO_PLUGIN_KEY]: {
@@ -138,22 +148,34 @@ export const plannerScenarioState = (
     },
     [NAVY_PLUGIN_KEY]: {
       error: null,
-      planner: {
-        archive: {},
+      navy: mkNavyData({
+        areas,
         current: current ?? mapname.map(() => []),
-      },
+        ownerMemberId,
+      }),
       ready: true,
     },
   }
   return { ...state, ...extra }
 }
 
-/** The Navy Staff planner slice, for asserting planner state. */
+/** The Navy Staff v2 durable root, for asserting workspace state. */
 export const plannerSlice = (environment: {
   store: { getState: () => any }
-}) => environment.store.getState()[NAVY_PLUGIN_KEY].planner as {
-  archive: object
-  current: number[][]
+}) => environment.store.getState()[NAVY_PLUGIN_KEY].navy as {
+  selectedWorkspaceId: string
+  workspaces: any[]
+  legacyArchive: Record<string, unknown>
+}
+
+/** All owned ship IDs across the selected workspace's areas. */
+export const assignedShipIds = (environment: {
+  store: { getState: () => any }
+}): number[] => {
+  const navy = plannerSlice(environment)
+  const workspace = navy.workspaces.find((w) => w.id === navy.selectedWorkspaceId)
+  const content = workspace.revisions[workspace.cursor].content
+  return Object.values(content.assignments).flat() as number[]
 }
 
 /** Seed the Ship Info file (legacy planner source) for migration stories. */
