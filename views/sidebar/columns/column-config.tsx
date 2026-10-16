@@ -1,4 +1,4 @@
-import { Button, Card, Checkbox, H5 } from '@blueprintjs/core'
+import { Button, Card, Checkbox, Classes, H5 } from '@blueprintjs/core'
 import React, { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
@@ -52,6 +52,9 @@ const CheckboxGroup = styled.div`
   align-items: center;
 `
 
+// `Classes` resolves to poi's Blueprint (see the externals in vite.config.ts),
+// so interpolating it keeps these selectors on whichever `bpN-` namespace poi
+// actually loaded instead of hardcoding one.
 const CheckboxWithLabel = styled.label`
   display: flex;
   align-items: center;
@@ -60,13 +63,13 @@ const CheckboxWithLabel = styled.label`
   user-select: none;
   margin: 0;
 
-  .bp5-control {
+  ${`.${Classes.CONTROL}`} {
     margin-bottom: 0;
     display: flex;
     align-items: center;
   }
 
-  .bp5-control-indicator {
+  ${`.${Classes.CONTROL_INDICATOR}`} {
     margin-top: 0;
     margin-bottom: 0;
   }

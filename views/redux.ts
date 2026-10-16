@@ -1,4 +1,3 @@
-import { promisify } from 'bluebird'
 import { readJson } from 'fs-extra'
 import { get, omit } from 'lodash'
 import path from 'path'

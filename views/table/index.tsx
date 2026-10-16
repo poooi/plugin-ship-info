@@ -4,10 +4,7 @@ import React, { useMemo, useRef, useState, useCallback, useEffect } from 'react'
 import { connect } from 'react-redux'
 import styled, { css } from 'styled-components'
 import {
-  useReactTable,
-  getCoreRowModel,
-  getSortedRowModel,
-  getFilteredRowModel,
+  useTable,
   ColumnDef,
   flexRender,
   SortingState,
@@ -31,6 +28,7 @@ import {
 } from '../selectors'
 import { poiSurface } from '../styles'
 import { columns as dataColumns, TableRow } from './columns-config'
+import { shipInfoTableFeatures, ShipInfoTableFeatures } from './table-features'
 import { TitleCell } from './title-cell'
 import { isShipCompleted, canEquipDaihatsu } from '../utils'
 
@@ -64,7 +62,11 @@ const filterCache = new Map<number, boolean>()
 
 // Global filter function that applies all filter criteria
 // Note: This is called once per column per row, so we cache the result
-const globalFilterFn: FilterFn<TableRow> = (row, columnId, filterValue) => {
+const globalFilterFn: FilterFn<ShipInfoTableFeatures, TableRow> = (
+  row,
+  columnId,
+  filterValue,
+) => {
   const { shipData } = row.original
   const shipId = shipData.ship.api_id
 
@@ -217,8 +219,8 @@ const TableBody = styled.div`
 
 const HeaderCell = styled.div<{
   width: number
-  $isPinned?: 'left' | 'right' | false
-  $leftOffset?: number
+  $isPinned?: 'start' | 'end' | false
+  $offset?: number
 }>`
   width: ${(props) => props.width}px;
   flex-shrink: 0;
@@ -230,9 +232,11 @@ const HeaderCell = styled.div<{
     props.$isPinned &&
     css`
       position: sticky;
-      ${props.$isPinned === 'left' ? `left: ${props.$leftOffset || 0}px;` : ''}
-      ${props.$isPinned === 'right'
-        ? `right: ${props.$leftOffset || 0}px;`
+      ${props.$isPinned === 'start'
+        ? `inset-inline-start: ${props.$offset || 0}px;`
+        : ''}
+      ${props.$isPinned === 'end'
+        ? `inset-inline-end: ${props.$offset || 0}px;`
         : ''}
       ${poiSurface(props.theme.DARK_GRAY3)}
       z-index: 2;
@@ -244,7 +248,9 @@ const HeaderCell = styled.div<{
         bottom: 0;
         width: 1px;
         background: ${props.theme.GRAY1};
-        ${props.$isPinned === 'left' ? 'right: 0;' : 'left: 0;'}
+        ${props.$isPinned === 'start'
+          ? 'inset-inline-end: 0;'
+          : 'inset-inline-start: 0;'}
       }
     `}
 `
@@ -437,9 +443,9 @@ const ShipInfoTableAreaBase: React.FC<ShipInfoTableAreaBaseProps> = ({
   const globalFilterValue = useAtomValue(globalFilterAtom)
 
   // Define columns with row index column and highlighting wrappers
-  const columns = useMemo<ColumnDef<TableRow>[]>(() => {
+  const columns = useMemo<ColumnDef<ShipInfoTableFeatures, TableRow>[]>(() => {
     // Row index column
-    const rowIndexColumn: ColumnDef<TableRow> = {
+    const rowIndexColumn: ColumnDef<ShipInfoTableFeatures, TableRow> = {
       id: 'rowIndex',
       header: () => <div />,
       accessorFn: (row) => row.index,
@@ -488,7 +494,10 @@ const ShipInfoTableAreaBase: React.FC<ShipInfoTableAreaBaseProps> = ({
       }
     })
 
-    return [rowIndexColumn, ...wrappedColumns] as ColumnDef<TableRow>[]
+    return [rowIndexColumn, ...wrappedColumns] as ColumnDef<
+      ShipInfoTableFeatures,
+      TableRow
+    >[]
   }, [sortName, sortOrder, handleClickTitle, onClickCell, onContextMenu])
 
   // Initialize table with sorting state from Redux
@@ -501,7 +510,18 @@ const ShipInfoTableAreaBase: React.FC<ShipInfoTableAreaBaseProps> = ({
     setSorting([{ id: sortName, desc: sortOrder === 0 }])
   }, [sortName, sortOrder])
 
-  const table = useReactTable({
+  // Saved pinning stays in the persisted left/right shape; map it to the
+  // logical start/end regions only at the table boundary.
+  const columnPinningState = useMemo(
+    () => ({
+      start: columnPinning.left ?? [],
+      end: columnPinning.right ?? [],
+    }),
+    [columnPinning],
+  )
+
+  const table = useTable({
+    features: shipInfoTableFeatures,
     data,
     columns,
     state: {
@@ -509,15 +529,12 @@ const ShipInfoTableAreaBase: React.FC<ShipInfoTableAreaBaseProps> = ({
       globalFilter: globalFilterValue,
       columnOrder,
       columnVisibility,
-      columnPinning,
+      columnPinning: columnPinningState,
     },
     onSortingChange: setSorting,
     onGlobalFilterChange: () => {
       // Global filter is managed by Jotai atoms
     },
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getSortedRowModel: getSortedRowModel(),
     globalFilterFn,
     enableFilters: true,
     enableGlobalFilter: true,
@@ -554,15 +571,17 @@ const ShipInfoTableAreaBase: React.FC<ShipInfoTableAreaBaseProps> = ({
             <React.Fragment key={headerGroup.id}>
               {headerGroup.headers.map((header) => {
                 const isPinned = header.column.getIsPinned()
-                const leftOffset = isPinned
-                  ? header.column.getStart(isPinned)
+                const offset = isPinned
+                  ? isPinned === 'start'
+                    ? header.column.getStart('start')
+                    : header.column.getAfter('end')
                   : undefined
                 return (
                   <HeaderCell
                     key={header.id}
                     width={header.column.getSize()}
                     $isPinned={isPinned}
-                    $leftOffset={leftOffset}
+                    $offset={offset}
                   >
                     {flexRender(
                       header.column.columnDef.header,
@@ -588,15 +607,17 @@ const ShipInfoTableAreaBase: React.FC<ShipInfoTableAreaBaseProps> = ({
               >
                 {row.getVisibleCells().map((cell) => {
                   const isPinned = cell.column.getIsPinned()
-                  const leftOffset = isPinned
-                    ? cell.column.getStart(isPinned)
+                  const offset = isPinned
+                    ? isPinned === 'start'
+                      ? cell.column.getStart('start')
+                      : cell.column.getAfter('end')
                     : undefined
                   return (
                     <HeaderCell
                       key={cell.id}
                       width={cell.column.getSize()}
                       $isPinned={isPinned}
-                      $leftOffset={leftOffset}
+                      $offset={offset}
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
