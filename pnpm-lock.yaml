@@ -8,7 +8,6 @@ overrides:
   '@types/react': ^19.2.2
   vite@*: npm:@voidzero-dev/vite-plus-core@1.2.0
   vitest@*: 5.0.4
-  husky: set this to true or false
 
 importers:
 
