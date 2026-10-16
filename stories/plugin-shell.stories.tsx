@@ -59,7 +59,12 @@ const meta = {
   title: 'Integrated/PluginShell',
   component: Shell,
   parameters: {
-    shipInfo: { state: plannerScenarioState() },
+    shipInfo: {
+      // The shell is 1200x680; size the themed scenario surface so the whole
+      // root sits inside it instead of overflowing onto the white preview.
+      dimensions: { width: 1400, height: 760 },
+      state: plannerScenarioState(),
+    },
   },
 } satisfies Meta<typeof Shell>
 
@@ -91,6 +96,21 @@ export const MountsWithPersistedPlanner: Story = {
     await waitFor(async () => {
       await expect(plannerSlice(getEnvironment()).current).toEqual([[1, 2], [3]])
     })
+
+    // The rendered root must stay inside the themed scenario surface, otherwise
+    // it overflows onto the unthemed preview background.
+    const surface = document.querySelector(
+      '[data-ship-info-scenario]',
+    ) as HTMLElement
+    const root = surface.querySelector('#poi-plugin-ship-info') as HTMLElement
+    const surfaceRect = surface.getBoundingClientRect()
+    const rootRect = root.getBoundingClientRect()
+    await expect(rootRect.width).toBeGreaterThan(0)
+    await expect(rootRect.height).toBeGreaterThan(0)
+    await expect(rootRect.left).toBeGreaterThanOrEqual(surfaceRect.left)
+    await expect(rootRect.top).toBeGreaterThanOrEqual(surfaceRect.top)
+    await expect(rootRect.right).toBeLessThanOrEqual(surfaceRect.right)
+    await expect(rootRect.bottom).toBeLessThanOrEqual(surfaceRect.bottom)
   },
 }
 
