@@ -23,14 +23,9 @@ vi.mock('../lib/html2canvas', () => ({ default: () => undefined }))
 import { Export } from '../views/sidebar/export'
 import { filteredShipIdsAtom, TableView } from '../views/table'
 import { mkMstShip, mkShip } from './fixtures'
+import { shipTypes, tableState } from './ui/fixtures'
 import { createHarness } from './ui/harness'
-import {
-  installViewport,
-  restoreViewport,
-  shipTypes,
-  tableState,
-  VIEWPORT_HEIGHT,
-} from './ui/mocks'
+import { installViewport, restoreViewport, VIEWPORT_HEIGHT } from './ui/mocks'
 
 const SHIP_NAMES = ['Alpha', 'Beta', 'Gamma', 'Delta']
 

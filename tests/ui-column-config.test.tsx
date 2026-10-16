@@ -21,8 +21,8 @@ vi.mock('electron', async () => (await import('./ui/boundaries')).createElectron
 vi.mock('../lib/html2canvas', () => ({ default: () => undefined }))
 
 import { ColumnConfig } from '../views/sidebar/columns/column-config'
+import { tableState } from './ui/fixtures'
 import { createHarness } from './ui/harness'
-import { tableState } from './ui/mocks'
 
 // Query the classes the loaded Blueprint actually renders instead of a
 // hardcoded `bpN-` namespace, so this test follows the host's major too.
