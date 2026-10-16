@@ -23,10 +23,10 @@ export const createI18n = async () => {
 export const poiSelectors = {
   configSelector: (s: any) => s.config,
   constSelector: (s: any) => s.const,
-  equipDataSelectorFactory: (id: number) => (s: any) => [
-    s.info.equips[id],
-    (s.const.$equips || {})[id],
-  ],
+  equipDataSelectorFactory: (id: number) => (s: any) => {
+    const equipment = s.info.equips[id]
+    return [equipment, (s.const.$equips || {})[equipment?.api_slotitem_id]]
+  },
   extensionSelectorFactory: (key: string) => (s: any) => s[key],
   fcdSelector: (s: any) => s.fcd,
   fleetInExpeditionSelectorFactory: (id: number) => (s: any) =>

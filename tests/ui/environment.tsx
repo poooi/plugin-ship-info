@@ -3,7 +3,7 @@ import React from 'react'
 import { Provider as ReduxProvider } from 'react-redux'
 import { I18nextProvider } from 'react-i18next'
 import { createStore as createJotaiStore, Provider as JotaiProvider } from 'jotai'
-import { legacy_createStore } from 'redux'
+import { applyMiddleware, legacy_createStore } from 'redux'
 import { ThemeProvider } from 'styled-components'
 
 import i18next from 'views/env-parts/i18next'
@@ -13,8 +13,10 @@ import { WindowEnv } from 'views/components/etc/window-env'
 // testing-library/react and vitest so Storybook and real Chromium tests can
 // reuse it; the jsdom render adapter in harness.tsx layers on top.
 
+const PLUGIN_KEY = 'poi-plugin-ship-info'
+
 // The plugin reads these tokens off the poi theme.
-export const theme = {
+export const defaultTheme = {
   BLUE1: '#106ba3',
   BLUE2: '#0e5a8a',
   BLUE3: '#0a4c76',
@@ -55,8 +57,15 @@ export const theme = {
   RED5: '#fa999c',
   TEXT_PRIMARY: '#f6f7f9',
   TEXT_SECONDARY: '#abb3bf',
-  variant: 'dark' as const,
+  variant: 'dark' as 'light' | 'dark',
 }
+
+export const theme = defaultTheme
+
+export const getTheme = (variant: 'light' | 'dark') =>
+  variant === 'dark'
+    ? defaultTheme
+    : { ...defaultTheme, variant: 'light' as const }
 
 export interface Environment {
   configCalls: [string, any][]
@@ -66,8 +75,24 @@ export interface Environment {
   windowObj: any
 }
 
-export const createEnvironment = (initialState: any): Environment => {
+export interface EnvironmentOptions {
+  isMain?: boolean
+  language?: string
+  middleware?: any[]
+  pluginReducer?: (state: any, action: any) => any
+}
+
+export const createEnvironment = (
+  initialState: any,
+  options: EnvironmentOptions = {},
+): Environment => {
   const configCalls: [string, any][] = []
+  const {
+    isMain = false,
+    language = 'en-US',
+    middleware = [],
+    pluginReducer,
+  } = options
 
   const reducer = (state = initialState, action: any) => {
     if (action.type === 'TEST/SET_CONFIG') {
@@ -78,10 +103,19 @@ export const createEnvironment = (initialState: any): Environment => {
     if (action.type === 'TEST/REPLACE') {
       return { ...state, ...action.state }
     }
+    if (pluginReducer) {
+      const nextPlugin = pluginReducer(state[PLUGIN_KEY], action)
+      if (nextPlugin !== state[PLUGIN_KEY]) {
+        return { ...state, [PLUGIN_KEY]: nextPlugin }
+      }
+    }
     return state
   }
 
-  const store = legacy_createStore(reducer)
+  const store =
+    middleware.length > 0
+      ? legacy_createStore(reducer, applyMiddleware(...middleware))
+      : legacy_createStore(reducer)
   const jotaiStore = createJotaiStore()
 
   const setConfig = (path: string, value: any) => {
@@ -101,8 +135,8 @@ export const createEnvironment = (initialState: any): Environment => {
       set: setConfig,
     },
     getStore: () => store.getState(),
-    isMain: false,
-    language: 'en-US',
+    isMain,
+    language,
   }
 
   // Production callbacks (sort saving, CSV export) read the global `window`
@@ -120,13 +154,18 @@ export const createEnvironment = (initialState: any): Environment => {
 export interface ProvidersProps {
   children: React.ReactNode
   environment: Environment
+  theme?: typeof defaultTheme
 }
 
-export const Providers = ({ children, environment }: ProvidersProps) => (
+export const Providers = ({
+  children,
+  environment,
+  theme: themeOverride = defaultTheme,
+}: ProvidersProps) => (
   <ReduxProvider store={environment.store}>
     <JotaiProvider store={environment.jotaiStore}>
       <I18nextProvider i18n={i18next}>
-        <ThemeProvider theme={theme}>
+        <ThemeProvider theme={themeOverride}>
           <WindowEnv.Provider value={{ window: environment.windowObj }}>
             {children}
           </WindowEnv.Provider>
