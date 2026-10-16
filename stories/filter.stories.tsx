@@ -228,29 +228,74 @@ const SHIP_LEVELS: [string, number][] = [
 const rowsForMinLevel = (minLevel: number): string[] =>
   SHIP_LEVELS.filter(([, lv]) => lv >= minLevel).map(([name]) => name)
 
+const rowsForMaxLevel = (maxLevel: number): string[] =>
+  SHIP_LEVELS.filter(([, lv]) => lv <= maxLevel).map(([name]) => name)
+
 export const LevelSliderCommitsAndFilters: Story = {
   name: 'Level slider commits limits, filters and clears via the UI',
+  parameters: {
+    // Seed max = 200 so all eight ships initially fit at the top of the range.
+    shipInfo: {
+      state: tableState({
+        config: {
+          plugin: { ShipInfo: { filters: { maxLevel: 200, minLevel: 0 } } },
+          poi: { appearance: { avatar: false } },
+        },
+      }),
+    },
+  },
   play: async ({ canvasElement }) => {
     await openPopover(canvasElement, 'Filter')
     const environment = getEnvironment()
     await waitForRows(canvasElement, allRows)
 
-    const minHandle = () =>
-      popoverContent().querySelector(
-        `.${Classes.SLIDER_HANDLE}`,
-      ) as HTMLElement
-    const ariaValue = () => Number(minHandle().getAttribute('aria-valuenow'))
+    const handles = () =>
+      Array.from(
+        popoverContent().querySelectorAll<HTMLElement>(
+          `.${Classes.SLIDER_HANDLE}`,
+        ),
+      )
+    const minHandle = () => handles()[0]
+    const maxHandle = () => handles()[handles().length - 1]
+    const ariaValue = (el: HTMLElement) =>
+      Number(el.getAttribute('aria-valuenow'))
+    const minLevel = () =>
+      environment.store.getState().config.plugin.ShipInfo.filters.minLevel
+    const maxLevel = () =>
+      environment.store.getState().config.plugin.ShipInfo.filters.maxLevel
 
-    // Deterministic keyboard interaction: each ArrowRight raises the minimum by
-    // exactly one level. Two presses set min = 2 (excludes Epsilon, lv 1).
-    minHandle().focus()
-    await userEvent.keyboard('{ArrowRight}{ArrowRight}')
-    await expect(ariaValue()).toBe(2)
+    // Maximum handle: one ArrowLeft lowers max 200 -> 199, excluding Zeta.
+    maxHandle().focus()
+    await userEvent.keyboard('{ArrowLeft}')
+    await expect(ariaValue(maxHandle())).toBe(199)
     await waitFor(
       async () => {
-        await expect(
-          environment.store.getState().config.plugin.ShipInfo.filters.minLevel,
-        ).toBe(2)
+        await expect(maxLevel()).toBe(199)
+      },
+      { timeout: 3000 },
+    )
+    await waitForRows(canvasElement, rowsForMaxLevel(199))
+
+    // ArrowRight restores max = 200 and every row.
+    maxHandle().focus()
+    await userEvent.keyboard('{ArrowRight}')
+    await expect(ariaValue(maxHandle())).toBe(200)
+    await waitFor(
+      async () => {
+        await expect(maxLevel()).toBe(200)
+      },
+      { timeout: 3000 },
+    )
+    await waitForRows(canvasElement, allRows)
+
+    // Minimum handle: each ArrowRight raises the minimum by exactly one level.
+    // Two presses set min = 2 (excludes Epsilon, lv 1).
+    minHandle().focus()
+    await userEvent.keyboard('{ArrowRight}{ArrowRight}')
+    await expect(ariaValue(minHandle())).toBe(2)
+    await waitFor(
+      async () => {
+        await expect(minLevel()).toBe(2)
       },
       { timeout: 3000 },
     )
@@ -259,12 +304,10 @@ export const LevelSliderCommitsAndFilters: Story = {
     // Two ArrowLeft presses return the minimum to 0 and restore every row.
     minHandle().focus()
     await userEvent.keyboard('{ArrowLeft}{ArrowLeft}')
-    await expect(ariaValue()).toBe(0)
+    await expect(ariaValue(minHandle())).toBe(0)
     await waitFor(
       async () => {
-        await expect(
-          environment.store.getState().config.plugin.ShipInfo.filters.minLevel,
-        ).toBe(0)
+        await expect(minLevel()).toBe(0)
       },
       { timeout: 3000 },
     )

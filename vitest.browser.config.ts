@@ -39,6 +39,16 @@ export default defineConfig({
             headless: true,
             provider: playwright({}),
             instances: [{ browser: 'chromium' }],
+            // Keep the Chromium failure diagnostics that CI uploads: on failure
+            // Vitest writes a PNG to `.vitest/attachments/failure-screenshots/`
+            // and retains a Playwright trace. Traces must not default to
+            // `stories/__traces__`: that directory name contains a `.stories.tsx`
+            // segment which Storybook then tries to index as a story module.
+            screenshotFailures: true,
+            trace: {
+              mode: 'retain-on-failure',
+              tracesDir: path.join(dirname, '.vitest/traces'),
+            },
           },
         },
       },

@@ -56,7 +56,6 @@ type Story = StoryObj<typeof meta>
 export const DefaultVisibilityTogglesOff: Story = {
   name: 'Default visibility toggles off on the first click',
   play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
     const environment = getEnvironment()
     const card = cardFor(canvasElement, 'ID')
     const visible = checkboxFor(card, 'Visible')
