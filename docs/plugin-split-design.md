@@ -38,6 +38,7 @@ Two details need particular attention:
 ```text
 plugin-ship-info/
 ├── AGENTS.md
+├── build/plugin.config.ts       # Common plugin build and host externals
 ├── docs/
 │   └── plugin-split-design.md
 ├── package.json                 # Private workspace root and development commands
@@ -58,7 +59,7 @@ plugin-ship-info/
 └── .github/workflows/           # Align with main-branch CI at implementation time
 ```
 
-Use pnpm workspaces to manage the three packages and build libraries with `vp pack` (Vite+). Keep common TypeScript and build configuration at the root, with plugin-specific entries and necessary differences in each plugin. No additional monorepo orchestration framework is needed initially.
+Use pnpm workspaces to manage the three packages and build libraries with `vp pack` (Vite+). Common TypeScript and build configuration live at the root. Each plugin's `vite.config.ts` re-exports `build/plugin.config.ts`; package-local build commands resolve the entry and output paths from that package. No additional monorepo orchestration framework is needed.
 
 The workspace layer relocates Ship Info and shared code first; Navy Staff is added by the final extraction. The internal package is named `@poi-plugins/ship-info-shared`. It is a private, source-only build dependency with purpose-specific exports, bundled into each consumer. Tests, stories, preview adapters, host declarations, and development tooling stay at the repository root.
 

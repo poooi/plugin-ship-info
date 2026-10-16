@@ -14,7 +14,7 @@
 - `packages/shared/src/`: classification, host fleet selectors, shared UI, serialized writes, and persistence lifecycle; bundled into consumers.
 - `packages/*/i18n/` and package-specific `assets/`: self-contained packaged translations and resources.
 - `shims/`: local dependency and poi type declarations.
-- `packages/*/vite.config.ts`: plugin builds (`vp pack`) and poi-provided external dependencies.
+- `build/plugin.config.ts`: shared plugin build settings (`vp pack`) and poi-provided external dependencies; `packages/*/vite.config.ts` re-export it.
 - `vite.config.ts`: repository tests, lint, and format configuration.
 
 ## Development

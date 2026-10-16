@@ -43,3 +43,15 @@ Jotai still owns cell highlighting and the table's ordered result IDs consumed
 by CSV export. These are independent UI state and a real cross-component
 consumer, respectively, rather than copies of the filter inputs. The plugin's
 existing provider continues to isolate these values between mounted views.
+
+## Build configuration
+
+`build/plugin.config.ts` defines the common plugin build. Each package's
+`vite.config.ts` re-exports it, and builds still run from the package directory.
+The relative entry and output paths therefore continue to refer to that plugin.
+There is no runtime dependency on the build configuration.
+
+Both plugins retain the same host externals and bundle their private shared
+source. Changes to this configuration require packing and verifying both
+artifacts, including their compiled entry points, resources, external imports,
+and lifecycle behavior.
