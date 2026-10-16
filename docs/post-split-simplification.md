@@ -55,3 +55,16 @@ Both plugins retain the same host externals and bundle their private shared
 source. Changes to this configuration require packing and verifying both
 artifacts, including their compiled entry points, resources, external imports,
 and lifecycle behavior.
+
+## Planner search
+
+The add-ship menu derives its Fuse index with `useMemo` from the roster selector's
+result. Query text remains local React state. A roster change supplies a new
+index during rendering instead of mutating an old index after rendering and
+forcing another update. Unrelated host changes retain the roster selector's
+result identity.
+
+Search options, result ordering, type tabs, selected/tagged-ship exclusions, and
+keyboard selection remain unchanged. The active-query, same-count rename story
+guards against stale indexes; planner UI tests also cover name, yomi, and romaji
+matching and the selection callback.

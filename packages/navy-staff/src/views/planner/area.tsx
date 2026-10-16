@@ -71,7 +71,7 @@ export const Area = connect<any, any, any, IState>(
               {area.name}
             </h5>
             <div>
-              <AddShip area={index} onSelect={this.handleAddShip} />
+              <AddShip onSelect={this.handleAddShip} />
             </div>
           </Header>
 

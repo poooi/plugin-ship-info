@@ -10,23 +10,16 @@ import {
 import cls from 'classnames'
 import Fuse from 'fuse.js'
 import _, { map, padEnd } from 'lodash'
-import React, { Component, ComponentType, FormEvent } from 'react'
+import React, { useMemo, useState } from 'react'
 import FA from 'react-fontawesome'
-import {
-  useTranslation,
-  withTranslation,
-  WithTranslation,
-} from 'react-i18next'
-import { connect } from 'react-redux'
-import { compose } from 'redux'
+import { useTranslation } from 'react-i18next'
+import { useSelector } from 'react-redux'
 import styled from 'styled-components'
 import { Popover } from 'views/components/etc/overlay'
-import { IState } from 'views/utils/selectors'
 
 import { IShipSuperType, shipSuperTypeMap } from '@poi-plugins/ship-info-shared/ship-types'
 import {
   deckPlannerAllShipIdsSelector,
-  IPlannerShipData,
   shipMenuDataSelector,
 } from './selectors'
 
@@ -92,153 +85,118 @@ const ShipName = styled.span`
   flex: 1;
 `
 
-interface IProps extends WithTranslation {
-  ships: IPlannerShipData[]
-  allSelectedId: number[]
+export interface AddShipProps {
   onSelect: (id: number) => void
 }
 
-const Menu = compose<ComponentType<{}>>(
-  withTranslation('poi-plugin-navy-staff'),
-  connect((state: IState) => ({
-    allSelectedId: deckPlannerAllShipIdsSelector(state),
-    ships: shipMenuDataSelector(state),
-  })),
-)(
-  class MenuBase extends Component<IProps> {
-    public fuse: Fuse<IPlannerShipData>
+const Menu = ({ onSelect }: AddShipProps) => {
+  const { t } = useTranslation('poi-plugin-navy-staff')
+  const ships = useSelector(shipMenuDataSelector)
+  const allSelectedId = useSelector(deckPlannerAllShipIdsSelector)
+  const [query, setQuery] = useState('')
 
-    public state = {
-      query: '',
-    }
-
-    constructor(props: IProps) {
-      super(props)
-
-      const options = {
-        id: 'id',
+  // Rebuild the index whenever the ship collection changes, not only when a
+  // ship is added or removed: a same-count host update (rename, remodel, level
+  // change) also has to be searchable immediately.
+  const fuse = useMemo(
+    () =>
+      new Fuse(ships, {
         keys: ['name', 'yomi', 'romaji'],
         shouldSort: true,
-      }
-      this.fuse = new Fuse(props.ships, options)
-    }
+      }),
+    [ships],
+  )
 
-    public componentDidUpdate = (prevProps: IProps) => {
-      // Rebuild the index whenever the ship collection changes, not only when a
-      // ship is added or removed: a same-count host update (rename, remodel,
-      // level change) also has to be searchable immediately.
-      if (this.props.ships !== prevProps.ships) {
-        this.fuse.setCollection(this.props.ships)
-        this.forceUpdate()
-      }
-    }
+  const handleQueryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setQuery(e.currentTarget.value)
+  }
 
-    public handleQueryChange = (e: FormEvent<HTMLInputElement>) => {
-      this.setState({
-        query: e.currentTarget.value,
-      })
-    }
+  const handleClear = () => {
+    setQuery('')
+  }
 
-    public handleClear = () => {
-      this.setState({
-        query: '',
-      })
-    }
+  const handleSelect = (id: number) => () => {
+    onSelect(id)
+  }
 
-    public handleSelect = (id: number) => () => {
-      this.props.onSelect(id)
-    }
+  const filtered = _.map(fuse.search(query), (result) => result.item.id)
 
-    public render() {
-      const { query } = this.state
-      const { ships, allSelectedId, t } = this.props
+  return (
+    <Wrapper>
+      <InputGroup
+        value={query}
+        placeholder={t('Search')}
+        onChange={handleQueryChange}
+        rightElement={
+          <Button
+            aria-label={t('Clear')}
+            minimal
+            onClick={handleClear}
+            intent={Intent.WARNING}
+          >
+            <FA name="times" />
+          </Button>
+        }
+      />
 
-      const filtered = _.map(
-        this.fuse.search(query),
-        (result) => result.item.id,
-      )
-      return (
-        <Wrapper>
-          <InputGroup
-            value={query}
-            placeholder={t('Search')}
-            onChange={this.handleQueryChange}
-            rightElement={
-              <Button
-                aria-label={t('Clear')}
-                minimal
-                onClick={this.handleClear}
-                intent={Intent.WARNING}
-              >
-                <FA name="times" />
-              </Button>
+      <Tabs vertical id="ship-selection" renderActiveTabPanelOnly>
+        {map(searchOptions, ({ name, value: type }) => (
+          <Tab
+            key={type}
+            id={type}
+            title={t(name)}
+            panel={
+              <ShipList className="ship-info-scrollable">
+                {_(ships)
+                  .filter((ship) => type === -1 || type === ship.superTypeIndex)
+                  .filter((ship) => !query || (filtered || []).includes(ship.id))
+                  .filter((ship) => !ship.area)
+                  .filter((ship) => !allSelectedId.includes(ship.id))
+                  .sortBy([
+                    (ship) => (filtered || []).indexOf(ship.id),
+                    (ship) => -ship.lv,
+                    (ship) => -ship.exp,
+                  ])
+                  .map((ship) => (
+                    <ShipItem
+                      key={ship.id}
+                      role="button"
+                      tabIndex={0}
+                      onClick={handleSelect(ship.id)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault()
+                          // Replay the click so Blueprint's POPOVER_DISMISS
+                          // handling closes the menu too.
+                          event.currentTarget.click()
+                        }
+                      }}
+                      className={cls(Classes.POPOVER_DISMISS)}
+                    >
+                      <ShipLv>Lv.{padEnd(String(ship.lv), 4)}</ShipLv>
+                      <ShipName>
+                        {t(ship.name || '', { ns: 'resources' })}
+                      </ShipName>
+                      {ship.area! > 0 && (
+                        <Tag intent={Intent.PRIMARY}>{ship.area}</Tag>
+                      )}
+                    </ShipItem>
+                  ))
+                  .value()}
+              </ShipList>
             }
           />
-
-          <Tabs vertical id="ship-selection" renderActiveTabPanelOnly>
-            {map(searchOptions, ({ name, value: type }) => (
-              <Tab
-                key={type}
-                id={type}
-                title={t(name)}
-                panel={
-                  <ShipList className="ship-info-scrollable">
-                    {_(ships)
-                      .filter(
-                        (ship) => type === -1 || type === ship.superTypeIndex,
-                      )
-                      .filter(
-                        (ship) => !query || (filtered || []).includes(ship.id),
-                      )
-                      .filter((ship) => !ship.area)
-                      .filter((ship) => !allSelectedId.includes(ship.id))
-                      .sortBy([
-                        (ship) => (filtered || []).indexOf(ship.id),
-                        (ship) => -ship.lv,
-                        (ship) => -ship.exp,
-                      ])
-                      .map((ship) => (
-                        <ShipItem
-                          key={ship.id}
-                          role="button"
-                          tabIndex={0}
-                          onClick={this.handleSelect(ship.id)}
-                          onKeyDown={(event) => {
-                            if (event.key === 'Enter' || event.key === ' ') {
-                              event.preventDefault()
-                              // Replay the click so Blueprint's
-                              // POPOVER_DISMISS handling closes the menu too.
-                              event.currentTarget.click()
-                            }
-                          }}
-                          className={cls(Classes.POPOVER_DISMISS)}
-                        >
-                          <ShipLv>Lv.{padEnd(String(ship.lv), 4)}</ShipLv>
-                          <ShipName>
-                            {t(ship.name || '', { ns: 'resources' })}
-                          </ShipName>
-                          {ship.area! > 0 && (
-                            <Tag intent={Intent.PRIMARY}>{ship.area}</Tag>
-                          )}
-                        </ShipItem>
-                      ))
-                      .value()}
-                  </ShipList>
-                }
-              />
-            ))}
-          </Tabs>
-        </Wrapper>
-      )
-    }
-  },
-)
+        ))}
+      </Tabs>
+    </Wrapper>
+  )
+}
 
 // separate menu from popover component to prevent unnecessary updates
-export const AddShip = ({ ...props }) => {
+export const AddShip = ({ onSelect }: AddShipProps) => {
   const { t } = useTranslation('poi-plugin-navy-staff')
   return (
-    <Popover content={<Menu {...props} />} hasBackdrop>
+    <Popover content={<Menu onSelect={onSelect} />} hasBackdrop>
       <Button aria-label={t('Add ship')} minimal>
         <FA name="plus" />
       </Button>
