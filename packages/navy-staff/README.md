@@ -2,8 +2,17 @@
 
 Navy Staff plugin for [poi](https://github.com/poooi/poi).
 
-Chinese display name: **作战参谋** (Simplified Chinese) / **作戰參謀**
-(Traditional Chinese). The package name remains `poi-plugin-navy-staff`.
+Localized display names:
+
+| Language | Name |
+| --- | --- |
+| English | Navy Staff |
+| Japanese | 作戦参謀 |
+| Korean | 작전참모 |
+| Simplified Chinese | 作战参谋 |
+| Traditional Chinese | 作戰參謀 |
+
+The package name remains `poi-plugin-navy-staff`.
 
 Plans which ship girls to send to each sortie area, with an area view and a ship
 grid view, add/move/remove (including tag synchronization with the host), and

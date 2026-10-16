@@ -162,7 +162,7 @@ Acceptance should cover:
 
 ## 9. Initial defaults and release decisions
 
-- Use Navy Staff as the new plugin title, with Chinese display names `作战参谋` (zh-CN) and `作戰參謀` (zh-TW). Keep the package ID `poi-plugin-navy-staff`. Reuse the existing planner visual conventions and show the planner directly in its main view.
+- Use Navy Staff as the plugin title key, localized as `作戦参謀` (ja-JP), `작전참모` (ko-KR), `作战参谋` (zh-CN), and `作戰參謀` (zh-TW). Ship Info's migration notice uses the same localized display names. Keep the package ID `poi-plugin-navy-staff`. Reuse the existing planner visual conventions and show the planner directly in its main view.
 - Keep a migration notice in Ship Info's original Deck Planner area. It directs users to find Navy Staff in poi's plugin list and click **Install**, and shows the full package name `poi-plugin-navy-staff` alongside the manual installation instructions. It does not retain planner logic or depend on Navy Staff being installed.
 - Preserve existing assignment and synchronization workflows. Retain assignments beyond the current event's area count; event changes must not silently destroy imported data. A new event archive system remains out of scope.
 - Surface import/load failures. Retain the legacy `planner` field in Ship Info until its removal is separately agreed; Navy Staff never deletes it.

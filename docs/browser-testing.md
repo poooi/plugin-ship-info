@@ -5,7 +5,7 @@ The plugin has two independent UI test layers:
 | Layer | Runner | State | Scenarios |
 | --- | --- | --- | --- |
 | Node/jsdom | `pnpm test` (`vp test run`) | jsdom via `tests/setup.ts` | Persistence, selectors, reducers, CSV, and UI integration |
-| Browser | `pnpm run test:browser` (`vitest run --config vitest.browser.config.ts`) | Real Chromium via Playwright | 97 story scenarios across 13 files |
+| Browser | `pnpm run test:browser` (`vitest run --config vitest.browser.config.ts`) | Real Chromium via Playwright | 99 story scenarios across 13 files |
 
 The browser project is deliberately a separate Vitest config. It does **not**
 inherit `tests/setup.ts` or the jsdom geometry stubs in `tests/ui/mocks.tsx`,
@@ -250,6 +250,8 @@ button or modal) with `shipInfo.plugin: 'navy-staff'`.
 | `PluginShell/SidebarPanelsOpenAndClose` | Columns, Filter and Export open and close. |
 | `PluginShell/PlannerMovedNotice` | The original Deck Planner entry opens and closes a migration notice with plugin-list installation instructions and the full package name for manual installation, without planner controls or state changes. |
 | `PluginShell/PlannerMovedNoticeLocalized` | The notice uses the Chinese name 作战参谋 and the localized poi installation labels. |
+| `PluginShell/PlannerMovedNoticeJapanese` | The migration notice and Navy-only title translation agree on 作戦参謀, with list installation directions and the literal npm package ID. |
+| `PluginShell/PlannerMovedNoticeKorean` | The migration notice and Navy-only title translation agree on 작전참모, with list installation directions and the literal npm package ID. |
 | `PluginShell/FilterAffectsTableAndExport` | Unchecking all ship types empties the table and the exported CSV (header only); restoring brings back the exact sorted ids. |
 | `PluginShell/ColumnVisibilityAffectsTable` | Hiding a column removes it from the table while its config card remains. |
 | `PluginShell/ResetRemountsFreshRoot` | After hiding a column, copying the clipboard and exporting a file, a remount shows the original rows/columns again with empty config, clipboard and file logs. |
