@@ -1,6 +1,6 @@
 import { get as lodashGet } from 'lodash'
 import { rgba } from 'polished'
-import React, { useMemo, useRef, useState, useCallback, useEffect } from 'react'
+import React, { useMemo, useRef, useCallback, useEffect } from 'react'
 import { connect } from 'react-redux'
 import styled, { css } from 'styled-components'
 import {
@@ -39,20 +39,6 @@ const ROW_HEIGHT = 35
 // Jotai atoms for active cell tracking
 const activeRowAtom = atom(-1)
 const activeColumnAtom = atom(-1)
-
-// Jotai atoms for filter state
-export const filterShipTypesAtom = atom<number[]>([])
-export const filterExpeditionShipsAtom = atom<number[]>([])
-export const filterConfigAtom = atom<any>({})
-export const filterSettingsAtom = atom<any>({ minLevel: 0, maxLevel: 450 })
-
-// Derived atom that combines all filter criteria
-export const globalFilterAtom = atom((get) => ({
-  shipTypes: get(filterShipTypesAtom),
-  expeditionShips: get(filterExpeditionShipsAtom),
-  config: get(filterConfigAtom),
-  filters: get(filterSettingsAtom),
-}))
 
 // Atom to store filtered ship IDs from the table (for export to use)
 export const filteredShipIdsAtom = atom<number[]>([])
@@ -359,28 +345,6 @@ const ShipInfoTableAreaBase: React.FC<ShipInfoTableAreaBaseProps> = ({
 
   const hasSpacer = process.platform === 'darwin' && !windowObj.isMain
 
-  // Sync Redux filter data to Jotai atoms
-  const setFilterShipTypes = useSetAtom(filterShipTypesAtom)
-  const setFilterExpeditionShips = useSetAtom(filterExpeditionShipsAtom)
-  const setFilterConfig = useSetAtom(filterConfigAtom)
-  const setFilterSettings = useSetAtom(filterSettingsAtom)
-
-  useEffect(() => {
-    setFilterShipTypes(shipTypes)
-    setFilterExpeditionShips(expeditionShips)
-    setFilterConfig(filterConfig)
-    setFilterSettings(filterSettings)
-  }, [
-    shipTypes,
-    expeditionShips,
-    filterConfig,
-    filterSettings,
-    setFilterShipTypes,
-    setFilterExpeditionShips,
-    setFilterConfig,
-    setFilterSettings,
-  ])
-
   const saveSortRules = useCallback((name: string, order: number) => {
     window.config.set('plugin.ShipInfo.sortName', name)
     window.config.set('plugin.ShipInfo.sortOrder', order)
@@ -426,8 +390,16 @@ const ShipInfoTableAreaBase: React.FC<ShipInfoTableAreaBaseProps> = ({
     [allShipsData],
   )
 
-  // Use Jotai atom for global filter (read-only, derived from other atoms)
-  const globalFilterValue = useAtomValue(globalFilterAtom)
+  // Global filter derived directly from the connected filter props.
+  const globalFilterValue = useMemo(
+    () => ({
+      shipTypes,
+      expeditionShips,
+      config: filterConfig,
+      filters: filterSettings,
+    }),
+    [shipTypes, expeditionShips, filterConfig, filterSettings],
+  )
 
   // Define columns with row index column and highlighting wrappers
   const columns = useMemo<ColumnDef<ShipInfoTableFeatures, TableRow>[]>(() => {
@@ -487,15 +459,12 @@ const ShipInfoTableAreaBase: React.FC<ShipInfoTableAreaBaseProps> = ({
     >[]
   }, [sortName, sortOrder, handleClickTitle, onClickCell, onContextMenu])
 
-  // Initialize table with sorting state from Redux
-  const [sorting, setSorting] = useState<SortingState>([
-    { id: sortName, desc: sortOrder === 0 },
-  ])
-
-  // Update sorting state when Redux state changes
-  useEffect(() => {
-    setSorting([{ id: sortName, desc: sortOrder === 0 }])
-  }, [sortName, sortOrder])
+  // Sorting is controlled by the persisted config; header clicks write it back
+  // through saveSortRules, so no local mirror state is needed.
+  const sorting = useMemo<SortingState>(
+    () => [{ id: sortName, desc: sortOrder === 0 }],
+    [sortName, sortOrder],
+  )
 
   // Saved pinning stays in the persisted left/right shape; map it to the
   // logical start/end regions only at the table boundary.
@@ -518,9 +487,8 @@ const ShipInfoTableAreaBase: React.FC<ShipInfoTableAreaBaseProps> = ({
       columnVisibility,
       columnPinning: columnPinningState,
     },
-    onSortingChange: setSorting,
     onGlobalFilterChange: () => {
-      // Global filter is managed by Jotai atoms
+      // Global filter is derived from the connected filter props.
     },
     globalFilterFn,
     enableFilters: true,
