@@ -243,7 +243,7 @@ button or modal) with `shipInfo.plugin: 'navy-staff'`.
 | `PluginShell/SavesWithoutPlannerOpen` | A plugin state change is written to the plugin file while persistence is lifecycle-owned, not UI-owned. |
 | `PluginShell/CorruptFileSurfacesLoadError` | A corrupt persisted file surfaces a load error and a toast, saving stays disabled, and the source file is left untouched. |
 | `PluginShell/SidebarPanelsOpenAndClose` | Columns, Filter and Export open and close. |
-| `PluginShell/PlannerMovedNotice` | The original Deck Planner entry opens and closes a migration notice with poi installation instructions and the full package name, without planner controls or state changes. |
+| `PluginShell/PlannerMovedNotice` | The original Deck Planner entry opens and closes a migration notice with plugin-list installation instructions and the full package name for manual installation, without planner controls or state changes. |
 | `PluginShell/PlannerMovedNoticeLocalized` | The notice uses the Chinese name 作战参谋 and the localized poi installation labels. |
 | `PluginShell/FilterAffectsTableAndExport` | Unchecking all ship types empties the table and the exported CSV (header only); restoring brings back the exact sorted ids. |
 | `PluginShell/ColumnVisibilityAffectsTable` | Hiding a column removes it from the table while its config card remains. |

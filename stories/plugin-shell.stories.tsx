@@ -520,12 +520,16 @@ export const PlannerMovedNotice: Story = {
     )
     const dialog = await screen.findByRole('dialog')
 
-    // Installation instructions use the real host labels and the package name.
+    // Primary direction: the plugin list, the visible name, then Install.
     await expect(
-      within(dialog).getByText(/Settings > Plugins/),
+      within(dialog).getByText(/plugin list under poi's Settings > Plugins/),
     ).toBeTruthy()
     await expect(
-      within(dialog).getByText(/Install directly from npm/),
+      within(dialog).getByText(/find "Navy Staff" and click "Install"/),
+    ).toBeTruthy()
+    // Manual direction names the real host control and the package id.
+    await expect(
+      within(dialog).getByText(/choose "Install directly from npm"/),
     ).toBeTruthy()
     await expect(
       within(dialog).getByText('poi-plugin-navy-staff'),
@@ -563,7 +567,11 @@ export const PlannerMovedNoticeLocalized: Story = {
       await canvas.findByRole('button', { name: '出击计划' }),
     )
     const dialog = await screen.findByRole('dialog')
-    await expect(within(dialog).getByText(/作战参谋/)).toBeTruthy()
+    // Primary direction: plugin list, localized Navy Staff name, then Install.
+    await expect(within(dialog).getByText(/插件列表/)).toBeTruthy()
+    await expect(within(dialog).getByText(/找到「作战参谋」/)).toBeTruthy()
+    await expect(within(dialog).getByText(/点击「安装」/)).toBeTruthy()
+    // Manual direction names the real host control and the package id.
     await expect(
       within(dialog).getByText(/直接从 npm 服务器安装/),
     ).toBeTruthy()

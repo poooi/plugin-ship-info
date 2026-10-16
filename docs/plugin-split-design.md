@@ -138,7 +138,7 @@ Migration and event changes are separate concerns. Do not truncate imported arra
 - Translation source text may be reused, but each built plugin's `i18n/` must be self-contained. Shared presentation modules receive translated text or a translation function instead of hard-coding the Ship Info namespace.
 - CI checks both plugins and the shared package, then builds and packs each plugin. Shared changes require validation of both plugins; running all checks initially is sufficient.
 - Schedule publishing and installation guidance separately. Documentation and initial code movement do not automatically publish npm packages.
-- `poi-plugin-navy-staff` already exists on npm as a placeholder. The extracted planner requires a subsequent release under that existing package name. Users install released plugins through poi's **Settings → Plugins → Install directly from npm**, entering the full package name.
+- `poi-plugin-navy-staff` already exists on npm as a placeholder. The extracted planner requires a subsequent release under that existing package name, coordinated with adding Navy Staff to poi's plugin list. Users find **Navy Staff** in **Settings → Plugins** and click **Install**. Manual installation through **Install directly from npm** uses `poi-plugin-navy-staff` and also requires the planner release to be available.
 
 ## 8. Implementation sequence and acceptance
 
@@ -162,7 +162,7 @@ Acceptance should cover:
 ## 9. Initial defaults and release decisions
 
 - Use Navy Staff as the new plugin title, with Chinese display names `作战参谋` (zh-CN) and `作戰參謀` (zh-TW). Keep the package ID `poi-plugin-navy-staff`. Reuse the existing planner visual conventions and show the planner directly in its main view.
-- Keep a migration notice in Ship Info's original Deck Planner area. It identifies Navy Staff and directs users to poi's plugin settings with the full package name; it does not retain planner logic or depend on Navy Staff being installed.
+- Keep a migration notice in Ship Info's original Deck Planner area. It directs users to find Navy Staff in poi's plugin list and click **Install**, and shows the full package name `poi-plugin-navy-staff` alongside the manual installation instructions. It does not retain planner logic or depend on Navy Staff being installed.
 - Preserve existing assignment and synchronization workflows. Retain assignments beyond the current event's area count; event changes must not silently destroy imported data. A new event archive system remains out of scope.
 - Surface import/load failures. Retain the legacy `planner` field in Ship Info until its removal is separately agreed; Navy Staff never deletes it.
 - Ship Info's workspace manifest retains version `8.1.1`. Navy Staff's local `0.1.0` is a provisional development value, not its first npm version: the existing npm `latest` was `1.2.0` when checked on 2026-10-16. Before publishing the extracted planner, choose a release version that advances the existing package's version history so installed copies can update normally.

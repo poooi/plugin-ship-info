@@ -27,13 +27,15 @@ legacy `planner` field untouched.
 
 ## Installation in poi
 
-Open **Settings → Plugins** in poi. Under **Install directly from npm**, enter
-the full package name (`poi-plugin-ship-info` or `poi-plugin-navy-staff`) and
-click **Install**. poi manages installation in its plugin directory.
+Open **Settings → Plugins** in poi, find **Ship Girls Info** or **Navy Staff**
+in the plugin list and click **Install**. For manual installation, use
+**Install directly from npm** with the full package name
+`poi-plugin-ship-info` or `poi-plugin-navy-staff`, respectively.
 
 The existing Navy Staff npm package is a placeholder for this work. Installing
 it does not install the planner implemented on this branch; that implementation
-requires a subsequent release.
+requires a subsequent release coordinated with adding Navy Staff to poi's
+plugin list.
 
 ## Development
 

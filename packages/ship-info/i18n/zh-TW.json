@@ -185,5 +185,6 @@
   "loadError": "無法讀取已儲存的艦娘資訊資料。為避免覆寫檔案，已停用儲存。",
   "saveError": "無法儲存艦娘資訊資料。請確認檔案可寫入。",
   "plannerMovedNotice": "出擊計劃已移至獨立的「作戰參謀」插件。",
-  "plannerMovedInstall": "開啟 poi 的 設定 > 擴展程式，選擇「直接從 npm 伺服器安裝」，輸入擴展程式的包名後點擊「安裝」："
+  "plannerMovedInstall": "在 poi 的 設定 > 擴展程式 的擴展程式列表中找到「作戰參謀」，點擊「安裝」。",
+  "plannerManualInstall": "手動安裝請選擇「直接從 npm 伺服器安裝」，輸入擴展程式包名："
 }

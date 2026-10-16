@@ -39,8 +39,9 @@ export const PlannerNotice = () => {
       >
         <div className={Classes.DIALOG_BODY}>
           <p>{t('plannerMovedNotice')}</p>
+          <p>{t('plannerMovedInstall')}</p>
           <p>
-            {t('plannerMovedInstall')}{' '}
+            {t('plannerManualInstall')}{' '}
             <Package>poi-plugin-navy-staff</Package>
           </p>
         </div>

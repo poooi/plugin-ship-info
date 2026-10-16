@@ -12,9 +12,9 @@ name and installation instructions in poi.
 
 ## Install
 
-Open **Settings → Plugins** in poi. Under **Install directly from npm**, enter
-`poi-plugin-ship-info` and click **Install**. poi manages installation in its
-plugin directory.
+Open **Settings → Plugins** in poi, find **Ship Girls Info** in the plugin
+list and click **Install**. For manual installation, use **Install directly
+from npm**, enter `poi-plugin-ship-info` and click **Install**.
 
 poi provides React, Redux, Blueprint and the other host UI libraries at runtime;
 this package bundles the rest of its implementation.
