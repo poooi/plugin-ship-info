@@ -18,10 +18,9 @@ vi.mock('wanakana', async () => (await import('./ui/boundaries')).wanakanaModule
 vi.mock('react-fontawesome', async () => (await import('./ui/boundaries')).fontawesomeModule)
 vi.mock('redux-observers', async () => (await import('./ui/boundaries')).reduxObserversModule)
 vi.mock('electron', async () => (await import('./ui/boundaries')).createElectronModule())
-vi.mock('../lib/html2canvas', () => ({ default: () => undefined }))
 
-import { Export } from '../views/sidebar/export'
-import { filteredShipIdsAtom, TableView } from '../views/table'
+import { Export } from '../packages/ship-info/src/views/sidebar/export'
+import { filteredShipIdsAtom, TableView } from '../packages/ship-info/src/views/table'
 import { mkMstShip, mkShip } from './fixtures'
 import { shipTypes, tableState } from './ui/fixtures'
 import { createHarness } from './ui/harness'

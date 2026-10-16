@@ -33,7 +33,7 @@ import {
 
 import { APISlotItem } from 'kcsapi/api_get_member/require_info/response'
 import { APIMstShip } from 'kcsapi/api_start2/getData/response'
-import { shipFleetIdMapSelector } from '../shared/fleet'
+import { shipFleetIdMapSelector } from '@poi-plugins/ship-info-shared/fleet'
 import {
   intToBoolArray,
   katakanaToHiragana,

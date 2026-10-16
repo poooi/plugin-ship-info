@@ -52,6 +52,10 @@ segment, which Storybook then tries to index as a story module (EISDIR).
 
 ## How it is wired
 
+- Plugin source lives in `packages/ship-info/src/` and the private shared
+  package in `packages/shared/src/`. The root `tests/`, `stories/` and
+  `preview/` layers import them through those package paths; there is no
+  compatibility barrel at the old locations.
 - Storybook config lives in `.storybook/` (`main.ts`, `preview.tsx`,
   `ambient.d.ts`).
 - `preview/` is the browser integration layer:

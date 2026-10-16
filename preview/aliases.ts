@@ -62,10 +62,7 @@ export const poiHostResolver = (): Plugin => ({
   enforce: 'pre',
   name: 'poi-preview-host-resolver',
   resolveId(source) {
-    if (
-      source === '../lib/html2canvas' ||
-      source.endsWith('/lib/html2canvas')
-    ) {
+    if (source.endsWith('/lib/html2canvas') || source === 'lib/html2canvas') {
       return resolve('./adapters/html2canvas.ts')
     }
     return null

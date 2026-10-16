@@ -15,7 +15,7 @@ import {
   plannerTaggedShips,
 } from '../preview/planner-fixtures'
 import { getEnvironment } from '../preview/scenario'
-import { Planner } from '../views/planner'
+import { Planner } from '../packages/ship-info/src/views/planner'
 
 const params = (options?: PlannerScenarioOptions) => ({
   shipInfo: { state: plannerScenarioState(options) },

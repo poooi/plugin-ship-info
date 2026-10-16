@@ -7,7 +7,7 @@ import styled from 'styled-components'
 import { Action } from 'redux'
 import { ThunkAction, ThunkDispatch } from 'redux-thunk'
 import { IState } from 'views/utils/selectors'
-import { shipSuperTypeMap } from '../../shared/ship-types'
+import { shipSuperTypeMap } from '@poi-plugins/ship-info-shared/ship-types'
 import { onAddShip, onDisplaceShip, onRemoveShip } from './redux'
 import {
   deckPlannerShipMapSelector,

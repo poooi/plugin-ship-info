@@ -24,8 +24,8 @@ import { Dialog } from 'views/components/etc/overlay'
 import { WindowEnv } from 'views/components/etc/window-env'
 import { IState } from 'views/utils/selectors'
 
-import { Checkbox, CheckboxLabel, CheckboxOption } from '../../shared/ui/checkbox'
-import { poiSurface } from '../../shared/ui/styles'
+import { Checkbox, CheckboxLabel, CheckboxOption } from '@poi-plugins/ship-info-shared/ui/checkbox'
+import { poiSurface } from '@poi-plugins/ship-info-shared/ui/styles'
 import { captureRect } from './capture'
 import {
   onAddShip,

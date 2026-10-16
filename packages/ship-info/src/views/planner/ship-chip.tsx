@@ -9,9 +9,9 @@ import styled from 'styled-components'
 import { Popover } from 'views/components/etc/overlay'
 import { IState } from 'views/utils/selectors'
 
-import { shipFleetIdSelectorFactory } from '../../shared/fleet'
-import { shipTypeLabel } from '../../shared/ship-types'
-import { FleetIcon } from '../../shared/ui/fleet-icon'
+import { shipFleetIdSelectorFactory } from '@poi-plugins/ship-info-shared/fleet'
+import { shipTypeLabel } from '@poi-plugins/ship-info-shared/ship-types'
+import { FleetIcon } from '@poi-plugins/ship-info-shared/ui/fleet-icon'
 import { onDisplaceShip, onRemoveShip } from './redux'
 import { shipItemSelectorFactory } from './selectors'
 

@@ -4,7 +4,7 @@ import { expect, userEvent, within } from 'storybook/test'
 
 import { tableState } from '../tests/ui/fixtures'
 import { getEnvironment } from '../preview/scenario'
-import { ColumnConfig } from '../views/sidebar/columns/column-config'
+import { ColumnConfig } from '../packages/ship-info/src/views/sidebar/columns/column-config'
 
 // Mirrors the plugin's default order in views/selectors.ts + column-config.tsx.
 const DEFAULT_ORDER = [

@@ -14,9 +14,8 @@ vi.mock('wanakana', async () => (await import('./ui/boundaries')).wanakanaModule
 vi.mock('react-fontawesome', async () => (await import('./ui/boundaries')).fontawesomeModule)
 vi.mock('redux-observers', async () => (await import('./ui/boundaries')).reduxObserversModule)
 vi.mock('electron', async () => (await import('./ui/boundaries')).createElectronModule())
-vi.mock('../lib/html2canvas', () => ({ default: () => undefined }))
 
-import { AddShip } from '../views/planner/add-ship'
+import { AddShip } from '../packages/ship-info/src/views/planner/add-ship'
 import { plannerState } from './ui/fixtures'
 import { createHarness } from './ui/harness'
 

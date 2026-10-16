@@ -10,7 +10,7 @@ import {
   virtualTableState,
 } from '../preview/table-fixtures'
 import { mkShip } from '../tests/fixtures'
-import { filteredShipIdsAtom, TableView } from '../views/table'
+import { filteredShipIdsAtom, TableView } from '../packages/ship-info/src/views/table'
 import {
   headerCellByTitle,
   headerTitles,

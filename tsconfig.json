@@ -10,5 +10,14 @@
     "noEmit": true,
     "allowImportingTsExtensions": true
   },
-  "include": ["**/*", ".storybook/**/*"]
+  "include": ["**/*", ".storybook/**/*"],
+  "exclude": [
+    "node_modules",
+    ".pnpm-store",
+    ".cache",
+    ".vitest",
+    "storybook-static",
+    "packages/ship-info/index.js",
+    "packages/ship-info/index.js.map"
+  ]
 }

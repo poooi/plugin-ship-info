@@ -22,7 +22,7 @@ vi.mock('fs-extra', () => ({
   },
 }))
 
-import FileWriter from '../views/file-writer'
+import FileWriter from '../packages/ship-info/src/views/file-writer'
 
 const flush = () => new Promise((resolve) => setImmediate(resolve))
 

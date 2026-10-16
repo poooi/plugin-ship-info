@@ -3,8 +3,8 @@ import React from 'react'
 import { expect, userEvent, waitFor, within } from 'storybook/test'
 
 import { tableState } from '../preview/table-fixtures'
-import { Filter } from '../views/sidebar/filter'
-import { TableView } from '../views/table'
+import { Filter } from '../packages/ship-info/src/views/sidebar/filter'
+import { TableView } from '../packages/ship-info/src/views/table'
 import { openPopover, popoverContent, renderedNames } from './table-support'
 
 const FilterTable: React.FC = () => (

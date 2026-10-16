@@ -1,0 +1,52 @@
+{
+  "name": "poi-plugin-ship-info",
+  "version": "8.1.1",
+  "description": "Show detailed information of all owned ship girls",
+  "main": "index.js",
+  "files": [
+    "index.js",
+    "index.js.map",
+    "assets",
+    "i18n"
+  ],
+  "scripts": {
+    "build": "vp pack",
+    "prepack": "vp pack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poooi/plugin-ship-info.git"
+  },
+  "author": {
+    "name": "かがみ",
+    "link": "https://github.com/KagamiChan"
+  },
+  "contributors": [
+    "Yunze (https://github.com/myzWILLmake)"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/poooi/plugin-ship-info/issues"
+  },
+  "homepage": "https://github.com/poooi/plugin-ship-info#readme",
+  "poiPlugin": {
+    "title": "Ship Girls Info",
+    "description": "Show detailed information of all owned ship girls",
+    "icon": "fa/ship",
+    "priority": 50,
+    "apiVer": {
+      "7.2.99": "1.10.3",
+      "7.6.0-beta.1": "2.5.3",
+      "7.7.99": "2.5.6",
+      "8.1.0-beta.0": "4.7.0",
+      "8.3.0": "5.2.1",
+      "10.2.99": "6.2.6"
+    }
+  },
+  "devDependencies": {
+    "@poi-plugins/ship-info-shared": "workspace:*"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
+  }
+}

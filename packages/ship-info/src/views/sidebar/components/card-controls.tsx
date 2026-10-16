@@ -1,7 +1,7 @@
 import React from 'react'
 import styled from 'styled-components'
 
-import { controlSurface } from '../../../shared/ui/styles'
+import { controlSurface } from '@poi-plugins/ship-info-shared/ui/styles'
 
 interface CardControlBaseProps {
   checked?: boolean

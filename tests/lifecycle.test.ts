@@ -2,8 +2,8 @@ import i18next from 'i18next'
 import { legacy_createStore } from 'redux'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import enUS from '../i18n/en-US.json'
-import jaJP from '../i18n/ja-JP.json'
+import enUS from '../packages/ship-info/i18n/en-US.json'
+import jaJP from '../packages/ship-info/i18n/ja-JP.json'
 
 // These tests exercise the real exported lifecycle hooks across a simulated
 // plugin reload (poi clears the module cache), with a host-equivalent i18n
@@ -82,9 +82,9 @@ vi.mock('views/env-parts/i18next', () => ({
   },
 }))
 
-import { DATA_PATH, PLUGIN_KEY } from '../views/plugin-identity'
-import { onAddShip } from '../views/planner/redux'
-import { reducer as pluginReducer } from '../views/redux'
+import { DATA_PATH, PLUGIN_KEY } from '../packages/ship-info/src/views/plugin-identity'
+import { onAddShip } from '../packages/ship-info/src/views/planner/redux'
+import { reducer as pluginReducer } from '../packages/ship-info/src/views/redux'
 
 type Slice = {
   error: string | null
@@ -139,7 +139,7 @@ const setI18n = (lng: string, resources: Record<string, unknown>) => {
 
 const importLifecycle = async () => {
   vi.resetModules()
-  return import('../views/lifecycle')
+  return import('../packages/ship-info/src/views/lifecycle')
 }
 
 describe('plugin lifecycle hooks', () => {

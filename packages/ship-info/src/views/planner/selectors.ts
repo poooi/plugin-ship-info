@@ -12,7 +12,7 @@ import {
   IState,
 } from 'views/utils/selectors'
 
-import { shipSuperTypeMap } from '../../shared/ship-types'
+import { shipSuperTypeMap } from '@poi-plugins/ship-info-shared/ship-types'
 import { PLUGIN_KEY } from '../plugin-identity'
 
 interface IDictionary<T> {

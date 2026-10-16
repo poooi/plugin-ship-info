@@ -4,7 +4,7 @@ import React from 'react'
 import { expect, screen, userEvent, waitFor, within } from 'storybook/test'
 
 import { tableState } from '../preview/table-fixtures'
-import { TableView } from '../views/table'
+import { TableView } from '../packages/ship-info/src/views/table'
 import {
   dataColumnIndex,
   renderedNames,

@@ -25,8 +25,8 @@ import {
   computeLuckyNow,
   getValueByLevel,
 } from '../utils'
-import { shipTypeLabel } from '../../shared/ship-types'
-import { FleetIcon } from '../../shared/ui/fleet-icon'
+import { shipTypeLabel } from '@poi-plugins/ship-info-shared/ship-types'
+import { FleetIcon } from '@poi-plugins/ship-info-shared/ui/fleet-icon'
 import { SallyArea } from './sally-area'
 import { Slotitems } from './slotitems'
 

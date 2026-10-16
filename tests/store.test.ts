@@ -11,11 +11,11 @@ vi.mock('views/utils/selectors', () => ({
     state?.ext?.[key]?._ ?? {},
 }))
 
-import type { PersistenceWriter } from '../views/persistence'
-import { createPersistence } from '../views/persistence'
-import { ACTIONS, PLUGIN_KEY } from '../views/plugin-identity'
-import { onAddShip } from '../views/planner/redux'
-import { reducer as pluginReducer } from '../views/redux'
+import type { PersistenceWriter } from '../packages/ship-info/src/views/persistence'
+import { createPersistence } from '../packages/ship-info/src/views/persistence'
+import { ACTIONS, PLUGIN_KEY } from '../packages/ship-info/src/views/plugin-identity'
+import { onAddShip } from '../packages/ship-info/src/views/planner/redux'
+import { reducer as pluginReducer } from '../packages/ship-info/src/views/redux'
 
 type PluginSlice = {
   bookmark: Record<string, any>

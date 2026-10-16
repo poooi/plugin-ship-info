@@ -12,8 +12,8 @@ import {
   onDisplaceShip,
   onDPInit,
   onRemoveShip,
-} from '../views/planner/redux'
-import { onDelete, onUpdate, PLUGIN_KEY, reducer } from '../views/redux'
+} from '../packages/ship-info/src/views/planner/redux'
+import { onDelete, onUpdate, PLUGIN_KEY, reducer } from '../packages/ship-info/src/views/redux'
 
 const T = (name: string) => `@@${PLUGIN_KEY}@${name}`
 

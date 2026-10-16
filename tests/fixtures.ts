@@ -1,4 +1,4 @@
-import { IShipRawData } from '../views/types'
+import { IShipRawData } from '../packages/ship-info/src/views/types'
 
 // Minimal but realistic raw API shapes. Only the fields the exercised code paths
 // read are populated; everything else is left off on purpose.

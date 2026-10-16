@@ -26,24 +26,23 @@ vi.mock('views/utils/selectors', () => ({
 vi.mock('wanakana', () => ({ toRomaji: (s: string) => s }))
 vi.mock('electron', () => ({ remote: {} }))
 vi.mock('redux-observers', () => ({ observer: () => ({}) }))
-vi.mock('../lib/html2canvas', () => ({ default: () => undefined }))
 
 import { mkDb, mkMstShip, mkShip } from './fixtures'
-import { shipFleetIdMapSelector, shipFleetIdSelectorFactory } from '../shared/fleet'
-import { PLUGIN_KEY } from '../views/redux'
+import { shipFleetIdMapSelector, shipFleetIdSelectorFactory } from '../packages/shared/src/fleet'
+import { PLUGIN_KEY } from '../packages/ship-info/src/views/redux'
 import {
   deckPlannerAllShipIdsSelector,
   deckPlannerAreaSelectorFactory,
   deckPlannerCurrentSelector,
   deckPlannerShipMapSelector,
   shipMenuDataSelector,
-} from '../views/planner/selectors'
+} from '../packages/ship-info/src/views/planner/selectors'
 import {
   columnOrderSelector,
   columnPinningSelector,
   columnVisibilitySelector,
   filterShipIdsSelector,
-} from '../views/selectors'
+} from '../packages/ship-info/src/views/selectors'
 
 const mkState = (): any => ({
   config: { plugin: { ShipInfo: {} } },

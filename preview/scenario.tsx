@@ -7,8 +7,8 @@ import {
   type Environment,
 } from '../tests/ui/environment'
 import { tableState } from '../tests/ui/fixtures'
-import { createPersistence, type Persistence } from '../views/persistence'
-import { reducer as pluginReducer } from '../views/redux'
+import { createPersistence, type Persistence } from '../packages/ship-info/src/views/persistence'
+import { reducer as pluginReducer } from '../packages/ship-info/src/views/redux'
 import { setCreateStore } from './adapters/create-store'
 import {
   host,

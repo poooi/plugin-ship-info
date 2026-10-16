@@ -1,10 +1,10 @@
 import i18next, { type i18n as I18nInstance } from 'i18next'
 
-import enUS from '../i18n/en-US.json'
-import jaJP from '../i18n/ja-JP.json'
-import koKR from '../i18n/ko-KR.json'
-import zhCN from '../i18n/zh-CN.json'
-import zhTW from '../i18n/zh-TW.json'
+import enUS from '../packages/ship-info/i18n/en-US.json'
+import jaJP from '../packages/ship-info/i18n/ja-JP.json'
+import koKR from '../packages/ship-info/i18n/ko-KR.json'
+import zhCN from '../packages/ship-info/i18n/zh-CN.json'
+import zhTW from '../packages/ship-info/i18n/zh-TW.json'
 
 // The real plugin translations, loaded for the browser preview so Storybook and
 // the Chromium tests render actual copy instead of key fallbacks.

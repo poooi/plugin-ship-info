@@ -29,7 +29,7 @@ const importSpecifiers = (source: string): string[] =>
 
 describe('architecture boundaries', () => {
   it('shared modules never depend on plugin-owned code, Electron, or capture', () => {
-    for (const file of sourceFiles('shared')) {
+    for (const file of sourceFiles('packages/shared/src')) {
       const source = fs.readFileSync(file, 'utf8')
       for (const spec of importSpecifiers(source)) {
         expect(spec, `${file} imports ${spec}`).not.toBe('electron')
@@ -42,17 +42,21 @@ describe('architecture boundaries', () => {
         const resolved = path
           .relative(root, path.resolve(path.dirname(file), spec))
           .replace(/\\/g, '/')
-        // A relative import must stay inside shared/; nothing may escape into
-        // the plugin's views/.
-        expect(resolved, `${file} imports ${spec} outside shared`).toMatch(
-          /^shared\//,
-        )
+        // A relative import must stay inside the shared package; nothing may
+        // escape into the plugin's views/.
+        expect(
+          resolved,
+          `${file} imports ${spec} outside the shared package`,
+        ).toMatch(/^packages\/shared\/src\//)
       }
     }
   })
 
   it('table pure utilities stay free of Electron and capture', () => {
-    const source = fs.readFileSync(path.join(root, 'views/utils.ts'), 'utf8')
+    const source = fs.readFileSync(
+      path.join(root, 'packages/ship-info/src/views/utils.ts'),
+      'utf8',
+    )
     for (const spec of importSpecifiers(source)) {
       expect(spec).not.toBe('electron')
       expect(spec).not.toMatch(/html2canvas/)

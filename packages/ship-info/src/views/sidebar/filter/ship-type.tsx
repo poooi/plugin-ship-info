@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
 import styled from 'styled-components'
 
-import { shipSuperTypeMap, shipTypeLabel } from '../../../shared/ship-types'
+import { shipSuperTypeMap, shipTypeLabel } from '@poi-plugins/ship-info-shared/ship-types'
 import { shipTypesFilterSelector } from '../../selectors'
 import { boolArrayToInt, intToBoolArray } from '../../utils'
 import { CustomCheckboxCard } from '../components/card-controls'

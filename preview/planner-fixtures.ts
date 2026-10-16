@@ -2,7 +2,7 @@ import './bootstrap'
 
 import { mkMstShip, mkShip } from '../tests/fixtures'
 import { tableState } from '../tests/ui/fixtures'
-import { DATA_PATH } from '../views/redux'
+import { DATA_PATH } from '../packages/ship-info/src/views/redux'
 
 // Planner and integrated-shell browser fixtures. Built on the shared table
 // fixtures so both suites describe the same host but with a richer, tagged ship

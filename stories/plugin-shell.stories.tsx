@@ -14,7 +14,7 @@ import {
   PLUGIN_KEY,
 } from '../preview/planner-fixtures'
 import { getEnvironment } from '../preview/scenario'
-import { reactClass as ShipInfo } from '../views'
+import { reactClass as ShipInfo } from '../packages/ship-info/src/views'
 
 const POPOVER = `.${Classes.POPOVER_CONTENT}`
 const CARD = `.${Classes.CARD}`

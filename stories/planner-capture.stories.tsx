@@ -16,7 +16,7 @@ import {
   resetCapture,
   setCaptureOutcome,
 } from '../preview/planner-fixtures'
-import { Planner } from '../views/planner'
+import { Planner } from '../packages/ship-info/src/views/planner'
 
 const params = (isMain: boolean, options?: PlannerScenarioOptions) => ({
   shipInfo: { isMain, state: plannerScenarioState(options) },
