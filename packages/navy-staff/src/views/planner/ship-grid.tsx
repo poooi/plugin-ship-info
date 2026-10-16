@@ -11,7 +11,7 @@ import { shipSuperTypeMap } from '@poi-plugins/ship-info-shared/ship-types'
 import { onAddShip, onDisplaceShip, onRemoveShip } from './redux'
 import {
   deckPlannerShipMapSelector,
-  IShipInfoMenuData,
+  IPlannerShipData,
   shipMenuDataSelector,
 } from './selectors'
 import { ShipItem } from './ship-item'
@@ -66,7 +66,7 @@ const Grid = styled.div`
 
 interface IProps extends DispatchProp {
   fill: number
-  ships: IShipInfoMenuData[]
+  ships: IPlannerShipData[]
   dispatch: ThunkDispatch<any, void, Action<any>>
 }
 
@@ -93,7 +93,7 @@ export const ShipGrid = connect(
       [dispatch],
     )
 
-    const { t } = useTranslation(['poi-plugin-ship-info'])
+    const { t } = useTranslation(['poi-plugin-navy-staff'])
 
     return (
       <div ref={ref}>
@@ -102,11 +102,11 @@ export const ShipGrid = connect(
             <h2>{t(stype.name)}</h2>
             <Grid>
               {fp.flow(
-                fp.filter((ship: IShipInfoMenuData) =>
+                fp.filter((ship: IPlannerShipData) =>
                   stype.id.includes(ship.typeId),
                 ),
                 fp.sortBy([
-                  (ship: IShipInfoMenuData) => -ship.lv,
+                  (ship: IPlannerShipData) => -ship.lv,
                   ship => -ship.id,
                 ]),
                 fp.map(ship => (

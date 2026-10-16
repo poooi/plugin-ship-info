@@ -2,7 +2,6 @@ import { omit } from 'lodash'
 import { AnyAction, combineReducers } from 'redux'
 
 import { ACTIONS, PLUGIN_KEY } from './plugin-identity'
-import { plannerReducer } from './planner/redux'
 
 export { DATA_PATH, PLUGIN_KEY } from './plugin-identity'
 
@@ -96,7 +95,6 @@ const errorReducer = (state: string | null = null, action: AnyAction) => {
 export const reducer = combineReducers({
   bookmark: bookmarkReducer,
   error: errorReducer,
-  planner: plannerReducer,
   ready: readyReducer,
   ui: uiReducer,
 })

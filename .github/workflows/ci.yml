@@ -28,11 +28,11 @@ jobs:
         run: pnpm run check
       - name: Test
         run: pnpm test
-      # `pack` runs the plugin's `prepack` (vp pack) build, so there is no
+      # `pack` runs each plugin's `prepack` (vp pack) build, so there is no
       # separate build step here.
-      - name: Pack Ship Info
+      - name: Pack plugins
         run: pnpm run pack
-      - name: Verify packed Ship Info
+      - name: Verify packed plugins
         run: pnpm run verify:package
       - name: Upload drop artifact
         uses: actions/upload-artifact@v7

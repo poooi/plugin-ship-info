@@ -24,7 +24,7 @@ repository [README](https://github.com/poooi/plugin-ship-info#readme) for
 workspace layout and commands (`pnpm run check`, `pnpm test`,
 `pnpm run test:browser`, `pnpm run build`, `pnpm run pack`,
 `pnpm run verify:package`) and
-[docs/plugin-split-design.md](https://github.com/poooi/plugin-ship-info/blob/main/docs/plugin-split-design.md)
+[docs/plugin-split-design.md](https://github.com/poooi/plugin-ship-info/blob/master/docs/plugin-split-design.md)
 for the design behind the shared modules and the planned plugin split.
 
 ## License

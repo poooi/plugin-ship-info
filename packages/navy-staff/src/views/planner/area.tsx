@@ -10,7 +10,7 @@ import { IState } from 'views/utils/selectors'
 import { onAddShip } from './redux'
 import {
   deckPlannerAreaSelectorFactory,
-  IShipInfoMenuData,
+  IPlannerShipData,
   shipMenuDataSelector,
 } from './selectors'
 import { AddShip } from './add-ship'
@@ -31,7 +31,7 @@ const Lane = styled.div`
 `
 
 interface IProps extends DispatchProp {
-  ships: IShipInfoMenuData[]
+  ships: IPlannerShipData[]
   shipIds: number[]
   index: number
   area: IArea
@@ -59,7 +59,7 @@ export const Area = connect<any, any, any, IState>(
       const keyShips = keyBy(ships, 'id')
       const groupShipIds = groupBy(
         shipIds,
-        id => ((keyShips[id] || {}) as IShipInfoMenuData).superTypeIndex,
+        id => ((keyShips[id] || {}) as IPlannerShipData).superTypeIndex,
       )
       return (
         <Container interactive>

@@ -119,6 +119,13 @@ importers:
         specifier: 4.6.7
         version: 4.6.7
 
+  packages/navy-staff:
+    resolution: {directory: packages/navy-staff, type: workspace}
+    devDependencies:
+      '@poi-plugins/ship-info-shared':
+        specifier: workspace:*
+        version: link:../shared
+
   packages/ship-info:
     resolution: {directory: packages/ship-info, type: workspace}
     devDependencies:

@@ -27,6 +27,9 @@ const sourceFiles = (dir: string): string[] => {
 const importSpecifiers = (source: string): string[] =>
   [...source.matchAll(/(?:from|import)\s+['"]([^'"]+)['"]/g)].map((m) => m[1])
 
+const resolveRelative = (from: string, spec: string): string =>
+  path.relative(root, path.resolve(path.dirname(from), spec)).replace(/\\/g, '/')
+
 describe('architecture boundaries', () => {
   it('shared modules never depend on plugin-owned code, Electron, or capture', () => {
     for (const file of sourceFiles('packages/shared/src')) {
@@ -39,27 +42,47 @@ describe('architecture boundaries', () => {
           // are the allowed integration boundary.
           continue
         }
-        const resolved = path
-          .relative(root, path.resolve(path.dirname(file), spec))
-          .replace(/\\/g, '/')
-        // A relative import must stay inside the shared package; nothing may
-        // escape into the plugin's views/.
+        // A relative import must stay inside the shared package.
         expect(
-          resolved,
+          resolveRelative(file, spec),
           `${file} imports ${spec} outside the shared package`,
         ).toMatch(/^packages\/shared\/src\//)
       }
     }
   })
 
-  it('table pure utilities stay free of Electron and capture', () => {
-    const source = fs.readFileSync(
-      path.join(root, 'packages/ship-info/src/views/utils.ts'),
-      'utf8',
-    )
-    for (const spec of importSpecifiers(source)) {
-      expect(spec).not.toBe('electron')
-      expect(spec).not.toMatch(/html2canvas/)
+  it('each plugin stays inside its own package and only imports shared by name', () => {
+    for (const plugin of ['ship-info', 'navy-staff']) {
+      const dir = `packages/${plugin}/src`
+      for (const file of sourceFiles(dir)) {
+        const source = fs.readFileSync(file, 'utf8')
+        for (const spec of importSpecifiers(source)) {
+          if (spec.startsWith('.')) {
+            expect(
+              resolveRelative(file, spec),
+              `${file} imports ${spec} outside ${dir}`,
+            ).toMatch(new RegExp(`^packages/${plugin}/src/`))
+            continue
+          }
+          if (spec.startsWith('@poi-plugins/')) {
+            expect(spec, `${file} imports ${spec}`).toMatch(
+              /^@poi-plugins\/ship-info-shared\//,
+            )
+            continue
+          }
+          // No plugin may runtime-import the other plugin by package name.
+          expect(spec, `${file} imports ${spec}`).not.toMatch(/^poi-plugin-/)
+        }
+      }
+    }
+  })
+
+  it('shared host modules expose only implementations both consumers need', () => {
+    for (const file of sourceFiles('packages/shared/src')) {
+      const source = fs.readFileSync(file, 'utf8')
+      expect(source, `${file} imports plugin config`).not.toMatch(
+        /plugin\.(ShipInfo|NavyStaff)/,
+      )
     }
   })
 })

@@ -10,11 +10,11 @@
 
 - `packages/ship-info/src/index-src.ts`: poi plugin entry and lifecycle exports.
 - `packages/ship-info/src/views/`: main interface, table, sidebar, state, lifecycle, persistence, and table utilities.
-- `packages/ship-info/src/views/planner/`: planner interface, state, selectors, and screenshot capture.
-- `packages/shared/src/`: classification, host fleet selectors, and UI used by both features; bundled into consumers.
-- `packages/ship-info/i18n/` and `packages/ship-info/assets/`: packaged translations and resources.
+- `packages/navy-staff/src/`: standalone planner entry, lifecycle, migration, state, selectors, and screenshot capture.
+- `packages/shared/src/`: classification, host fleet selectors, shared UI, serialized writes, and persistence lifecycle; bundled into consumers.
+- `packages/*/i18n/` and package-specific `assets/`: self-contained packaged translations and resources.
 - `shims/`: local dependency and poi type declarations.
-- `packages/ship-info/vite.config.ts`: plugin build (`vp pack`) and poi-provided external dependencies.
+- `packages/*/vite.config.ts`: plugin builds (`vp pack`) and poi-provided external dependencies.
 - `vite.config.ts`: repository tests, lint, and format configuration.
 
 ## Development

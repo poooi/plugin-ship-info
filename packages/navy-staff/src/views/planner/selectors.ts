@@ -30,7 +30,7 @@ export const reverseSuperTypeMap = _(shipSuperTypeMap)
   .fromPairs()
   .value()
 
-export interface IShipInfoMenuData {
+export interface IPlannerShipData {
   area?: number | undefined
   avatarOffset?: number
   id: number
@@ -51,7 +51,7 @@ const mapShipMenuItem = (
   ship: APIShip | undefined,
   $ship: APIMstShip | undefined,
   marginMagics: IDictionary<any> | undefined,
-): IShipInfoMenuData | undefined =>
+): IPlannerShipData | undefined =>
   !!ship && !!$ship
     ? {
         area: ship.api_sally_area,
@@ -88,17 +88,17 @@ export const shipItemSelectorFactory = memoize((shipId) =>
     (
       [ship, $ship] = [] as any,
       { shipavatar } = {} as any,
-    ): IShipInfoMenuData | undefined =>
+    ): IPlannerShipData | undefined =>
       mapShipMenuItem(ship, $ship, shipavatar?.marginMagics),
   ),
 )
 
 export const shipMenuDataSelector = createSelector(
   [shipsSelector, masterShipsSelector, shipAvatarMarginsSelector],
-  (ships, $ships, marginMagics): IShipInfoMenuData[] =>
+  (ships, $ships, marginMagics): IPlannerShipData[] =>
     map(ships, (ship: APIShip) =>
       mapShipMenuItem(ship, $ships?.[ship.api_ship_id ?? -1], marginMagics),
-    ).filter((item): item is IShipInfoMenuData => item !== undefined),
+    ).filter((item): item is IPlannerShipData => item !== undefined),
 )
 
 export const deckPlannerCurrentSelector = createSelector(

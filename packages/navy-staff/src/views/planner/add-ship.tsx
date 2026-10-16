@@ -26,7 +26,7 @@ import { IState } from 'views/utils/selectors'
 import { IShipSuperType, shipSuperTypeMap } from '@poi-plugins/ship-info-shared/ship-types'
 import {
   deckPlannerAllShipIdsSelector,
-  IShipInfoMenuData,
+  IPlannerShipData,
   shipMenuDataSelector,
 } from './selectors'
 
@@ -93,20 +93,20 @@ const ShipName = styled.span`
 `
 
 interface IProps extends WithTranslation {
-  ships: IShipInfoMenuData[]
+  ships: IPlannerShipData[]
   allSelectedId: number[]
   onSelect: (id: number) => void
 }
 
 const Menu = compose<ComponentType<{}>>(
-  withTranslation('poi-plugin-ship-info'),
+  withTranslation('poi-plugin-navy-staff'),
   connect((state: IState) => ({
     allSelectedId: deckPlannerAllShipIdsSelector(state),
     ships: shipMenuDataSelector(state),
   })),
 )(
   class MenuBase extends Component<IProps> {
-    public fuse: Fuse<IShipInfoMenuData>
+    public fuse: Fuse<IPlannerShipData>
 
     public state = {
       query: '',
@@ -236,7 +236,7 @@ const Menu = compose<ComponentType<{}>>(
 
 // separate menu from popover component to prevent unnecessary updates
 export const AddShip = ({ ...props }) => {
-  const { t } = useTranslation('poi-plugin-ship-info')
+  const { t } = useTranslation('poi-plugin-navy-staff')
   return (
     <Popover content={<Menu {...props} />} hasBackdrop>
       <Button aria-label={t('Add ship')} minimal>

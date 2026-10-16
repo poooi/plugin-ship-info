@@ -83,12 +83,11 @@ vi.mock('views/env-parts/i18next', () => ({
 }))
 
 import { DATA_PATH, PLUGIN_KEY } from '../packages/ship-info/src/views/plugin-identity'
-import { onAddShip } from '../packages/ship-info/src/views/planner/redux'
 import { reducer as pluginReducer } from '../packages/ship-info/src/views/redux'
 
 type Slice = {
+  bookmark: Record<string, any>
   error: string | null
-  planner: { archive: object; current: number[][] }
   ready: boolean
 }
 
@@ -106,8 +105,7 @@ const createHostStore = () => legacy_createStore(hostReducer)
 const sliceOf = (store: { getState: () => any }): Slice =>
   store.getState().ext[PLUGIN_KEY]._
 
-const savedPlanner = (): number[][] =>
-  (h.files[DATA_PATH] as any).planner.current
+const savedPayload = (): any => h.files[DATA_PATH]
 
 const flush = () => new Promise((resolve) => setImmediate(resolve))
 
@@ -142,7 +140,13 @@ const importLifecycle = async () => {
   return import('../packages/ship-info/src/views/lifecycle')
 }
 
-describe('plugin lifecycle hooks', () => {
+const onUpdate = (bookmark: string) => ({
+  bookmark,
+  settings: { x: bookmark },
+  type: '@@poi-plugin-ship-info@update',
+})
+
+describe('Ship Info plugin lifecycle hooks', () => {
   beforeEach(() => {
     h.active = 0
     h.concurrent = 0
@@ -158,11 +162,7 @@ describe('plugin lifecycle hooks', () => {
   })
 
   it('shares one serialized writer across module reloads so the latest edit wins', async () => {
-    h.files[DATA_PATH] = {
-      planner: { archive: {}, current: [[1]] },
-      ready: true,
-      ui: {},
-    }
+    h.files[DATA_PATH] = { bookmark: { alpha: { name: 'alpha' } }, ready: true }
     const firstStore = createHostStore()
     storeHolder.store = firstStore
 
@@ -170,17 +170,14 @@ describe('plugin lifecycle hooks', () => {
     first.pluginDidLoad()
     await waitFor(() => sliceOf(firstStore).ready)
 
-    // Two old planner edits queue two saves. The second stays in flight when the
-    // plugin unloads.
-    firstStore.dispatch(onAddShip({ areaIndex: 0, shipId: 2 }))
-    firstStore.dispatch(onAddShip({ areaIndex: 0, shipId: 3 }))
+    firstStore.dispatch(onUpdate('old-a'))
+    firstStore.dispatch(onUpdate('old-b'))
     expect(h.writeCalls).toHaveLength(1)
 
-    h.writeCalls[0].resolve() // commits planner [[1, 2]]
+    h.writeCalls[0].resolve()
     await waitFor(() => h.writeCalls.length === 2)
     expect(h.writeCalls[0].settled).toBe(true)
     expect(h.writeCalls[1].settled).toBe(false)
-    expect(savedPlanner()).toEqual([[1, 2]])
 
     first.pluginWillUnload()
 
@@ -197,24 +194,23 @@ describe('plugin lifecycle hooks', () => {
     // for the still-pending old save before reading.
     expect(h.readCalls).toHaveLength(1)
 
-    h.writeCalls[1].resolve() // commits the latest old planner edit [[1, 2, 3]]
+    h.writeCalls[1].resolve()
     await waitFor(() => h.readCalls.length === 2)
     await waitFor(() => sliceOf(secondStore).ready)
 
-    // The new store hydrated the latest old planner edit, not the stale launch
-    // state.
-    expect(sliceOf(secondStore).planner.current).toEqual([[1, 2, 3]])
+    expect(sliceOf(secondStore).bookmark['old-b']).toEqual({
+      name: 'old-b',
+      x: 'old-b',
+    })
 
-    // A later new edit is serialized after the old save (never concurrent) and
-    // survives as the final file content.
-    secondStore.dispatch(onAddShip({ areaIndex: 0, shipId: 4 }))
+    secondStore.dispatch(onUpdate('new'))
     await waitFor(() => h.writeCalls.length === 3)
     expect(h.writeCalls[2].settled).toBe(false)
-    expect(savedPlanner()).toEqual([[1, 2, 3]])
+    expect(savedPayload().bookmark['old-b']).toBeTruthy()
 
     h.writeCalls[2].resolve()
     await flush()
-    expect(savedPlanner()).toEqual([[1, 2, 3, 4]])
+    expect(savedPayload().bookmark.new).toEqual({ name: 'new', x: 'new' })
     expect(h.concurrent).toBe(0)
 
     second.pluginWillUnload()
@@ -222,7 +218,7 @@ describe('plugin lifecycle hooks', () => {
 
   it('notifies a translated load error with no locale fallback', async () => {
     setI18n('ja-JP', jaJP)
-    h.files[DATA_PATH] = { planner: { current: [null] } }
+    h.files[DATA_PATH] = { bookmark: 'not-an-object' }
     const store = createHostStore()
     storeHolder.store = store
     const toast = (window as any).toast
@@ -242,7 +238,7 @@ describe('plugin lifecycle hooks', () => {
 
   it('notifies a translated save error with no locale fallback', async () => {
     setI18n('ja-JP', jaJP)
-    h.files[DATA_PATH] = { planner: { archive: {}, current: [[1]] } }
+    h.files[DATA_PATH] = { bookmark: { alpha: { name: 'alpha' } }, ready: true }
     const store = createHostStore()
     storeHolder.store = store
     const toast = (window as any).toast
@@ -251,7 +247,7 @@ describe('plugin lifecycle hooks', () => {
     lifecycle.pluginDidLoad()
     await waitFor(() => sliceOf(store).ready)
 
-    store.dispatch({ isExtend: false, type: `@@${PLUGIN_KEY}@extend` })
+    store.dispatch(onUpdate('boom'))
     await waitFor(() => h.writeCalls.length === 1)
     h.writeCalls[0].reject(new Error('EACCES: permission denied'))
     await waitFor(() => toast.mock.calls.length > 0)

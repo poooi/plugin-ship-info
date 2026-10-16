@@ -1,6 +1,14 @@
 // tslint:disable jsx-no-lambda
 
-import { Button, Callout, Classes, Intent, Tab, Tabs } from '@blueprintjs/core'
+import {
+  Button,
+  Callout,
+  Classes,
+  Intent,
+  Switch,
+  Tab,
+  Tabs,
+} from '@blueprintjs/core'
 import cls from 'classnames'
 import { each, findIndex, get } from 'lodash'
 import { rgba } from 'polished'
@@ -14,36 +22,64 @@ import React, {
   useRef,
   useState,
 } from 'react'
-import FontAwesome from 'react-fontawesome'
 import { useTranslation } from 'react-i18next'
-import { connect, DispatchProp } from 'react-redux'
+import { connect, DispatchProp, useSelector } from 'react-redux'
 import { Action } from 'redux'
 import { ThunkDispatch } from 'redux-thunk'
-import styled from 'styled-components'
-import { Dialog } from 'views/components/etc/overlay'
+import styled, { createGlobalStyle } from 'styled-components'
 import { WindowEnv } from 'views/components/etc/window-env'
-import { IState } from 'views/utils/selectors'
+import {
+  extensionSelectorFactory,
+  IState,
+} from 'views/utils/selectors'
 
 import { Checkbox, CheckboxLabel, CheckboxOption } from '@poi-plugins/ship-info-shared/ui/checkbox'
 import { poiSurface } from '@poi-plugins/ship-info-shared/ui/styles'
-import { captureRect } from './capture'
+import { captureRect } from './planner/capture'
 import {
   onAddShip,
   onDisplaceShip,
   onDPInit,
   onRemoveShip,
-} from './redux'
+} from './planner/redux'
 import {
   deckPlannerCurrentSelector,
   deckPlannerShipMapSelector,
   shipMenuDataSelector,
-} from './selectors'
-import { Area } from './area'
-import { ShipGrid } from './ship-grid'
+} from './planner/selectors'
+import { Area } from './planner/area'
+import { ShipGrid } from './planner/ship-grid'
+import { DISPLAY_FLEET_NAME_CONFIG, PLUGIN_KEY } from './plugin-identity'
 
+export { reducer } from './redux'
+
+// Self-contained scrollbar styling: Navy must not depend on Ship Info's global
+// styles being mounted to look right (including in a detached window).
+const NavGlobalStyle = createGlobalStyle`
+  .navy-staff-scrollable {
+    ::-webkit-scrollbar {
+      height: 16px;
+      width: 16px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: ${(props) => props.theme.BLUE1};
+      height: 16px;
+      width: 16px;
+    }
+  }
+`
+
+// Reconciles the plan with the host's tag/roster state. It must never run
+// before the host roster has loaded, otherwise imported assignments would be
+// silently erased. Out-of-range tags are handled by the reducer (which grows
+// areas) instead of being dropped.
 const reorderShips = (dispatch: Dispatch<any>, getState: () => any) => {
   const state = getState()
   const ships = shipMenuDataSelector(state)
+  if (ships.length === 0) {
+    return
+  }
   const planMap = deckPlannerShipMapSelector(state)
 
   each(ships, ship => {
@@ -102,9 +138,9 @@ const Palette = styled.div<{ color: string }>`
 
 interface IPlannerContentProps extends DispatchProp {
   color: string[]
+  displayFleetName: boolean
   mapname: string[]
   current: number[][]
-  displayFleetName: boolean
   activeTab: string
   dispatch: ThunkDispatch<any, void, Action<any>>
 }
@@ -113,14 +149,11 @@ const ActionPanel = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+  gap: 1em;
 `
 
 const PlannerContent = connect((state: IState) => {
-  const displayFleetName = get(
-    state.config,
-    'plugin.ShipInfo.displayFleetName',
-    false,
-  )
+  const displayFleetName = get(state.config, DISPLAY_FLEET_NAME_CONFIG, false)
   const mapname = displayFleetName
     ? get(state, ['fcd', 'shiptag', 'fleetname', window.language], [])
     : get(state, ['fcd', 'shiptag', 'mapname'], [])
@@ -153,21 +186,10 @@ const PlannerContent = connect((state: IState) => {
       dispatch(reorderShips)
     })
 
-    // const handleCaptureImage = useCallback(() => {
-    //   captureRect()
-    // })
-
-    const { t } = useTranslation(['poi-plugin-ship-info'])
-
-    // public handleCaptureImage = async () => {
-    //   this.setState({ extend: true }, async () => {
-    //     await captureRect('#planner-rect', this.props.window.document)
-    //     this.setState({ extend: false })
-    //   })
-    // }
+    const { t } = useTranslation(['poi-plugin-navy-staff'])
 
     const handleChangeDisplayFleetName = useCallback(() => {
-      window.config.set('plugin.ShipInfo.displayFleetName', !displayFleetName)
+      window.config.set(DISPLAY_FLEET_NAME_CONFIG, !displayFleetName)
     }, [displayFleetName])
 
     const handleRefresh = useCallback(() => {
@@ -185,7 +207,10 @@ const PlannerContent = connect((state: IState) => {
 
     const captureSection = useRef<HTMLDivElement>(null)
 
-    const { window } = useContext(WindowEnv)
+    // The WindowEnv context `window` can be the detached external window, which
+    // (blank, nodeIntegration=no) has no `config`; preference writes must use
+    // the renderer's global `window.config`.
+    const { window: displayWindow } = useContext(WindowEnv)
 
     const capture = useCallback(() => {
       if (captureSection.current) {
@@ -199,7 +224,12 @@ const PlannerContent = connect((state: IState) => {
           <Button intent={Intent.PRIMARY} minimal onClick={handleRefresh}>
             {t('Refresh')}
           </Button>
-          {!window.isMain && (
+          <Switch
+            checked={displayFleetName}
+            label={t('Show fleet name')}
+            onChange={handleChangeDisplayFleetName}
+          />
+          {!displayWindow.isMain && (
             <Button intent={Intent.PRIMARY} minimal onClick={capture}>
               {t('Save to image')}
             </Button>
@@ -252,61 +282,52 @@ const PlannerContent = connect((state: IState) => {
   },
 )
 
-const PlannerDialog = styled(Dialog)`
-  width: 80vw;
-  height: 90vh;
-  ${`.${Classes.DIALOG_BODY}`} {
-    overflow-y: scroll;
-  }
-`
-
-const Title = styled.div`
+const Wrapper = styled.div`
   display: flex;
-  padding-right: 2em;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
 `
 
-const Heading = styled.div`
-  flex-grow: 1;
+const Body = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 1em 1em;
 `
 
-export const Planner = () => {
-  const [isOpen, setIsOpen] = useState(false)
-  const { t } = useTranslation('poi-plugin-ship-info')
-
+// The planner tabs are the plugin's main view (no sidebar button or modal).
+// Everything that mutates the plan is gated on `ready` so edits cannot happen
+// while the asynchronous load/migration is still running.
+const NavyStaffContent = () => {
   const [activeTab, setActiveTab] = useState('area')
+  const { t } = useTranslation('poi-plugin-navy-staff')
+  const slice = useSelector(extensionSelectorFactory(PLUGIN_KEY)) as
+    | { error?: string | null; ready?: boolean }
+    | undefined
 
   return (
-    <>
-      <Button
-        aria-label={t('Deck Planner')}
-        minimal
-        onClick={() => setIsOpen(true)}
+    <Wrapper id="poi-plugin-navy-staff">
+      <NavGlobalStyle />
+      <Tabs
+        id="navy-staff-content"
+        selectedTabId={activeTab}
+        onChange={(tab: string) => setActiveTab(tab)}
       >
-        <FontAwesome name="tags" />
-      </Button>
-      <PlannerDialog
-        isOpen={isOpen}
-        autoFocus
-        canOutsideClickClose
-        onClose={() => setIsOpen(false)}
-        title={
-          <Title>
-            <Heading>{t('Deck Planner')}</Heading>
-            <Tabs
-              id="deck-planner-content"
-              selectedTabId={activeTab}
-              onChange={(tab: string) => setActiveTab(tab)}
-            >
-              <Tab id="area" title={t('Area View')} />
-              <Tab id="grid" title={t('Ship Grid')} />
-            </Tabs>
-          </Title>
-        }
-      >
-        <div className={cls(Classes.DIALOG_BODY, 'ship-info-scrollable')}>
+        <Tab id="area" title={t('Area View')} />
+        <Tab id="grid" title={t('Ship Grid')} />
+      </Tabs>
+      <Body className={cls(Classes.DIALOG_BODY, 'navy-staff-scrollable')}>
+        {slice?.error ? (
+          <Callout intent={Intent.DANGER}>{t('loadError')}</Callout>
+        ) : slice?.ready ? (
           <PlannerContent activeTab={activeTab} />
-        </div>
-      </PlannerDialog>
-    </>
+        ) : (
+          <Callout>{t('loading')}</Callout>
+        )}
+      </Body>
+    </Wrapper>
   )
 }
+
+export const reactClass = () => <NavyStaffContent />

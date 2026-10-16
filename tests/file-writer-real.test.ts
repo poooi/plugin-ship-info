@@ -3,7 +3,7 @@ import { readJsonSync } from 'fs-extra'
 import path from 'path'
 import { afterAll, describe, expect, it } from 'vitest'
 
-import FileWriter from '../packages/ship-info/src/views/file-writer'
+import FileWriter from '../packages/shared/src/file-writer'
 
 // Real fs-extra, real files, but always inside this test file's temp APPDATA dir.
 const dir = fs.mkdtempSync(path.join((window as any).APPDATA_PATH, 'fw-real-'))

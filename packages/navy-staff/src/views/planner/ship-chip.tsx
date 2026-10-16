@@ -48,7 +48,7 @@ export const ShipChip = compose<
     >
   >
 >(
-  withTranslation(['resources', 'poi-plugin-ship-info']),
+  withTranslation(['resources', 'poi-plugin-navy-staff']),
   connect((state: IState, props: IProps) => ({
     ...shipItemSelectorFactory(props.shipId)(state),
     color: get(state, 'fcd.shiptag.color', []),
@@ -93,7 +93,7 @@ export const ShipChip = compose<
     public render() {
       const { typeId, name, lv, area, color, others, fleetId, t } = this.props
       const typeLabel = shipTypeLabel(typeId, (key) =>
-        t(key, { ns: 'poi-plugin-ship-info' }),
+        t(key, { ns: 'poi-plugin-navy-staff' }),
       )
 
       return (

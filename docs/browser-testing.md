@@ -4,12 +4,12 @@ The plugin has two independent UI test layers:
 
 | Layer | Runner | State | Scenarios |
 | --- | --- | --- | --- |
-| Node/jsdom | `pnpm test` (`vp test run`) | jsdom via `tests/setup.ts` | 90 tests across 11 files |
-| Browser | `pnpm run test:browser` (`vitest run --config vitest.browser.config.ts`) | Real Chromium via Playwright | 89 story scenarios across 12 files |
+| Node/jsdom | `pnpm test` (`vp test run`) | jsdom via `tests/setup.ts` | 108 tests across 13 files |
+| Browser | `pnpm run test:browser` (`vitest run --config vitest.browser.config.ts`) | Real Chromium via Playwright | 95 story scenarios across 13 files |
 
 The browser project is deliberately a separate Vitest config. It does **not**
 inherit `tests/setup.ts` or the jsdom geometry stubs in `tests/ui/mocks.tsx`,
-and it keeps the 90 Node/jsdom tests passing.
+and it keeps the Node/jsdom suite passing.
 
 ## Commands
 
@@ -65,10 +65,11 @@ segment, which Storybook then tries to index as a story module (EISDIR).
     dialog/capture logs, in-memory `fs-extra`, `path`, `url`, host selectors,
     real Blueprint overlays, font/avatar/icon stand-ins, and the configurable
     `html2canvas` capture boundary.
-  - `preview/scenario.tsx` builds one environment per story using the real
-    plugin reducer plus `redux-thunk`, points `views/create-store` at the live
+  - `preview/scenario.tsx` builds one environment per story. It registers the
+    real reducer(s) selected by `shipInfo.plugin` (`ship-info`, `navy-staff` or
+    `both`) under their plugin keys, points `views/create-store` at the live
     store, and (when a story opts in via `shipInfo.lifecycle`) starts the real
-    plugin persistence lifecycle against that store.
+    persistence lifecycle for each selected plugin against that store.
   - `preview/decorators.tsx` wraps each story in the shared providers from
     `tests/ui/environment.tsx` and a fixed-size, direction-aware surface.
   - `preview/planner-fixtures.ts` holds the tagged planner roster and the
@@ -95,6 +96,7 @@ Stories declare a typed `parameters.shipInfo`:
 parameters: {
   shipInfo: {
     state: plannerScenarioState(),  // Redux host state (defaults to tableState())
+    plugin: 'ship-info',            // 'ship-info' | 'navy-staff' | 'both'
     isMain: true,                   // main window vs detached window
     lifecycle: false,               // opt in to the real load/save lifecycle
     files: { '/data.json': {} },    // seed the in-memory fs (read by the lifecycle)
@@ -182,7 +184,11 @@ The listed behavior is what the play function actually asserts.
 | `Controls/SaveDialogSuccess` | Success writes the actual CSV through the fs boundary. |
 | `Controls/SaveDialogFailure` | A rejected write logs the error without a success path. |
 
-### Planner
+### Navy Staff planner views
+
+These story exports live under `NavyStaff/Area`, `NavyStaff/ShipGrid` and
+`NavyStaff/Capture`; the `Area/…`, `ShipGrid/…` and `Capture/…` names below are
+the export names.
 
 | Story export | Asserts |
 | --- | --- |
@@ -213,14 +219,30 @@ The listed behavior is what the play function actually asserts.
 | `Capture/GridCaptureUsesGridElement` | Grid capture targets the grid cells, not toolbar/palette. |
 | `Capture/CaptureRejectionLogsAndDoesNotDownload` | A rejected capture logs and downloads nothing. |
 
+### Navy Staff
+
+The planner surface now lives in `poi-plugin-navy-staff` with its own main view,
+so the old `Sidebar/Planner/*` stories render `NavyStaff/*` directly (no sidebar
+button or modal) with `shipInfo.plugin: 'navy-staff'`.
+
+| Story export | Asserts |
+| --- | --- |
+| `NavyStaff/Area/*`, `NavyStaff/ShipGrid/*`, `NavyStaff/Capture/*` | The moved planner workflows: search/type tabs, add/move/remove, tag synchronization, both layouts, and detached-only capture. |
+| `NavyStaff/Integrated/NavyAlone` | Navy Staff alone renders its main view with no Ship Info table or sidebar present. |
+| `NavyStaff/Integrated/BothPluginsIndependent` | Both plugins run on one host store with isolated slices (Navy plan vs Ship Info bookmarks). |
+| `NavyStaff/Integrated/MigratedPlanSmallerMap` | A plan imported from Ship Info is retained (not truncated) when the host map has fewer areas. |
+| `NavyStaff/Integrated/MigratedPlanUnloadedRoster` | A migrated plan is kept while the host roster/map data has not loaded. |
+| `NavyStaff/Integrated/DetachedDisplayOptionUsesGlobalConfig` | The display-fleet-name toggle works when the WindowEnv window (detached) has no `config`, using the renderer global. |
+| `NavyStaff/Integrated/LocalizedNavyLabelsNoFallback` | With a Navy-only i18n instance (`fallbackLng: false`), localized Navy labels (`Add ship`, `All`) resolve from the Navy bundle without borrowing Ship Info. |
+
 ### Integrated shell
 
 | Story export | Asserts |
 | --- | --- |
-| `PluginShell/MountsWithPersistedPlanner` | The real root mounts the table and sidebar; the lifecycle loads the seeded planner file. |
-| `PluginShell/SavesWithoutPlannerOpen` | A plugin state change is written to the plugin file with the planner dialog closed (saving is lifecycle-owned, not UI-owned). |
+| `PluginShell/MountsWithPersistedState` | The real root mounts the table and sidebar (no Deck Planner button) and the lifecycle loads the seeded file, leaving the legacy planner field untouched. |
+| `PluginShell/SavesWithoutPlannerOpen` | A plugin state change is written to the plugin file while persistence is lifecycle-owned, not UI-owned. |
 | `PluginShell/CorruptFileSurfacesLoadError` | A corrupt persisted file surfaces a load error and a toast, saving stays disabled, and the source file is left untouched. |
-| `PluginShell/SidebarPanelsOpenAndClose` | Columns, Filter, Export and the planner open and close. |
+| `PluginShell/SidebarPanelsOpenAndClose` | Columns, Filter and Export open and close. |
 | `PluginShell/FilterAffectsTableAndExport` | Unchecking all ship types empties the table and the exported CSV (header only); restoring brings back the exact sorted ids. |
 | `PluginShell/ColumnVisibilityAffectsTable` | Hiding a column removes it from the table while its config card remains. |
 | `PluginShell/ResetRemountsFreshRoot` | After hiding a column, copying the clipboard and exporting a file, a remount shows the original rows/columns again with empty config, clipboard and file logs. |
@@ -237,14 +259,19 @@ The listed behavior is what the play function actually asserts.
   not validate the vendored `lib/html2canvas` renderer's output.
 - Host-provided images/fonts are deterministic stand-ins (Blueprint icons,
   placeholder boxes, data-URI SVG) so previews make no external requests.
-- The plugin's persistence lifecycle (read on `pluginDidLoad`, subscribe to the
+- Each plugin's persistence lifecycle (read on `pluginDidLoad`, subscribe to the
   store, serialized `FileWriter`) is started only for integrated stories that opt
   in via `shipInfo.lifecycle`; component-only stories do not run it. Loads and
-  saves go through the in-memory `fs-extra` adapter, so a corrupt file or a
-  state-change-triggered write is exercised for real (see the `PluginShell`
-  stories) without touching the user's disk.
+  saves go through the in-memory `fs-extra` adapter, so a corrupt file, a
+  migration, or a state-change-triggered write is exercised for real (see the
+  `PluginShell` and `NavyStaff/Integrated` stories) without touching the user's
+  disk. Ship Info and Navy Staff use separate files, plugin keys and one writer
+  each.
+- Navy Staff legacy migration (reading `poi-plugin-ship-info.json` once when its
+  own file is absent) is exercised against the in-memory fs. It is not verified
+  against a live poi installation.
 - The browser suite runs Chromium only; the RTL, scroll and pin assertions are
   Chromium-specific. There is no pixel-diff/screenshot comparison.
-- `pnpm test` (Node/jsdom) remains the source of truth for
-  reducer/selector logic, the persistence lifecycle, and the real file-writer
+- `pnpm test` (Node/jsdom) remains the source of truth for reducer/selector
+  logic, the persistence/migration lifecycles, and the real file-writer
   reads/writes.

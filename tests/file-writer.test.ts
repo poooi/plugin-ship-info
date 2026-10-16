@@ -22,7 +22,7 @@ vi.mock('fs-extra', () => ({
   },
 }))
 
-import FileWriter from '../packages/ship-info/src/views/file-writer'
+import FileWriter from '../packages/shared/src/file-writer'
 
 const flush = () => new Promise((resolve) => setImmediate(resolve))
 
@@ -108,7 +108,7 @@ describe('FileWriter', () => {
     const fw = new FileWriter()
     const seen: unknown[] = []
 
-    fw.write('only', 'd', undefined, (err) => seen.push(err))
+    fw.write('only', 'd', undefined, (err?: unknown) => seen.push(err))
     h.calls[0].reject(new Error('boom'))
     await flush()
 
@@ -126,7 +126,7 @@ describe('FileWriter', () => {
     fw.write('p1', 'd1', undefined, () => {
       throw new Error('callback boom')
     })
-    fw.write('p2', 'd2', undefined, (err) => events.push(err ? 'err' : 'ok'))
+    fw.write('p2', 'd2', undefined, (err?: unknown) => events.push(err ? 'err' : 'ok'))
 
     h.calls[0].resolve()
     await flush()

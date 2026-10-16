@@ -29,14 +29,14 @@ vi.mock('redux-observers', () => ({ observer: () => ({}) }))
 
 import { mkDb, mkMstShip, mkShip } from './fixtures'
 import { shipFleetIdMapSelector, shipFleetIdSelectorFactory } from '../packages/shared/src/fleet'
-import { PLUGIN_KEY } from '../packages/ship-info/src/views/redux'
+import { PLUGIN_KEY } from '../packages/navy-staff/src/views/plugin-identity'
 import {
   deckPlannerAllShipIdsSelector,
   deckPlannerAreaSelectorFactory,
   deckPlannerCurrentSelector,
   deckPlannerShipMapSelector,
   shipMenuDataSelector,
-} from '../packages/ship-info/src/views/planner/selectors'
+} from '../packages/navy-staff/src/views/planner/selectors'
 import {
   columnOrderSelector,
   columnPinningSelector,

@@ -6,6 +6,8 @@
   "exports": {
     "./ship-types": "./src/ship-types.ts",
     "./fleet": "./src/fleet.ts",
+    "./file-writer": "./src/file-writer.ts",
+    "./persistence": "./src/persistence.ts",
     "./ui/styles": "./src/ui/styles.ts",
     "./ui/checkbox": "./src/ui/checkbox.tsx",
     "./ui/fleet-icon": "./src/ui/fleet-icon.tsx"

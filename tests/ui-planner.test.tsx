@@ -15,7 +15,7 @@ vi.mock('react-fontawesome', async () => (await import('./ui/boundaries')).fonta
 vi.mock('redux-observers', async () => (await import('./ui/boundaries')).reduxObserversModule)
 vi.mock('electron', async () => (await import('./ui/boundaries')).createElectronModule())
 
-import { AddShip } from '../packages/ship-info/src/views/planner/add-ship'
+import { AddShip } from '../packages/navy-staff/src/views/planner/add-ship'
 import { plannerState } from './ui/fixtures'
 import { createHarness } from './ui/harness'
 

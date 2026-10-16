@@ -2,8 +2,8 @@ import { AnyAction } from 'redux'
 
 import { PLUGIN_KEY } from '../plugin-identity'
 
-// Planner-owned state. The action prefix and namespace are unchanged; the root
-// reducer composes this slice in.
+// Planner-owned state. The action prefix and namespace belong to Navy Staff;
+// the root reducer composes this slice in.
 
 interface IPlannerState {
   archive: object
@@ -29,6 +29,18 @@ const plannerInitState: IPlannerState = {
 //   ]
 // }
 
+// `current` only ever grows to fit an index; it is never truncated because the
+// current event has fewer/zero areas. Retained extra assignments stay so an
+// event transition (or host data that has not loaded yet) cannot silently erase
+// a plan.
+const ensureArea = (current: number[][], index: number): number[][] => {
+  const next = current.slice()
+  while (next.length <= index) {
+    next.push([])
+  }
+  return next
+}
+
 export const plannerReducer = (state = plannerInitState, action: AnyAction) => {
   const {
     type,
@@ -48,6 +60,8 @@ export const plannerReducer = (state = plannerInitState, action: AnyAction) => {
       }
     }
     case `@@${PLUGIN_KEY}@dp-init`: {
+      // Grow only: never drop retained assignments when the map has fewer
+      // areas (including zero while host data is still loading).
       if (current.length < mapname.length) {
         const len = mapname.length - current.length
         return {
@@ -55,57 +69,53 @@ export const plannerReducer = (state = plannerInitState, action: AnyAction) => {
           current: [...current, ...new Array(len).fill([])],
         }
       }
-      if (current.length > mapname.length) {
-        const newCurrent = current.slice(0, mapname.length)
-        return {
-          ...state,
-          current: newCurrent,
-        }
-      }
-      break
+      return state
     }
     case `@@${PLUGIN_KEY}@dp-addShip`: {
-      const newCurrent = current.slice()
-      if (!newCurrent[areaIndex].includes(shipId)) {
-        newCurrent[areaIndex] = [...newCurrent[areaIndex], shipId]
-        return {
-          ...state,
-          current: newCurrent,
-        }
+      if (!Number.isInteger(areaIndex) || areaIndex < 0) {
+        return state
       }
-      break
+      const grown = ensureArea(current, areaIndex)
+      if (!grown[areaIndex].includes(shipId)) {
+        grown[areaIndex] = [...grown[areaIndex], shipId]
+        return { ...state, current: grown }
+      }
+      return state
     }
     case `@@${PLUGIN_KEY}@dp-removeship`: {
-      const newCurrent = current.slice()
-      if (newCurrent[areaIndex].includes(shipId)) {
-        newCurrent[areaIndex] = newCurrent[areaIndex].filter(
-          id => id !== shipId,
-        )
-        return {
-          ...state,
-          current: newCurrent,
-        }
+      if (
+        !Number.isInteger(areaIndex) ||
+        areaIndex < 0 ||
+        areaIndex >= current.length ||
+        !current[areaIndex].includes(shipId)
+      ) {
+        return state
       }
-      break
+      const newCurrent = current.slice()
+      newCurrent[areaIndex] = newCurrent[areaIndex].filter(
+        id => id !== shipId,
+      )
+      return { ...state, current: newCurrent }
     }
     case `@@${PLUGIN_KEY}@dp-displaceShip`: {
-      const newCurrent = current.slice()
-      if (newCurrent[fromAreaIndex].includes(shipId)) {
-        newCurrent[fromAreaIndex] = newCurrent[fromAreaIndex].filter(
-          id => id !== shipId,
-        )
-        newCurrent[toAreaIndex] = [...newCurrent[toAreaIndex], shipId]
-        return {
-          ...state,
-          current: newCurrent,
-        }
+      if (
+        !Number.isInteger(fromAreaIndex) ||
+        !Number.isInteger(toAreaIndex) ||
+        fromAreaIndex < 0 ||
+        toAreaIndex < 0 ||
+        fromAreaIndex >= current.length ||
+        !current[fromAreaIndex].includes(shipId)
+      ) {
+        return state
       }
-      break
+      const grown = ensureArea(current, toAreaIndex)
+      grown[fromAreaIndex] = grown[fromAreaIndex].filter(id => id !== shipId)
+      grown[toAreaIndex] = [...grown[toAreaIndex], shipId]
+      return { ...state, current: grown }
     }
     default:
       return state
   }
-  return state
 }
 
 export const onDPInit = ({

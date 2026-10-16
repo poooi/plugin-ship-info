@@ -8,7 +8,7 @@ import styled from 'styled-components'
 import { getShipImgPath } from 'views/utils/ship-img'
 import { IState } from 'views/utils/selectors'
 
-import { deckPlannerShipMapSelector, IShipInfoMenuData } from './selectors'
+import { deckPlannerShipMapSelector, IPlannerShipData } from './selectors'
 
 const ShipAvatar = styled.img.attrs<{ left: number }>(({ left }) => ({
   style: {
@@ -104,7 +104,7 @@ interface IProps extends DispatchProp {
   onContextmenu: () => void
   ip: string
   useAvatar: boolean
-  ship: IShipInfoMenuData
+  ship: IPlannerShipData
 }
 
 export const ShipItem = connect((state: IState) => ({

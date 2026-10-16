@@ -16,7 +16,7 @@ import {
   plannerTaggedShips,
 } from '../preview/planner-fixtures'
 import { getEnvironment } from '../preview/scenario'
-import { Planner } from '../packages/ship-info/src/views/planner'
+import { reactClass as NavyStaff } from '../packages/navy-staff/src/views'
 
 const CARD = `.${Classes.CARD}`
 const TAG = `.${Classes.TAG}`
@@ -25,7 +25,7 @@ const TAG = `.${Classes.TAG}`
 // meta-level state would leak its nested ship maps into every override. Each
 // story therefore supplies its complete scenario state through this helper.
 const params = (options?: PlannerScenarioOptions) => ({
-  shipInfo: { state: plannerScenarioState(options) },
+  shipInfo: { plugin: 'navy-staff' as const, state: plannerScenarioState(options) },
 })
 
 // Wait until Blueprint's overlay entrance has moved focus inside the most
@@ -47,11 +47,10 @@ const waitForOverlayFocus = () =>
     ).toBe(true)
   })
 
+// Navy Staff's tabs are the main view; there is no sidebar button or dialog.
 const openPlanner = async () => {
-  await userEvent.click(screen.getByRole('button', { name: 'Deck Planner' }))
-  const dialog = await screen.findByRole('dialog')
-  await waitForOverlayFocus()
-  return dialog
+  await expect(await screen.findByRole('tab', { name: 'Area View' })).toBeTruthy()
+  return document.querySelector('#poi-plugin-navy-staff') as HTMLElement
 }
 
 const areaCard = (name: string) =>
@@ -94,31 +93,25 @@ const resultButtons = () =>
   within(addShipPopover()).queryAllByRole('button', { name: /Lv\./ })
 
 const meta = {
-  title: 'Sidebar/Planner/Area',
-  component: Planner,
-} satisfies Meta<typeof Planner>
+  title: 'NavyStaff/Area',
+  component: NavyStaff,
+} satisfies Meta<typeof NavyStaff>
 
 export default meta
 type Story = StoryObj<typeof meta>
 
-export const OpensAndClosesDialog: Story = {
-  name: 'Dialog opens and closes with Area and Ship Grid tabs',
+export const ShowsTabsWithoutDialog: Story = {
+  name: 'The main view shows Area and Ship Grid tabs directly (no dialog/button)',
   parameters: params(),
   play: async () => {
+    const view = await openPlanner()
     await expect(screen.queryByRole('dialog')).toBeNull()
-
-    const dialog = await openPlanner()
     await expect(
-      within(dialog).getByRole('tab', { name: 'Area View' }),
+      within(view).getByRole('tab', { name: 'Area View' }),
     ).toBeTruthy()
     await expect(
-      within(dialog).getByRole('tab', { name: 'Ship Grid' }),
+      within(view).getByRole('tab', { name: 'Ship Grid' }),
     ).toBeTruthy()
-
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Close' }))
-    await waitFor(async () => {
-      await expect(screen.queryByRole('dialog')).toBeNull()
-    })
   },
 }
 
@@ -191,16 +184,22 @@ export const AreaInitialization: Story = {
   },
 }
 
-export const AreaResizeTrimsExtraAreas: Story = {
-  name: 'Areas resize by trimming plans beyond the host map count',
+export const AreaKeepsRetainedExtraAreas: Story = {
+  name: 'Plans beyond the host map count are retained, not truncated',
   parameters: params({
     current: [[1], [2], [3]],
     mapname: ['E1', 'E2'],
   }),
   play: async () => {
     await openPlanner()
+    // The extra assignment beyond the current map count is preserved in state
+    // even though only E1/E2 are rendered for the current event.
     await waitFor(async () => {
-      await expect(plannerSlice(getEnvironment()).current).toEqual([[1], [2]])
+      await expect(plannerSlice(getEnvironment()).current).toEqual([
+        [1],
+        [2],
+        [3],
+      ])
     })
     await expect(
       screen.queryByRole('heading', { level: 5, name: /E3/ }),
@@ -248,8 +247,10 @@ export const AreaResizeLiveOnHostMapChange: Story = {
         },
       },
     })
+    // Contracting the host map keeps the retained third area (no truncation);
+    // only the rendered areas follow the map count.
     await waitFor(async () => {
-      await expect(plannerSlice(environment).current.length).toBe(1)
+      await expect(plannerSlice(environment).current.length).toBe(3)
     })
     await expect(
       screen.queryByRole('heading', { level: 5, name: /E2/ }),

@@ -11,16 +11,14 @@ vi.mock('views/utils/selectors', () => ({
     state?.ext?.[key]?._ ?? {},
 }))
 
-import type { PersistenceWriter } from '../packages/ship-info/src/views/persistence'
+import type { PersistenceWriter } from '../packages/shared/src/persistence'
 import { createPersistence } from '../packages/ship-info/src/views/persistence'
 import { ACTIONS, PLUGIN_KEY } from '../packages/ship-info/src/views/plugin-identity'
-import { onAddShip } from '../packages/ship-info/src/views/planner/redux'
 import { reducer as pluginReducer } from '../packages/ship-info/src/views/redux'
 
 type PluginSlice = {
   bookmark: Record<string, any>
   error: string | null
-  planner: { archive: object; current: number[][] }
   ready: boolean
   ui: Record<string, any>
 }
@@ -62,8 +60,7 @@ const VALID = {
   ui: { isExtend: false },
 }
 
-// A UI-state change that always produces a new plugin slice without needing a
-// populated planner (the reducer requires initialized areas for ship edits).
+// A UI-state change that always produces a new plugin slice.
 const change = () => ({
   isExtend: false,
   type: `@@${PLUGIN_KEY}@extend`,
@@ -106,7 +103,7 @@ const createGateWriter = () => {
   return { writer, writes, outstanding }
 }
 
-describe('persistence load', () => {
+describe('Ship Info persistence load', () => {
   let errorSpy: ReturnType<typeof vi.spyOn>
 
   beforeEach(() => {
@@ -127,8 +124,6 @@ describe('persistence load', () => {
 
     await waitFor(() => sliceOf(store).ready)
     const slice = sliceOf(store)
-    expect(slice.planner.current).toEqual([[1, 2]])
-    expect(slice.planner.archive).toEqual({ old: [[9]] })
     expect(slice.bookmark.alpha).toEqual({ name: 'alpha' })
     expect(slice.error).toBeNull()
     expect(writes).toHaveLength(0)
@@ -178,10 +173,6 @@ describe('persistence load', () => {
 
   it('rejects an invalid persisted shape and disables saving', async () => {
     for (const bad of [
-      { planner: { current: [null] } },
-      { planner: { current: [['bad']] } },
-      { planner: { current: 'nope' } },
-      { planner: [] },
       { bookmark: 'nope' },
       { ui: 42 },
       'not an object',
@@ -204,6 +195,25 @@ describe('persistence load', () => {
       expect(sliceOf(store).ready).toBe(false)
       expect(onError).toHaveBeenCalledTimes(1)
       expect(writes).toHaveLength(0)
+    }
+  })
+
+  it('treats an opaque/legacy planner as valid (Navy validates it, not Ship Info)', async () => {
+    for (const planner of [
+      { current: [null] },
+      { current: [['bad']] },
+      { current: 'nope' },
+      [],
+      null,
+    ]) {
+      const store = createStore()
+      const readFile = vi.fn(async () => ({ bookmark: {}, planner }))
+      const persistence = createPersistence({ isMain: true, readFile })
+
+      persistence.start(store)
+      // eslint-disable-next-line no-await-in-loop
+      await waitFor(() => sliceOf(store).ready)
+      expect(sliceOf(store).error).toBeNull()
     }
   })
 
@@ -268,7 +278,7 @@ describe('persistence load', () => {
     await flush()
 
     expect(sliceOf(store).ready).toBe(false)
-    expect(sliceOf(store).planner.current).toEqual([])
+    expect(sliceOf(store).bookmark).toEqual({})
     expect(writes).toHaveLength(0)
   })
 
@@ -276,19 +286,19 @@ describe('persistence load', () => {
     const store = createStore()
     const readFile = vi
       .fn()
-      .mockResolvedValueOnce({ planner: { current: [[1]] } })
-      .mockResolvedValueOnce({ planner: { current: [[2, 3]] } })
+      .mockResolvedValueOnce({ bookmark: { a: { name: 'a' } } })
+      .mockResolvedValueOnce({ bookmark: { b: { name: 'b' } } })
     const { writer } = createRecordingWriter()
     const persistence = createPersistence({ isMain: true, readFile, writer })
 
     persistence.start(store)
     await waitFor(() => sliceOf(store).ready)
-    expect(sliceOf(store).planner.current).toEqual([[1]])
+    expect(sliceOf(store).bookmark.a).toBeTruthy()
 
     persistence.stop()
     persistence.start(store)
-    await waitFor(() => sliceOf(store).planner.current[0]?.[0] === 2)
-    expect(sliceOf(store).planner.current).toEqual([[2, 3]])
+    await waitFor(() => sliceOf(store).bookmark.b != null)
+    expect(sliceOf(store).bookmark.b).toEqual({ name: 'b' })
     expect(readFile).toHaveBeenCalledTimes(2)
   })
 
@@ -297,7 +307,7 @@ describe('persistence load', () => {
     const readFile = vi
       .fn()
       .mockRejectedValueOnce(new SyntaxError('bad json'))
-      .mockResolvedValueOnce({ planner: { current: [[4]] } })
+      .mockResolvedValueOnce({ bookmark: { c: { name: 'c' } } })
     const persistence = createPersistence({ isMain: true, readFile })
 
     persistence.start(store)
@@ -307,7 +317,7 @@ describe('persistence load', () => {
     persistence.start(store)
     await waitFor(() => sliceOf(store).ready)
     expect(sliceOf(store).error).toBeNull()
-    expect(sliceOf(store).planner.current).toEqual([[4]])
+    expect(sliceOf(store).bookmark.c).toEqual({ name: 'c' })
   })
 
   it('is a read-only consumer in standalone (non-main) windows', async () => {
@@ -361,7 +371,7 @@ describe('persistence load', () => {
     const reads: string[] = []
     const readFile = vi.fn(async () => {
       reads.push('read')
-      return { planner: { current: [[1]] } }
+      return { bookmark: {} }
     })
     const persistence = createPersistence({ isMain: true, readFile, writer })
 
@@ -369,24 +379,71 @@ describe('persistence load', () => {
     await waitFor(() => sliceOf(store).ready)
     expect(reads).toHaveLength(1)
 
-    // A user edit queues a save that has not settled yet.
-    store.dispatch(onAddShip({ areaIndex: 0, shipId: 7 }))
+    store.dispatch(change())
     expect(writes).toHaveLength(1)
     expect(outstanding).toHaveLength(1)
 
-    // Unload then reload while that save is still in flight.
     persistence.stop()
     persistence.start(store)
     await flush()
-
-    // The reload must not read until the queued save has drained.
     expect(reads).toHaveLength(1)
 
     outstanding[0].resolve()
     await waitFor(() => reads.length === 2)
     expect(sliceOf(store).ready).toBe(true)
-    // The queued save was kept, not dropped.
     expect(writes).toHaveLength(1)
+    persistence.stop()
+  })
+
+  it('preserves the newer legacy planner when an old delayed load resolves late', async () => {
+    const store = createStore()
+    const newerPlanner = { archive: {}, current: [[2]] }
+    let resolveOld!: (value: unknown) => void
+    let reads = 0
+    const readFile = vi.fn(() => {
+      reads += 1
+      if (reads === 1) {
+        // First (superseded) load hangs.
+        return new Promise((resolve) => {
+          resolveOld = resolve
+        })
+      }
+      return Promise.resolve({ planner: newerPlanner })
+    })
+    const { writer, writes } = createRecordingWriter()
+    const persistence = createPersistence({
+      dataPath: '/appdata/ship-info.json',
+      isMain: true,
+      readFile,
+      writer,
+    })
+
+    persistence.start(store)
+    await flush()
+    expect(readFile).toHaveBeenCalledTimes(1)
+    persistence.stop()
+
+    // A newer load reads the newer file and becomes ready.
+    persistence.start(store)
+    await waitFor(() => sliceOf(store).ready)
+
+    store.dispatch(change())
+    await flush()
+    expect(writes[0].data.planner).toEqual(newerPlanner)
+
+    // The old delayed read resolves with a stale planner; it must be ignored.
+    resolveOld({ planner: { archive: {}, current: [[1]] } })
+    await flush()
+    expect(writes).toHaveLength(1)
+
+    // A later save still carries the newer planner (presence preserved).
+    store.dispatch(change())
+    await flush()
+    expect(writes).toHaveLength(2)
+    expect(writes[1].data.planner).toEqual(newerPlanner)
+    expect(
+      Object.prototype.hasOwnProperty.call(writes[1].data, 'planner'),
+    ).toBe(true)
     persistence.stop()
   })
 
@@ -396,17 +453,17 @@ describe('persistence load', () => {
     const reads: string[] = []
     const readFile = vi.fn(async () => {
       reads.push('read')
-      return { planner: { current: [[1]] } }
+      return { bookmark: {} }
     })
     const persistence = createPersistence({ isMain: true, readFile, writer })
 
     persistence.start(store)
     await waitFor(() => sliceOf(store).ready)
-    store.dispatch(onAddShip({ areaIndex: 0, shipId: 7 }))
+    store.dispatch(change())
 
     persistence.stop()
-    persistence.start(store) // superseded load, waiting on the gate
-    persistence.stop() // unloaded again before the gate resolves
+    persistence.start(store)
+    persistence.stop()
 
     outstanding[0].resolve()
     await flush()
@@ -414,20 +471,25 @@ describe('persistence load', () => {
   })
 })
 
-describe('persistence integration with a real store and file', () => {
+describe('Ship Info persistence integration with a real store and file', () => {
   const dir = fs.mkdtempSync(path.join((window as any).APPDATA_PATH, 'persist-'))
 
   afterAll(() => {
     fs.rmSync(dir, { recursive: true, force: true })
   })
 
-  it('loads a real file and saves changes without the transient error key', async () => {
+  it('saves changes and preserves the legacy planner verbatim', async () => {
     const file = path.join(dir, 'data.json')
+    const legacyPlanner = {
+      archive: { old: [[9]] },
+      current: [[1, 2]],
+      name: 'legacy',
+    }
     fs.writeFileSync(
       file,
       JSON.stringify({
         bookmark: { alpha: { name: 'alpha' } },
-        planner: { archive: {}, current: [[1]] },
+        planner: legacyPlanner,
         ready: true,
         ui: {},
       }),
@@ -438,19 +500,77 @@ describe('persistence integration with a real store and file', () => {
     persistence.start(store)
 
     await waitFor(() => sliceOf(store).ready)
-    expect(sliceOf(store).planner.current).toEqual([[1]])
     expect(sliceOf(store).bookmark.alpha).toEqual({ name: 'alpha' })
 
-    store.dispatch(onAddShip({ areaIndex: 0, shipId: 9 }))
+    store.dispatch(change())
     await waitFor(() => {
-      const saved = JSON.parse(fs.readFileSync(file, 'utf8'))
-      return saved.planner?.current?.[0]?.includes(9) === true
+      try {
+        const saved = JSON.parse(fs.readFileSync(file, 'utf8'))
+        return saved.ui?.isExtend === false
+      } catch {
+        return false
+      }
     })
 
     const saved = JSON.parse(fs.readFileSync(file, 'utf8'))
     expect(saved).not.toHaveProperty('error')
-    expect(saved.planner.current).toEqual([[1, 9]])
+    expect(saved.planner).toEqual(legacyPlanner)
     persistence.stop()
+  })
+
+  it('preserves an explicit null planner and absence separately', async () => {
+    const withNull = path.join(dir, 'null.json')
+    fs.writeFileSync(
+      withNull,
+      JSON.stringify({ bookmark: {}, planner: null }),
+    )
+    const storeA = createStore()
+    const persistenceA = createPersistence({
+      dataPath: withNull,
+      isMain: true,
+    })
+    persistenceA.start(storeA)
+    await waitFor(() => sliceOf(storeA).ready)
+    storeA.dispatch(change())
+    await waitFor(() => {
+      try {
+        const saved = JSON.parse(fs.readFileSync(withNull, 'utf8'))
+        return saved.ui?.isExtend === false
+      } catch {
+        return false
+      }
+    })
+    expect(JSON.parse(fs.readFileSync(withNull, 'utf8'))).toHaveProperty(
+      'planner',
+      null,
+    )
+    persistenceA.stop()
+
+    const without = path.join(dir, 'absent.json')
+    fs.writeFileSync(without, JSON.stringify({ bookmark: {} }))
+    const storeB = createStore()
+    const persistenceB = createPersistence({
+      dataPath: without,
+      isMain: true,
+    })
+    persistenceB.start(storeB)
+    await waitFor(() => sliceOf(storeB).ready)
+    storeB.dispatch(change())
+    await waitFor(() => {
+      try {
+        const saved = JSON.parse(fs.readFileSync(without, 'utf8'))
+        return saved.ui?.isExtend === false
+      } catch {
+        return false
+      }
+    })
+    expect(
+      Object.prototype.hasOwnProperty.call(
+        JSON.parse(fs.readFileSync(without, 'utf8')),
+        'planner',
+      ),
+    ).toBe(false)
+    persistenceB.stop()
   })
 
   it('creates the file on the first change after ENOENT', async () => {

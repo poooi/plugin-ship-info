@@ -1,6 +1,6 @@
 # Ship Info / Navy Staff split design
 
-Status: implementation approved in four stacked changes. Lifecycle/persistence, ownership separation, and workspace relocation are implemented and locally verified. Standalone Navy Staff extraction remains pending. This document records the target design, implementation sequence, and verification requirements.
+Status: implemented in four stacked changes, with local acceptance checks complete. Ship Info and Navy Staff are independent plugin packages in one pnpm workspace. This document records ownership, migration behavior, implementation evidence, and release boundaries. Neither package has been published as part of this work.
 
 ## 1. Goals and scope
 
@@ -15,25 +15,25 @@ The proposed first release preserves existing functionality. Ship Info retains f
 
 Multiple plans, cross-event archives, automatic fleet composition, and new planning rules are outside the first split.
 
-## 2. Existing coupling
+## 2. Ownership after extraction
 
-Ship Info source paths below are relative to `packages/ship-info/src/`. The shared workspace contains the modules previously extracted at root `shared/`.
+Ship Info source paths below are relative to `packages/ship-info/src/` unless another package is named. The shared workspace contains the modules previously extracted at root `shared/`.
 
-| Location | Current responsibility | Required separation |
+| Location | Responsibility | Boundary |
 | --- | --- | --- |
-| `views/planner/` | Planner UI, reducer/actions, menu selectors, and screenshot capture | Move to Navy Staff and make it the main interface |
-| `views/sidebar/index.tsx` | Sidebar controls | Remove the planner entry during extraction; initialization is now plugin-owned |
-| `views/redux.ts` | `bookmark`, `planner`, load status, and `ui` | Separate reducers and actions by ownership; I/O now lives in `views/persistence.ts` |
+| `packages/navy-staff/src/views/` | Planner UI, reducer/actions, menu selectors, migration, and screenshot capture | Independent plugin main interface; no table sidebar or planner modal |
+| `views/sidebar/index.tsx` | Table sidebar controls | No planner entry; initialization is plugin-owned |
+| `views/redux.ts` | `bookmark`, load status, and `ui` | No planner reducer; I/O lives in `views/persistence.ts` |
 | `views/selectors.ts` and `views/utils.ts` | Table filtering, row data, statistics, names, and table utilities | Retain in Ship Info; planner selectors and screenshot imports have been separated |
-| `packages/shared/src/` | Classification, fleet membership, icons, surfaces, and checkbox layout used by both interfaces | Private workspace; accept translated content from callers |
-| `i18n/` | Both features use the Ship Info namespace | Supply each plugin with its own required translations |
+| `packages/shared/src/` | Classification, fleet membership, UI, serialized writes, and persistence lifecycle | Private workspace; callers own identity, data validation, and migration |
+| `packages/*/i18n/` | Self-contained plugin translations | Each plugin uses its own namespace |
 
 Two details need particular attention:
 
 1. The existing JSON file contains both table and planner state. Saving the remaining state after removing the `planner` reducer could erase old plans before Navy Staff imports them.
 2. The first layer replaces Planner's `dataObserver` mounting logic with plugin-owned loading and saving in `views/lifecycle.ts` and `views/persistence.ts`. Removing the planner interface no longer removes Ship Info persistence.
 
-## 3. Proposed monorepo structure
+## 3. Monorepo structure
 
 ```text
 plugin-ship-info/
@@ -82,6 +82,7 @@ Start with modules inside one shared package:
 - **Common ship logic:** classification, name handling, fleet membership, and other functions actually used by both plugins. Reuse existing kcsapi types without inventing a universal ship model.
 - **poi integration:** shared read-only selectors and host type declarations. Keep pure calculations independent of `window`, Electron, and the global store.
 - **Presentation:** fleet icons, theme surface helpers, and controls used by both interfaces. Pass content through parameters rather than reading plugin-specific configuration or plans.
+- **Persistence lifecycle:** serialized writes, subscriptions, load status, and cancellation of superseded loads. Each plugin supplies its own file path, actions, selector, validation, and loader. Legacy import remains in Navy Staff; opaque legacy preservation remains in Ship Info.
 
 Keep these responsibilities in their respective plugins:
 
@@ -93,13 +94,13 @@ Keep these responsibilities in their respective plugins:
 
 For example, `IShipRawData` contains table display options and belongs in Ship Info. `IShipInfoMenuData`, currently used only by the planner, belongs in Navy Staff. Ship-related fields alone do not make a type shared. `captureRect` is currently used for planner screenshots and can remain in Navy Staff for the first split.
 
-Expose shared modules by purpose, such as `shared/ships`, `shared/poi`, and `shared/ui`. Importing basic ship logic must not register observers, perform file operations, or load screenshot libraries. Extract only implementations both plugins actually need.
+Expose shared modules by purpose, including `ship-types`, `fleet`, `ui/*`, `file-writer`, and `persistence`. Importing basic ship logic must not register observers, perform file operations, or load screenshot libraries. Extract only implementations both plugins actually need.
 
 ## 5. State, configuration, and lifecycle
 
 Both plugins continue to use poi's runtime and Redux store, registering separate extension state. Sharing the host store does not imply sharing plugin state.
 
-| Concern | Ship Info | Navy Staff (proposed) |
+| Concern | Ship Info | Navy Staff |
 | --- | --- | --- |
 | npm package and plugin ID | `poi-plugin-ship-info` | `poi-plugin-navy-staff` |
 | Redux extension state and action prefix | Retain existing identity | Use the new plugin identity |
@@ -117,14 +118,14 @@ Move planner options such as `displayFleetName` to Navy Staff. Preserve Ship Inf
 
 ## 6. Legacy plan migration
 
-Propose a one-time import into the new file, after which each plugin saves its own data:
+Use a one-time import into the new file, after which each plugin saves its own data:
 
 1. If Navy Staff's data file exists, use it as authoritative. An existing empty plan must not trigger another import.
 2. Only if the new file is absent, read `planner` from `APPDATA_PATH/poi-plugin-ship-info.json`. Preserve `current` and `archive`; exclude table bookmarks and transient UI state.
 3. Once the new file is successfully written, use it for subsequent loads and saves. Navy Staff must not modify or delete the legacy file.
 4. If the legacy file is absent, initialize an empty plan. Corrupt data, invalid format, and read or write failures must preserve the original data and surface an error, rather than being treated as absence.
 5. During a transition period, Ship Info preserves the legacy `planner` value when saving its original file, without continuing to maintain planner behavior. This supports users who upgrade Ship Info before installing Navy Staff. Decide removal of the legacy field separately.
-6. Import planner display options only when the corresponding new configuration is unset; do not overwrite preferences already changed in Navy Staff.
+6. Import `plugin.ShipInfo.displayFleetName` only when `plugin.NavyStaff.displayFleetName` is unset; preserve explicit false and true. Recheck the unset option on successful loads, so unloading after the initial file write cannot permanently skip configuration import.
 
 Migration and event changes are separate concerns. Do not truncate imported arrays because the current event has a different area count. Confirm sortie tag synchronization, event transitions, and obsolete assignment handling before implementation. The first split does not introduce a new event archive system.
 
@@ -145,7 +146,7 @@ Proceed in four stacked PRs. Keep each layer independently reviewable and preser
 1. **Separate lifecycle and persistence:** remove initialization and save subscriptions from UI mounts, protect failed reads from overwrite, recover failed writes, and test lifecycle ownership and unload races. Status: implemented and locally verified (88 Node/jsdom tests, 89 Chromium scenarios, type check, plugin build, and static Storybook build). The tests model poi's extension state and module-cache clearing; a live poi installation has not been exercised.
 2. **Separate ownership:** isolate planner state, selectors, display types, and screenshot helpers from table code; extract shared modules only where both features actually consume them. Preserve the existing single-plugin interface. Status: implemented in `views/planner/` and root `shared/`, locally verified with 90 Node/jsdom tests, 89 Chromium scenarios, type checking, both builds, and local Codex Sol review. Shared imports have dependency-direction guards; all 22 ship-type labels match the prior behavior across five locales.
 3. **Establish workspaces:** move Ship Info and shared modules into pnpm packages, update builds, tests, preview paths, and CI, and verify the existing published artifact remains self-contained. Status: implemented and locally verified with frozen installation, 90 Node/jsdom tests, 89 Chromium scenarios, type checking, builds, packing, and artifact verification. Local Codex Sol review confirmed unchanged dependency versions and host externals; its README omission finding was fixed and the package reverified. Root `pnpm run pack` and `pnpm run verify:package` validate the compiled entry, manifest, README, all five locales, and all four assets. Shared code is bundled and absent from runtime manifest dependencies. No live poi installation was exercised.
-4. **Extract Navy Staff:** give the planner its own plugin entry, state, configuration, translations, and persistence; implement legacy import and retain legacy data in Ship Info; remove the old planner entry. Verify separate packages and independent use, update installation guidance, and inspect both packed artifacts. Status: pending.
+4. **Extract Navy Staff:** give the planner its own plugin entry, state, configuration, translations, and persistence; implement legacy import and retain legacy data in Ship Info; remove the old planner entry. Status: implemented. Frozen installation, type checking, 108 Node/jsdom tests, and 95 Chromium scenarios pass. Tests cover independent and combined interfaces, Navy-only translations without language fallback, detached-window configuration, smaller/empty maps, an unloaded roster, migration failures, stale reads, and fresh-module reloads with pending writes. Both packed entries execute against a controlled host with real React/styled-components, actual exported reducers/lifecycle hooks, and temporary files, independently and together. Manifest metadata, all packaged resources, and absence of runtime workspace/sibling dependencies are checked. The artifact smoke exposed and fixed a CommonJS default-import mismatch caused by the private shared package's unnecessary ESM marker; shared code remains bundled into each plugin.
 
 Each layer requires relevant behavior tests, type checking, and a build, plus a local Codex Sol review before submission. Browser tests cover affected user workflows; packaging changes require actual artifact inspection. Reviews stay local rather than posting unsolicited GitHub review comments. Passing tests with host adapters must not be described as a live poi installation test.
 
@@ -162,6 +163,7 @@ Acceptance should cover:
 - Use Navy Staff as the new plugin title, reuse the existing planner visual conventions, and show the planner directly in its main view. Keep translated titles in their respective locales.
 - Preserve existing assignment and synchronization workflows. Retain assignments beyond the current event's area count; event changes must not silently destroy imported data. A new event archive system remains out of scope.
 - Surface import/load failures. Retain the legacy `planner` field in Ship Info until its removal is separately agreed; Navy Staff never deletes it.
+- Ship Info retains version `8.1.1`; Navy Staff starts at `0.1.0`. These are package manifest values, not a publication or release announcement.
 - Document separate installation and migration. Package publication, release timing, and any release version changes require a separate release operation; this implementation creates reviewable PRs only.
 
-Record implementation evidence and any remaining limitations here as each layer is completed.
+The final plugin builds, static Storybook build, packed artifact checks, and local Codex Sol review also passed. Validation uses browser and host adapters, plus real files for artifact and writer checks. It does not include installing the plugins into a live poi/Electron session, restarting that application, or validating rendered screenshot pixels. Those remain release checks.

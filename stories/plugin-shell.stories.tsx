@@ -9,9 +9,8 @@ import { i18n } from '../preview/i18n'
 import {
   persistedPluginFile,
   plannerScenarioState,
-  plannerSlice,
   PLUGIN_DATA_PATH,
-  PLUGIN_KEY,
+  SHIP_INFO_PLUGIN_KEY,
 } from '../preview/planner-fixtures'
 import { getEnvironment } from '../preview/scenario'
 import { reactClass as ShipInfo } from '../packages/ship-info/src/views'
@@ -97,8 +96,8 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
-export const MountsWithPersistedPlanner: Story = {
-  name: 'Root mounts table and sidebar with persisted planner data',
+export const MountsWithPersistedState: Story = {
+  name: 'Root mounts table and sidebar and loads persisted bookmarks',
   parameters: {
     shipInfo: {
       state: plannerScenarioState({ mapname: ['E1', 'E2'] }),
@@ -112,16 +111,23 @@ export const MountsWithPersistedPlanner: Story = {
     await expect(await canvas.findByText('Alpha')).toBeTruthy()
     await expect(canvas.getByText('Beta')).toBeTruthy()
 
-    // Sidebar exposes every panel trigger.
-    await expect(canvas.getByRole('button', { name: 'Deck Planner' })).toBeTruthy()
+    // Sidebar exposes the Ship Info panel triggers; the planner lives in Navy
+    // Staff now, so there is no Deck Planner button here.
+    await expect(canvas.queryByRole('button', { name: 'Deck Planner' })).toBeNull()
     await expect(canvas.getByRole('button', { name: 'Columns' })).toBeTruthy()
     await expect(canvas.getByRole('button', { name: 'Filter' })).toBeTruthy()
     await expect(canvas.getByRole('button', { name: 'Export' })).toBeTruthy()
 
-    // initStore loaded the persisted planner state from the seeded file.
+    // The lifecycle loaded the seeded file (ready) and left the legacy planner
+    // field untouched.
     await waitFor(async () => {
-      await expect(plannerSlice(getEnvironment()).current).toEqual([[1, 2], [3]])
+      await expect(
+        getEnvironment().store.getState()[SHIP_INFO_PLUGIN_KEY].ready,
+      ).toBe(true)
     })
+    await expect(
+      (host.log.files[PLUGIN_DATA_PATH] as any).planner,
+    ).toEqual({ archive: {}, current: [[1, 2], [3]] })
 
     // The rendered root must stay inside the themed scenario surface, otherwise
     // it overflows onto the unthemed preview background.
@@ -149,7 +155,7 @@ export const SavesWithoutPlannerOpen: Story = {
 
     const environment = getEnvironment()
     await waitFor(async () => {
-      await expect(environment.store.getState()[PLUGIN_KEY].ready).toBe(true)
+      await expect(environment.store.getState()[SHIP_INFO_PLUGIN_KEY].ready).toBe(true)
     })
 
     // The planner dialog is never opened; persistence is lifecycle-owned.
@@ -158,7 +164,7 @@ export const SavesWithoutPlannerOpen: Story = {
     // Any plugin state change is saved even without the planner UI mounted.
     environment.store.dispatch({
       isExtend: false,
-      type: `@@${PLUGIN_KEY}@extend`,
+      type: `@@poi-plugin-ship-info@extend`,
     })
     await waitFor(async () => {
       await expect(host.log.writtenFiles.length).toBe(1)
@@ -181,14 +187,14 @@ export const CorruptFileSurfacesLoadError: Story = {
 
     const environment = getEnvironment()
     await waitFor(async () => {
-      await expect(environment.store.getState()[PLUGIN_KEY].error).toBe('load')
+      await expect(environment.store.getState()[SHIP_INFO_PLUGIN_KEY].error).toBe('load')
     })
     await expect(host.log.toasts.length).toBe(1)
 
     // Saving stays disabled: a state change must not overwrite the source file.
     environment.store.dispatch({
       isExtend: false,
-      type: `@@${PLUGIN_KEY}@extend`,
+      type: `@@poi-plugin-ship-info@extend`,
     })
     await expect(host.log.writtenFiles).toEqual([])
     await expect(host.log.files[PLUGIN_DATA_PATH]).toBe('{ not valid json')
@@ -239,7 +245,7 @@ const dismissPopover = async (
 }
 
 export const SidebarPanelsOpenAndClose: Story = {
-  name: 'Sidebar panels and the planner open and close',
+  name: 'Sidebar panels open and close',
   parameters: { shipInfo: { state: plannerScenarioState() } },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -263,13 +269,6 @@ export const SidebarPanelsOpenAndClose: Story = {
       await screen.findByRole('button', { name: 'Copy to clipboard' }),
     ).toBeTruthy()
     await dismissPopover(canvas, 'Export')
-
-    await userEvent.click(canvas.getByRole('button', { name: 'Deck Planner' }))
-    const dialog = await screen.findByRole('dialog')
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Close' }))
-    await waitFor(async () => {
-      await expect(screen.queryByRole('dialog')).toBeNull()
-    })
   },
 }
 
