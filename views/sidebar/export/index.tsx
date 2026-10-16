@@ -102,7 +102,7 @@ const ExportContent = () => {
   const filteredShipIds = useAtomValue(filteredShipIdsAtom)
 
   const handleChange =
-    (name: 'sep' | 'end' | 'selection') => (value: string) => () => {
+    (name: 'sep' | 'end' | 'selection') => (value: string) => {
       if (name === 'sep') setSep(value)
       else if (name === 'end') setEnd(value)
       else if (name === 'selection') setSelection(value)
@@ -182,9 +182,11 @@ const ExportContent = () => {
 }
 
 export const Export = () => {
+  const { t } = useTranslation('poi-plugin-ship-info')
+
   return (
     <Popover content={<ExportContent />} hasBackdrop>
-      <Button minimal>
+      <Button aria-label={t('Export')} minimal>
         <FA name="download" />
       </Button>
     </Popover>
