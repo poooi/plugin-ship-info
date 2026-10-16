@@ -5,7 +5,7 @@ The plugin has two independent UI test layers:
 | Layer | Runner | State | Scenarios |
 | --- | --- | --- | --- |
 | Node/jsdom | `pnpm test` (`vp test run`) | jsdom via `tests/setup.ts` | 108 tests across 13 files |
-| Browser | `pnpm run test:browser` (`vitest run --config vitest.browser.config.ts`) | Real Chromium via Playwright | 95 story scenarios across 13 files |
+| Browser | `pnpm run test:browser` (`vitest run --config vitest.browser.config.ts`) | Real Chromium via Playwright | 97 story scenarios across 13 files |
 
 The browser project is deliberately a separate Vitest config. It does **not**
 inherit `tests/setup.ts` or the jsdom geometry stubs in `tests/ui/mocks.tsx`,
@@ -243,6 +243,8 @@ button or modal) with `shipInfo.plugin: 'navy-staff'`.
 | `PluginShell/SavesWithoutPlannerOpen` | A plugin state change is written to the plugin file while persistence is lifecycle-owned, not UI-owned. |
 | `PluginShell/CorruptFileSurfacesLoadError` | A corrupt persisted file surfaces a load error and a toast, saving stays disabled, and the source file is left untouched. |
 | `PluginShell/SidebarPanelsOpenAndClose` | Columns, Filter and Export open and close. |
+| `PluginShell/PlannerMovedNotice` | The original Deck Planner entry opens and closes a migration notice with poi installation instructions and the full package name, without planner controls or state changes. |
+| `PluginShell/PlannerMovedNoticeLocalized` | The notice uses the Chinese name 作战参谋 and the localized poi installation labels. |
 | `PluginShell/FilterAffectsTableAndExport` | Unchecking all ship types empties the table and the exported CSV (header only); restoring brings back the exact sorted ids. |
 | `PluginShell/ColumnVisibilityAffectsTable` | Hiding a column removes it from the table while its config card remains. |
 | `PluginShell/ResetRemountsFreshRoot` | After hiding a column, copying the clipboard and exporting a file, a remount shows the original rows/columns again with empty config, clipboard and file logs. |

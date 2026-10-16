@@ -91,5 +91,8 @@
   "Hidden": "Hidden",
   "Pin": "Pin",
   "loadError": "Could not load saved Ship Info data. Saving is disabled to avoid overwriting your file.",
-  "saveError": "Could not save Ship Info data. Check that the file is writable."
+  "saveError": "Could not save Ship Info data. Check that the file is writable.",
+  "Deck Planner": "Deck Planner",
+  "plannerMovedNotice": "The deck planner has moved to the separate \"Navy Staff\" plugin.",
+  "plannerMovedInstall": "Open poi's Settings > Plugins, choose \"Install directly from npm\", enter the package name and click \"Install\":"
 }

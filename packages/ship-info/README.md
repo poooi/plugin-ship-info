@@ -7,6 +7,9 @@ table with configurable columns, repair/condition status, equipment details and
 CSV export. The sortie planner is maintained separately as
 `poi-plugin-navy-staff` in this workspace.
 
+The former **Deck Planner** entry opens a migration notice with the new plugin
+name and installation instructions in poi.
+
 ## Install
 
 Open **Settings → Plugins** in poi. Under **Install directly from npm**, enter

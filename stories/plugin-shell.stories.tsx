@@ -111,9 +111,9 @@ export const MountsWithPersistedState: Story = {
     await expect(await canvas.findByText('Alpha')).toBeTruthy()
     await expect(canvas.getByText('Beta')).toBeTruthy()
 
-    // Sidebar exposes the Ship Info panel triggers; the planner lives in Navy
-    // Staff now, so there is no Deck Planner button here.
-    await expect(canvas.queryByRole('button', { name: 'Deck Planner' })).toBeNull()
+    // Sidebar exposes the Ship Info panel triggers plus the original Deck
+    // Planner entry, which now opens the migration notice.
+    await expect(canvas.getByRole('button', { name: 'Deck Planner' })).toBeTruthy()
     await expect(canvas.getByRole('button', { name: 'Columns' })).toBeTruthy()
     await expect(canvas.getByRole('button', { name: 'Filter' })).toBeTruthy()
     await expect(canvas.getByRole('button', { name: 'Export' })).toBeTruthy()
@@ -498,5 +498,81 @@ export const ToolbarSettingsSurviveReset: Story = {
     await expect(host.log.clipboardWrites).toEqual([])
     await expect(host.log.writtenFiles).toEqual([])
     await expect(host.log.files).toEqual({})
+  },
+}
+
+export const PlannerMovedNotice: Story = {
+  name: 'The original Deck Planner entry opens a migration notice',
+  parameters: {
+    shipInfo: {
+      lifecycle: false,
+      plugin: 'ship-info',
+      state: plannerScenarioState(),
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await expect(await canvas.findByText('Alpha')).toBeTruthy()
+    const before = getEnvironment().store.getState()[SHIP_INFO_PLUGIN_KEY]
+
+    await userEvent.click(
+      canvas.getByRole('button', { name: 'Deck Planner' }),
+    )
+    const dialog = await screen.findByRole('dialog')
+
+    // Installation instructions use the real host labels and the package name.
+    await expect(
+      within(dialog).getByText(/Settings > Plugins/),
+    ).toBeTruthy()
+    await expect(
+      within(dialog).getByText(/Install directly from npm/),
+    ).toBeTruthy()
+    await expect(
+      within(dialog).getByText('poi-plugin-navy-staff'),
+    ).toBeTruthy()
+
+    // The notice has no planner controls and does not mutate plugin state.
+    await expect(
+      within(dialog).queryByRole('tab', { name: 'Area View' }),
+    ).toBeNull()
+    await expect(
+      within(dialog).queryByRole('button', { name: 'Add ship' }),
+    ).toBeNull()
+    expect(getEnvironment().store.getState()[SHIP_INFO_PLUGIN_KEY]).toBe(before)
+
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Close' }))
+    await waitFor(async () => {
+      await expect(screen.queryByRole('dialog')).toBeNull()
+    })
+  },
+}
+
+export const PlannerMovedNoticeLocalized: Story = {
+  name: 'The migration notice is localized in Chinese',
+  parameters: {
+    shipInfo: {
+      language: 'zh-CN',
+      lifecycle: false,
+      plugin: 'ship-info',
+      state: plannerScenarioState(),
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await userEvent.click(
+      await canvas.findByRole('button', { name: '出击计划' }),
+    )
+    const dialog = await screen.findByRole('dialog')
+    await expect(within(dialog).getByText(/作战参谋/)).toBeTruthy()
+    await expect(
+      within(dialog).getByText(/直接从 npm 服务器安装/),
+    ).toBeTruthy()
+    await expect(
+      within(dialog).getByText('poi-plugin-navy-staff'),
+    ).toBeTruthy()
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Close' }))
+    await waitFor(async () => {
+      await expect(screen.queryByRole('dialog')).toBeNull()
+    })
   },
 }
