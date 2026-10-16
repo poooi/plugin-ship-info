@@ -241,6 +241,6 @@ The listed behavior is what the play function actually asserts.
   stories) without touching the user's disk.
 - The browser suite runs Chromium only; the RTL, scroll and pin assertions are
   Chromium-specific. There is no pixel-diff/screenshot comparison.
-- `pnpm test` (Node/jsdom, 88 tests) remains the source of truth for
+- `pnpm test` (Node/jsdom) remains the source of truth for
   reducer/selector logic, the persistence lifecycle, and the real file-writer
   reads/writes.
