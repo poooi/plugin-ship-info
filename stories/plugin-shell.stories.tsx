@@ -1,17 +1,17 @@
 import { Classes } from '@blueprintjs/core'
-import type { Meta, StoryObj } from '@storybook/react-vite'
+import type { Meta, StoryContext, StoryObj } from '@storybook/react-vite'
 import React from 'react'
 import { expect, screen, userEvent, waitFor, within } from 'storybook/test'
 
-import type { Environment } from '../tests/ui/environment'
-import { getTheme, Providers } from '../tests/ui/environment'
 import { host, setSaveDialogResult } from '../preview/adapters/logs'
+import { useScenarioReset, withShipInfo } from '../preview/decorators'
+import { i18n } from '../preview/i18n'
 import {
   persistedPluginFile,
   plannerScenarioState,
   plannerSlice,
 } from '../preview/planner-fixtures'
-import { createScenarioEnvironment, getEnvironment } from '../preview/scenario'
+import { getEnvironment } from '../preview/scenario'
 import { reactClass as ShipInfo } from '../views'
 
 const POPOVER = `.${Classes.POPOVER_CONTENT}`
@@ -25,34 +25,55 @@ const Shell: React.FC = () => (
   </div>
 )
 
-const scenario = (): Environment =>
-  createScenarioEnvironment({
-    language: 'en-US',
-    parameters: { state: plannerScenarioState() },
-    theme: 'dark',
-  })
-
-// Test-only provider wrapper that can rebuild its environment and remount the
-// real root on demand. This mirrors a story revisit: the new tree is the actual
-// plugin UI, not just a fresh scenario object.
+// Test-only control surface for the reset flow. The owning `withShipInfo`
+// decorator holds the environment and the reset callback, so the button remounts
+// the real root on a fresh environment without shadowing the toolbar globals.
 const ResetHarness: React.FC = () => {
-  const [generation, setGeneration] = React.useState(0)
-  const environment = React.useMemo(scenario, [generation])
+  const reset = useScenarioReset()
 
   return (
-    <Providers key={generation} environment={environment} theme={getTheme('dark')}>
-      <button
-        data-testid="reset-ship-info"
-        onClick={() => setGeneration((value) => value + 1)}
-        type="button"
-      >
+    <>
+      <button data-testid="reset-ship-info" onClick={reset} type="button">
         Reset scenario
       </button>
       <div style={{ display: 'flex', height: 680, width: 1200 }}>
         <ShipInfo />
       </div>
-    </Providers>
+    </>
   )
+}
+
+// Portable Vitest stories have no manager channel to switch toolbar globals at
+// runtime, so this harness rerenders the real owning decorator with controllable
+// globals. Theme/locale therefore travel the same resolution path the toolbar
+// uses, and changing them after the first render rebuilds the environment.
+const SettingsHarness: React.FC<{ context: StoryContext }> = ({ context }) => {
+  const [globals, setGlobals] = React.useState({
+    locale: 'en-US',
+    theme: 'dark',
+  })
+
+  return (
+    <>
+      <button
+        data-testid="switch-toolbar-settings"
+        onClick={() => setGlobals({ locale: 'ja-JP', theme: 'light' })}
+        type="button"
+      >
+        Switch settings
+      </button>
+      {withShipInfo(() => <ResetHarness />, { ...context, globals })}
+    </>
+  )
+}
+
+// The innermost decorated surface: the harness renders a second decorator pass
+// on top of the project decorator, so the last surface reflects its globals.
+const decoratedSurface = () => {
+  const surfaces = document.querySelectorAll<HTMLElement>(
+    '[data-ship-info-scenario]',
+  )
+  return surfaces[surfaces.length - 1]
 }
 
 const meta = {
@@ -348,6 +369,74 @@ export const ResetRemountsFreshRoot: Story = {
     await expect(host.log.clipboardWrites).toEqual([])
     await expect(host.log.downloads).toEqual([])
     await expect(host.log.saveDialogCalls).toEqual([])
+    await expect(host.log.writtenFiles).toEqual([])
+    await expect(host.log.files).toEqual({})
+  },
+}
+
+const DARK_SURFACE = 'rgb(28, 33, 39)'
+const LIGHT_SURFACE = 'rgb(246, 247, 249)'
+
+export const ToolbarSettingsSurviveReset: Story = {
+  name: 'Resolved theme/locale drive the reset preview',
+  parameters: { shipInfo: { state: plannerScenarioState() } },
+  render: (_args, context) => <SettingsHarness context={context} />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    const ja = i18n.getFixedT('ja-JP', 'poi-plugin-ship-info')
+    const jaName = ja('Name') as string
+
+    await expect(await canvas.findByText('Alpha')).toBeTruthy()
+
+    // The preview starts from dark / en-US.
+    await expect(getComputedStyle(decoratedSurface()).backgroundColor).toBe(
+      DARK_SURFACE,
+    )
+    await expect(canvas.getByText('Name')).toBeTruthy()
+
+    // Change theme/locale after the first render. The decorator must resolve
+    // the new settings and recreate the environment behind the rendered root.
+    await userEvent.click(screen.getByTestId('switch-toolbar-settings'))
+    await waitFor(async () => {
+      await expect(getComputedStyle(decoratedSurface()).backgroundColor).toBe(
+        LIGHT_SURFACE,
+      )
+    })
+    await waitFor(async () => {
+      await expect(canvas.queryByText('Name')).toBeNull()
+      await expect(canvas.getByText(jaName)).toBeTruthy()
+    })
+
+    // A real config mutation through the now-localized UI: hide the Name column.
+    await userEvent.click(canvas.getByRole('button', { name: 'Columns' }))
+    const region = (await screen.findByText(ja('Column Configuration')))
+      .closest(POPOVER) as HTMLElement
+    const nameCard = within(region).getByText(jaName).closest(CARD) as HTMLElement
+    await userEvent.click(
+      within(nameCard).getByRole('checkbox', { name: ja('Visible') as string }),
+    )
+    await dismissPopover(canvas, 'Columns')
+
+    // The rendered table visibly dropped the column and the config write landed.
+    await waitFor(async () => {
+      await expect(canvas.queryByText(jaName)).toBeNull()
+    })
+    await expect(getEnvironment().configCalls.length).toBeGreaterThan(0)
+
+    // Reset remounts on a fresh environment but keeps the resolved theme/locale,
+    // and the fresh root starts from unmutated config again.
+    await userEvent.click(screen.getByTestId('reset-ship-info'))
+
+    await waitFor(async () => {
+      await expect(canvas.getByText(jaName)).toBeTruthy()
+    })
+    await expect(canvas.getByText('Alpha')).toBeTruthy()
+    await expect(getComputedStyle(decoratedSurface()).backgroundColor).toBe(
+      LIGHT_SURFACE,
+    )
+    await expect(canvas.queryByText('Name')).toBeNull()
+    await expect(getEnvironment().configCalls).toEqual([])
+    await expect(host.log.clipboardWrites).toEqual([])
     await expect(host.log.writtenFiles).toEqual([])
     await expect(host.log.files).toEqual({})
   },

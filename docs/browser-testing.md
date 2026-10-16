@@ -5,7 +5,7 @@ The plugin has two independent UI test layers:
 | Layer | Runner | State | Scenarios |
 | --- | --- | --- | --- |
 | Node/jsdom | `pnpm test` (`vp test run`) | jsdom via `tests/setup.ts` | 71 tests across 9 files |
-| Browser | `pnpm run test:browser` (`vitest run --config vitest.browser.config.ts`) | Real Chromium via Playwright | 86 story scenarios across 12 files |
+| Browser | `pnpm run test:browser` (`vitest run --config vitest.browser.config.ts`) | Real Chromium via Playwright | 87 story scenarios across 12 files |
 
 The browser project is deliberately a separate Vitest config. It does **not**
 inherit `tests/setup.ts` or the jsdom geometry stubs in `tests/ui/mocks.tsx`,
@@ -213,6 +213,7 @@ The listed behavior is what the play function actually asserts.
 | `PluginShell/FilterAffectsTableAndExport` | Unchecking all ship types empties the table and the exported CSV (header only); restoring brings back the exact sorted ids. |
 | `PluginShell/ColumnVisibilityAffectsTable` | Hiding a column removes it from the table while its config card remains. |
 | `PluginShell/ResetRemountsFreshRoot` | After hiding a column, copying the clipboard and exporting a file, a remount shows the original rows/columns again with empty config, clipboard and file logs. |
+| `PluginShell/ToolbarSettingsSurviveReset` | Theme/locale resolved by the owning decorator drive the rendered surface; changing them after first render rerenders the real root, a localized column toggle mutates the table, and a reset keeps the resolved theme/locale while clearing config and host logs. |
 
 ## Honest boundaries
 
