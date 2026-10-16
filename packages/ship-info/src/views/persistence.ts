@@ -4,11 +4,18 @@ import {
   createPersistence as createEngine,
   isEnoent,
   isRecord,
+  migratePersistedVersion,
   toPersistedDataError,
+  type PersistedMigration,
   type PersistenceActions,
   type PersistenceOptions as EngineOptions,
 } from '@poi-plugins/ship-info-shared/persistence'
 import { ACTIONS, DATA_PATH, PLUGIN_KEY } from './plugin-identity'
+
+// Ordered file-format migrations; version 0 is an absent `version` field and the
+// current version is the step count. Step 0 only stamps the version.
+const migrations: readonly PersistedMigration[] = [(data) => data]
+const CURRENT_VERSION = migrations.length
 
 // Ship Info's persisted state is the table's bookmarks and transient UI marker.
 // It no longer owns the planner: the legacy `planner` field is captured
@@ -110,7 +117,11 @@ export const createPersistence = (
     writer: options.writer,
     prepareWrite: (slice) => {
       const { error: _error, ...persisted } = slice
-      return legacyPresent ? { ...persisted, planner: legacyPlanner } : persisted
+      return {
+        ...persisted,
+        version: CURRENT_VERSION,
+        ...(legacyPresent ? { planner: legacyPlanner } : {}),
+      }
     },
     load: async (context) => {
       let raw: unknown
@@ -131,7 +142,37 @@ export const createPersistence = (
         )
       }
 
-      const data = parsePersisted(raw)
+      if (!isRecord(raw)) {
+        throw toPersistedDataError(
+          'invalid',
+          'persisted data is not an object',
+          undefined,
+        )
+      }
+
+      // Migrate before validating the current format so a migration can reshape
+      // an old layout. A current file is returned unchanged by the helper.
+      const migrated = migratePersistedVersion(raw, migrations)
+      const data = parsePersisted(migrated)
+
+      // Upgrade is written before persistence is enabled; a current file is not
+      // rewritten. The transient `error` field is stripped as on a normal save.
+      if (migrated !== raw) {
+        if (context.isStale()) {
+          return data
+        }
+        const { error: _error, ...payload } = migrated
+        try {
+          await context.writeAndWait(context.dataPath, payload)
+        } catch (error) {
+          throw toPersistedDataError(
+            'migrate',
+            'failed to write migrated persisted data',
+            error,
+          )
+        }
+      }
+
       // Establish generation validity before mutating this instance's legacy
       // payload; a superseded run must not touch it.
       if (!context.isStale()) {

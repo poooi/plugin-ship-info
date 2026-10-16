@@ -148,6 +148,7 @@ describe('Navy Staff lifecycle hooks', () => {
     expect(h.files[DATA_PATH]).toEqual({
       planner: { archive: { a: [[1]] }, current: [[2, 3]] },
       ready: true,
+      version: 1,
     })
     lifecycle.pluginWillUnload()
   })

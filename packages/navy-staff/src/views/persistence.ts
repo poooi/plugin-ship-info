@@ -4,7 +4,10 @@ import {
   createPersistence as createEngine,
   isEnoent,
   isRecord,
+  migratePersistedVersion,
+  PersistedDataError,
   toPersistedDataError,
+  type PersistedMigration,
   type PersistenceActions,
   type PersistenceOptions as EngineOptions,
 } from '@poi-plugins/ship-info-shared/persistence'
@@ -24,6 +27,34 @@ export interface PlannerData {
 
 export interface ParsedNavyData {
   planner: PlannerData
+}
+
+// Ordered file-format migrations; version 0 is an absent `version` field and the
+// current version is the step count. Step 0 only stamps the version.
+const migrations: readonly PersistedMigration[] = [(data) => data]
+const CURRENT_VERSION = migrations.length
+
+// Legacy Ship Info sources are accepted unversioned (v0) or at v1; a future
+// source version is rejected rather than silently imported.
+const LEGACY_CURRENT_VERSION = 1
+
+const validateLegacyVersion = (raw: Record<string, unknown>): void => {
+  const version = raw.version
+  if (version === undefined) {
+    return
+  }
+  if (
+    typeof version !== 'number' ||
+    !Number.isInteger(version) ||
+    version < 0 ||
+    version > LEGACY_CURRENT_VERSION
+  ) {
+    throw toPersistedDataError(
+      'legacy',
+      'unsupported legacy persisted version',
+      undefined,
+    )
+  }
 }
 
 const isShipId = (value: unknown): value is number => Number.isInteger(value)
@@ -90,6 +121,7 @@ export const parseLegacyPlanner = (raw: unknown): PlannerData => {
       undefined,
     )
   }
+  validateLegacyVersion(raw)
   if (!('planner' in raw) || raw.planner === undefined) {
     return { archive: {}, current: [] }
   }
@@ -171,7 +203,11 @@ const migrateFromLegacy = async (
   }
 
   try {
-    await context.writeAndWait(context.dataPath, { planner: plan, ready: true })
+    await context.writeAndWait(context.dataPath, {
+      planner: plan,
+      ready: true,
+      version: CURRENT_VERSION,
+    })
   } catch (error) {
     throw toPersistedDataError(
       'migrate',
@@ -196,7 +232,7 @@ export const createPersistence = (options: NavyPersistenceOptions = {}) => {
     writer: options.writer,
     prepareWrite: (slice) => {
       const { error: _error, ...persisted } = slice
-      return persisted
+      return { ...persisted, version: CURRENT_VERSION }
     },
     load: async (context) => {
       let plan: PlannerData
@@ -205,9 +241,36 @@ export const createPersistence = (options: NavyPersistenceOptions = {}) => {
         if (context.isStale()) {
           return EMPTY_PLAN
         }
-        // The Navy file exists: never fall back to the legacy file.
-        plan = parseNavyPersisted(raw).planner
+        if (!isRecord(raw)) {
+          throw toPersistedDataError(
+            'invalid',
+            'persisted data is not an object',
+            undefined,
+          )
+        }
+        // The Navy file exists: never fall back to the legacy file. Migrate
+        // before validating the current format; a current file is unchanged.
+        const migrated = migratePersistedVersion(raw, migrations)
+        plan = parseNavyPersisted(migrated).planner
+        if (migrated !== raw) {
+          if (context.isStale()) {
+            return plan
+          }
+          const { error: _error, ...payload } = migrated
+          try {
+            await context.writeAndWait(context.dataPath, payload)
+          } catch (error) {
+            throw toPersistedDataError(
+              'migrate',
+              'failed to write migrated persisted data',
+              error,
+            )
+          }
+        }
       } catch (error) {
+        if (error instanceof PersistedDataError) {
+          throw error
+        }
         if (!isEnoent(error)) {
           throw toPersistedDataError(
             'read',

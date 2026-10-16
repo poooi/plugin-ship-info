@@ -10,6 +10,11 @@ CSV export. The sortie planner is maintained separately as
 The former **Deck Planner** entry opens a migration notice with the new plugin
 name and installation instructions in poi.
 
+Saved files use format `version: 1`. Existing unversioned files are upgraded on
+load, preserving bookmarks, UI state, and any legacy planner data for Navy
+Staff to import. Later format changes migrate in version order. Unsupported
+newer formats are left untouched and reported as load errors.
+
 ## Install
 
 Open **Settings → Plugins** in poi, find **Ship Girls Info** in the plugin

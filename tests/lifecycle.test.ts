@@ -162,7 +162,11 @@ describe('Ship Info plugin lifecycle hooks', () => {
   })
 
   it('shares one serialized writer across module reloads so the latest edit wins', async () => {
-    h.files[DATA_PATH] = { bookmark: { alpha: { name: 'alpha' } }, ready: true }
+    h.files[DATA_PATH] = {
+      bookmark: { alpha: { name: 'alpha' } },
+      ready: true,
+      version: 1,
+    }
     const firstStore = createHostStore()
     storeHolder.store = firstStore
 
@@ -238,7 +242,11 @@ describe('Ship Info plugin lifecycle hooks', () => {
 
   it('notifies a translated save error with no locale fallback', async () => {
     setI18n('ja-JP', jaJP)
-    h.files[DATA_PATH] = { bookmark: { alpha: { name: 'alpha' } }, ready: true }
+    h.files[DATA_PATH] = {
+      bookmark: { alpha: { name: 'alpha' } },
+      ready: true,
+      version: 1,
+    }
     const store = createHostStore()
     storeHolder.store = store
     const toast = (window as any).toast

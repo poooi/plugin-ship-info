@@ -5,7 +5,7 @@ The plugin has two independent UI test layers:
 | Layer | Runner | State | Scenarios |
 | --- | --- | --- | --- |
 | Node/jsdom | `pnpm test` (`vp test run`) | jsdom via `tests/setup.ts` | Persistence, selectors, reducers, CSV, and UI integration |
-| Browser | `pnpm run test:browser` (`vitest run --config vitest.browser.config.ts`) | Real Chromium via Playwright | 99 story scenarios across 13 files |
+| Browser | `pnpm run test:browser` (`vitest run --config vitest.browser.config.ts`) | Real Chromium via Playwright | 101 story scenarios across 13 files |
 
 The browser project is deliberately a separate Vitest config. It does **not**
 inherit `tests/setup.ts` or the jsdom geometry stubs in `tests/ui/mocks.tsx`,
@@ -234,6 +234,7 @@ button or modal) with `shipInfo.plugin: 'navy-staff'`.
 | --- | --- |
 | `NavyStaff/Area/*`, `NavyStaff/ShipGrid/*`, `NavyStaff/Capture/*` | The moved planner workflows: search/type tabs, add/move/remove, tag synchronization, both layouts, and detached-only capture. |
 | `NavyStaff/Integrated/NavyAlone` | Navy Staff alone renders its main view with no Ship Info table or sidebar present. |
+| `NavyStaff/Integrated/UpgradesStoredFileAndSaves` | An unversioned Navy file upgrades to v1, retains the plan and archive, and a later UI edit saves in v1. |
 | `NavyStaff/Integrated/BothPluginsIndependent` | Both plugins run on one host store with isolated slices (Navy plan vs Ship Info bookmarks). |
 | `NavyStaff/Integrated/MigratedPlanSmallerMap` | A plan imported from Ship Info is retained (not truncated) when the host map has fewer areas. |
 | `NavyStaff/Integrated/MigratedPlanUnloadedRoster` | A migrated plan is kept while the host roster/map data has not loaded. |
@@ -245,6 +246,7 @@ button or modal) with `shipInfo.plugin: 'navy-staff'`.
 | Story export | Asserts |
 | --- | --- |
 | `PluginShell/MountsWithPersistedState` | The real root mounts the table and sidebar (no Deck Planner button) and the lifecycle loads the seeded file, leaving the legacy planner field untouched. |
+| `PluginShell/UpgradesStoredFileAndSaves` | An unversioned Ship Info file upgrades to v1, preserves opaque legacy planner data, and a subsequent store update saves in v1. |
 | `PluginShell/SavesWithoutPlannerOpen` | A plugin state change is written to the plugin file while persistence is lifecycle-owned, not UI-owned. |
 | `PluginShell/CorruptFileSurfacesLoadError` | A corrupt persisted file surfaces a load error and a toast, saving stays disabled, and the source file is left untouched. |
 | `PluginShell/SidebarPanelsOpenAndClose` | Columns, Filter and Export open and close. |

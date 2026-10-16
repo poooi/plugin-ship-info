@@ -181,10 +181,125 @@ describe('Navy persistence migration', () => {
     return { persistence, writes }
   }
 
+  it('upgrades a v0 Navy file to v1, preserving the plan, before ready', async () => {
+    const store = createStore()
+    const v0 = { planner: { archive: { a: [[1]] }, current: [[2]] } }
+    const readFile = readFrom({ [NAVY]: v0 })
+    // Deferred writer: the upgrade write must settle before ready.
+    const writes: Array<{ callback?: () => void; data: any }> = []
+    const writer: PersistenceWriter = {
+      write: (_filePath, data, _options, callback) => {
+        writes.push({ callback, data })
+      },
+    }
+    const persistence = createPersistence({
+      dataPath: NAVY,
+      isMain: true,
+      legacyDataPath: LEGACY,
+      readFile,
+      writer,
+    })
+    persistence.start(store)
+
+    await waitFor(() => writes.length === 1)
+    expect(sliceOf(store).ready).toBe(false)
+    expect(writes[0].data).toEqual({ ...v0, version: 1 })
+
+    writes[0].callback?.()
+    await waitFor(() => sliceOf(store).ready)
+    expect(sliceOf(store).planner).toEqual({
+      archive: { a: [[1]] },
+      current: [[2]],
+    })
+    persistence.stop()
+  })
+
+  it('does not rewrite a current v1 Navy file', async () => {
+    const store = createStore()
+    const readFile = readFrom({
+      [NAVY]: { planner: { archive: {}, current: [[1]] }, version: 1 },
+    })
+    const { writer, writes } = recordingWriter()
+    const persistence = createPersistence({
+      dataPath: NAVY,
+      isMain: true,
+      legacyDataPath: LEGACY,
+      readFile,
+      writer,
+    })
+    persistence.start(store)
+
+    await waitFor(() => sliceOf(store).ready)
+    expect(writes).toHaveLength(0)
+    persistence.stop()
+  })
+
+  it('rejects a malformed or unsupported Navy version without writing', async () => {
+    for (const bad of [
+      { planner: { archive: {}, current: [] }, version: '1' },
+      { planner: { archive: {}, current: [] }, version: 2 },
+      { planner: { archive: {}, current: [] }, version: -1 },
+    ]) {
+      const store = createStore()
+      const readFile = readFrom({ [NAVY]: bad })
+      const onError = vi.fn()
+      const { writer, writes } = recordingWriter()
+      const persistence = createPersistence({
+        dataPath: NAVY,
+        isMain: true,
+        legacyDataPath: LEGACY,
+        onError,
+        readFile,
+        writer,
+      })
+      persistence.start(store)
+      // eslint-disable-next-line no-await-in-loop
+      await waitFor(() => sliceOf(store).error !== null)
+      expect(sliceOf(store).ready).toBe(false)
+      expect(onError).toHaveBeenCalledTimes(1)
+      expect(writes).toHaveLength(0)
+    }
+  })
+
+  it('imports unversioned and v1 legacy sources, rejecting a future version', async () => {
+    for (const legacyVersion of [undefined, 1]) {
+      const store = createStore()
+      const { persistence, writes } = start(store, {
+        [LEGACY]: {
+          planner: { archive: {}, current: [[4]] },
+          ...(legacyVersion === undefined ? {} : { version: legacyVersion }),
+        },
+      })
+      // eslint-disable-next-line no-await-in-loop
+      await waitFor(() => sliceOf(store).ready)
+      expect(sliceOf(store).planner.current).toEqual([[4]])
+      expect(writes[0].data.version).toBe(1)
+      persistence.stop()
+    }
+
+    const store = createStore()
+    const onError = vi.fn()
+    const { writer, writes } = recordingWriter()
+    const persistence = createPersistence({
+      dataPath: NAVY,
+      isMain: true,
+      legacyDataPath: LEGACY,
+      onError,
+      readFile: readFrom({
+        [LEGACY]: { planner: { archive: {}, current: [[4]] }, version: 2 },
+      }),
+      writer,
+    })
+    persistence.start(store)
+    await waitFor(() => sliceOf(store).error !== null)
+    expect(sliceOf(store).ready).toBe(false)
+    expect(writes).toHaveLength(0)
+  })
+
   it('uses an existing Navy file as authoritative (even an empty plan)', async () => {
     const store = createStore()
     const readFile = readFrom({
-      [NAVY]: { planner: { archive: {}, current: [] } },
+      [NAVY]: { planner: { archive: {}, current: [] }, version: 1 },
       [LEGACY]: { planner: { archive: {}, current: [[7]] } },
     })
     const { writer } = recordingWriter()
@@ -224,6 +339,7 @@ describe('Navy persistence migration', () => {
     expect(writes[0].data).toEqual({
       planner: { archive: { a: [[1]] }, current: [[2, 3]] },
       ready: true,
+      version: 1,
     })
     // Legacy source is never written to.
     expect(writes.every((w) => w.path === NAVY)).toBe(true)
@@ -236,6 +352,7 @@ describe('Navy persistence migration', () => {
     await waitFor(() => sliceOf(store).ready)
     expect(sliceOf(store).planner).toEqual({ archive: {}, current: [] })
     expect(writes[0].data.planner).toEqual({ archive: {}, current: [] })
+    expect(writes[0].data.version).toBe(1)
     persistence.stop()
   })
 
@@ -341,7 +458,11 @@ describe('Navy persistence migration', () => {
     persistence.stop()
 
     // The migration write committed the Navy file (recordingWriter semantics).
-    files[NAVY] = { planner: { archive: {}, current: [[1]] }, ready: true }
+    files[NAVY] = {
+      planner: { archive: {}, current: [[1]] },
+      ready: true,
+      version: 1,
+    }
     readFile.mockClear()
     writes.length = 0
 
@@ -404,7 +525,11 @@ describe('Navy persistence migration', () => {
     persistence.stop()
 
     // A newer import writes the authoritative Navy file.
-    files[NAVY] = { planner: { archive: {}, current: [[9]] }, ready: true }
+    files[NAVY] = {
+      planner: { archive: {}, current: [[9]] },
+      ready: true,
+      version: 1,
+    }
 
     // Generation 2: reads the authoritative file, becomes ready.
     persistence.start(store)

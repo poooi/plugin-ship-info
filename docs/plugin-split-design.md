@@ -128,6 +128,34 @@ Use a one-time import into the new file, after which each plugin saves its own d
 5. During a transition period, Ship Info preserves the legacy `planner` value when saving its original file, without continuing to maintain planner behavior. This supports users who upgrade Ship Info before installing Navy Staff. Decide removal of the legacy field separately.
 6. Import `plugin.ShipInfo.displayFleetName` only when `plugin.NavyStaff.displayFleetName` is unset; preserve explicit false and true. Recheck the unset option on successful loads, so unloading after the initial file write cannot permanently skip configuration import.
 
+### File format versions
+
+Both plugin files now have a top-level integer `version`. Each plugin owns its
+format version and migration steps independently; this number is unrelated to
+its npm package version.
+
+- Files without `version` use format v0. The initial migration, v0 → v1, adds
+  `"version": 1` without changing the data layout.
+- Loading an older supported format applies migrations in order, validates the
+  resulting data, and saves the upgraded file before enabling normal editing.
+  A v1 file needs no migration write. Subsequent saves include the current
+  format version; the version is file metadata, not Redux state.
+- Ship Info preserves its opaque legacy `planner` field, including explicit
+  `null`, while upgrading its own file. Navy Staff imports planner data from
+  either unversioned or v1 Ship Info files only when its own file is absent,
+  and writes a v1 Navy file without modifying the source.
+- Unknown future versions and invalid version values are load errors. Do not
+  guess their layout or overwrite them. A newer Ship Info source format is
+  likewise not silently imported by an older Navy Staff implementation.
+- Add a migration step when a plugin's persisted layout changes. Steps transform
+  one version into the next; shared code only runs the ordered steps and checks
+  the version boundary.
+
+File absence is the only special initialization case. Other read, parse, and
+write failures retain the existing error behavior. There is no corrupt-file
+reset, backup, automatic recovery, or additional notification policy. Failed or
+superseded format migrations must not enable editing or overwrite a newer load.
+
 Migration and event changes are separate concerns. Do not truncate imported arrays because the current event has a different area count. Confirm sortie tag synchronization, event transitions, and obsolete assignment handling before implementation. The first split does not introduce a new event archive system.
 
 ## 7. Build, translations, and publishing

@@ -6,8 +6,9 @@ import { I18nextProvider } from 'react-i18next'
 import { WindowEnv } from 'views/components/etc/window-env'
 
 import { createNavyOnlyI18n } from '../preview/i18n'
-
+import { host } from '../preview/adapters/logs'
 import {
+  NAVY_PLUGIN_DATA_PATH,
   persistedPluginFile,
   plannerScenarioState,
   plannerSlice,
@@ -234,5 +235,57 @@ export const DetachedDisplayOptionUsesGlobalConfig: Story = {
         ),
       ).toBe(true)
     })
+  },
+}
+
+export const UpgradesStoredFileAndSaves: Story = {
+  name: 'A v0 Navy file is upgraded to v1 and later saves keep v1',
+  parameters: {
+    shipInfo: {
+      dimensions: { width: 1400, height: 760 },
+      files: {
+        [NAVY_PLUGIN_DATA_PATH]: {
+          planner: { archive: {}, current: [[1]] },
+          ready: true,
+        },
+      },
+      lifecycle: true,
+      plugin: 'navy-staff',
+      state: plannerScenarioState({ mapname: ['E1'] }),
+    },
+  },
+  play: async () => {
+    const view = await playOnMainView()
+    const environment = getEnvironment()
+    await waitFor(() => {
+      expect(environment.store.getState()['poi-plugin-navy-staff'].ready).toBe(
+        true,
+      )
+    })
+
+    // The v0 file was upgraded in place, preserving the plan.
+    await waitFor(() => {
+      expect((host.log.files[NAVY_PLUGIN_DATA_PATH] as any)?.version).toBe(1)
+    })
+    expect(
+      (host.log.files[NAVY_PLUGIN_DATA_PATH] as any)?.planner?.current,
+    ).toEqual([[1]])
+
+    await userEvent.click(
+      await within(view).findByRole('button', { name: 'Add ship' }),
+    )
+    const popover = document.querySelector(
+      `.${Classes.POPOVER_CONTENT}`,
+    ) as HTMLElement
+    await userEvent.click(await within(popover).findByText('Epsilon'))
+
+    await waitFor(() => {
+      expect(
+        (host.log.files[NAVY_PLUGIN_DATA_PATH] as any)?.planner?.current?.flat(),
+      ).toContain(5)
+    })
+    await expect(
+      (host.log.files[NAVY_PLUGIN_DATA_PATH] as any)?.version,
+    ).toBe(1)
   },
 }
