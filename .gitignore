@@ -74,3 +74,10 @@ package-lock.json
 
 index.js
 index.js.map
+
+# Storybook
+storybook-static/
+
+# Vitest browser failure artifacts
+__screenshots__/
+.vitest/

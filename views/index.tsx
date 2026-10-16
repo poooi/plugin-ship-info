@@ -1,4 +1,4 @@
-import React, { ReactElement, FunctionComponent } from 'react'
+import React, { ReactElement } from 'react'
 import styled, { createGlobalStyle } from 'styled-components'
 
 import { Sidebar } from './sidebar'
@@ -27,7 +27,7 @@ const GlobalStyle = createGlobalStyle`
   }
 `
 
-export const reactClass: FunctionComponent<null> = (): ReactElement => (
+export const reactClass = (): ReactElement => (
   <Provider>
     <ShipInfo id="poi-plugin-ship-info">
       <GlobalStyle />

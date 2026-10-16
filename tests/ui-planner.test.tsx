@@ -17,8 +17,8 @@ vi.mock('electron', async () => (await import('./ui/boundaries')).createElectron
 vi.mock('../lib/html2canvas', () => ({ default: () => undefined }))
 
 import { AddShip } from '../views/sidebar/planner/add-ship'
+import { plannerState } from './ui/fixtures'
 import { createHarness } from './ui/harness'
-import { plannerState } from './ui/mocks'
 
 const renderMenu = () => {
   const h = createHarness(plannerState())

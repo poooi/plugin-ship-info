@@ -9,10 +9,14 @@ import {
 } from '@blueprintjs/core'
 import cls from 'classnames'
 import Fuse from 'fuse.js'
-import _, { get, map, padEnd, values } from 'lodash'
+import _, { map, padEnd } from 'lodash'
 import React, { Component, ComponentType, FormEvent } from 'react'
 import FA from 'react-fontawesome'
-import { withTranslation, WithTranslation } from 'react-i18next'
+import {
+  useTranslation,
+  withTranslation,
+  WithTranslation,
+} from 'react-i18next'
 import { connect } from 'react-redux'
 import { compose } from 'redux'
 import styled from 'styled-components'
@@ -120,7 +124,10 @@ const Menu = compose<ComponentType<{}>>(
     }
 
     public componentDidUpdate = (prevProps: IProps) => {
-      if (values(this.props.ships).length !== values(prevProps.ships).length) {
+      // Rebuild the index whenever the ship collection changes, not only when a
+      // ship is added or removed: a same-count host update (rename, remodel,
+      // level change) also has to be searchable immediately.
+      if (this.props.ships !== prevProps.ships) {
         this.fuse.setCollection(this.props.ships)
         this.forceUpdate()
       }
@@ -158,6 +165,7 @@ const Menu = compose<ComponentType<{}>>(
             onChange={this.handleQueryChange}
             rightElement={
               <Button
+                aria-label={t('Clear')}
                 minimal
                 onClick={this.handleClear}
                 intent={Intent.WARNING}
@@ -192,7 +200,17 @@ const Menu = compose<ComponentType<{}>>(
                       .map((ship) => (
                         <ShipItem
                           key={ship.id}
+                          role="button"
+                          tabIndex={0}
                           onClick={this.handleSelect(ship.id)}
+                          onKeyDown={(event) => {
+                            if (event.key === 'Enter' || event.key === ' ') {
+                              event.preventDefault()
+                              // Replay the click so Blueprint's
+                              // POPOVER_DISMISS handling closes the menu too.
+                              event.currentTarget.click()
+                            }
+                          }}
                           className={cls(Classes.POPOVER_DISMISS)}
                         >
                           <ShipLv>Lv.{padEnd(String(ship.lv), 4)}</ShipLv>
@@ -217,10 +235,13 @@ const Menu = compose<ComponentType<{}>>(
 )
 
 // separate menu from popover component to prevent unnecessary updates
-export const AddShip = ({ ...props }) => (
-  <Popover content={<Menu {...props} />} hasBackdrop>
-    <Button minimal>
-      <FA name="plus" />
-    </Button>
-  </Popover>
-)
+export const AddShip = ({ ...props }) => {
+  const { t } = useTranslation('poi-plugin-ship-info')
+  return (
+    <Popover content={<Menu {...props} />} hasBackdrop>
+      <Button aria-label={t('Add ship')} minimal>
+        <FA name="plus" />
+      </Button>
+    </Popover>
+  )
+}

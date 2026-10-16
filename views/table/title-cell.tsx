@@ -3,12 +3,14 @@ import FA from 'react-fontawesome'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
 
-export interface ITitleCellProps extends HTMLAttributes<HTMLDivElement> {
+export interface ITitleCellProps
+  extends Omit<HTMLAttributes<HTMLDivElement>, 'onClick'> {
   title: string
   sortable: boolean
   centerAlign: boolean
   sorting: boolean
   up: boolean
+  onClick?: () => void
 }
 
 export const noop = (): void => {
@@ -37,6 +39,13 @@ export const TitleCell = ({
       role="button"
       tabIndex={0}
       onClick={sortable ? onClick : noop}
+      onKeyDown={(event) => {
+        if (!sortable) return
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          onClick?.()
+        }
+      }}
       sorting={sorting}
       sortable={sortable}
     >

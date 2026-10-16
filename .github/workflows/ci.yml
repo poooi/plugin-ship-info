@@ -36,3 +36,39 @@ jobs:
           name: drop
           path: '*.tgz'
           if-no-files-found: error
+
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Build Storybook preview
+        run: pnpm run build-storybook
+      - name: Browser tests (Chromium)
+        run: pnpm run test:browser
+      - name: Upload browser failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: browser-failure-artifacts
+          # Verified artifact paths for Vitest 5 browser runs (traces are
+          # configured under .vitest so Storybook never indexes them):
+          # - failure screenshots (.png) and copied attachments (.zip):
+          #   .vitest/attachments
+          # - retained Playwright traces (.trace.zip): .vitest/traces
+          path: |
+            .cache/logs
+            .vitest/attachments
+            .vitest/traces
+          # `.vitest/attachments` is a dot-directory; upload-artifact skips
+          # hidden files unless this is set.
+          include-hidden-files: true
+          if-no-files-found: ignore

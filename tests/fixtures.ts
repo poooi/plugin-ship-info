@@ -7,6 +7,10 @@ export const mkShip = (over: Record<string, any> = {}): any => ({
   api_cond: 49,
   api_exp: [0, 0],
   api_id: 1,
+  // Owned ships are keyed by instance id; master data is at `$ships[api_ship_id]`.
+  // Default the master id to the instance id, matching these fixtures; override
+  // to model a distinct instance/master pair.
+  api_ship_id: over.api_id ?? 1,
   api_kaihi: [40, 80],
   api_karyoku: [10, 20],
   api_kyouka: [0, 0, 0, 0, 0],

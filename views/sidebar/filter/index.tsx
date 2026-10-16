@@ -1,6 +1,7 @@
 import { Button } from '@blueprintjs/core'
 import React from 'react'
 import FA from 'react-fontawesome'
+import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
 import { Popover } from 'views/components/etc/overlay'
 
@@ -24,40 +25,44 @@ const FilterGrid = styled.div`
   gap: 16px;
 `
 
-export const Filter = () => (
-  <Popover
-    content={
-      <FilterContainer>
-        <ShipTypeCheck />
-        <LevelRange />
-        <SallyAreaCheck />
-        <FilterGrid>
-          <YesNoCheck configKey="locked" label="Lock" />
-          <YesNoCheck configKey="expedition" label="Expedition" />
-          <YesNoCheck configKey="inFleet" label="In Fleet" />
-          <YesNoCheck configKey="sparkle" label="Sparkle" />
-          <YesNoCheck configKey="exSlot" label="Extra Slot" />
-          <YesNoCheck configKey="daihatsu" label="Daihatsu" />
-          <YesNoCheck
-            configKey="modernization"
-            label="Modernization Completed"
-          />
-          <YesNoCheck configKey="remodel" label="Remodelable" />
-        </FilterGrid>
-        <div>
-          <RadioCheck
-            configKey="rawValue"
-            label="Value Type"
-            options={rawValueOptions}
-            default={0}
-          />
-        </div>
-      </FilterContainer>
-    }
-    hasBackdrop
-  >
-    <Button minimal>
-      <FA name="filter" />
-    </Button>
-  </Popover>
-)
+export const Filter = () => {
+  const { t } = useTranslation('poi-plugin-ship-info')
+
+  return (
+    <Popover
+      content={
+        <FilterContainer>
+          <ShipTypeCheck />
+          <LevelRange />
+          <SallyAreaCheck />
+          <FilterGrid>
+            <YesNoCheck configKey="locked" label="Lock" />
+            <YesNoCheck configKey="expedition" label="Expedition" />
+            <YesNoCheck configKey="inFleet" label="In Fleet" />
+            <YesNoCheck configKey="sparkle" label="Sparkle" />
+            <YesNoCheck configKey="exSlot" label="Extra Slot" />
+            <YesNoCheck configKey="daihatsu" label="Daihatsu" />
+            <YesNoCheck
+              configKey="modernization"
+              label="Modernization Completed"
+            />
+            <YesNoCheck configKey="remodel" label="Remodelable" />
+          </FilterGrid>
+          <div>
+            <RadioCheck
+              configKey="rawValue"
+              label="Value Type"
+              options={rawValueOptions}
+              default={0}
+            />
+          </div>
+        </FilterContainer>
+      }
+      hasBackdrop
+    >
+      <Button aria-label={t('Filter')} minimal>
+        <FA name="filter" />
+      </Button>
+    </Popover>
+  )
+}

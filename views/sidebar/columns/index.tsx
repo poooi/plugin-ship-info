@@ -1,5 +1,6 @@
 import { Button } from '@blueprintjs/core'
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import FA from 'react-fontawesome'
 import styled from 'styled-components'
 import { Popover } from 'views/components/etc/overlay'
@@ -13,17 +14,21 @@ const ColumnsContainer = styled.div`
   overflow: auto;
 `
 
-export const Columns = () => (
-  <Popover
-    content={
-      <ColumnsContainer>
-        <ColumnConfig />
-      </ColumnsContainer>
-    }
-    hasBackdrop
-  >
-    <Button minimal>
-      <FA name="columns" />
-    </Button>
-  </Popover>
-)
+export const Columns = () => {
+  const { t } = useTranslation('poi-plugin-ship-info')
+
+  return (
+    <Popover
+      content={
+        <ColumnsContainer>
+          <ColumnConfig />
+        </ColumnsContainer>
+      }
+      hasBackdrop
+    >
+      <Button aria-label={t('Columns')} minimal>
+        <FA name="columns" />
+      </Button>
+    </Popover>
+  )
+}

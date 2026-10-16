@@ -32,6 +32,10 @@ clipboard CSV output, and planner search/selection. Host services and viewport
 geometry are supplied by test fixtures; these tests do not replace visual checks
 inside poi.
 
+A second layer runs the Storybook stories as real Chromium tests via Playwright:
+see [docs/browser-testing.md](docs/browser-testing.md) for the commands, the
+scenario parameters, the coverage matrix and the in-memory host boundaries.
+
 [![npm package][npm-badge]][npm]
 
 [npm-badge]: https://img.shields.io/npm/v/poi-plugin-ship-info.svg?style=flat-square

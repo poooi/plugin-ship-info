@@ -640,6 +640,44 @@ export interface IShipInfoMenuData {
   exp: number
 }
 
+// Builds one menu entry from an owned ship, its master data and the configured
+// avatar margin. Shared by the per-ship selector and the whole-roster selector
+// so both stay in lockstep.
+const mapShipMenuItem = (
+  ship: APIShip | undefined,
+  $ship: APIMstShip | undefined,
+  marginMagics: IDictionary<any> | undefined,
+): IShipInfoMenuData | undefined =>
+  !!ship && !!$ship
+    ? {
+        area: ship.api_sally_area,
+        avatarOffset: get(marginMagics, [$ship.api_id, 'normal'], 0.555),
+        exp: ship.api_exp[0],
+        id: ship.api_id,
+        lv: ship.api_lv,
+        name: $ship.api_name,
+        romaji: toRomaji($ship.api_yomi),
+        shipId: $ship.api_id,
+        superTypeIndex: reverseSuperTypeMap[$ship.api_stype] || 0,
+        typeId: $ship.api_stype,
+        yomi: $ship.api_yomi,
+      }
+    : undefined
+
+// The menu depends only on the owned roster, its master data and the avatar
+// margins. Narrowing the host `const`/`fcd` selectors here keeps the result
+// identity stable when unrelated parts of the root state change, so AddShip
+// does not rebuild its Fuse index needlessly. Both stay `undefined` when data
+// is absent instead of returning a fresh fallback that would break that
+// stability.
+const masterShipsSelector = (
+  state: IState,
+): IDictionary<APIMstShip> | undefined => constSelector(state).$ships
+
+const shipAvatarMarginsSelector = (
+  state: IState,
+): IDictionary<any> | undefined => fcdSelector(state)?.shipavatar?.marginMagics
+
 export const shipItemSelectorFactory = memoize((shipId) =>
   createSelector(
     [shipDataSelectorFactory(shipId), fcdSelector],
@@ -647,35 +685,16 @@ export const shipItemSelectorFactory = memoize((shipId) =>
       [ship, $ship] = [] as any,
       { shipavatar } = {} as any,
     ): IShipInfoMenuData | undefined =>
-      !!ship && !!$ship
-        ? {
-            area: ship.api_sally_area,
-            avatarOffset: get(
-              shipavatar,
-              ['marginMagics', $ship.api_id, 'normal'],
-              0.555,
-            ),
-            exp: ship.api_exp[0],
-            id: ship.api_id,
-            lv: ship.api_lv,
-            name: $ship.api_name,
-            romaji: toRomaji($ship.api_yomi),
-            shipId: $ship.api_id,
-            superTypeIndex: reverseSuperTypeMap[$ship.api_stype] || 0,
-            typeId: $ship.api_stype,
-            yomi: $ship.api_yomi,
-          }
-        : undefined,
+      mapShipMenuItem(ship, $ship, shipavatar?.marginMagics),
   ),
 )
 
 export const shipMenuDataSelector = createSelector(
-  [shipsSelector, (state) => state],
-  (_ships, state) =>
-    fp.flow(
-      fp.map((ship: APIShip) => ship.api_id),
-      fp.map((shipId) => shipItemSelectorFactory(shipId)(state)!),
-    )(_ships as any),
+  [shipsSelector, masterShipsSelector, shipAvatarMarginsSelector],
+  (ships, $ships, marginMagics): IShipInfoMenuData[] =>
+    map(ships, (ship: APIShip) =>
+      mapShipMenuItem(ship, $ships?.[ship.api_ship_id ?? -1], marginMagics),
+    ).filter((item): item is IShipInfoMenuData => item !== undefined),
 )
 
 export const deckPlannerCurrentSelector = createSelector(

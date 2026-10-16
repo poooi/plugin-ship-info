@@ -119,9 +119,11 @@ export const ColumnConfig: React.FC = () => {
 
   const handleToggleVisibility = useCallback(
     (columnId: string) => {
+      // Visibility defaults to visible when unset, so invert the effective
+      // state rather than the raw value: !undefined would wrongly stay visible.
       const newVisibility = {
         ...columnVisibility,
-        [columnId]: !columnVisibility[columnId],
+        [columnId]: columnVisibility[columnId] === false,
       }
       window.config.set('plugin.ShipInfo.columnVisibility', newVisibility)
     },
@@ -197,6 +199,7 @@ export const ColumnConfig: React.FC = () => {
                   <CheckboxGroup>
                     <CheckboxWithLabel>
                       <Checkbox
+                        aria-label={t('Visible')}
                         checked={isVisible}
                         onChange={() => handleToggleVisibility(columnId)}
                       />
@@ -204,6 +207,7 @@ export const ColumnConfig: React.FC = () => {
                     </CheckboxWithLabel>
                     <CheckboxWithLabel>
                       <Checkbox
+                        aria-label={t('Pin')}
                         checked={isPinned}
                         onChange={() => handleTogglePin(columnId)}
                       />
@@ -213,6 +217,7 @@ export const ColumnConfig: React.FC = () => {
                   <ColumnTitle>{t(title)}</ColumnTitle>
                   <ButtonGroup>
                     <Button
+                      aria-label={t('Move up')}
                       icon="chevron-up"
                       small
                       minimal
@@ -220,6 +225,7 @@ export const ColumnConfig: React.FC = () => {
                       onClick={() => handleMoveUp(actualIndex)}
                     />
                     <Button
+                      aria-label={t('Move down')}
                       icon="chevron-down"
                       small
                       minimal
