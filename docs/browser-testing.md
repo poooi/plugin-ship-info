@@ -4,12 +4,12 @@ The plugin has two independent UI test layers:
 
 | Layer | Runner | State | Scenarios |
 | --- | --- | --- | --- |
-| Node/jsdom | `pnpm test` (`vp test run`) | jsdom via `tests/setup.ts` | 64 tests across 9 files |
+| Node/jsdom | `pnpm test` (`vp test run`) | jsdom via `tests/setup.ts` | 71 tests across 9 files |
 | Browser | `pnpm run test:browser` (`vitest run --config vitest.browser.config.ts`) | Real Chromium via Playwright | 86 story scenarios across 12 files |
 
 The browser project is deliberately a separate Vitest config. It does **not**
 inherit `tests/setup.ts` or the jsdom geometry stubs in `tests/ui/mocks.tsx`,
-and it keeps the 64 jsdom tests passing.
+and it keeps the 71 Node/jsdom tests passing.
 
 ## Commands
 
@@ -230,5 +230,5 @@ The listed behavior is what the play function actually asserts.
   the reset story covers export file writes through the fs adapter instead.
 - The browser suite runs Chromium only; the RTL, scroll and pin assertions are
   Chromium-specific. There is no pixel-diff/screenshot comparison.
-- `pnpm test` (jsdom, 64 tests) remains the source of truth for reducer/selector
+- `pnpm test` (Node/jsdom, 71 tests) remains the source of truth for reducer/selector
   logic and the real file-writer reads/writes.
