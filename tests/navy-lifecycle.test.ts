@@ -13,11 +13,18 @@ const h = vi.hoisted(() => ({
   files: {} as Record<string, unknown>,
   // When set, writes stay pending until `settleWrites` is called.
   deferWrites: false,
+  // When set, writes fail (simulates an unwritable Navy file).
+  failWrites: false,
+  // When set, reading the legacy source fails with this error.
+  legacyError: undefined as unknown,
   pending: [] as Array<() => void>,
 }))
 
 vi.mock('fs-extra', () => ({
   outputJson: (filePath: string, data: unknown) => {
+    if (h.failWrites) {
+      return Promise.reject(new Error('EACCES: permission denied'))
+    }
     const commit = () => {
       h.files[filePath] = structuredClone(data)
     }
@@ -33,6 +40,9 @@ vi.mock('fs-extra', () => ({
     })
   },
   readJson: async (filePath: string) => {
+    if (h.legacyError !== undefined && filePath.endsWith('ship-info.json')) {
+      throw h.legacyError
+    }
     if (!Object.prototype.hasOwnProperty.call(h.files, filePath)) {
       const error = new Error(`ENOENT: ${filePath}`) as NodeJS.ErrnoException
       error.code = 'ENOENT'
@@ -122,6 +132,8 @@ describe('Navy Staff lifecycle hooks', () => {
   beforeEach(() => {
     h.files = {}
     h.deferWrites = false
+    h.failWrites = false
+    h.legacyError = undefined
     h.pending = []
     storeHolder.store = undefined
     ;(window as any).isMain = true
@@ -250,6 +262,110 @@ describe('Navy Staff lifecycle hooks', () => {
     await flush()
     expect(sliceOf(store).ready).toBe(false)
     expect(h.files[DATA_PATH]).toBeUndefined()
+    lifecycle.pluginWillUnload()
+  })
+
+  it('warns about a corrupt legacy source after writing the empty Navy plan', async () => {
+    setI18n('ja-JP', navyJaJP)
+    h.files[LEGACY_DATA_PATH] = '{ not valid json'
+    const store = createHostStore()
+    storeHolder.store = store
+
+    const lifecycle = await importLifecycle()
+    lifecycle.pluginDidLoad()
+    await waitFor(() => sliceOf(store).ready)
+    await waitFor(() => sliceOf(store).error === null)
+
+    const toast = (window as any).toast
+    await waitFor(() => toast.mock.calls.length === 1)
+    expect(toast.mock.calls[0][0]).toBe(navyJaJP.migrationWarning)
+    expect(toast.mock.calls[0][1]).toEqual({ type: 'warning' })
+    expect(sliceOf(store).planner).toEqual({ archive: {}, current: [] })
+    expect((h.files[DATA_PATH] as any).planner).toEqual({
+      archive: {},
+      current: [],
+    })
+    lifecycle.pluginWillUnload()
+  })
+
+  it('reports a legacy read failure with the legacyRead cause, not load/save', async () => {
+    setI18n('ja-JP', navyJaJP)
+    h.legacyError = Object.assign(new Error('EACCES'), { code: 'EACCES' })
+    const store = createHostStore()
+    storeHolder.store = store
+
+    const lifecycle = await importLifecycle()
+    lifecycle.pluginDidLoad()
+    await waitFor(() => sliceOf(store).error !== null)
+
+    expect(sliceOf(store).error).toBe('legacyRead')
+    expect(sliceOf(store).ready).toBe(false)
+    const toast = (window as any).toast
+    await waitFor(() => toast.mock.calls.length === 1)
+    expect(toast.mock.calls[0][0]).toBe(navyJaJP.legacyReadError)
+    lifecycle.pluginWillUnload()
+  })
+
+  it('reports an initial migration write failure with the save cause, not load', async () => {
+    setI18n('ja-JP', navyJaJP)
+    h.files[LEGACY_DATA_PATH] = { planner: { archive: {}, current: [[1]] } }
+    h.failWrites = true
+    const store = createHostStore()
+    storeHolder.store = store
+
+    const lifecycle = await importLifecycle()
+    lifecycle.pluginDidLoad()
+    await waitFor(() => sliceOf(store).error !== null)
+
+    expect(sliceOf(store).error).toBe('save')
+    expect(sliceOf(store).ready).toBe(false)
+    const toast = (window as any).toast
+    await waitFor(() => toast.mock.calls.length === 1)
+    expect(toast.mock.calls[0][0]).toBe(navyJaJP.saveError)
+    lifecycle.pluginWillUnload()
+  })
+
+  it('does not warn when corrupt legacy is followed by an initial write failure', async () => {
+    setI18n('ja-JP', navyJaJP)
+    h.files[LEGACY_DATA_PATH] = { planner: { current: [['bad']] } }
+    h.failWrites = true
+    const store = createHostStore()
+    storeHolder.store = store
+
+    const lifecycle = await importLifecycle()
+    lifecycle.pluginDidLoad()
+    await waitFor(() => sliceOf(store).error !== null)
+
+    expect(sliceOf(store).error).toBe('save')
+    expect(sliceOf(store).ready).toBe(false)
+    const toast = (window as any).toast
+    await waitFor(() => toast.mock.calls.length === 1)
+    expect(toast.mock.calls[0][0]).toBe(navyJaJP.saveError)
+    expect(toast.mock.calls.some((c: any[]) => c[0] === navyJaJP.migrationWarning)).toBe(false)
+    lifecycle.pluginWillUnload()
+  })
+
+  it('does not warn for corrupt legacy whose deferred write completes after unload', async () => {
+    setI18n('ja-JP', navyJaJP)
+    h.files[LEGACY_DATA_PATH] = { planner: { current: [['bad']] } }
+    h.deferWrites = true
+    const store = createHostStore()
+    storeHolder.store = store
+
+    const lifecycle = await importLifecycle()
+    lifecycle.pluginDidLoad()
+    await flush()
+    await flush()
+    expect(h.pending.length).toBe(1)
+
+    lifecycle.pluginWillUnload()
+    settleWrites()
+    await flush()
+
+    expect(sliceOf(store).ready).toBe(false)
+    expect(sliceOf(store).error).toBeNull()
+    const toast = (window as any).toast
+    expect(toast).not.toHaveBeenCalled()
     lifecycle.pluginWillUnload()
   })
 })

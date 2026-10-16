@@ -4,6 +4,7 @@ import {
   createPersistence as createEngine,
   isEnoent,
   isRecord,
+  PersistedDataError,
   toPersistedDataError,
   type PersistenceActions,
   type PersistenceOptions as EngineOptions,
@@ -110,9 +111,25 @@ const applyLegacyDisplayFleetName = (): void => {
   }
 }
 
+// Distinct stored markers so the main view can show the matching message for
+// the cause: an inaccessible legacy source, a failed initial migration write,
+// or any other Navy file load error.
+const loadErrorMarker = (error: PersistedDataError): string => {
+  if (error.reason === 'legacy') {
+    return 'legacyRead'
+  }
+  if (error.reason === 'migrate') {
+    return 'save'
+  }
+  return 'load'
+}
+
 const actions: PersistenceActions<PlannerData> = {
   init: (data) => ({ data: { planner: data }, type: ACTIONS.init }),
-  loadError: () => ({ error: 'load', type: ACTIONS.loadError }),
+  loadError: (error) => ({
+    error: loadErrorMarker(error),
+    type: ACTIONS.loadError,
+  }),
   loadStart: () => ({ type: ACTIONS.loadStart }),
   ready: () => ({ type: ACTIONS.ready }),
 }
@@ -131,6 +148,11 @@ export type NavyPersistenceOptions = Partial<
 > & {
   /** Legacy Ship Info file to import from (override in tests). */
   legacyDataPath?: string
+  /**
+   * Called after a corrupt legacy source was skipped and the empty Navy plan
+   * was written successfully (current generation only).
+   */
+  onMigrationWarning?: () => void
 }
 
 // Migration from the legacy Ship Info file. The new file must be written
@@ -138,16 +160,29 @@ export type NavyPersistenceOptions = Partial<
 // saving disabled and the legacy file untouched.
 const EMPTY_PLAN: PlannerData = { archive: {}, current: [] }
 
-const migrateFromLegacy = async (
+const isSyntaxError = (error: unknown): boolean =>
+  error instanceof SyntaxError ||
+  (isRecord(error) && error.name === 'SyntaxError')
+
+// Corrupt legacy data makes the import fail, but not Navy initialization: a
+// malformed file or an invalid legacy planner shape is skipped, the empty Navy
+// plan is written, and editing is allowed. An inaccessible (non-ENOENT/non-parse)
+// source stays a hard error so potentially valid data is never silently
+// discarded.
+const readLegacyPlan = async (
   context: Parameters<NonNullable<EngineOptions<PlannerData>['load']>>[0],
   legacyDataPath: string,
-): Promise<PlannerData> => {
+): Promise<{ corrupt: boolean; plan: PlannerData }> => {
   let legacyRaw: unknown
+  let corrupt = false
   try {
     legacyRaw = await context.readFile(legacyDataPath)
   } catch (error) {
     if (isEnoent(error)) {
       legacyRaw = undefined
+    } else if (isSyntaxError(error)) {
+      legacyRaw = undefined
+      corrupt = true
     } else {
       throw toPersistedDataError(
         'legacy',
@@ -157,15 +192,29 @@ const migrateFromLegacy = async (
     }
   }
 
-  // A delayed legacy read from an unloaded generation must not write over a
-  // newer import. The engine's writeAndWait also refuses stale writes.
-  if (context.isStale()) {
-    return EMPTY_PLAN
+  if (legacyRaw === undefined) {
+    return { corrupt, plan: EMPTY_PLAN }
   }
 
-  const plan =
-    legacyRaw === undefined ? EMPTY_PLAN : parseLegacyPlanner(legacyRaw)
+  try {
+    return { corrupt: false, plan: parseLegacyPlanner(legacyRaw) }
+  } catch (error) {
+    if (error instanceof PersistedDataError && error.reason === 'legacy') {
+      return { corrupt: true, plan: EMPTY_PLAN }
+    }
+    throw error
+  }
+}
 
+const migrateFromLegacy = async (
+  context: Parameters<NonNullable<EngineOptions<PlannerData>['load']>>[0],
+  legacyDataPath: string,
+  onMigrationWarning?: () => void,
+): Promise<PlannerData> => {
+  const { corrupt, plan } = await readLegacyPlan(context, legacyDataPath)
+
+  // A delayed legacy read from an unloaded generation must not write over a
+  // newer import. The engine's writeAndWait also refuses stale writes.
   if (context.isStale()) {
     return EMPTY_PLAN
   }
@@ -178,6 +227,11 @@ const migrateFromLegacy = async (
       'failed to write the migrated persisted data',
       error,
     )
+  }
+
+  // Warn only after a successful write and only for the live generation.
+  if (!context.isStale() && corrupt) {
+    onMigrationWarning?.()
   }
 
   return plan
@@ -218,7 +272,11 @@ export const createPersistence = (options: NavyPersistenceOptions = {}) => {
         if (context.isStale()) {
           return EMPTY_PLAN
         }
-        plan = await migrateFromLegacy(context, legacyDataPath)
+        plan = await migrateFromLegacy(
+          context,
+          legacyDataPath,
+          options.onMigrationWarning,
+        )
       }
 
       if (context.isStale()) {

@@ -5,13 +5,16 @@ import { expect, screen, userEvent, waitFor, within } from 'storybook/test'
 import { I18nextProvider } from 'react-i18next'
 import { WindowEnv } from 'views/components/etc/window-env'
 
-import { createNavyOnlyI18n } from '../preview/i18n'
+import { createNavyOnlyI18n, i18n } from '../preview/i18n'
 
+import { host } from '../preview/adapters/logs'
 import {
+  NAVY_PLUGIN_DATA_PATH,
   persistedPluginFile,
   plannerScenarioState,
   plannerSlice,
 } from '../preview/planner-fixtures'
+import { LEGACY_DATA_PATH } from '../packages/navy-staff/src/views/plugin-identity'
 import { getEnvironment } from '../preview/scenario'
 import { reactClass as NavyStaff } from '../packages/navy-staff/src/views'
 import { reactClass as ShipInfo } from '../packages/ship-info/src/views'
@@ -234,5 +237,97 @@ export const DetachedDisplayOptionUsesGlobalConfig: Story = {
         ),
       ).toBe(true)
     })
+  },
+}
+
+const INVALID_LEGACY = { planner: { current: [['bad']] } }
+
+export const InvalidLegacyIsEditable: Story = {
+  name: 'An invalid Ship Info plan is skipped; Navy stays editable and the source is preserved',
+  parameters: {
+    shipInfo: {
+      dimensions: { width: 1400, height: 760 },
+      files: { [LEGACY_DATA_PATH]: INVALID_LEGACY },
+      lifecycle: true,
+      plugin: 'navy-staff',
+      state: plannerScenarioState({ mapname: ['E1'] }),
+    },
+  },
+  play: async () => {
+    const view = await playOnMainView()
+    const environment = getEnvironment()
+    await waitFor(() => {
+      expect(environment.store.getState()['poi-plugin-navy-staff'].ready).toBe(
+        true,
+      )
+    })
+
+    // Corrupt legacy warns after the empty Navy file is written.
+    await waitFor(() => {
+      expect(host.log.toasts.length).toBe(1)
+    })
+    expect(host.log.toasts[0].content).toBe(
+      i18n.t('migrationWarning', { ns: 'poi-plugin-navy-staff' }),
+    )
+    expect(host.log.toasts[0].options).toEqual({ type: 'warning' })
+    await waitFor(() => {
+      expect(
+        (host.log.files[NAVY_PLUGIN_DATA_PATH] as any)?.planner?.current?.flat(),
+      ).toEqual([])
+    })
+    // The original legacy object is untouched.
+    expect(host.log.files[LEGACY_DATA_PATH]).toEqual(INVALID_LEGACY)
+
+    // Editing is enabled even though the legacy plan was skipped.
+    await userEvent.click(
+      await within(view).findByRole('button', { name: 'Add ship' }),
+    )
+    const popover = document.querySelector(
+      `.${Classes.POPOVER_CONTENT}`,
+    ) as HTMLElement
+    await userEvent.click(await within(popover).findByText('Epsilon'))
+
+    await waitFor(() => {
+      expect(
+        (host.log.files[NAVY_PLUGIN_DATA_PATH] as any)?.planner?.current?.flat(),
+      ).toContain(5)
+    })
+    expect(host.log.files[LEGACY_DATA_PATH]).toEqual(INVALID_LEGACY)
+  },
+}
+
+export const CorruptLegacyWithWriteFailure: Story = {
+  name: 'A corrupt legacy plan plus an unwritable Navy file shows the save error, not a warning',
+  parameters: {
+    shipInfo: {
+      dimensions: { width: 1400, height: 760 },
+      fileWriteError: true,
+      files: { [LEGACY_DATA_PATH]: INVALID_LEGACY },
+      lifecycle: true,
+      plugin: 'navy-staff',
+      state: plannerScenarioState({ mapname: ['E1'] }),
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    const environment = getEnvironment()
+    const saveErrorText = i18n.t('saveError', {
+      ns: 'poi-plugin-navy-staff',
+    })
+
+    await waitFor(() => {
+      expect(environment.store.getState()['poi-plugin-navy-staff'].error).toBe(
+        'save',
+      )
+    })
+    await expect(await canvas.findByText(saveErrorText)).toBeTruthy()
+    // The initial write failed, so editing is not offered and no warning fires.
+    await expect(
+      canvas.queryByRole('button', { name: 'Add ship' }),
+    ).toBeNull()
+    expect(host.log.toasts.length).toBe(1)
+    expect(host.log.toasts[0].content).toBe(saveErrorText)
+    expect(host.log.toasts[0].options).toEqual({ type: 'error' })
+    expect(host.log.files[LEGACY_DATA_PATH]).toEqual(INVALID_LEGACY)
   },
 }

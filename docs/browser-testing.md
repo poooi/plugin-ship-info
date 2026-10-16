@@ -5,7 +5,7 @@ The plugin has two independent UI test layers:
 | Layer | Runner | State | Scenarios |
 | --- | --- | --- | --- |
 | Node/jsdom | `pnpm test` (`vp test run`) | jsdom via `tests/setup.ts` | Persistence, selectors, reducers, CSV, and UI integration |
-| Browser | `pnpm run test:browser` (`vitest run --config vitest.browser.config.ts`) | Real Chromium via Playwright | 99 story scenarios across 13 files |
+| Browser | `pnpm run test:browser` (`vitest run --config vitest.browser.config.ts`) | Real Chromium via Playwright | 101 story scenarios across 13 files |
 
 The browser project is deliberately a separate Vitest config. It does **not**
 inherit `tests/setup.ts` or the jsdom geometry stubs in `tests/ui/mocks.tsx`,
@@ -237,6 +237,8 @@ button or modal) with `shipInfo.plugin: 'navy-staff'`.
 | `NavyStaff/Integrated/BothPluginsIndependent` | Both plugins run on one host store with isolated slices (Navy plan vs Ship Info bookmarks). |
 | `NavyStaff/Integrated/MigratedPlanSmallerMap` | A plan imported from Ship Info is retained (not truncated) when the host map has fewer areas. |
 | `NavyStaff/Integrated/MigratedPlanUnloadedRoster` | A migrated plan is kept while the host roster/map data has not loaded. |
+| `NavyStaff/Integrated/InvalidLegacyIsEditable` | Invalid legacy planner data is skipped with a warning; the planner remains editable, a new assignment is saved to the Navy file, and the legacy source stays unchanged. |
+| `NavyStaff/Integrated/CorruptLegacyWithWriteFailure` | A failed initial Navy write after skipping corrupt legacy data shows the save error in the callout and toast, offers no editing controls or migration warning, and preserves the source. |
 | `NavyStaff/Integrated/DetachedDisplayOptionUsesGlobalConfig` | The display-fleet-name toggle works when the WindowEnv window (detached) has no `config`, using the renderer global. |
 | `NavyStaff/Integrated/LocalizedNavyLabelsNoFallback` | With a Navy-only i18n instance (`fallbackLng: false`), localized Navy labels (`Add ship`, `All`) resolve from the Navy bundle without borrowing Ship Info. |
 

@@ -29,9 +29,18 @@ const getHostWriter = (): PersistenceWriter => {
 
 const notifyLoadError = (error: PersistedDataError): void => {
   console.error(error.stack ?? error.message)
-  if (typeof window.toast === 'function') {
-    window.toast(__('loadError'), { type: 'error' })
+  if (typeof window.toast !== 'function') {
+    return
   }
+  if (error.reason === 'legacy') {
+    window.toast(__('legacyReadError'), { type: 'error' })
+    return
+  }
+  if (error.reason === 'migrate') {
+    window.toast(__('saveError'), { type: 'error' })
+    return
+  }
+  window.toast(__('loadError'), { type: 'error' })
 }
 
 const notifyWriteError = (error: PersistedDataError): void => {
@@ -41,8 +50,15 @@ const notifyWriteError = (error: PersistedDataError): void => {
   }
 }
 
+const notifyMigrationWarning = (): void => {
+  if (typeof window.toast === 'function') {
+    window.toast(__('migrationWarning'), { type: 'warning' })
+  }
+}
+
 const persistence = createPersistence({
   onError: notifyLoadError,
+  onMigrationWarning: notifyMigrationWarning,
   onWriteError: notifyWriteError,
   writer: getHostWriter(),
 })

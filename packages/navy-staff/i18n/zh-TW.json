@@ -36,5 +36,7 @@
   "loading": "載入中…",
   "loadError": "無法讀取已儲存的出擊計畫資料。為避免覆寫檔案，已停用儲存。",
   "saveError": "無法儲存出擊計畫資料。請確認檔案可寫入。",
-  "Navy Staff": "作戰參謀"
+  "Navy Staff": "作戰參謀",
+  "legacyReadError": "無法讀取要匯入的 Ship Info 計畫。請檢查檔案存取權限後重新載入作戰參謀。",
+  "migrationWarning": "Ship Info 計畫資料已損毀或無效。已略過匯入並建立新的空白計畫，原 Ship Info 檔案保持不變。"
 }
