@@ -138,6 +138,7 @@ Migration and event changes are separate concerns. Do not truncate imported arra
 - Translation source text may be reused, but each built plugin's `i18n/` must be self-contained. Shared presentation modules receive translated text or a translation function instead of hard-coding the Ship Info namespace.
 - CI checks both plugins and the shared package, then builds and packs each plugin. Shared changes require validation of both plugins; running all checks initially is sufficient.
 - Schedule publishing and installation guidance separately. Documentation and initial code movement do not automatically publish npm packages.
+- `poi-plugin-navy-staff` already exists on npm as a placeholder. The extracted planner requires a subsequent release under that existing package name. Users install released plugins through poi's **Settings → Plugins → Install directly from npm**, entering the full package name.
 
 ## 8. Implementation sequence and acceptance
 
@@ -163,7 +164,7 @@ Acceptance should cover:
 - Use Navy Staff as the new plugin title, reuse the existing planner visual conventions, and show the planner directly in its main view. Keep translated titles in their respective locales.
 - Preserve existing assignment and synchronization workflows. Retain assignments beyond the current event's area count; event changes must not silently destroy imported data. A new event archive system remains out of scope.
 - Surface import/load failures. Retain the legacy `planner` field in Ship Info until its removal is separately agreed; Navy Staff never deletes it.
-- Ship Info retains version `8.1.1`; Navy Staff starts at `0.1.0`. These are package manifest values, not a publication or release announcement.
+- Ship Info's workspace manifest retains version `8.1.1`. Navy Staff's local `0.1.0` is a provisional development value, not its first npm version: the existing npm `latest` was `1.2.0` when checked on 2026-10-16. Before publishing the extracted planner, choose a release version that advances the existing package's version history so installed copies can update normally.
 - Document separate installation and migration. Package publication, release timing, and any release version changes require a separate release operation; this implementation creates reviewable PRs only.
 
 The final plugin builds, static Storybook build, packed artifact checks, and local Codex Sol review also passed. Validation uses browser and host adapters, plus real files for artifact and writer checks. It does not include installing the plugins into a live poi/Electron session, restarting that application, or validating rendered screenshot pixels. Those remain release checks.

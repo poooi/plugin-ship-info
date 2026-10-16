@@ -12,16 +12,15 @@ from Ship Info's legacy data the first time it runs.
 
 ## Install
 
-Navy Staff has **not been published to npm yet**. Once it is released it can be
-installed like any other poi plugin:
+The npm package `poi-plugin-navy-staff` already exists as a placeholder. The
+planner implementation in this repository has not yet been released there.
 
-```sh
-npm install poi-plugin-navy-staff
-```
+Once the planner release is available, open **Settings → Plugins** in poi.
+Under **Install directly from npm**, enter `poi-plugin-navy-staff` and click
+**Install**. poi manages installation in its plugin directory.
 
-Until then, pack it from the workspace (`.cache/packages/poi-plugin-navy-staff-*.tgz`)
-and install the local tarball. poi provides React, Redux, Blueprint and the other
-host UI libraries at runtime; this package bundles the rest of its implementation.
+poi provides React, Redux, Blueprint and the other host UI libraries at runtime;
+this package bundles the rest of its implementation.
 
 ## Development
 

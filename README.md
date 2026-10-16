@@ -13,16 +13,27 @@ This is a pnpm workspace for poi plugins:
 - `packages/ship-info/` — the published `poi-plugin-ship-info` plugin: the ship
   information table (filtering, columns, CSV export).
 - `packages/navy-staff/` — the `poi-plugin-navy-staff` plugin: the sortie/deck
-  planner, with its own state, saved file and translations. It is **not
-  published yet** (initial `0.1.0`); it packs from this workspace.
+  planner, with its own state, saved file and translations. The npm name is
+  already reserved by an existing package; this split implementation has not
+  been released to npm.
 - `packages/shared/` — private, source-only `@poi-plugins/ship-info-shared`
   modules bundled into the plugins that use them; never published.
 - `tests/`, `stories/`, `preview/`, `shims/`, `.storybook/` and the shared
   configs live at the repository root.
 
-Installing Navy Staff migrates an existing Ship Info sortie plan the first time
-it runs. Ship Info keeps saving its own file and leaves the legacy `planner`
-field untouched.
+The extracted Navy Staff implementation imports an existing Ship Info sortie
+plan the first time it runs. Ship Info keeps saving its own file and leaves the
+legacy `planner` field untouched.
+
+## Installation in poi
+
+Open **Settings → Plugins** in poi. Under **Install directly from npm**, enter
+the full package name (`poi-plugin-ship-info` or `poi-plugin-navy-staff`) and
+click **Install**. poi manages installation in its plugin directory.
+
+The existing Navy Staff npm package is a placeholder for this work. Installing
+it does not install the planner implemented on this branch; that implementation
+requires a subsequent release.
 
 ## Development
 
