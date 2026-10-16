@@ -286,7 +286,11 @@ export const Planner = () => {
 
   return (
     <>
-      <Button minimal onClick={() => setIsOpen(true)}>
+      <Button
+        aria-label={t('Deck Planner')}
+        minimal
+        onClick={() => setIsOpen(true)}
+      >
         <FontAwesome name="tags" />
       </Button>
       <PlannerDialog

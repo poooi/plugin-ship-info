@@ -119,12 +119,27 @@ export const ShipItem = connect((state: IState) => ({
 
     const bgColor = color[ship.area! - 1] || color[planMap[ship.id]] || '#000'
 
+    // Tagged ships are host-authoritative: the planner must not assign, move or
+    // erase them, so they expose neither pointer nor keyboard activation.
+    const interactive = !(ship.area! > 0)
+
     return (
       <ShipGridCell
+        aria-label={`${t(ship.name)} Lv.${ship.lv}`}
         color={bgColor}
         useAvatar={useAvatar}
-        onClick={!(ship.area! > 0) ? onClick : undefined}
-        onContextMenu={!(ship.area! > 0) ? onContextmenu : undefined}
+        onClick={interactive ? onClick : undefined}
+        onContextMenu={interactive ? onContextmenu : undefined}
+        onKeyDown={
+          interactive
+            ? (event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault()
+                  onClick()
+                }
+              }
+            : undefined
+        }
       >
         {useAvatar && (
           <ShipAvatar
