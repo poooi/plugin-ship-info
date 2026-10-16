@@ -83,7 +83,8 @@ vi.mock('views/env-parts/i18next', () => ({
 }))
 
 import { DATA_PATH, PLUGIN_KEY } from '../views/plugin-identity'
-import { onAddShip, reducer as pluginReducer } from '../views/redux'
+import { onAddShip } from '../views/planner/redux'
+import { reducer as pluginReducer } from '../views/redux'
 
 type Slice = {
   error: string | null

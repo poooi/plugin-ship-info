@@ -29,19 +29,20 @@ vi.mock('redux-observers', () => ({ observer: () => ({}) }))
 vi.mock('../lib/html2canvas', () => ({ default: () => undefined }))
 
 import { mkDb, mkMstShip, mkShip } from './fixtures'
+import { shipFleetIdMapSelector, shipFleetIdSelectorFactory } from '../shared/fleet'
 import { PLUGIN_KEY } from '../views/redux'
 import {
-  columnOrderSelector,
-  columnPinningSelector,
-  columnVisibilitySelector,
   deckPlannerAllShipIdsSelector,
   deckPlannerAreaSelectorFactory,
   deckPlannerCurrentSelector,
   deckPlannerShipMapSelector,
-  filterShipIdsSelector,
-  shipFleetIdMapSelector,
-  shipFleetIdSelectorFactory,
   shipMenuDataSelector,
+} from '../views/planner/selectors'
+import {
+  columnOrderSelector,
+  columnPinningSelector,
+  columnVisibilitySelector,
+  filterShipIdsSelector,
 } from '../views/selectors'
 
 const mkState = (): any => ({

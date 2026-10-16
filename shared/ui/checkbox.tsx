@@ -1,6 +1,6 @@
 import styled, { css } from 'styled-components'
 
-import { controlSurface } from '../../styles'
+import { controlSurface } from './styles'
 
 interface ICheckboxProps {
   halfWidth?: boolean

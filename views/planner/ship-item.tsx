@@ -8,7 +8,7 @@ import styled from 'styled-components'
 import { getShipImgPath } from 'views/utils/ship-img'
 import { IState } from 'views/utils/selectors'
 
-import { deckPlannerShipMapSelector, IShipInfoMenuData } from '../../selectors'
+import { deckPlannerShipMapSelector, IShipInfoMenuData } from './selectors'
 
 const ShipAvatar = styled.img.attrs<{ left: number }>(({ left }) => ({
   style: {

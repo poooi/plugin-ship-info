@@ -9,14 +9,11 @@ vi.mock('redux-observers', () => ({
 
 import {
   onAddShip,
-  onDelete,
   onDisplaceShip,
   onDPInit,
   onRemoveShip,
-  onUpdate,
-  PLUGIN_KEY,
-  reducer,
-} from '../views/redux'
+} from '../views/planner/redux'
+import { onDelete, onUpdate, PLUGIN_KEY, reducer } from '../views/redux'
 
 const T = (name: string) => `@@${PLUGIN_KEY}@${name}`
 

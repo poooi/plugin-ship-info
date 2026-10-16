@@ -1,6 +1,6 @@
 # Ship Info / Navy Staff split design
 
-Status: implementation approved in four stacked changes. Lifecycle and persistence separation is implemented and verified in the first layer; ownership, workspace, and plugin extraction remain pending. This document records the target design, implementation sequence, and verification requirements.
+Status: implementation approved in four stacked changes. Lifecycle/persistence and ownership separation are implemented and verified in the first two layers. Workspace and plugin extraction remain pending. This document records the target design, implementation sequence, and verification requirements.
 
 ## 1. Goals and scope
 
@@ -19,12 +19,11 @@ Multiple plans, cross-event archives, automatic fleet composition, and new plann
 
 | Location | Current responsibility | Required separation |
 | --- | --- | --- |
-| `views/sidebar/planner/` | Planner UI and interactions | Move to Navy Staff and make it the main interface |
+| `views/planner/` | Planner UI, reducer/actions, menu selectors, and screenshot capture | Move to Navy Staff and make it the main interface |
 | `views/sidebar/index.tsx` | Sidebar controls | Remove the planner entry during extraction; initialization is now plugin-owned |
 | `views/redux.ts` | `bookmark`, `planner`, load status, and `ui` | Separate reducers and actions by ownership; I/O now lives in `views/persistence.ts` |
-| `views/selectors.ts` | Table filtering, ship display data, fleet membership, and planner queries | Split by actual consumers instead of sharing the entire file |
-| `views/utils.ts` | Statistics, classification, names, screenshots, and other utilities | Separate responsibilities and side effects |
-| `views/components/fleet-icon.tsx`, `views/styles.ts`, and some sidebar controls | Presentation used by both interfaces | Candidates for shared modules |
+| `views/selectors.ts` and `views/utils.ts` | Table filtering, row data, statistics, names, and table utilities | Retain in Ship Info; planner selectors and screenshot imports have been separated |
+| `shared/ship-types.ts`, `shared/fleet.ts`, and `shared/ui/` | Classification, fleet membership, icons, surfaces, and checkbox layout used by both interfaces | Move to the private shared workspace; accept translated content from callers |
 | `i18n/` | Both features use the Ship Info namespace | Supply each plugin with its own required translations |
 
 Two details need particular attention:
@@ -142,7 +141,7 @@ Migration and event changes are separate concerns. Do not truncate imported arra
 Proceed in four stacked PRs. Keep each layer independently reviewable and preserve behavior until the final extraction:
 
 1. **Separate lifecycle and persistence:** remove initialization and save subscriptions from UI mounts, protect failed reads from overwrite, recover failed writes, and test lifecycle ownership and unload races. Status: implemented and locally verified (88 Node/jsdom tests, 89 Chromium scenarios, type check, plugin build, and static Storybook build). The tests model poi's extension state and module-cache clearing; a live poi installation has not been exercised.
-2. **Separate ownership:** isolate planner state, selectors, display types, and screenshot helpers from table code; extract shared modules only where both features actually consume them. Preserve the existing single-plugin interface. Status: pending.
+2. **Separate ownership:** isolate planner state, selectors, display types, and screenshot helpers from table code; extract shared modules only where both features actually consume them. Preserve the existing single-plugin interface. Status: implemented in `views/planner/` and root `shared/`, locally verified with 90 Node/jsdom tests, 89 Chromium scenarios, type checking, both builds, and local Codex Sol review. Shared imports have dependency-direction guards; all 22 ship-type labels match the prior behavior across five locales.
 3. **Establish workspaces:** move Ship Info and shared modules into pnpm packages, update builds, tests, preview paths, and CI, and verify the existing published artifact remains self-contained. Status: pending.
 4. **Extract Navy Staff:** give the planner its own plugin entry, state, configuration, translations, and persistence; implement legacy import and retain legacy data in Ship Info; remove the old planner entry. Verify separate packages and independent use, update installation guidance, and inspect both packed artifacts. Status: pending.
 

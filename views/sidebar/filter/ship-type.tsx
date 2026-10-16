@@ -5,9 +5,9 @@ import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
 import styled from 'styled-components'
 
-import { shipSuperTypeMap } from '../../constants'
+import { shipSuperTypeMap, shipTypeLabel } from '../../../shared/ship-types'
 import { shipTypesFilterSelector } from '../../selectors'
-import { boolArrayToInt, intToBoolArray, shipTypes } from '../../utils'
+import { boolArrayToInt, intToBoolArray } from '../../utils'
 import { CustomCheckboxCard } from '../components/card-controls'
 
 const ShipTypeContainer = styled.div`
@@ -23,6 +23,7 @@ const CardRow = styled.div`
 
 export const ShipTypeCheck: React.FC = () => {
   const { t } = useTranslation(['resources', 'poi-plugin-ship-info'])
+  const { t: tPlugin } = useTranslation('poi-plugin-ship-info')
 
   const shipTypesValue = useSelector(shipTypesFilterSelector)
   const { $shipTypes, checked, checkedAll } = useSelector((state: any) => {
@@ -145,7 +146,7 @@ export const ShipTypeCheck: React.FC = () => {
             compact
           >
             {window.language === 'en-US'
-              ? shipTypes[type.api_id as keyof typeof shipTypes]
+              ? shipTypeLabel(type.api_id, tPlugin)
               : t(type.api_name)}
           </CustomCheckboxCard>
         ))}

@@ -24,20 +24,20 @@ import { Dialog } from 'views/components/etc/overlay'
 import { WindowEnv } from 'views/components/etc/window-env'
 import { IState } from 'views/utils/selectors'
 
+import { Checkbox, CheckboxLabel, CheckboxOption } from '../../shared/ui/checkbox'
+import { poiSurface } from '../../shared/ui/styles'
+import { captureRect } from './capture'
 import {
   onAddShip,
   onDisplaceShip,
   onDPInit,
   onRemoveShip,
-} from '../../redux'
+} from './redux'
 import {
   deckPlannerCurrentSelector,
   deckPlannerShipMapSelector,
   shipMenuDataSelector,
-} from '../../selectors'
-import { poiSurface } from '../../styles'
-import { captureRect } from '../../utils'
-import { Checkbox, CheckboxLabel, CheckboxOption } from '../components/checkbox'
+} from './selectors'
 import { Area } from './area'
 import { ShipGrid } from './ship-grid'
 

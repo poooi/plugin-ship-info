@@ -16,7 +16,7 @@ vi.mock('redux-observers', async () => (await import('./ui/boundaries')).reduxOb
 vi.mock('electron', async () => (await import('./ui/boundaries')).createElectronModule())
 vi.mock('../lib/html2canvas', () => ({ default: () => undefined }))
 
-import { AddShip } from '../views/sidebar/planner/add-ship'
+import { AddShip } from '../views/planner/add-ship'
 import { plannerState } from './ui/fixtures'
 import { createHarness } from './ui/harness'
 

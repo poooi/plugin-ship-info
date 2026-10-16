@@ -9,13 +9,11 @@ import styled from 'styled-components'
 import { Popover } from 'views/components/etc/overlay'
 import { IState } from 'views/utils/selectors'
 
-import { onDisplaceShip, onRemoveShip } from '../../redux'
-import {
-  shipFleetIdSelectorFactory,
-  shipItemSelectorFactory,
-} from '../../selectors'
-import { shipTypes } from '../../utils'
-import { FleetIcon } from '../../components/fleet-icon'
+import { shipFleetIdSelectorFactory } from '../../shared/fleet'
+import { shipTypeLabel } from '../../shared/ship-types'
+import { FleetIcon } from '../../shared/ui/fleet-icon'
+import { onDisplaceShip, onRemoveShip } from './redux'
+import { shipItemSelectorFactory } from './selectors'
 
 const Chip = styled(Tag)`
   margin: 0.5ex 1ex;
@@ -94,6 +92,9 @@ export const ShipChip = compose<
 
     public render() {
       const { typeId, name, lv, area, color, others, fleetId, t } = this.props
+      const typeLabel = shipTypeLabel(typeId, (key) =>
+        t(key, { ns: 'poi-plugin-ship-info' }),
+      )
 
       return (
         <Chip
@@ -131,7 +132,7 @@ export const ShipChip = compose<
             }
           >
             <span>
-              {shipTypes[typeId as keyof typeof shipTypes]}
+              {typeLabel}
               {' | '}
               {t(name)} <span>Lv.{lv}</span>
             </span>

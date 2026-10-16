@@ -1,14 +1,9 @@
-import { remote } from 'electron'
 import _, { get } from 'lodash'
 import url from 'url'
-import i18next from 'views/env-parts/i18next'
 
 import { APIShip } from 'kcsapi/api_port/port/response'
 import { APIMstShip } from 'kcsapi/api_start2/getData/response'
-import html2canvas from '../lib/html2canvas'
-import { repairFactor, shipSuperTypeMap } from './constants'
-
-const __ = i18next.getFixedT(null, ['poi-plugin-ship-info', 'resources'])
+import { repairFactor } from './constants'
 
 export const getTimePerHP = (api_lv = 1, api_stype = 1): number => {
   let factor = 0
@@ -112,40 +107,6 @@ export const boolArrayToInt = (boolArray: boolean[] = []) => {
   arr.unshift(true)
   const str = arr.map((bool) => +bool).join('')
   return parseInt(str, 2)
-}
-
-export const reverseSuperTypeMap = _(shipSuperTypeMap)
-  .flatMap(({ id }, index) =>
-    _(id)
-      .map((type) => [type, index])
-      .value(),
-  )
-  .fromPairs()
-  .value()
-
-export const shipTypes = {
-  1: __('DE'),
-  2: __('DD'),
-  3: __('CL'),
-  4: __('CLT'),
-  5: __('CA'),
-  6: __('CAV'),
-  7: __('CVL'),
-  8: __('FBB'),
-  9: __('BB'),
-  10: __('BBV'),
-  11: __('CV'),
-  12: __('BB'),
-  13: __('SS'),
-  14: __('SSV'),
-  15: __('AO'),
-  16: __('AV'),
-  17: __('LHA'),
-  18: __('CVB'),
-  19: __('AR'),
-  20: __('AS'),
-  21: __('CT'),
-  22: __('AO'),
 }
 
 export const hexToRGBA = (hex: string, opacity = 1) => {
@@ -315,25 +276,3 @@ export const fileUrl = (pathname: string): string =>
     protocol: 'file',
     slashes: true,
   })
-
-export const captureRect = async (rect: HTMLElement) => {
-  if (!rect) {
-    return
-  }
-  const { width, height } = rect.getBoundingClientRect()
-
-  let canvas
-
-  try {
-    canvas = await html2canvas(rect, {
-      allowTaint: true,
-      backgroundColor: '#333',
-      height: _.ceil(height, 16),
-      width: _.ceil(width, 16),
-    })
-  } catch (e) {
-    console.error(e)
-    return
-  }
-  remote.getCurrentWebContents().downloadURL(canvas.toDataURL('image/png'))
-}

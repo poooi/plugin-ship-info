@@ -10,7 +10,9 @@
 
 - `index-src.ts`: poi plugin entry and lifecycle exports.
 - `views/index.tsx`: main interface; `views/table/`: ship information table.
-- `views/sidebar/`: sidebar controls, including the planner in `planner/`.
+- `views/sidebar/`: table sidebar controls.
+- `views/planner/`: planner interface, state, selectors, and screenshot capture.
+- `shared/`: ship classification, host fleet selectors, and UI used by both features.
 - `views/selectors.ts` and `views/utils.ts`: derived data and utility functions.
 - `views/redux.ts`: plugin state and actions.
 - `views/lifecycle.ts`, `views/persistence.ts`, and `views/file-writer.ts`: plugin lifecycle, persisted-data loading, and serialized writes.

@@ -18,7 +18,6 @@ import { sokuInterpretation } from '../constants'
 import {
   fileUrl,
   getTimePerHP,
-  shipTypes,
   computeKaryokuNow,
   computeRaisouNow,
   computeTaikuNow,
@@ -26,9 +25,10 @@ import {
   computeLuckyNow,
   getValueByLevel,
 } from '../utils'
+import { shipTypeLabel } from '../../shared/ship-types'
+import { FleetIcon } from '../../shared/ui/fleet-icon'
 import { SallyArea } from './sally-area'
 import { Slotitems } from './slotitems'
-import { FleetIcon } from '../components/fleet-icon'
 
 const TRANSPARENCY = 0.5
 
@@ -94,13 +94,14 @@ export const Name = ({
 
 export const Type = ({ shipData, ...props }: ICellProps) => {
   const { t } = useTranslation(['resources'])
+  const { t: tPlugin } = useTranslation('poi-plugin-ship-info')
   const { $ship, $shipTypes } = shipData
   const type = ($shipTypes[$ship.api_stype] || {}).api_name
 
   return (
     <Cell {...props}>
       {window.language === 'en-US'
-        ? shipTypes[$ship.api_stype as keyof typeof shipTypes]
+        ? shipTypeLabel($ship.api_stype, tPlugin)
         : t(type)}
     </Cell>
   )

@@ -16,7 +16,7 @@ import {
   plannerTaggedShips,
 } from '../preview/planner-fixtures'
 import { getEnvironment } from '../preview/scenario'
-import { Planner } from '../views/sidebar/planner'
+import { Planner } from '../views/planner'
 
 const CARD = `.${Classes.CARD}`
 const TAG = `.${Classes.TAG}`

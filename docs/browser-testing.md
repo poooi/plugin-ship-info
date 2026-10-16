@@ -4,12 +4,12 @@ The plugin has two independent UI test layers:
 
 | Layer | Runner | State | Scenarios |
 | --- | --- | --- | --- |
-| Node/jsdom | `pnpm test` (`vp test run`) | jsdom via `tests/setup.ts` | 88 tests across 10 files |
+| Node/jsdom | `pnpm test` (`vp test run`) | jsdom via `tests/setup.ts` | 90 tests across 11 files |
 | Browser | `pnpm run test:browser` (`vitest run --config vitest.browser.config.ts`) | Real Chromium via Playwright | 89 story scenarios across 12 files |
 
 The browser project is deliberately a separate Vitest config. It does **not**
 inherit `tests/setup.ts` or the jsdom geometry stubs in `tests/ui/mocks.tsx`,
-and it keeps the 88 Node/jsdom tests passing.
+and it keeps the 90 Node/jsdom tests passing.
 
 ## Commands
 

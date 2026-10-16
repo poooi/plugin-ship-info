@@ -1,9 +1,10 @@
 import React from 'react'
 import styled from 'styled-components'
-import Fleet1Icon from '../icons/fleet-1'
-import Fleet2Icon from '../icons/fleet-2'
-import Fleet3Icon from '../icons/fleet-3'
-import Fleet4Icon from '../icons/fleet-4'
+
+import Fleet1Icon from './fleet-1'
+import Fleet2Icon from './fleet-2'
+import Fleet3Icon from './fleet-3'
+import Fleet4Icon from './fleet-4'
 
 const FleetIconWrapper = styled.div<{ $size: string }>`
   flex-shrink: 0;

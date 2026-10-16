@@ -7,12 +7,12 @@ import { connect, DispatchProp } from 'react-redux'
 import styled from 'styled-components'
 import { IState } from 'views/utils/selectors'
 
-import { onAddShip } from '../../redux'
+import { onAddShip } from './redux'
 import {
   deckPlannerAreaSelectorFactory,
   IShipInfoMenuData,
   shipMenuDataSelector,
-} from '../../selectors'
+} from './selectors'
 import { AddShip } from './add-ship'
 import { ShipChip } from './ship-chip'
 

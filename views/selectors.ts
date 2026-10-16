@@ -1,11 +1,8 @@
 import { APIShip } from 'kcsapi/api_port/port/response'
 import _, {
-  findIndex,
   flatMap,
-  flatten,
   fromPairs,
   get,
-  includes,
   keyBy,
   map,
   mapValues,
@@ -15,13 +12,11 @@ import _, {
 import fp from 'lodash/fp'
 import { createSelector } from 'reselect'
 import i18next from 'views/env-parts/i18next'
-import { toRomaji } from 'wanakana'
 import { z } from 'zod'
 
 import {
   configSelector,
   constSelector,
-  extensionSelectorFactory,
   fcdSelector,
   fleetInExpeditionSelectorFactory,
   fleetShipsIdSelectorFactory,
@@ -38,11 +33,10 @@ import {
 
 import { APISlotItem } from 'kcsapi/api_get_member/require_info/response'
 import { APIMstShip } from 'kcsapi/api_start2/getData/response'
-import { PLUGIN_KEY } from './redux'
+import { shipFleetIdMapSelector } from '../shared/fleet'
 import {
   intToBoolArray,
   katakanaToHiragana,
-  reverseSuperTypeMap,
   isShipCompleted,
   canEquipDaihatsu,
 } from './utils'
@@ -187,35 +181,9 @@ export const shipInfoConfigSelector = createSelector(
   },
 )
 
-const allFleetShipIdSelector = createSelector(
-  [
-    ...[...Array(4).keys()].map((fleetId) =>
-      fleetShipsIdSelectorFactory(fleetId),
-    ),
-  ],
-  (id1: number[], id2: number[], id3: number[], id4: number[]) => [
-    id1,
-    id2,
-    id3,
-    id4,
-  ],
-)
-
 interface IDictionary<T> {
   [index: string]: T
 }
-
-export const shipFleetIdMapSelector = createSelector(
-  [shipsSelector, allFleetShipIdSelector],
-  (ships: IDictionary<APIShip>, fleetIds: number[][]) =>
-    mapValues(ships, (ship) =>
-      findIndex(fleetIds, (fleetId) => includes(fleetId, ship.api_id)),
-    ),
-)
-
-export const shipFleetIdSelectorFactory = memoize((shipId) =>
-  createSelector([shipFleetIdMapSelector], (fleetIdMap) => fleetIdMap[shipId]),
-)
 
 export const rawValueConfigSelector = createSelector(
   [configSelector],
@@ -626,104 +594,6 @@ export const sallyAreaSelectorFactory = memoize((area) =>
   })),
 )
 
-export interface IShipInfoMenuData {
-  area?: number | undefined
-  avatarOffset?: number
-  id: number
-  lv: number
-  name: string
-  shipId: number
-  superTypeIndex: number
-  typeId: number
-  yomi: string
-  romaji: string
-  exp: number
-}
-
-// Builds one menu entry from an owned ship, its master data and the configured
-// avatar margin. Shared by the per-ship selector and the whole-roster selector
-// so both stay in lockstep.
-const mapShipMenuItem = (
-  ship: APIShip | undefined,
-  $ship: APIMstShip | undefined,
-  marginMagics: IDictionary<any> | undefined,
-): IShipInfoMenuData | undefined =>
-  !!ship && !!$ship
-    ? {
-        area: ship.api_sally_area,
-        avatarOffset: get(marginMagics, [$ship.api_id, 'normal'], 0.555),
-        exp: ship.api_exp[0],
-        id: ship.api_id,
-        lv: ship.api_lv,
-        name: $ship.api_name,
-        romaji: toRomaji($ship.api_yomi),
-        shipId: $ship.api_id,
-        superTypeIndex: reverseSuperTypeMap[$ship.api_stype] || 0,
-        typeId: $ship.api_stype,
-        yomi: $ship.api_yomi,
-      }
-    : undefined
-
-// The menu depends only on the owned roster, its master data and the avatar
-// margins. Narrowing the host `const`/`fcd` selectors here keeps the result
-// identity stable when unrelated parts of the root state change, so AddShip
-// does not rebuild its Fuse index needlessly. Both stay `undefined` when data
-// is absent instead of returning a fresh fallback that would break that
-// stability.
-const masterShipsSelector = (
-  state: IState,
-): IDictionary<APIMstShip> | undefined => constSelector(state).$ships
-
-const shipAvatarMarginsSelector = (
-  state: IState,
-): IDictionary<any> | undefined => fcdSelector(state)?.shipavatar?.marginMagics
-
-export const shipItemSelectorFactory = memoize((shipId) =>
-  createSelector(
-    [shipDataSelectorFactory(shipId), fcdSelector],
-    (
-      [ship, $ship] = [] as any,
-      { shipavatar } = {} as any,
-    ): IShipInfoMenuData | undefined =>
-      mapShipMenuItem(ship, $ship, shipavatar?.marginMagics),
-  ),
-)
-
-export const shipMenuDataSelector = createSelector(
-  [shipsSelector, masterShipsSelector, shipAvatarMarginsSelector],
-  (ships, $ships, marginMagics): IShipInfoMenuData[] =>
-    map(ships, (ship: APIShip) =>
-      mapShipMenuItem(ship, $ships?.[ship.api_ship_id ?? -1], marginMagics),
-    ).filter((item): item is IShipInfoMenuData => item !== undefined),
-)
-
-export const deckPlannerCurrentSelector = createSelector(
-  [extensionSelectorFactory(PLUGIN_KEY)],
-  (state) => ((state as any).planner || {}).current || [],
-)
-
-export const deckPlannerAreaSelectorFactory = memoize((areaIndex) =>
-  createSelector(
-    [deckPlannerCurrentSelector],
-    (current) => current[areaIndex] || [],
-  ),
-)
-
-export const deckPlannerAllShipIdsSelector = createSelector(
-  [deckPlannerCurrentSelector],
-  (current) => flatten(current),
-)
-
-export const deckPlannerShipMapSelector = createSelector(
-  [deckPlannerCurrentSelector],
-  (current: number[][]) =>
-    fromPairs(
-      flatMap(current, (ships, areaIndex: number) =>
-        ships.map((id) => [id, areaIndex]),
-      ),
-    ),
-)
-
 const ourShipsSelector = createSelector(
   [constSelector],
   ({ $ships = {} }: IConstState = {}) =>
@@ -798,16 +668,5 @@ export const kai2ShipSelector = createSelector(
   (ships, remodelChains) =>
     fp.flow(fp.filter((shipId) => remodelChains[shipId as any].length > 3))(
       ships,
-    ),
-)
-
-export const uniqueShipCountSelector = createSelector(
-  [uniqueShipIdsSelector, adjustedRemodelChainsSelector, shipMenuDataSelector],
-  (uniqs, remodelChains, ships) =>
-    mapValues(
-      remodelChains,
-      (shipIds) =>
-        fp.filter((ship) => shipIds.includes((ship as any).shipId))(ships)
-          .length,
     ),
 )

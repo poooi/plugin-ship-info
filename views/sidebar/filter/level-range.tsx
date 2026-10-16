@@ -5,7 +5,7 @@ import React, { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
 import { levelRangeFilterSelector } from '../../selectors'
-import { Checkbox, CheckboxLabel } from '../components/checkbox'
+import { Checkbox, CheckboxLabel } from '../../../shared/ui/checkbox'
 
 export const LevelRange = () => {
   const levelRange = useSelector(levelRangeFilterSelector)

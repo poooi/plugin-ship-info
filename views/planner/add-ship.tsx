@@ -23,12 +23,12 @@ import styled from 'styled-components'
 import { Popover } from 'views/components/etc/overlay'
 import { IState } from 'views/utils/selectors'
 
-import { IShipSuperType, shipSuperTypeMap } from '../../constants'
+import { IShipSuperType, shipSuperTypeMap } from '../../shared/ship-types'
 import {
   deckPlannerAllShipIdsSelector,
   IShipInfoMenuData,
   shipMenuDataSelector,
-} from '../../selectors'
+} from './selectors'
 
 const searchOptions = [
   {
