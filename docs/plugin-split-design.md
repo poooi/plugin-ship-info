@@ -111,7 +111,7 @@ Both plugins continue to use poi's runtime and Redux store, registering separate
 
 Each plugin owns initialization, readiness, persistence subscriptions, and cleanup. Persistence must not depend on the other plugin's interface being open. Defaults must not overwrite saved data before loading finishes. Verify lifecycle placement against poi's main window, standalone windows, and plugin unloading to avoid duplicate subscriptions and writes.
 
-The host registers the extension reducer before `pluginDidLoad` and calls `pluginWillUnload` before removing it. Its `windowMode` UI uses a React portal in the existing renderer and shares the same store. Therefore each loaded plugin owns one persistence subscription, independent of mounted views; no additional window synchronization layer is needed. Unloading invalidates pending initialization and unsubscribes. Missing files allow empty initialization. Malformed authoritative data and other read failures leave saving disabled; malformed legacy import data follows the separate migration policy below. Serialized writes must recover after rejection without unhandled promises or timer polling.
+The host registers the extension reducer before `pluginDidLoad` and calls `pluginWillUnload` before removing it. Its `windowMode` UI uses a React portal in the existing renderer and shares the same store. Therefore each loaded plugin owns one persistence subscription, independent of mounted views; no additional window synchronization layer is needed. Unloading invalidates pending initialization and unsubscribes. Missing files allow empty initialization; malformed data and other read failures must surface an error and leave saving disabled. Serialized writes must recover after rejection without unhandled promises or timer polling.
 
 poi clears the plugin's module cache on unload. Write coordination must therefore survive module replacement within the host renderer: a fresh lifecycle waits for the previous queued saves before reading. A module-local writer alone cannot guarantee this. Tests must exercise a fresh module load, not only stop/start on the same persistence instance. The host also disables language fallback, so failure notifications must remain readable without an English fallback locale.
 
@@ -124,22 +124,37 @@ Use a one-time import into the new file, after which each plugin saves its own d
 1. If Navy Staff's data file exists, use it as authoritative. An existing empty plan must not trigger another import.
 2. Only if the new file is absent, read `planner` from `APPDATA_PATH/poi-plugin-ship-info.json`. Preserve `current` and `archive`; exclude table bookmarks and transient UI state.
 3. Once the new file is successfully written, use it for subsequent loads and saves. Navy Staff must not modify or delete the legacy file.
-4. If the legacy file is absent, initialize an empty plan without a warning. If its JSON or planner structure is invalid, preserve the source untouched and initialize an empty Navy Staff plan. Warn that the import failed only after the new file is successfully saved; the planner remains usable. Other read failures and initial write failures have distinct error messages and leave editing disabled.
+4. If the legacy file is absent, initialize an empty plan. Corrupt data, invalid format, and read or write failures must preserve the original data and surface an error, rather than being treated as absence.
 5. During a transition period, Ship Info preserves the legacy `planner` value when saving its original file, without continuing to maintain planner behavior. This supports users who upgrade Ship Info before installing Navy Staff. Decide removal of the legacy field separately.
 6. Import `plugin.ShipInfo.displayFleetName` only when `plugin.NavyStaff.displayFleetName` is unset; preserve explicit false and true. Recheck the unset option on successful loads, so unloading after the initial file write cannot permanently skip configuration import.
 
-Failure handling depends on the file's role and the operation that failed:
+### File format versions
 
-| Condition | Behavior |
-| --- | --- |
-| Navy file exists and is valid, including an empty plan | Load it; never reimport legacy plans. |
-| Navy file exists but is invalid or unreadable | Report a Navy load error; preserve it and disable editing. This is not a migration failure and must not fall back to older Ship Info plans. |
-| Navy file is absent; legacy file is absent or has no planner | Save an empty Navy plan, then enable editing without an import warning. |
-| Navy file is absent; legacy JSON or planner structure is invalid | Preserve the legacy file, save an empty Navy plan, then warn that import failed and enable editing. |
-| Navy file is absent; legacy read fails for an I/O reason such as denied access | Report a legacy read error; preserve the source and disable editing, so a temporarily inaccessible valid plan is not silently skipped. Check access and reload Navy Staff to retry. |
-| Initial Navy write fails, whether importing or starting empty | Report a save error and keep editing disabled. Do not claim that an empty plan was started successfully. |
+Both plugin files now have a top-level integer `version`. Each plugin owns its
+format version and migration steps independently; this number is unrelated to
+its npm package version.
 
-An unloaded or superseded migration must not issue a warning or enable editing. Later loads use the saved Navy file and do not repeat a failed legacy import. There is no automatic restore from the legacy file or backup/recovery workflow in this migration.
+- Files without `version` use format v0. The initial migration, v0 → v1, adds
+  `"version": 1` without changing the data layout.
+- Loading an older supported format applies migrations in order, validates the
+  resulting data, and saves the upgraded file before enabling normal editing.
+  A v1 file needs no migration write. Subsequent saves include the current
+  format version; the version is file metadata, not Redux state.
+- Ship Info preserves its opaque legacy `planner` field, including explicit
+  `null`, while upgrading its own file. Navy Staff imports planner data from
+  either unversioned or v1 Ship Info files only when its own file is absent,
+  and writes a v1 Navy file without modifying the source.
+- Unknown future versions and invalid version values are load errors. Do not
+  guess their layout or overwrite them. A newer Ship Info source format is
+  likewise not silently imported by an older Navy Staff implementation.
+- Add a migration step when a plugin's persisted layout changes. Steps transform
+  one version into the next; shared code only runs the ordered steps and checks
+  the version boundary.
+
+File absence is the only special initialization case. Other read, parse, and
+write failures retain the existing error behavior. There is no corrupt-file
+reset, backup, automatic recovery, or additional notification policy. Failed or
+superseded format migrations must not enable editing or overwrite a newer load.
 
 Migration and event changes are separate concerns. Do not truncate imported arrays because the current event has a different area count. Confirm sortie tag synchronization, event transitions, and obsolete assignment handling before implementation. The first split does not introduce a new event archive system.
 

@@ -36,7 +36,5 @@
   "loading": "加载中…",
   "loadError": "无法读取已保存的出击计划数据。为避免覆盖文件，已停用保存。",
   "saveError": "无法保存出击计划数据。请确认文件可写入。",
-  "Navy Staff": "作战参谋",
-  "legacyReadError": "无法读取要导入的 Ship Info 计划。请检查文件访问权限后重新加载作战参谋。",
-  "migrationWarning": "Ship Info 计划数据已损坏或无效。已跳过导入并创建了新的空计划，原 Ship Info 文件保持不变。"
+  "Navy Staff": "作战参谋"
 }

@@ -58,6 +58,7 @@ const VALID = {
   planner: { archive: { old: [[9]] }, current: [[1, 2]] },
   ready: true,
   ui: { isExtend: false },
+  version: 1,
 }
 
 // A UI-state change that always produces a new plugin slice.
@@ -286,8 +287,8 @@ describe('Ship Info persistence load', () => {
     const store = createStore()
     const readFile = vi
       .fn()
-      .mockResolvedValueOnce({ bookmark: { a: { name: 'a' } } })
-      .mockResolvedValueOnce({ bookmark: { b: { name: 'b' } } })
+      .mockResolvedValueOnce({ bookmark: { a: { name: 'a' } }, version: 1 })
+      .mockResolvedValueOnce({ bookmark: { b: { name: 'b' } }, version: 1 })
     const { writer } = createRecordingWriter()
     const persistence = createPersistence({ isMain: true, readFile, writer })
 
@@ -307,7 +308,7 @@ describe('Ship Info persistence load', () => {
     const readFile = vi
       .fn()
       .mockRejectedValueOnce(new SyntaxError('bad json'))
-      .mockResolvedValueOnce({ bookmark: { c: { name: 'c' } } })
+      .mockResolvedValueOnce({ bookmark: { c: { name: 'c' } }, version: 1 })
     const persistence = createPersistence({ isMain: true, readFile })
 
     persistence.start(store)
@@ -365,13 +366,131 @@ describe('Ship Info persistence load', () => {
     expect(onError).not.toHaveBeenCalled()
   })
 
+  it('upgrades a v0 file to version 1 before ready, preserving the whole payload', async () => {
+    for (const planner of [
+      { archive: { old: [[9]] }, current: [[1, 2]] },
+      null,
+    ]) {
+      const store = createStore()
+      const v0 = {
+        bookmark: { alpha: { name: 'alpha' } },
+        planner,
+        ready: true,
+        ui: { isExtend: true },
+      }
+      const readFile = vi.fn(async () => structuredClone(v0))
+      // Deferred writer: the upgrade write must settle before ready.
+      const writes: Array<{ callback?: () => void; data: any }> = []
+      const writer: PersistenceWriter = {
+        write: (_filePath, data, _options, callback) => {
+          writes.push({ callback, data })
+        },
+      }
+      const persistence = createPersistence({ isMain: true, readFile, writer })
+
+      persistence.start(store)
+      // eslint-disable-next-line no-await-in-loop
+      await waitFor(() => writes.length === 1)
+
+      // Ready waits for the upgrade write to settle.
+      expect(sliceOf(store).ready).toBe(false)
+      expect(writes[0].data).toEqual({ ...v0, version: 1 })
+
+      writes[0].callback?.()
+      // eslint-disable-next-line no-await-in-loop
+      await waitFor(() => sliceOf(store).ready)
+      persistence.stop()
+    }
+  })
+
+  it('does not rewrite a current v1 file but stamps v1 on the next save', async () => {
+    const store = createStore()
+    const readFile = vi.fn(async () => structuredClone(VALID))
+    const { writer, writes } = createRecordingWriter()
+    const persistence = createPersistence({ isMain: true, readFile, writer })
+
+    persistence.start(store)
+    await waitFor(() => sliceOf(store).ready)
+    expect(writes).toHaveLength(0)
+
+    store.dispatch(change())
+    await flush()
+    expect(writes).toHaveLength(1)
+    expect(writes[0].data.version).toBe(1)
+    persistence.stop()
+  })
+
+  it('rejects a malformed or unsupported version without writing', async () => {
+    for (const bad of [
+      { bookmark: {}, version: '1' },
+      { bookmark: {}, version: 2 },
+      { bookmark: {}, version: -1 },
+    ]) {
+      const store = createStore()
+      const readFile = vi.fn(async () => bad)
+      const onError = vi.fn()
+      const { writer, writes } = createRecordingWriter()
+      const persistence = createPersistence({
+        isMain: true,
+        onError,
+        readFile,
+        writer,
+      })
+
+      persistence.start(store)
+      // eslint-disable-next-line no-await-in-loop
+      await waitFor(() => sliceOf(store).error !== null)
+      expect(sliceOf(store).ready).toBe(false)
+      expect(onError).toHaveBeenCalledTimes(1)
+      expect(writes).toHaveLength(0)
+    }
+  })
+
+  it('does not enable saving when the upgrade write fails', async () => {
+    const store = createStore()
+    const readFile = vi.fn(async () => ({ bookmark: { a: { name: 'a' } } }))
+    const writer: PersistenceWriter = {
+      write: (_filePath, _data, _options, callback) => {
+        callback?.(new Error('EACCES: permission denied'))
+      },
+    }
+    const persistence = createPersistence({ isMain: true, readFile, writer })
+
+    persistence.start(store)
+    await waitFor(() => sliceOf(store).error !== null)
+    expect(sliceOf(store).ready).toBe(false)
+    persistence.stop()
+  })
+
+  it('does not write a stale upgrade after stop', async () => {
+    const store = createStore()
+    let resolveRead!: (value: unknown) => void
+    const readFile = vi.fn(
+      () =>
+        new Promise((resolve) => {
+          resolveRead = resolve
+        }),
+    )
+    const { writer, writes } = createRecordingWriter()
+    const persistence = createPersistence({ isMain: true, readFile, writer })
+
+    persistence.start(store)
+    await flush()
+    persistence.stop()
+    resolveRead({ bookmark: { a: { name: 'a' } } })
+    await flush()
+
+    expect(writes).toHaveLength(0)
+    expect(sliceOf(store).ready).toBe(false)
+  })
+
   it('waits for a pending save before reloading (unload/reload race)', async () => {
     const store = createStore()
     const { writer, writes, outstanding } = createGateWriter()
     const reads: string[] = []
     const readFile = vi.fn(async () => {
       reads.push('read')
-      return { bookmark: {} }
+      return { bookmark: {}, version: 1 }
     })
     const persistence = createPersistence({ isMain: true, readFile, writer })
 
@@ -408,7 +527,8 @@ describe('Ship Info persistence load', () => {
           resolveOld = resolve
         })
       }
-      return Promise.resolve({ planner: newerPlanner })
+      // Steady-state (v1) newer file: no upgrade write in this race test.
+      return Promise.resolve({ planner: newerPlanner, version: 1 })
     })
     const { writer, writes } = createRecordingWriter()
     const persistence = createPersistence({
@@ -453,7 +573,7 @@ describe('Ship Info persistence load', () => {
     const reads: string[] = []
     const readFile = vi.fn(async () => {
       reads.push('read')
-      return { bookmark: {} }
+      return { bookmark: {}, version: 1 }
     })
     const persistence = createPersistence({ isMain: true, readFile, writer })
 
@@ -492,6 +612,7 @@ describe('Ship Info persistence integration with a real store and file', () => {
         planner: legacyPlanner,
         ready: true,
         ui: {},
+        version: 1,
       }),
     )
 
@@ -522,7 +643,7 @@ describe('Ship Info persistence integration with a real store and file', () => {
     const withNull = path.join(dir, 'null.json')
     fs.writeFileSync(
       withNull,
-      JSON.stringify({ bookmark: {}, planner: null }),
+      JSON.stringify({ bookmark: {}, planner: null, version: 1 }),
     )
     const storeA = createStore()
     const persistenceA = createPersistence({
@@ -547,7 +668,7 @@ describe('Ship Info persistence integration with a real store and file', () => {
     persistenceA.stop()
 
     const without = path.join(dir, 'absent.json')
-    fs.writeFileSync(without, JSON.stringify({ bookmark: {} }))
+    fs.writeFileSync(without, JSON.stringify({ bookmark: {}, version: 1 }))
     const storeB = createStore()
     const persistenceB = createPersistence({
       dataPath: without,

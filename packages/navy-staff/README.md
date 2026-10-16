@@ -22,12 +22,12 @@ The main view shows the planner tabs directly. It owns its own plugin state and
 saved file (`poi-plugin-navy-staff.json`) and imports an existing sortie plan
 from Ship Info's legacy data the first time it runs.
 
-If the legacy JSON or plan structure is damaged, Navy Staff leaves that file
-untouched, saves a new empty plan, and warns that the old plan could not be
-imported. You can then use and save the new plan normally. A file access error
-or failure to save the initial Navy Staff file still blocks initialization;
-correct the reported access problem and reload the plugin. An existing Navy
-Staff file always takes precedence over legacy data.
+Saved files use format `version: 1`. Existing files without a version are
+upgraded on load; older supported formats migrate in order before editing is
+enabled. Ship Info imports accept its unversioned and v1 formats and leave the
+source untouched. Only a missing Navy file triggers an import; if both files
+are missing, Navy Staff creates an empty v1 plan. Unsupported newer formats
+are left untouched and reported as load errors.
 
 ## Install
 

@@ -83,26 +83,6 @@ const toastWriteError = (namespace: string) => () => {
   window.toast?.(i18n.t('saveError', { ns: namespace }), { type: 'error' })
 }
 
-// Navy errors are cause-specific (inaccessible legacy source vs failed initial
-// migration write vs any other Navy file load error), matching the real
-// lifecycle's onError, plus the corrupt-legacy migration warning.
-const toastNavyError = (error: { reason?: string }): void => {
-  const key =
-    error.reason === 'legacy'
-      ? 'legacyReadError'
-      : error.reason === 'migrate'
-        ? 'saveError'
-        : 'loadError'
-  window.toast?.(i18n.t(key, { ns: 'poi-plugin-navy-staff' }), {
-    type: 'error',
-  })
-}
-const toastNavyMigrationWarning = (): void => {
-  window.toast?.(i18n.t('migrationWarning', { ns: 'poi-plugin-navy-staff' }), {
-    type: 'warning',
-  })
-}
-
 export const createScenarioEnvironment = ({
   language,
   parameters = {},
@@ -156,8 +136,7 @@ export const createScenarioEnvironment = ({
     if (includeNavy) {
       const persistence = createNavyPersistence({
         isMain: environment.windowObj.isMain,
-        onError: toastNavyError,
-        onMigrationWarning: toastNavyMigrationWarning,
+        onError: toastError('poi-plugin-navy-staff'),
         onWriteError: toastWriteError('poi-plugin-navy-staff'),
       })
       persistence.start(environment.store)

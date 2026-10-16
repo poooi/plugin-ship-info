@@ -234,11 +234,10 @@ button or modal) with `shipInfo.plugin: 'navy-staff'`.
 | --- | --- |
 | `NavyStaff/Area/*`, `NavyStaff/ShipGrid/*`, `NavyStaff/Capture/*` | The moved planner workflows: search/type tabs, add/move/remove, tag synchronization, both layouts, and detached-only capture. |
 | `NavyStaff/Integrated/NavyAlone` | Navy Staff alone renders its main view with no Ship Info table or sidebar present. |
+| `NavyStaff/Integrated/UpgradesStoredFileAndSaves` | An unversioned Navy file upgrades to v1, retains the plan and archive, and a later UI edit saves in v1. |
 | `NavyStaff/Integrated/BothPluginsIndependent` | Both plugins run on one host store with isolated slices (Navy plan vs Ship Info bookmarks). |
 | `NavyStaff/Integrated/MigratedPlanSmallerMap` | A plan imported from Ship Info is retained (not truncated) when the host map has fewer areas. |
 | `NavyStaff/Integrated/MigratedPlanUnloadedRoster` | A migrated plan is kept while the host roster/map data has not loaded. |
-| `NavyStaff/Integrated/InvalidLegacyIsEditable` | Invalid legacy planner data is skipped with a warning; the planner remains editable, a new assignment is saved to the Navy file, and the legacy source stays unchanged. |
-| `NavyStaff/Integrated/CorruptLegacyWithWriteFailure` | A failed initial Navy write after skipping corrupt legacy data shows the save error in the callout and toast, offers no editing controls or migration warning, and preserves the source. |
 | `NavyStaff/Integrated/DetachedDisplayOptionUsesGlobalConfig` | The display-fleet-name toggle works when the WindowEnv window (detached) has no `config`, using the renderer global. |
 | `NavyStaff/Integrated/LocalizedNavyLabelsNoFallback` | With a Navy-only i18n instance (`fallbackLng: false`), localized Navy labels (`Add ship`, `All`) resolve from the Navy bundle without borrowing Ship Info. |
 
@@ -247,6 +246,7 @@ button or modal) with `shipInfo.plugin: 'navy-staff'`.
 | Story export | Asserts |
 | --- | --- |
 | `PluginShell/MountsWithPersistedState` | The real root mounts the table and sidebar (no Deck Planner button) and the lifecycle loads the seeded file, leaving the legacy planner field untouched. |
+| `PluginShell/UpgradesStoredFileAndSaves` | An unversioned Ship Info file upgrades to v1, preserves opaque legacy planner data, and a subsequent store update saves in v1. |
 | `PluginShell/SavesWithoutPlannerOpen` | A plugin state change is written to the plugin file while persistence is lifecycle-owned, not UI-owned. |
 | `PluginShell/CorruptFileSurfacesLoadError` | A corrupt persisted file surfaces a load error and a toast, saving stays disabled, and the source file is left untouched. |
 | `PluginShell/SidebarPanelsOpenAndClose` | Columns, Filter and Export open and close. |

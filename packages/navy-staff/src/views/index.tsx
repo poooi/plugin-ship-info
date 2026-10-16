@@ -296,17 +296,6 @@ const Body = styled.div`
   padding: 0 1em 1em;
 `
 
-// Map the stored error marker to the matching cause-specific message.
-const errorMessageKey = (marker: string): string => {
-  if (marker === 'legacyRead') {
-    return 'legacyReadError'
-  }
-  if (marker === 'save') {
-    return 'saveError'
-  }
-  return 'loadError'
-}
-
 // The planner tabs are the plugin's main view (no sidebar button or modal).
 // Everything that mutates the plan is gated on `ready` so edits cannot happen
 // while the asynchronous load/migration is still running.
@@ -330,9 +319,7 @@ const NavyStaffContent = () => {
       </Tabs>
       <Body className={cls(Classes.DIALOG_BODY, 'navy-staff-scrollable')}>
         {slice?.error ? (
-          <Callout intent={Intent.DANGER}>
-            {t(errorMessageKey(slice.error))}
-          </Callout>
+          <Callout intent={Intent.DANGER}>{t('loadError')}</Callout>
         ) : slice?.ready ? (
           <PlannerContent activeTab={activeTab} />
         ) : (

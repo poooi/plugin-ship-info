@@ -48,6 +48,55 @@ export const toPersistedDataError = (
     ? error
     : new PersistedDataError(reason, message, error)
 
+export type PersistedMigration = (
+  data: Record<string, unknown>,
+) => Record<string, unknown>
+
+/**
+ * Validates the top-level `version` (absent means 0) and runs the ordered
+ * migration steps (`migrations[i]` upgrades `i` to `i+1`; content only, the
+ * version is stamped by the helper). The current version is the step count, so
+ * there is no separate knob to keep in sync. Malformed and unsupported future
+ * versions are rejected before any write. Pure and side-effect free.
+ */
+export const migratePersistedVersion = (
+  raw: Record<string, unknown>,
+  migrations: readonly PersistedMigration[],
+): Record<string, unknown> => {
+  const currentVersion = migrations.length
+  const rawVersion = raw.version
+  let version: number
+  if (rawVersion === undefined) {
+    version = 0
+  } else if (
+    typeof rawVersion === 'number' &&
+    Number.isInteger(rawVersion) &&
+    rawVersion >= 0
+  ) {
+    version = rawVersion
+  } else {
+    throw toPersistedDataError(
+      'invalid',
+      'persisted version is not a non-negative integer',
+      undefined,
+    )
+  }
+
+  if (version > currentVersion) {
+    throw toPersistedDataError(
+      'invalid',
+      `persisted version ${version} is newer than supported ${currentVersion}`,
+      undefined,
+    )
+  }
+
+  let data = raw
+  for (let step = version; step < currentVersion; step += 1) {
+    data = { ...migrations[step](data), version: step + 1 }
+  }
+  return data
+}
+
 export interface PersistenceStore {
   dispatch: (action: unknown) => unknown
   getState: () => any

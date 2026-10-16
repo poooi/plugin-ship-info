@@ -646,3 +646,52 @@ export const PlannerMovedNoticeKorean: Story = {
     })
   },
 }
+
+export const UpgradesStoredFileAndSaves: Story = {
+  name: 'A v0 Ship Info file is upgraded to v1 and later saves keep v1',
+  parameters: {
+    shipInfo: {
+      files: {
+        [PLUGIN_DATA_PATH]: {
+          bookmark: { alpha: { name: 'alpha' } },
+          planner: { archive: { old: [[9]] }, current: [[1, 2]] },
+          ready: true,
+          ui: {},
+        },
+      },
+      lifecycle: true,
+      plugin: 'ship-info',
+      state: plannerScenarioState(),
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await expect(await canvas.findByText('Alpha')).toBeTruthy()
+    const environment = getEnvironment()
+    await waitFor(async () => {
+      await expect(
+        environment.store.getState()[SHIP_INFO_PLUGIN_KEY].ready,
+      ).toBe(true)
+    })
+
+    // The v0 file was upgraded in place before the plugin became ready.
+    await waitFor(async () => {
+      await expect((host.log.files[PLUGIN_DATA_PATH] as any).version).toBe(1)
+    })
+    await expect(
+      (host.log.files[PLUGIN_DATA_PATH] as any).planner,
+    ).toEqual({ archive: { old: [[9]] }, current: [[1, 2]] })
+
+    const before = host.log.writtenFiles.length
+    environment.store.dispatch({
+      isExtend: false,
+      type: '@@poi-plugin-ship-info@extend',
+    })
+    await waitFor(async () => {
+      await expect(host.log.writtenFiles.length).toBeGreaterThan(before)
+    })
+    const last = host.log.writtenFiles[host.log.writtenFiles.length - 1]
+    await expect(last.path).toBe(PLUGIN_DATA_PATH)
+    await expect((last.data as any).version).toBe(1)
+  },
+}

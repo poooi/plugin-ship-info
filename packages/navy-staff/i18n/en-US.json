@@ -36,7 +36,5 @@
   "loading": "Loading…",
   "loadError": "Could not load saved Navy Staff data. Saving is disabled to avoid overwriting your file.",
   "saveError": "Could not save Navy Staff data. Check that the file is writable.",
-  "Navy Staff": "Navy Staff",
-  "legacyReadError": "Could not read the Ship Info plan to import. Check file access, then reload Navy Staff.",
-  "migrationWarning": "The Ship Info plan data is damaged or invalid. Import was skipped and a new empty plan was created; the original Ship Info file is unchanged."
+  "Navy Staff": "Navy Staff"
 }

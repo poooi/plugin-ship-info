@@ -487,6 +487,10 @@ const runScenario = async (name, selected, seedLegacy) => {
     }
     const snapshots = {}
     for (const [key, file] of Object.entries(files)) {
+      check(
+        readJsonSafe(file)?.version === 1,
+        `${name}: ${key} was not saved at file-format version 1`,
+      )
       snapshots[key] = fs.readFileSync(file, 'utf8')
     }
 
