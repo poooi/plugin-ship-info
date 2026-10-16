@@ -1,6 +1,7 @@
 import { AnyAction, combineReducers } from 'redux'
 
 import { ACTIONS } from './plugin-identity'
+import { NAVY_ACTIONS } from './workspace/action-types'
 import { navyReducer } from './workspace/reducer'
 
 export { PLUGIN_KEY } from './plugin-identity'
@@ -42,9 +43,29 @@ const accountReducer = (state: string | null = null, action: AnyAction) => {
 
 // Only durable workspace data lives in `navy`. Transient view state (history
 // previews, references, dialogs, search, tabs) stays out of the observed slice.
-export const reducer = combineReducers({
+const combined = combineReducers({
   account: accountReducer,
   error: errorReducer,
   navy: navyReducer,
   ready: readyReducer,
 })
+
+type NavySlice = ReturnType<typeof combined>
+
+// The durable apply-sync action carries the loaded account it was prepared for.
+// A raced account switch, or a same-account reload that is not ready yet, is
+// rejected here before the navy slice can append; the navy reducer separately
+// guards the base revision.
+export const reducer = (
+  state: NavySlice | undefined,
+  action: AnyAction,
+): NavySlice => {
+  if (
+    action.type === NAVY_ACTIONS.applySync &&
+    state !== undefined &&
+    (!state.ready || state.account !== action.accountId)
+  ) {
+    return state
+  }
+  return combined(state, action)
+}

@@ -57,6 +57,10 @@ export type NavyOperation =
   | { kind: 'remove-ship'; areaId: string; shipId: number }
   | { kind: 'move-ship'; fromAreaId: string; toAreaId: string; shipId: number }
   | { kind: 'restore'; from: string }
+  // Manual sync batches. Each accepted batch is one revision; the summary IDs
+  // are for the history label only and never identify a host event.
+  | { kind: 'update-areas'; addedAreaIds: string[]; updatedAreaIds: string[] }
+  | { kind: 'apply-tags'; addedOwnedIds: number[]; movedOwnedIds: number[] }
 
 export interface NavyRevision {
   /** Stable revision ID; the history layer uses it as `previewRevisionId`. */

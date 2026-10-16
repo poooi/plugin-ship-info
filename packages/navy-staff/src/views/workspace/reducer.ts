@@ -12,7 +12,7 @@ import {
   withName,
   withShipRecord,
 } from './operations'
-import { emptyNavyData, type NavyData, type NavyWorkspace } from './types'
+import { emptyNavyData, type NavyData, type NavyOperation, type NavyWorkspace, type NavyWorkspaceContent } from './types'
 
 const replaceWorkspace = (navy: NavyData, next: NavyWorkspace): NavyData => ({
   ...navy,
@@ -64,6 +64,23 @@ export const navyReducer = (
         return state
       }
       return replaceWorkspace(state, { ...workspace, cursor: workspace.cursor + 1 })
+    }
+    case NAVY_ACTIONS.applySync: {
+      const workspace = state.workspaces.find((w) => w.id === action.workspaceId)
+      if (!workspace) return state
+      // Accept only while the workspace still sits on the accepted base revision.
+      if (workspace.revisions[workspace.cursor].id !== action.baseRevisionId) {
+        return state
+      }
+      return replaceWorkspace(
+        state,
+        appendRevision(
+          workspace,
+          action.operation as NavyOperation,
+          action.content as NavyWorkspaceContent,
+          action.now as string,
+        ),
+      )
     }
     case NAVY_ACTIONS.restore: {
       const workspace = selectedWorkspace(state)

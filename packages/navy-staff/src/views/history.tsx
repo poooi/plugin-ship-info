@@ -51,6 +51,10 @@ const opLabel = (op: NavyOperation, t: (key: string, options?: any) => string): 
       return t('Moved ship {{id}}', { id: op.shipId })
     case 'restore':
       return t('Restored earlier revision')
+    case 'update-areas':
+      return t('Updated area information')
+    case 'apply-tags':
+      return t('Applied actual sortie tags')
     default:
       return t('Edited')
   }

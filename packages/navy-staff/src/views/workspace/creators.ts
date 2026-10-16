@@ -2,7 +2,12 @@
 // can use them without the host boundary; thunks live in ./actions.
 
 import { NAVY_ACTIONS } from './action-types'
-import type { NavyShipRecord, NavyWorkspace } from './types'
+import type {
+  NavyOperation,
+  NavyShipRecord,
+  NavyWorkspace,
+  NavyWorkspaceContent,
+} from './types'
 
 export const onCreateWorkspace = ({ workspace }: { workspace: NavyWorkspace }) => ({
   type: NAVY_ACTIONS.create,
@@ -95,5 +100,34 @@ export const onRedo = () => ({ type: NAVY_ACTIONS.redo })
 export const onRestore = ({ id, now }: { id: string; now: string }) => ({
   type: NAVY_ACTIONS.restore,
   id,
+  now,
+})
+
+/**
+ * Applies one accepted sync batch as a single revision. The target workspace id
+ * and the frozen base revision id travel in the action so the reducer only
+ * appends when the workspace still sits on the accepted revision.
+ */
+export const onApplySync = ({
+  workspaceId,
+  baseRevisionId,
+  accountId,
+  content,
+  operation,
+  now,
+}: {
+  workspaceId: string
+  baseRevisionId: string
+  accountId: string | null
+  content: NavyWorkspaceContent
+  operation: NavyOperation
+  now: string
+}) => ({
+  type: NAVY_ACTIONS.applySync,
+  workspaceId,
+  baseRevisionId,
+  accountId,
+  content,
+  operation,
   now,
 })

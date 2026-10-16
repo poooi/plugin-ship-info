@@ -29,6 +29,7 @@ import {
 } from '../packages/navy-staff/src/views/workspace/creators'
 
 type NavySlice = {
+  account: string | null
   error: string | null
   navy: {
     selectedWorkspaceId: string

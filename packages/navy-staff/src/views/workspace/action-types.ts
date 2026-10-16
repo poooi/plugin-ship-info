@@ -4,6 +4,7 @@ import { PLUGIN_KEY } from '../plugin-identity'
 // import the thunk module (and through it the host selectors).
 export const NAVY_ACTIONS = {
   addShip: `@@${PLUGIN_KEY}@ws-add-ship`,
+  applySync: `@@${PLUGIN_KEY}@ws-apply-sync`,
   create: `@@${PLUGIN_KEY}@ws-create`,
   delete: `@@${PLUGIN_KEY}@ws-delete`,
   moveShip: `@@${PLUGIN_KEY}@ws-move-ship`,

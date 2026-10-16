@@ -39,6 +39,7 @@ import { Area } from './planner/area'
 import { ShipGrid } from './planner/ship-grid'
 import { resolveAreaLabel } from './planner/types'
 import { DISPLAY_FLEET_NAME_CONFIG, PLUGIN_KEY } from './plugin-identity'
+import { SyncBar } from './sync'
 import {
   createWorkspace,
   duplicateWorkspace,
@@ -426,6 +427,7 @@ const NavyStaffContent = () => {
           <PreviewContext.Provider value={contextValue}>
             <WorkspaceManager readOnly={previewing} />
             <HistoryBar />
+            <SyncBar historyPreview={previewing} />
             <PlannerContent activeTab={activeTab} display={display} readOnly={previewing} />
           </PreviewContext.Provider>
         ) : (
