@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite'
 import { expect, screen, userEvent, waitFor, within } from 'storybook/test'
 
 import { tableState } from '../tests/ui/fixtures'
-import { Columns } from '../views/sidebar/columns'
+import { Columns } from '../packages/ship-info/src/views/sidebar/columns'
 
 const meta = {
   title: 'Sidebar/Columns/Columns',

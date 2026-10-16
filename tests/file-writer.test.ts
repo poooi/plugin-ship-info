@@ -22,7 +22,7 @@ vi.mock('fs-extra', () => ({
   },
 }))
 
-import FileWriter from '../views/file-writer'
+import FileWriter from '../packages/shared/src/file-writer'
 
 const flush = () => new Promise((resolve) => setImmediate(resolve))
 
@@ -79,5 +79,85 @@ describe('FileWriter', () => {
     await flush()
     expect(a.writing).toBe(false)
     expect(b.writing).toBe(false)
+  })
+
+  it('reports a rejected write and keeps processing the queue', async () => {
+    const fw = new FileWriter()
+    const events: string[] = []
+    const cb = (name: string) => (err?: unknown) => {
+      events.push(`${name}:${err ? 'err' : 'ok'}`)
+    }
+
+    fw.write('p1', 'd1', undefined, cb('c1'))
+    fw.write('p2', 'd2', undefined, cb('c2'))
+
+    h.calls[0].reject(new Error('EACCES: permission denied'))
+    await flush()
+    expect(events).toEqual(['c1:err'])
+    expect(h.calls.map((c) => c.args[0])).toEqual(['p1', 'p2'])
+    expect(fw.writing).toBe(true)
+
+    h.calls[1].resolve()
+    await flush()
+    expect(events).toEqual(['c1:err', 'c2:ok'])
+    expect(fw.writing).toBe(false)
+    expect(fw._queue).toHaveLength(0)
+  })
+
+  it('releases the writer even when the final write rejects', async () => {
+    const fw = new FileWriter()
+    const seen: unknown[] = []
+
+    fw.write('only', 'd', undefined, (err?: unknown) => seen.push(err))
+    h.calls[0].reject(new Error('boom'))
+    await flush()
+
+    expect(seen).toHaveLength(1)
+    expect(seen[0]).toBeInstanceOf(Error)
+    expect(fw.writing).toBe(false)
+    expect(fw._queue).toHaveLength(0)
+  })
+
+  it('a throwing callback does not strand later writes', async () => {
+    const fw = new FileWriter()
+    const events: string[] = []
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+
+    fw.write('p1', 'd1', undefined, () => {
+      throw new Error('callback boom')
+    })
+    fw.write('p2', 'd2', undefined, (err?: unknown) => events.push(err ? 'err' : 'ok'))
+
+    h.calls[0].resolve()
+    await flush()
+    expect(h.calls.map((c) => c.args[0])).toEqual(['p1', 'p2'])
+
+    h.calls[1].resolve()
+    await flush()
+    expect(events).toEqual(['ok'])
+    expect(fw.writing).toBe(false)
+    expect(fw._queue).toHaveLength(0)
+    errorSpy.mockRestore()
+  })
+
+  it('drain resolves once the current queue settles', async () => {
+    const fw = new FileWriter()
+    let drained = false
+
+    fw.write('p1', 'd1')
+    const pending = fw.drain().then(() => {
+      drained = true
+    })
+    await flush()
+    expect(drained).toBe(false)
+
+    h.calls[0].resolve()
+    await pending
+    expect(drained).toBe(true)
+  })
+
+  it('drain resolves immediately when nothing is queued', async () => {
+    const fw = new FileWriter()
+    await expect(fw.drain()).resolves.toBeUndefined()
   })
 })

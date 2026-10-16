@@ -1,0 +1,154 @@
+import { Menu, MenuItem, Position, Tag } from '@blueprintjs/core'
+import { get } from 'lodash'
+import React, { ComponentType, PureComponent } from 'react'
+import FA from 'react-fontawesome'
+import { withTranslation, WithTranslation } from 'react-i18next'
+import { connect, DispatchProp } from 'react-redux'
+import { compose } from 'redux'
+import styled from 'styled-components'
+import { Popover } from 'views/components/etc/overlay'
+import { IState } from 'views/utils/selectors'
+
+import { shipFleetIdSelectorFactory } from '@poi-plugins/ship-info-shared/fleet'
+import { shipTypeLabel } from '@poi-plugins/ship-info-shared/ship-types'
+import { FleetIcon } from '@poi-plugins/ship-info-shared/ui/fleet-icon'
+import { onDisplaceShip, onRemoveShip } from './redux'
+import { shipItemSelectorFactory } from './selectors'
+
+const Chip = styled(Tag)`
+  margin: 0.5ex 1ex;
+`
+
+interface IProps extends DispatchProp, WithTranslation {
+  shipId: number
+  typeId: number
+  name: string
+  lv: number
+  area: number
+  color: string[]
+  others: IArea[]
+  planArea: number
+  fleetId: number
+  id: number
+}
+
+export const ShipChip = compose<
+  ComponentType<
+    Omit<
+      IProps,
+      | keyof DispatchProp
+      | keyof WithTranslation
+      | 'name'
+      | 'area'
+      | 'color'
+      | 'lv'
+      | 'typeId'
+      | 'fleetId'
+      | 'id'
+    >
+  >
+>(
+  withTranslation(['resources', 'poi-plugin-navy-staff']),
+  connect((state: IState, props: IProps) => ({
+    ...shipItemSelectorFactory(props.shipId)(state),
+    color: get(state, 'fcd.shiptag.color', []),
+    fleetId: shipFleetIdSelectorFactory(props.shipId)(state),
+  })),
+)(
+  class ShipChipBase extends PureComponent<IProps> {
+    public handleDisplace = (areaIndex: number) => () => {
+      const { planArea, id } = this.props
+      this.props.dispatch(
+        onDisplaceShip({
+          fromAreaIndex: planArea,
+          shipId: id,
+          toAreaIndex: areaIndex,
+        }),
+      )
+    }
+
+    public handleRemove = () => {
+      const { id, planArea } = this.props
+      this.props.dispatch(
+        onRemoveShip({
+          areaIndex: planArea,
+          shipId: id,
+        }),
+      )
+    }
+
+    public componentDidUpdate = () => {
+      const { area, planArea, id } = this.props
+      if (area > 0 && area - 1 !== planArea) {
+        this.props.dispatch(
+          onDisplaceShip({
+            fromAreaIndex: planArea,
+            shipId: id,
+            toAreaIndex: area - 1,
+          }),
+        )
+      }
+    }
+
+    public render() {
+      const { typeId, name, lv, area, color, others, fleetId, t } = this.props
+      const typeLabel = shipTypeLabel(typeId, (key) =>
+        t(key, { ns: 'poi-plugin-navy-staff' }),
+      )
+
+      return (
+        <Chip
+          minimal
+          interactive
+          onRemove={this.handleRemove}
+          onContextMenu={!(area > 0) ? this.handleRemove : undefined}
+        >
+          <Popover
+            position={Position.TOP}
+            hasBackdrop
+            content={
+              <Menu>
+                {others.map((_area) => (
+                  <MenuItem
+                    key={_area.color}
+                    onClick={this.handleDisplace(_area.areaIndex)}
+                    text={
+                      <>
+                        {t('Move to ')}{' '}
+                        <Tag
+                          minimal
+                          style={{
+                            color: _area.color,
+                          }}
+                        >
+                          <FA name="tag" />
+                          {_area.name}
+                        </Tag>
+                      </>
+                    }
+                  />
+                ))}
+              </Menu>
+            }
+          >
+            <span>
+              {typeLabel}
+              {' | '}
+              {t(name)} <span>Lv.{lv}</span>
+            </span>
+          </Popover>
+          <span>
+            {area > 0 && (
+              <FA
+                name="tag"
+                style={{ marginLeft: '1ex', color: color[area - 1] }}
+              />
+            )}
+          </span>
+
+          <span>{fleetId > -1 && <FleetIcon fleetId={fleetId} />}</span>
+        </Chip>
+      )
+    }
+  },
+)

@@ -16,22 +16,28 @@ import {
   resetCapture,
   setCaptureOutcome,
 } from '../preview/planner-fixtures'
-import { Planner } from '../views/sidebar/planner'
+import { reactClass as NavyStaff } from '../packages/navy-staff/src/views'
 
 const params = (isMain: boolean, options?: PlannerScenarioOptions) => ({
-  shipInfo: { isMain, state: plannerScenarioState(options) },
+  shipInfo: {
+    isMain,
+    plugin: 'navy-staff' as const,
+    state: plannerScenarioState(options),
+  },
 })
 
 const openPlanner = async () => {
-  await userEvent.click(screen.getByRole('button', { name: 'Deck Planner' }))
-  return screen.findByRole('dialog')
+  const view = await screen.findByRole('tab', { name: 'Area View' })
+  return view.closest('#poi-plugin-navy-staff') as HTMLElement
 }
 
 const openGrid = async () => {
-  const dialog = await openPlanner()
-  await userEvent.click(within(dialog).getByRole('tab', { name: 'Ship Grid' }))
-  await within(dialog).findByRole('heading', { level: 2, name: 'DD' })
-  return dialog
+  const container = await openPlanner()
+  await userEvent.click(
+    within(container).getByRole('tab', { name: 'Ship Grid' }),
+  )
+  await within(container).findByRole('heading', { level: 2, name: 'DD' })
+  return container
 }
 
 const capture = async () => {
@@ -43,14 +49,14 @@ const capture = async () => {
 }
 
 const meta = {
-  title: 'Sidebar/Planner/Capture',
-  component: Planner,
+  title: 'NavyStaff/Capture',
+  component: NavyStaff,
   // The capture adapter state is module-level, so reset it before every story
   // to keep success/failure outcomes from leaking between runs.
   beforeEach: () => {
     resetCapture()
   },
-} satisfies Meta<typeof Planner>
+} satisfies Meta<typeof NavyStaff>
 
 export default meta
 type Story = StoryObj<typeof meta>

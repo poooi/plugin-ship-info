@@ -4,8 +4,8 @@ import { expect, spyOn, userEvent, waitFor, within } from 'storybook/test'
 
 import { host } from '../preview/adapters/logs'
 import { tableState } from '../preview/table-fixtures'
-import { Export } from '../views/sidebar/export'
-import { TableView } from '../views/table'
+import { Export } from '../packages/ship-info/src/views/sidebar/export'
+import { TableView } from '../packages/ship-info/src/views/table'
 import { openPopover, popoverContent, renderedNames } from './table-support'
 
 const ExportTable: React.FC = () => (

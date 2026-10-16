@@ -2,18 +2,20 @@ import './bootstrap'
 
 import { mkMstShip, mkShip } from '../tests/fixtures'
 import { tableState } from '../tests/ui/fixtures'
-import { DATA_PATH } from '../views/redux'
+import { DATA_PATH as NAVY_DATA_PATH } from '../packages/navy-staff/src/views/plugin-identity'
+import { DATA_PATH as SHIP_INFO_DATA_PATH } from '../packages/ship-info/src/views/plugin-identity'
 
-// Planner and integrated-shell browser fixtures. Built on the shared table
-// fixtures so both suites describe the same host but with a richer, tagged ship
-// roster that makes search, type tabs and the area/grid planners observable.
-//
-// Mirrors the plugin key literally (tests/ui/fixtures.ts does the same) so this
-// module never imports views/redux just to read the constant.
-export const PLUGIN_KEY = 'poi-plugin-ship-info'
+// Planner / Navy Staff and integrated-shell browser fixtures. Built on the
+// shared table fixtures so both plugins describe the same host but with a
+// richer, tagged ship roster that makes search, type tabs and the area/grid
+// planners observable.
 
-/** Absolute path `initStore` reads the persisted plugin state from. */
-export const PLUGIN_DATA_PATH = DATA_PATH
+export const SHIP_INFO_PLUGIN_KEY = 'poi-plugin-ship-info'
+export const NAVY_PLUGIN_KEY = 'poi-plugin-navy-staff'
+
+/** Absolute paths the plugin persistence lifecycles read/write. */
+export const PLUGIN_DATA_PATH = SHIP_INFO_DATA_PATH
+export const NAVY_PLUGIN_DATA_PATH = NAVY_DATA_PATH
 
 const mst = (over: Record<string, any>) =>
   mkMstShip({ api_taik: [30, 30], ...over })
@@ -95,7 +97,8 @@ export interface PlannerScenarioOptions {
 /**
  * Full host state for planner/shell stories. `current` defaults to one empty
  * area per map name; pass tagged `ships` to make the planner's tag authority
- * observable.
+ * observable. Both plugin slices are seeded with `ready: true` so component
+ * stories can render without running a lifecycle.
  */
 export const plannerScenarioState = (
   options: PlannerScenarioOptions = {},
@@ -127,26 +130,33 @@ export const plannerScenarioState = (
       ...base.info,
       ships,
     },
-    [PLUGIN_KEY]: {
-      ...base[PLUGIN_KEY],
+    [SHIP_INFO_PLUGIN_KEY]: {
+      bookmark: {},
+      error: null,
+      ready: true,
+      ui: {},
+    },
+    [NAVY_PLUGIN_KEY]: {
+      error: null,
       planner: {
         archive: {},
         current: current ?? mapname.map(() => []),
       },
+      ready: true,
     },
   }
   return { ...state, ...extra }
 }
 
-/** The plugin's own reducer slice, for asserting planner state. */
+/** The Navy Staff planner slice, for asserting planner state. */
 export const plannerSlice = (environment: {
   store: { getState: () => any }
-}) => environment.store.getState()[PLUGIN_KEY].planner as {
+}) => environment.store.getState()[NAVY_PLUGIN_KEY].planner as {
   archive: object
   current: number[][]
 }
 
-/** Seed content for `initStore`, keyed by the persisted plugin data path. */
+/** Seed the Ship Info file (legacy planner source) for migration stories. */
 export const persistedPluginFile = (planner: {
   archive?: object
   current: number[][]
@@ -156,6 +166,17 @@ export const persistedPluginFile = (planner: {
     planner: { archive: {}, ...planner },
     ready: true,
     ui: {},
+  },
+})
+
+/** Seed the Navy Staff file (authoritative when present). */
+export const persistedNavyFile = (planner: {
+  archive?: object
+  current: number[][]
+}) => ({
+  [NAVY_PLUGIN_DATA_PATH]: {
+    planner: { archive: {}, ...planner },
+    ready: true,
   },
 })
 

@@ -11,7 +11,11 @@ import type { Decorator } from '@storybook/react-vite'
 
 import { getTheme, Providers } from '../tests/ui/environment'
 import { isLanguage, type Language } from './i18n'
-import { createScenarioEnvironment, type ShipInfoParameters } from './scenario'
+import {
+  createScenarioEnvironment,
+  disposeScenario,
+  type ShipInfoParameters,
+} from './scenario'
 
 const readVariant = (value: unknown): 'light' | 'dark' =>
   value === 'light' ? 'light' : 'dark'
@@ -52,6 +56,10 @@ export const withShipInfo: Decorator = (Story, context) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [scenarioKey, parameters.state, generation],
   )
+
+  // Dispose the lifecycle this surface owns when it unmounts. On a reset the
+  // memo has already replaced `environment`, so the stale cleanup is a no-op.
+  useEffect(() => () => disposeScenario(environment), [environment])
 
   // Blueprint portals attach to <body>, so the dark class has to live there to
   // theme portaled overlays too. It is removed again for light.

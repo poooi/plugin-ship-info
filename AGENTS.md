@@ -8,13 +8,14 @@
 
 ## Code map
 
-- `index-src.ts`: poi plugin entry and lifecycle exports.
-- `views/index.tsx`: main interface; `views/table/`: ship information table.
-- `views/sidebar/`: sidebar controls, including the planner in `planner/`.
-- `views/selectors.ts` and `views/utils.ts`: derived data and utility functions.
-- `views/redux.ts` and `views/file-writer.ts`: state and persistence.
-- `i18n/`: translations; `shims/`: local dependency and poi type declarations.
-- `vite.config.ts`: Vite+ build (`pack`), lint, and format configuration with poi-provided external dependencies.
+- `packages/ship-info/src/index-src.ts`: poi plugin entry and lifecycle exports.
+- `packages/ship-info/src/views/`: main interface, table, sidebar, state, lifecycle, persistence, and table utilities.
+- `packages/navy-staff/src/`: standalone planner entry, lifecycle, migration, state, selectors, and screenshot capture.
+- `packages/shared/src/`: classification, host fleet selectors, shared UI, serialized writes, and persistence lifecycle; bundled into consumers.
+- `packages/*/i18n/` and package-specific `assets/`: self-contained packaged translations and resources.
+- `shims/`: local dependency and poi type declarations.
+- `packages/*/vite.config.ts`: plugin builds (`vp pack`) and poi-provided external dependencies.
+- `vite.config.ts`: repository tests, lint, and format configuration.
 
 ## Development
 
@@ -25,6 +26,8 @@ pnpm install --frozen-lockfile
 pnpm run check
 pnpm test
 pnpm run build
+pnpm run pack
+pnpm run verify:package
 git diff --check
 ```
 

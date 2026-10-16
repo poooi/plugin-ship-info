@@ -79,7 +79,10 @@ export interface EnvironmentOptions {
   isMain?: boolean
   language?: string
   middleware?: any[]
+  /** Ship Info plugin reducer (registered under its plugin key). */
   pluginReducer?: (state: any, action: any) => any
+  /** Additional plugin reducers, keyed by their plugin key. */
+  pluginReducers?: Record<string, (state: any, action: any) => any>
 }
 
 export const createEnvironment = (
@@ -92,7 +95,13 @@ export const createEnvironment = (
     language = 'en-US',
     middleware = [],
     pluginReducer,
+    pluginReducers = {},
   } = options
+
+  const reducers: Record<string, (state: any, action: any) => any> = {
+    ...(pluginReducer ? { [PLUGIN_KEY]: pluginReducer } : {}),
+    ...pluginReducers,
+  }
 
   const reducer = (state = initialState, action: any) => {
     if (action.type === 'TEST/SET_CONFIG') {
@@ -103,13 +112,16 @@ export const createEnvironment = (
     if (action.type === 'TEST/REPLACE') {
       return { ...state, ...action.state }
     }
-    if (pluginReducer) {
-      const nextPlugin = pluginReducer(state[PLUGIN_KEY], action)
-      if (nextPlugin !== state[PLUGIN_KEY]) {
-        return { ...state, [PLUGIN_KEY]: nextPlugin }
+    let changed = false
+    const next: any = { ...state }
+    for (const [key, pluginReducerFor] of Object.entries(reducers)) {
+      const nextPlugin = pluginReducerFor(state[key], action)
+      if (nextPlugin !== state[key]) {
+        next[key] = nextPlugin
+        changed = true
       }
     }
-    return state
+    return changed ? next : state
   }
 
   const store =

@@ -15,18 +15,18 @@ import {
   plannerTaggedShips,
 } from '../preview/planner-fixtures'
 import { getEnvironment } from '../preview/scenario'
-import { Planner } from '../views/sidebar/planner'
+import { reactClass as NavyStaff } from '../packages/navy-staff/src/views'
 
 const params = (options?: PlannerScenarioOptions) => ({
-  shipInfo: { state: plannerScenarioState(options) },
+  shipInfo: { plugin: 'navy-staff' as const, state: plannerScenarioState(options) },
 })
 
 const openGrid = async () => {
-  await userEvent.click(screen.getByRole('button', { name: 'Deck Planner' }))
-  const dialog = await screen.findByRole('dialog')
-  await userEvent.click(within(dialog).getByRole('tab', { name: 'Ship Grid' }))
-  await within(dialog).findByRole('heading', { level: 2, name: 'DD' })
-  return dialog
+  const view = await screen.findByRole('tab', { name: 'Ship Grid' })
+  const container = view.closest('#poi-plugin-navy-staff') as HTMLElement
+  await userEvent.click(within(container).getByRole('tab', { name: 'Ship Grid' }))
+  await within(container).findByRole('heading', { level: 2, name: 'DD' })
+  return container
 }
 
 const palette = (name: string) =>
@@ -60,9 +60,9 @@ const groupCellLabels = (dialog: HTMLElement, name: string) => {
 }
 
 const meta = {
-  title: 'Sidebar/Planner/ShipGrid',
-  component: Planner,
-} satisfies Meta<typeof Planner>
+  title: 'NavyStaff/ShipGrid',
+  component: NavyStaff,
+} satisfies Meta<typeof NavyStaff>
 
 export default meta
 type Story = StoryObj<typeof meta>

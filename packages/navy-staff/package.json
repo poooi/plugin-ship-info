@@ -1,0 +1,43 @@
+{
+  "name": "poi-plugin-navy-staff",
+  "version": "0.1.0",
+  "description": "Plan sortie assignments for your ship girls",
+  "main": "index.js",
+  "files": [
+    "index.js",
+    "index.js.map",
+    "i18n"
+  ],
+  "scripts": {
+    "build": "vp pack",
+    "prepack": "vp pack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poooi/plugin-ship-info.git"
+  },
+  "author": {
+    "name": "かがみ",
+    "link": "https://github.com/KagamiChan"
+  },
+  "contributors": [
+    "Yunze (https://github.com/myzWILLmake)"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/poooi/plugin-ship-info/issues"
+  },
+  "homepage": "https://github.com/poooi/plugin-ship-info#readme",
+  "poiPlugin": {
+    "title": "Navy Staff",
+    "description": "Plan sortie assignments for your ship girls",
+    "icon": "fa/ship",
+    "priority": 51
+  },
+  "devDependencies": {
+    "@poi-plugins/ship-info-shared": "workspace:*"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
+  }
+}

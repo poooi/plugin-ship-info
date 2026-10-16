@@ -7,6 +7,7 @@ import { mkMstShip, mkShip } from '../fixtures'
 // Kept as a literal so this fixture module never imports views/redux (which
 // itself pulls in the host selectors) just to read the key.
 const PLUGIN_KEY = 'poi-plugin-ship-info'
+const NAVY_PLUGIN_KEY = 'poi-plugin-navy-staff'
 
 // ---------------------------------------------------------------------------
 // Realistic small fixtures. Levels differ so level sort is observable; types
@@ -87,6 +88,6 @@ export const plannerState = (over: Record<string, any> = {}) => ({
     $shipTypes: { ...shipTypes, 4: { api_name: 'CLT' } },
   },
   info: { equips: {}, server: { ip: '1.2.3.4' }, ships: plannerShips },
-  [PLUGIN_KEY]: { planner: { archive: {}, current: [[3]] }, ready: true },
+  [NAVY_PLUGIN_KEY]: { planner: { archive: {}, current: [[3]] }, ready: true },
   ...over,
 })

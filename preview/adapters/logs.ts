@@ -17,11 +17,17 @@ export interface WrittenFile {
   path: string
 }
 
+export interface ToastCall {
+  content: string
+  options?: { type?: string }
+}
+
 export interface HostLog {
   clipboardWrites: string[]
   downloads: string[]
   files: Record<string, unknown>
   saveDialogCalls: SaveDialogCall[]
+  toasts: ToastCall[]
   writeErrors: WrittenFile[]
   writtenFiles: WrittenFile[]
 }
@@ -31,6 +37,7 @@ const createLog = (): HostLog => ({
   downloads: [],
   files: {},
   saveDialogCalls: [],
+  toasts: [],
   writeErrors: [],
   writtenFiles: [],
 })

@@ -28,13 +28,20 @@ jobs:
         run: pnpm run check
       - name: Test
         run: pnpm test
-      - name: Pack
-        run: pnpm pack
+      # `pack` runs each plugin's `prepack` (vp pack) build, so there is no
+      # separate build step here.
+      - name: Pack plugins
+        run: pnpm run pack
+      - name: Verify packed plugins
+        run: pnpm run verify:package
       - name: Upload drop artifact
         uses: actions/upload-artifact@v7
         with:
           name: drop
-          path: '*.tgz'
+          path: '.cache/packages/*.tgz'
+          # `.cache` is a dot-directory; upload-artifact skips hidden files
+          # unless this is set.
+          include-hidden-files: true
           if-no-files-found: error
 
   browser:

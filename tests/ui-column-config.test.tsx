@@ -18,9 +18,8 @@ vi.mock('wanakana', async () => (await import('./ui/boundaries')).wanakanaModule
 vi.mock('react-fontawesome', async () => (await import('./ui/boundaries')).fontawesomeModule)
 vi.mock('redux-observers', async () => (await import('./ui/boundaries')).reduxObserversModule)
 vi.mock('electron', async () => (await import('./ui/boundaries')).createElectronModule())
-vi.mock('../lib/html2canvas', () => ({ default: () => undefined }))
 
-import { ColumnConfig } from '../views/sidebar/columns/column-config'
+import { ColumnConfig } from '../packages/ship-info/src/views/sidebar/columns/column-config'
 import { tableState } from './ui/fixtures'
 import { createHarness } from './ui/harness'
 

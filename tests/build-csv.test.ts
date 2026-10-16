@@ -4,9 +4,8 @@ vi.mock('views/env-parts/i18next', () => ({
   default: { getFixedT: () => (key: string) => key },
 }))
 vi.mock('electron', () => ({ remote: {} }))
-vi.mock('../lib/html2canvas', () => ({ default: () => undefined }))
 
-import { buildCsv } from '../views/sidebar/export/build-csv'
+import { buildCsv } from '../packages/ship-info/src/views/sidebar/export/build-csv'
 import { mkDb, mkMstShip, mkRow, mkShip } from './fixtures'
 
 const COLUMNS = [
