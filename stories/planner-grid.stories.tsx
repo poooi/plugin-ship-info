@@ -35,6 +35,30 @@ const palette = (name: string) =>
 const cell = (label: string) =>
   screen.getByRole('button', { name: label }) as HTMLElement
 
+// Hand-written expectation of how the fixture roster (plannerMstShips) maps to
+// the grid's super types, in rendered -lv/-id order. Deliberately independent
+// of the production shipSuperTypeMap so mis-grouping can't agree with itself.
+// Groups with no matching ship are listed empty.
+const expectedGroups: Array<[string, string[]]> = [
+  ['BB', ['Zeta Lv.80']],
+  ['CV', ['Eta Lv.90']],
+  ['CA', []],
+  ['CL', ['Gamma Lv.150', 'Delta Lv.100', 'Epsilon Lv.10']],
+  ['DD', ['Alpha Lv.50', 'Beta Lv.20']],
+  ['SS', ['Theta Lv.30']],
+  ['DE', []],
+  ['Auxiliary', []],
+]
+
+// Ship cells rendered under one super-type heading, scoped to that heading's
+// parent group so a ship in the wrong group can never satisfy the assertion.
+const groupCellLabels = (dialog: HTMLElement, name: string) => {
+  const heading = within(dialog).getByRole('heading', { level: 2, name })
+  return within(heading.parentElement as HTMLElement)
+    .queryAllByRole('button')
+    .map((button) => button.getAttribute('aria-label'))
+}
+
 const meta = {
   title: 'Sidebar/Planner/ShipGrid',
   component: Planner,
@@ -49,16 +73,24 @@ export const GroupsShipsBySuperType: Story = {
   play: async () => {
     const dialog = await openGrid()
 
-    for (const heading of ['BB', 'CV', 'CL', 'DD', 'SS']) {
-      await expect(
-        within(dialog).getByRole('heading', { level: 2, name: heading }),
-      ).toBeTruthy()
+    // Each heading's parent group owns exactly its ships, in rendered order.
+    const rendered: Array<string | null> = []
+    for (const [name, labels] of expectedGroups) {
+      const actual = groupCellLabels(dialog, name)
+      await expect(actual, `${name} group cells`).toEqual([...labels])
+      rendered.push(...actual)
     }
 
-    // Every owned ship is represented once.
-    await expect(cell('Alpha Lv.50')).toBeTruthy()
-    await expect(cell('Epsilon Lv.10')).toBeTruthy()
-    await expect(cell('Zeta Lv.80')).toBeTruthy()
+    // Every expected ship appears exactly once across the whole grid.
+    const roster = expectedGroups.flatMap(([, labels]) => labels)
+    const counts = new Map<string | null, number>()
+    for (const label of rendered) {
+      counts.set(label, (counts.get(label) ?? 0) + 1)
+    }
+    await expect(rendered).toHaveLength(roster.length)
+    for (const label of roster) {
+      await expect(counts.get(label), `${label} appears exactly once`).toBe(1)
+    }
   },
 }
 
