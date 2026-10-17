@@ -1,10 +1,18 @@
-# Plugin-Ship-Info
+# Ship Info & Navy Staff
 
-Show detailed information of all owned ship girls
+[![Ship Info version][ship-info-badge]][ship-info-npm]
+[![Navy Staff version][navy-staff-badge]][navy-staff-npm]
 
-Cuurent maintainer: かがみ
+Two poi plugins in one pnpm workspace:
 
-Created by [Yunze](https://github.com/myzwillmake)
+- **Ship Info** (`poi-plugin-ship-info`): the ship information table with
+  filtering, columns, and CSV export.
+- **Navy Staff** (`poi-plugin-navy-staff`): the sortie/deck planner with its own
+  state, saved file, history, synchronization, and translations.
+
+Current maintainer: かがみ
+
+Original Ship Info authored by [Yunze](https://github.com/myzwillmake)
 
 ## Workspace layout
 
@@ -12,10 +20,8 @@ This is a pnpm workspace for poi plugins:
 
 - `packages/ship-info/` — the published `poi-plugin-ship-info` plugin: the ship
   information table (filtering, columns, CSV export).
-- `packages/navy-staff/` — the `poi-plugin-navy-staff` plugin: the sortie/deck
-  planner, with its own state, saved file and translations. The npm package name
-  currently holds a `1.2.0` placeholder; the repository baseline is normalized
-  to that version so the first planner release bumps above it.
+- `packages/navy-staff/` — the published `poi-plugin-navy-staff` plugin: the
+  sortie/deck planner, with its own state, saved file and translations.
 - `packages/shared/` — private, source-only `@poi-plugins/shared`
   modules bundled into the plugins that use them; never published.
 - `tests/`, `stories/`, `preview/`, `shims/`, `.storybook/` and the shared
@@ -23,11 +29,10 @@ This is a pnpm workspace for poi plugins:
 
 Navy Staff stores one JSON file per teitoku (member ID): each account's
 workspaces, history, and legacy archive live in its own file, with no
-per-workspace account binding. Navy Staff has never released, so it does not read
-an old unscoped Navy file. The released Ship Info plan is imported once, while no
-Navy Staff account file exists yet: the first created account consumes it, later
-runs do not re-import, and Ship Info keeps saving its own file with its legacy
-`planner` field untouched.
+per-workspace account binding. The released Ship Info plan is imported once,
+while no Navy Staff account file exists yet: the first created account consumes
+it, later runs do not re-import, and Ship Info keeps saving its own file with its
+legacy `planner` field untouched.
 
 For the planning, history, synchronization, and sharing workflows, see the
 [Navy Staff interface guide](docs/navy-staff-interface.md).
@@ -42,11 +47,6 @@ in the plugin list and click **Install**. For manual installation, use
 **Install directly from npm** with the full package name
 `poi-plugin-ship-info` or `poi-plugin-navy-staff`, respectively.
 
-The existing Navy Staff npm package is a placeholder for this work. Installing
-it does not install the planner implemented on this branch; that implementation
-requires a subsequent release coordinated with adding Navy Staff to poi's
-plugin list.
-
 ## Releases
 
 The plugins release independently through pnpm's native versioning, not the
@@ -57,8 +57,7 @@ request merges never bump or publish. Prepare release also offers a per-selectio
 `beta` channel built on pnpm's native lanes (`code -> beta -> main` or
 `code -> main`); betas publish under the npm `beta` dist-tag and never become
 latest. See [docs/releases.md](docs/releases.md) for the workflow, channel
-behavior, changelog rules, external trusted-publishing setup, and the Navy Staff
-baseline.
+behavior, changelog rules, and external trusted-publishing setup.
 
 ## Development
 
@@ -111,7 +110,7 @@ lifecycle smoke against an isolated temp APPDATA. These checks verify the
 produced artifacts and their host boundaries; they are not a live poi
 installation.
 
-[![npm package][npm-badge]][npm]
-
-[npm-badge]: https://img.shields.io/npm/v/poi-plugin-ship-info.svg?style=flat-square
-[npm]: https://www.npmjs.org/package/poi-plugin-ship-info
+[ship-info-badge]: https://img.shields.io/npm/v/poi-plugin-ship-info.svg?label=Ship%20Info&style=flat-square
+[ship-info-npm]: https://www.npmjs.org/package/poi-plugin-ship-info
+[navy-staff-badge]: https://img.shields.io/npm/v/poi-plugin-navy-staff.svg?label=Navy%20Staff&style=flat-square
+[navy-staff-npm]: https://www.npmjs.org/package/poi-plugin-navy-staff
