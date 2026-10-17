@@ -87,7 +87,7 @@ describe('history preview persistence isolation', () => {
     fireEvent.change(screen.getByLabelText('History') as HTMLSelectElement, {
       target: { value: 'rev-1' },
     })
-    fireEvent.click(screen.getByRole('tab', { name: 'Grid Palette' }))
+    fireEvent.change(screen.getByLabelText('View'), { target: { value: 'grid' } })
 
     // Captured ship 3 is present; the live-only Alpha (id 1) is not. A
     // read-only card is a labelled group, not a button.

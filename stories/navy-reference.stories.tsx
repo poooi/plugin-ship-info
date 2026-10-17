@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
-import { clipboard } from 'electron'
+import { remote } from 'electron'
 import React from 'react'
 import { expect, fireEvent, screen, userEvent, waitFor, within } from 'storybook/test'
 
@@ -15,6 +15,7 @@ import {
   plannerScenarioState,
 } from '../preview/planner-fixtures'
 import { getEnvironment } from '../preview/scenario'
+import i18n from '../preview/i18n'
 import { mkShip } from '../tests/fixtures'
 
 const Shell: React.FC = () => (
@@ -39,14 +40,12 @@ const navy = () => (getEnvironment().store.getState() as any)[NAVY_PLUGIN_KEY].n
 const click = (name: string) =>
   userEvent.click(screen.getByRole('button', { name }))
 
-// Primary navigation IDs stay stable across locales.
 const openPage = async (page: 'plan' | 'reference' | 'share') => {
-  const tab = await waitFor(() => {
-    const found = document.querySelector(`[role="tab"][data-tab-id="${page}"]`) as HTMLElement | null
-    if (!found) throw new Error(`Missing primary page: ${page}`)
-    return found
-  })
-  await userEvent.click(tab)
+  const names = { plan: 'Plan', reference: 'Reference', share: 'Share' }
+  const navigation = await screen.findByRole('navigation')
+  await userEvent.click(within(navigation).getByRole('button', {
+    name: i18n.t(names[page], { ns: 'poi-plugin-navy-staff' }),
+  }))
 }
 const openShare = () => openPage('share')
 const openReference = () => openPage('reference')
@@ -65,10 +64,12 @@ const exportCurrent = async (): Promise<string> => {
 
 const importCode = async (code: string) => {
   await openReference()
-  await click('Open reference')
-  const textarea = screen.getByPlaceholderText('Paste a share code or open a text file')
+  const t = i18n.getFixedT(null, 'poi-plugin-navy-staff')
+  const reopen = screen.queryByRole('button', { name: t('Open another reference') })
+  if (reopen) await userEvent.click(reopen)
+  const textarea = screen.getByPlaceholderText(t('Paste a share code or open a text file'))
   fireEvent.change(textarea, { target: { value: code } })
-  await click('Open')
+  await click(t('Open'))
 }
 
 const activeReferenceView = async () => {
@@ -189,7 +190,6 @@ export const FileImportIsolation: Story = {
     await openShare()
     const code = encodeReference(sampleDecoded())
     await openReference()
-    await click('Open reference')
     const input = screen.getByTestId('reference-file-input')
     fireEvent.change(input, {
       target: { files: [new File([code], 'reference.txt', { type: 'text/plain' })] },
@@ -217,7 +217,6 @@ export const ImportSurvivesTabChanges: Story = {
 
     await openShare()
     await openReference()
-    await click('Open reference')
     const draft = screen.getByPlaceholderText(
       'Paste a share code or open a text file',
     ) as HTMLTextAreaElement
@@ -225,7 +224,7 @@ export const ImportSurvivesTabChanges: Story = {
     fireEvent.change(draft, { target: { value: code } })
 
     // Detour to Plan and back: the draft and the open import panel survive.
-    await userEvent.click(screen.getByRole('tab', { name: 'Plan' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Plan' }))
     await openReference()
     await expect(
       (
@@ -243,7 +242,7 @@ export const ImportSurvivesTabChanges: Story = {
     ).toBeTruthy()
 
     // Detour again: the opened reference survives.
-    await userEvent.click(screen.getByRole('tab', { name: 'Plan' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Plan' }))
     await openReference()
     await expect(screen.getByTestId('reference-view')).toBeTruthy()
 
@@ -279,7 +278,7 @@ export const CurrentVsHistoryLevel: Story = {
   play: async () => {
     // Current revision (live overlay) exports the live level.
     await openShare()
-    await exportCurrent()
+    await importCode(await exportCurrent())
     const currentView = await activeReferenceView()
     await expect(within(currentView).getByText('Lv.50')).toBeTruthy()
 
@@ -287,7 +286,7 @@ export const CurrentVsHistoryLevel: Story = {
     await selectHistoryRevision('rev-1')
     await expect(await screen.findByText('History is read-only. Return to the current plan to edit.')).toBeTruthy()
     await click('Share this state')
-    await exportCurrent()
+    await importCode(await exportCurrent())
     const historyView = await activeReferenceView()
     await expect(within(historyView).getByText('Lv.10')).toBeTruthy()
     await expect(within(historyView).queryByText('Lv.50')).toBeNull()
@@ -329,7 +328,7 @@ export const MissingMasterRawExport: Story = {
     // Current export: the raw owned ship (api_ship_id/api_lv) is frozen even
     // though no master metadata exists for 9999.
     await openShare()
-    await exportCurrent()
+    await importCode(await exportCurrent())
     const currentView = await activeReferenceView()
     await expect(within(currentView).getByText('#9999')).toBeTruthy()
     await expect(within(currentView).getByText('Lv.42')).toBeTruthy()
@@ -337,7 +336,7 @@ export const MissingMasterRawExport: Story = {
     // Historical export: captured record only.
     await selectHistoryRevision('rev-1')
     await click('Share this state')
-    await exportCurrent()
+    await importCode(await exportCurrent())
     const historyView = await activeReferenceView()
     await expect(within(historyView).getByText('#9999')).toBeTruthy()
     await expect(within(historyView).getByText('Lv.7')).toBeTruthy()
@@ -414,7 +413,6 @@ export const DeferredFileSuperseded: Story = {
     try {
       await openShare()
       await openReference()
-    await click('Open reference')
       const input = screen.getByTestId('reference-file-input')
 
       // Start a valid read (held open), then supersede it with an oversized file.
@@ -450,7 +448,7 @@ export const EmptyGroupsAndGridArea: Story = {
   },
   play: async () => {
     await openShare()
-    await exportCurrent()
+    await importCode(await exportCurrent())
     const view = await activeReferenceView()
     // Empty captured area stays visible with a zero count when not searching.
     await expect(within(view).getByText('E2')).toBeTruthy()
@@ -477,8 +475,8 @@ export const LocalizedFailures: Story = {
     await exportCurrent()
 
     // Force the clipboard boundary to throw for this case only.
-    const original = clipboard.writeText
-    clipboard.writeText = () => {
+    const original = remote.clipboard.writeText
+    remote.clipboard.writeText = async () => {
       throw new Error('clipboard unavailable')
     }
     try {
@@ -486,7 +484,7 @@ export const LocalizedFailures: Story = {
       const copyError = await screen.findByTestId('share-error')
       await expect(copyError.textContent).toContain('Could not copy the share text.')
     } finally {
-      clipboard.writeText = original
+      remote.clipboard.writeText = original
     }
 
     await click('Save share text')
@@ -498,10 +496,10 @@ export const LocalizedFailures: Story = {
   },
 }
 
-// The generate action belongs to Share; use its locale-independent test ID.
-const exportByPosition = async () => {
-  const tools = screen.getByTestId('share-tools')
-  await userEvent.click(within(tools).getAllByRole('button')[0])
+const openGeneratedReference = async () => {
+  await click(i18n.t('Generate share text', { ns: 'poi-plugin-navy-staff' }))
+  const code = (screen.getByTestId('share-text') as HTMLTextAreaElement).value
+  await importCode(code)
 }
 
 const localizedTypeSearchStory = (
@@ -519,7 +517,7 @@ const localizedTypeSearchStory = (
   },
   play: async () => {
     await openShare()
-    await exportByPosition()
+    await openGeneratedReference()
     const view = await activeReferenceView()
     // The visible type is the localized label, not the raw key.
     await expect(within(view).getByText(localizedType)).toBeTruthy()
@@ -568,7 +566,7 @@ export const ReferenceIndependentFromSharing: Story = {
     expect(within(reference).getByText('Imported reference')).toBeTruthy()
 
     await openPage('plan')
-    await userEvent.click(screen.getByRole('tab', { name: 'Grid Palette' }))
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'View' }), 'grid')
     await userEvent.selectOptions(screen.getByLabelText('Assign to'), 'area-2')
     await userEvent.click(screen.getByRole('button', { name: 'Alpha Lv.50' }))
     await waitFor(() => expect(JSON.stringify(navy())).not.toBe(before))
@@ -598,7 +596,7 @@ export const RemovedHistorySourceCannotShareCurrentSilently: Story = {
     const frozen = await exportCurrent()
     await openPage('plan')
     await click('Undo')
-    await userEvent.click(screen.getByRole('tab', { name: 'Grid Palette' }))
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'View' }), 'grid')
     await userEvent.selectOptions(screen.getByLabelText('Assign to'), 'area-2')
     await userEvent.click(screen.getByRole('button', { name: 'Alpha Lv.50' }))
     await openShare()

@@ -2,6 +2,7 @@
 
 import {
   Button,
+  ButtonGroup,
   Callout,
   Classes,
   HTMLSelect,
@@ -10,9 +11,6 @@ import {
   Menu,
   MenuItem,
   Position,
-  Switch,
-  Tab,
-  Tabs,
 } from '@blueprintjs/core'
 import { get } from 'lodash'
 import { rgba } from 'polished'
@@ -99,6 +97,14 @@ const PlanHeader = styled.div`
   flex-wrap: wrap;
   border-bottom: 1px solid rgba(128, 128, 128, 0.3);
   margin-bottom: 0.5em;
+`
+
+// Compact top navigation: a text+icon button group, not underlined tabs.
+const NavBar = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.25em 0;
 `
 
 const HeaderSpacer = styled.div`
@@ -516,11 +522,28 @@ const PlanViews = ({
       {!previewOnly && (
         <>
           <Toolbar>
-            <Switch
-              checked={displayFleetName}
-              label={t('Show fleet name')}
-              onChange={() => window.config.set(DISPLAY_FLEET_NAME_CONFIG, !displayFleetName)}
-            />
+            <FieldLabel>{t('View')}</FieldLabel>
+            <HTMLSelect
+              aria-label={t('View')}
+              value={view}
+              onChange={(event) => onViewChange(event.currentTarget.value as PlanView)}
+            >
+              <option value="area">{t('Area View')}</option>
+              <option value="list">{t('Ship List')}</option>
+              <option value="grid">{t('Grid Palette')}</option>
+            </HTMLSelect>
+            <FieldLabel>{t('Area labels')}</FieldLabel>
+            <HTMLSelect
+              aria-label={t('Area labels')}
+              value={displayFleetName ? 'fleet' : 'map'}
+              onChange={(event) =>
+                window.config.set(DISPLAY_FLEET_NAME_CONFIG, event.currentTarget.value === 'fleet')
+              }
+            >
+              <option value="map">{t('Map labels')}</option>
+              <option value="fleet">{t('Sortie tag names')}</option>
+            </HTMLSelect>
+            <Muted>{t('areaLabelsHelp')}</Muted>
             <HeaderSpacer />
             <Popover
               position={Position.BOTTOM_RIGHT}
@@ -533,11 +556,6 @@ const PlanViews = ({
               <Button icon="help" minimal aria-label={t('Help')} />
             </Popover>
           </Toolbar>
-          <Tabs id="navy-staff-view" selectedTabId={view} onChange={(tab: string) => onViewChange(tab as PlanView)}>
-            <Tab id="area" title={t('Area View')} />
-            <Tab id="list" title={t('Ship List')} />
-            <Tab id="grid" title={t('Grid Palette')} />
-          </Tabs>
         </>
       )}
 
@@ -836,11 +854,31 @@ const NavyStaffContent = () => {
   return (
     <Wrapper id="poi-plugin-navy-staff">
       <NavGlobalStyle />
-      <Tabs id="navy-staff-pages" selectedTabId={activeTab} onChange={handleTabChange}>
-        <Tab id="plan" title={t('Plan')} />
-        <Tab id="reference" title={t('Reference')} />
-        <Tab id="share" title={t('Share')} />
-      </Tabs>
+      <NavBar role="navigation" aria-label={t('Navy Staff sections')}>
+        <ButtonGroup>
+          <Button
+            active={activeTab === 'plan'}
+            aria-pressed={activeTab === 'plan'}
+            icon="projects"
+            text={t('Plan')}
+            onClick={() => handleTabChange('plan')}
+          />
+          <Button
+            active={activeTab === 'reference'}
+            aria-pressed={activeTab === 'reference'}
+            icon="book"
+            text={t('Reference')}
+            onClick={() => handleTabChange('reference')}
+          />
+          <Button
+            active={activeTab === 'share'}
+            aria-pressed={activeTab === 'share'}
+            icon="share"
+            text={t('Share')}
+            onClick={() => handleTabChange('share')}
+          />
+        </ButtonGroup>
+      </NavBar>
       <Body ref={bodyRef} className="navy-staff-scrollable">
         <div style={{ display: activeTab === 'plan' ? undefined : 'none' }}>
           {gated(

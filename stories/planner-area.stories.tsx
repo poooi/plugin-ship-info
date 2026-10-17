@@ -47,7 +47,7 @@ const waitForOverlayFocus = () =>
   })
 
 const openPlanner = async () => {
-  await expect(await screen.findByRole('tab', { name: 'Plan' })).toBeTruthy()
+  await expect(await screen.findByRole('button', { name: 'Plan' })).toBeTruthy()
   return document.querySelector('#poi-plugin-navy-staff') as HTMLElement
 }
 
@@ -106,13 +106,15 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 export const ShowsTabsWithoutDialog: Story = {
-  name: 'The main view shows Area and Ship Grid tabs directly (no dialog/button)',
+  name: 'The main view offers Area, List, and Grid in a compact view selector',
   parameters: params(),
   play: async () => {
     const view = await openPlanner()
     await expect(screen.queryByRole('dialog')).toBeNull()
-    await expect(within(view).getByRole('tab', { name: 'Area View' })).toBeTruthy()
-    await expect(within(view).getByRole('tab', { name: 'Grid Palette' })).toBeTruthy()
+    const selector = within(view).getByRole('combobox', { name: 'View' })
+    await expect(selector).toHaveValue('area')
+    await expect(within(selector).getAllByRole('option')).toHaveLength(3)
+    await expect(within(view).queryByRole('tablist')).toBeNull()
   },
 }
 
@@ -692,7 +694,7 @@ export const PreviewIsReadOnlyInBothViews: Story = {
     ).toBeNull()
 
     // Grid view: no palette control and no interactive cards.
-    await userEvent.click(screen.getByRole('tab', { name: 'Grid Palette' }))
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'View' }), 'grid')
     await expect(screen.queryByLabelText('Assign to')).toBeNull()
     await expect(screen.queryByRole('button', { name: /Lv\./ })).toBeNull()
 
@@ -725,7 +727,7 @@ export const HistoryCurrentRevisionUsesCapturedContent: Story = {
     await expect(within(areaCard('E1')).queryByText(/Lv\.150/)).toBeNull()
 
     // Grid shows captured ships only: ship 3 present, live-only Alpha absent.
-    await userEvent.click(screen.getByRole('tab', { name: 'Grid Palette' }))
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'View' }), 'grid')
     await expect(screen.getByRole('group', { name: 'Gamma Lv.5' })).toBeTruthy()
     await expect(screen.queryByRole('group', { name: /Alpha/ })).toBeNull()
   },

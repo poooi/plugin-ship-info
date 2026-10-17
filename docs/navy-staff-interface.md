@@ -12,6 +12,10 @@ sharing a reference are separate tasks.
 
 ## Navigation
 
+Plan, Reference, and Share use a compact icon-and-text button group, visually
+distinct from poi's host tabs. A labeled View selector inside Plan switches
+between Area View, Ship List, and Grid Palette without adding another tab row.
+
 The workspace selector belongs to Plan. New workspace is a direct
 action; rename, duplicate, and delete belong in the workspace menu. Rename and
 delete use focused dialogs, with the affected workspace identified before
@@ -62,20 +66,44 @@ existing production rules.
 
 ## Reference and sharing
 
+Reference initially shows the paste field and Open/Open file actions together.
+Opening a reference collapses that form. The reference title, read-only status,
+close action, metadata, search, and view controls sit above the roster. Open
+another reference reveals the form again; a failed replacement or cancellation
+keeps the current reference. Its encoded source is available through a disclosure.
+
 Use Share and Open reference wording. A reference never becomes an editable
 workspace, and shared text is not a backup/restore format. The real codec, exact
 version matching, master lookup, and unknown-name behavior remain unchanged.
 Generating share text freezes a separate result; opening or closing a reference
 does not replace it.
 
-Image capture belongs to Share and uses a visible planning preview with the
+The text-sharing section keeps generation, encoded output, copy/save actions,
+and outcome messages together. Generating text does not add a second roster
+preview. The result retains its source label when the selected source changes.
+Clipboard writes use poi's remote main-process clipboard and await completion;
+regeneration is disabled during copying so a late result cannot label newer text
+as copied. A failed copy leaves the generated text available for retry or saving.
+
+Image capture belongs to Share and uses an explicitly opened planning preview with the
 existing poi capture integration. It remains restricted to detached plugin
-windows. Current-plan images use the editor's selected view and filters;
+windows, and the preview can be collapsed after use. The main window shows a
+short availability explanation without rendering a duplicate roster.
+Current-plan images use the editor's selected view and filters;
 historical images use the inspected presentation and captured ships, independently
 of those filters. This layout change does not add the mock's image renderer or
 new image-scope options.
 
 ## Layout and density
+
+Share and Reference use consistent section padding and gaps between headings,
+descriptions, fields, and actions. Errors appear beside the action they describe.
+Controls wrap on narrow panels; the reference close action stays with the title.
+
+The Area labels selector explicitly offers Map labels and Sortie tag names.
+It changes the displayed captured-area labels, retaining the map label when
+there is no localized sortie-tag name. It does not rename owned fleets or alter
+area identity, assignments, or stored configuration keys.
 
 Cards size themselves from the plugin's available width, not the browser's
 viewport. The original Ship Info planner opened in an `80vw` dialog; Navy Staff
@@ -111,7 +139,9 @@ empty workspaces, and historical previews. Check menus and dialogs as well as
 the initial page.
 
 Browser checks cover navigation, retained reference state, assignment behavior,
-and overflow. Screenshots need human visual review in addition to passing those
+and overflow. Localization regression checks also load keys using poi's
+`escapeI18nKey` processing; new message keys avoid trailing punctuation, which
+poi removes while reading translation resources. Screenshots need human visual review in addition to passing those
 checks. Storybook substitutes poi services and artwork; it does not establish
 that the real Electron host has rendered the build correctly. See
 [browser-testing.md](browser-testing.md) for those boundaries.

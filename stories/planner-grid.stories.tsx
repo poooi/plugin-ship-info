@@ -24,9 +24,9 @@ const edgeColorOf = (element: HTMLElement): string =>
   getComputedStyle(element).borderLeftColor
 
 const openGrid = async () => {
-  const view = await screen.findByRole('tab', { name: 'Grid Palette' })
+  const view = await screen.findByRole('combobox', { name: 'View' })
   const container = view.closest('#poi-plugin-navy-staff') as HTMLElement
-  await userEvent.click(within(container).getByRole('tab', { name: 'Grid Palette' }))
+  await userEvent.selectOptions(within(container).getByRole('combobox', { name: 'View' }), 'grid')
   await within(container).findByRole('heading', { level: 2, name: 'DD' })
   return container
 }
@@ -247,13 +247,13 @@ export const DestinationAndViewSurviveShareDetour: Story = {
     await userEvent.selectOptions(assignTo(), 'area-1')
 
     // Detour to Share & reference and back.
-    await userEvent.click(screen.getByRole('tab', { name: 'Share' }))
-    await userEvent.click(screen.getByRole('tab', { name: 'Plan' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Share' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Plan' }))
 
     // Grid view and destination are preserved across the detour.
     await expect(
-      screen.getByRole('tab', { name: 'Grid Palette', selected: true }),
-    ).toBeTruthy()
+      screen.getByRole('combobox', { name: 'View' }),
+    ).toHaveValue('grid')
     await expect(assignTo().value).toBe('area-1')
 
     // Switching workspace clears the now-invalid destination.
@@ -286,7 +286,7 @@ export const ListBatchAssignmentAndUndo: Story = {
   name: 'List selection edits nothing; applying multiple ships is one undoable revision',
   parameters: params({ current: [[], []], mapname: ['E1', 'E2'] }),
   play: async () => {
-    await userEvent.click(await screen.findByRole('tab', { name: 'Ship List' }))
+    await userEvent.selectOptions(await screen.findByRole('combobox', { name: 'View' }), 'list')
     const list = within(screen.getAllByTestId('ship-list').find(element => element.checkVisibility())!)
     const workspace = () => {
       const navy = getEnvironment().store.getState()['poi-plugin-navy-staff'].navy
@@ -343,7 +343,7 @@ export const FilteredListSelectionStaysExplicit: Story = {
   name: 'List select-all respects filters; hidden selections clear when filters or page change',
   parameters: params({ current: [[1], []], mapname: ['E1', 'E2'] }),
   play: async () => {
-    await userEvent.click(await screen.findByRole('tab', { name: 'Ship List' }))
+    await userEvent.selectOptions(await screen.findByRole('combobox', { name: 'View' }), 'list')
     const list = within(screen.getAllByTestId('ship-list').find(element => element.checkVisibility())!)
     const apply = () => list.getByRole('button', { name: 'Apply to selected' })
     await userEvent.selectOptions(screen.getByLabelText('Assignment'), 'unassigned')
@@ -364,13 +364,13 @@ export const FilteredListSelectionStaysExplicit: Story = {
     expect(apply()).toBeDisabled()
     await userEvent.click(list.getByRole('button', { name: 'Select all matching' }))
     expect(list.getAllByRole('checkbox').every(input => (input as HTMLInputElement).checked)).toBe(true)
-    await userEvent.click(screen.getByRole('tab', { name: 'Reference' }))
-    await userEvent.click(screen.getByRole('tab', { name: 'Plan' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Reference' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Plan' }))
     expect(apply()).toBeDisabled()
     expect((screen.getByLabelText('Assignment') as HTMLSelectElement).value).toBe('unassigned')
 
     // The list and palette show the same filtered roster but different actions.
-    await userEvent.click(screen.getByRole('tab', { name: 'Grid Palette' }))
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'View' }), 'grid')
     expect(screen.queryByRole('button', { name: 'Alpha Lv.50' })).toBeNull()
     expect(screen.getByRole('button', { name: 'Beta Lv.20' })).toBeTruthy()
   },
@@ -398,7 +398,7 @@ export const RemovedDestinationBecomesUnselected: Story = {
     const before = getEnvironment().store.getState()['poi-plugin-navy-staff'].navy
     await userEvent.click(cell('Alpha Lv.50'))
     expect(getEnvironment().store.getState()['poi-plugin-navy-staff'].navy).toBe(before)
-    await userEvent.click(screen.getByRole('tab', { name: 'Ship List' }))
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'View' }), 'list')
     const list = within(screen.getAllByTestId('ship-list').find(element => element.checkVisibility())!)
     await userEvent.click(list.getByRole('checkbox', { name: /^Alpha / }))
     expect(list.getByRole('button', { name: 'Apply to selected' })).toBeDisabled()

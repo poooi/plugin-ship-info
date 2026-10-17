@@ -27,23 +27,22 @@ const params = (isMain: boolean, options?: PlannerScenarioOptions) => ({
 })
 
 const openPlanner = async () => {
-  const view = await screen.findByRole('tab', { name: 'Area View' })
+  const view = await screen.findByRole('combobox', { name: 'View' })
   return view.closest('#poi-plugin-navy-staff') as HTMLElement
 }
 
 const openGrid = async () => {
   const container = await openPlanner()
-  await userEvent.click(
-    within(container).getByRole('tab', { name: 'Grid Palette' }),
-  )
+  await userEvent.selectOptions(within(container).getByRole('combobox', { name: 'View' }), 'grid')
   await within(container).findByRole('heading', { level: 2, name: 'DD' })
   return container
 }
 
-const openShare = () => userEvent.click(screen.getByRole('tab', { name: 'Share' }))
+const openShare = () => userEvent.click(screen.getByRole('button', { name: 'Share' }))
 
 const capture = async () => {
   await openShare()
+  await userEvent.click(screen.getByRole('button', { name: 'Show image preview' }))
   await userEvent.click(screen.getByRole('button', { name: 'Save to image' }))
   await waitFor(async () => {
     await expect(getCaptureRequests().length).toBe(1)
@@ -70,7 +69,8 @@ export const MainWindowHidesCapture: Story = {
   play: async () => {
     await openPlanner()
     await openShare()
-    await expect(screen.getByRole('button', { name: 'Save to image' })).toBeDisabled()
+    await expect(screen.queryByRole('button', { name: 'Save to image' })).toBeNull()
+    await expect(screen.queryByTestId('share-image-preview')).toBeNull()
     await expect(screen.getByText('Image capture is only available in the detached window.')).toBeTruthy()
   },
 }
@@ -81,6 +81,8 @@ export const DetachedWindowShowsCapture: Story = {
   play: async () => {
     await openPlanner()
     await openShare()
+    await expect(screen.queryByTestId('share-image-preview')).toBeNull()
+    await userEvent.click(screen.getByRole('button', { name: 'Show image preview' }))
     await expect(
       await screen.findByRole('button', { name: 'Save to image' }),
     ).toBeTruthy()
@@ -143,6 +145,7 @@ export const CaptureRejectionLogsAndDoesNotDownload: Story = {
     try {
       await openPlanner()
       await openShare()
+      await userEvent.click(screen.getByRole('button', { name: 'Show image preview' }))
       await userEvent.click(screen.getByRole('button', { name: 'Save to image' }))
 
       // The catch path in captureRect logs the renderer failure.
@@ -176,9 +179,9 @@ export const HistoricalImageIgnoresEditorFilters: Story = {
     await userEvent.selectOptions(screen.getByLabelText('Assignment'), 'unassigned')
     expect(screen.queryByRole('button', { name: 'Alpha Lv.50' })).toBeNull()
     // Leave the editor in List while choosing Grid in the historical task.
-    await userEvent.click(screen.getByRole('tab', { name: 'Ship List' }))
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'View' }), 'list')
     await userEvent.click(screen.getByRole('button', { name: 'History' }))
-    await userEvent.click(screen.getByRole('tab', { name: 'Grid Palette' }))
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'View' }), 'grid')
     await userEvent.click(screen.getByRole('button', { name: 'Share this state' }))
     const request = await capture()
     expect(request.element.textContent).toContain('Alpha')

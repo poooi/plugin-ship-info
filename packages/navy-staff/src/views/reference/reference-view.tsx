@@ -8,7 +8,6 @@ import {
   ButtonGroup,
   Callout,
   InputGroup,
-  Intent,
   Tag,
 } from '@blueprintjs/core'
 import React, { useCallback, useMemo, useState } from 'react'
@@ -51,36 +50,63 @@ const referenceMastersSelector = createSelector(
   },
 )
 
-const Wrapper = styled.section`
-  border-top: 1px solid rgba(128, 128, 128, 0.3);
-  margin-top: 0.75em;
-  padding-top: 0.75em;
-`
+// This view is the main content of the Reference page, so it has no inherited
+// card divider or top offset.
+const Wrapper = styled.section``
 
+// Title/status on one row, with the close control kept at the right edge.
 const Header = styled.div`
   display: flex;
   align-items: center;
-  gap: 0.75em;
-  flex-wrap: wrap;
+  gap: 8px;
+  flex-wrap: nowrap;
+`
+
+const Title = styled.strong`
+  font-size: 1em;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`
+
+const HeaderSpacer = styled.div`
+  flex: 1 1 0;
+  min-width: 0;
 `
 
 const MetaBar = styled.div`
   display: flex;
-  gap: 1em;
+  gap: 4px 16px;
   flex-wrap: wrap;
   font-size: 0.85em;
   opacity: 0.85;
-  margin: 0.5em 0;
+  margin: 4px 0 12px;
+`
+
+// View + reopen actions and the search share one wrapping toolbar.
+const Toolbar = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+`
+
+const SearchBox = styled.div`
+  flex: 1 1 12em;
+  min-width: 0;
 `
 
 const Group = styled.div`
-  margin: 0.5em 0;
+  margin: 0 0 12px;
 `
 
 const GroupHeader = styled.div`
   display: flex;
   align-items: center;
-  gap: 0.5em;
+  gap: 8px;
+  margin-bottom: 4px;
 `
 
 const Swatch = styled.span<{ $color: string }>`
@@ -95,10 +121,11 @@ const ShipRow = styled.div<{ $withArea: boolean }>`
   display: grid;
   grid-template-columns: ${(props) =>
     props.$withArea
-      ? 'minmax(4em, auto) 1fr auto auto auto'
-      : 'minmax(4em, auto) 1fr auto auto'};
-  gap: 0.75em;
-  padding: 2px 0.5em;
+      ? 'minmax(4em, auto) minmax(0, 1fr) auto auto auto'
+      : 'minmax(4em, auto) minmax(0, 1fr) auto auto'};
+  gap: 8px;
+  align-items: center;
+  padding: 5px 8px;
   font-size: 0.9em;
 
   &:nth-child(odd) {
@@ -108,11 +135,24 @@ const ShipRow = styled.div<{ $withArea: boolean }>`
 
 const TypeLabel = styled.span`
   opacity: 0.85;
+  white-space: nowrap;
+`
+
+const Name = styled.span`
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 `
 
 const MasterId = styled.span`
   font-family: monospace;
   opacity: 0.75;
+  white-space: nowrap;
+`
+
+const Level = styled.span`
+  white-space: nowrap;
 `
 
 type ViewMode = 'area' | 'grid'
@@ -120,9 +160,11 @@ type ViewMode = 'area' | 'grid'
 export interface ReferenceViewProps {
   reference: DecodedReference
   onClose?: () => void
+  /** Reveals the open form again to replace the current reference. */
+  onReopen?: () => void
 }
 
-export const ReferenceView = ({ reference, onClose }: ReferenceViewProps) => {
+export const ReferenceView = ({ reference, onClose, onReopen }: ReferenceViewProps) => {
   const { t, i18n } = useTranslation('poi-plugin-navy-staff')
   const masters = useSelector(referenceMastersSelector)
   const [mode, setMode] = useState<ViewMode>('area')
@@ -151,14 +193,14 @@ export const ReferenceView = ({ reference, onClose }: ReferenceViewProps) => {
   ) => (
     <ShipRow key={key} $withArea={Boolean(area)} data-testid="reference-ship">
       <TypeLabel>{ship.type ? t(ship.type) : t('Unknown type')}</TypeLabel>
-      <span>{ship.name}</span>
+      <Name title={ship.name}>{ship.name}</Name>
       {area && (
         <Tag minimal style={{ color: area.color }}>
           {area.label}
         </Tag>
       )}
       <MasterId>{ship.masterId === null ? '—' : `#${ship.masterId}`}</MasterId>
-      <span>Lv.{ship.level ?? '?'}</span>
+      <Level>Lv.{ship.level ?? '?'}</Level>
     </ShipRow>
   )
 
@@ -167,23 +209,9 @@ export const ReferenceView = ({ reference, onClose }: ReferenceViewProps) => {
   return (
     <Wrapper data-testid="reference-view" aria-label={reference.title}>
       <Header>
-        <strong>{reference.title}</strong>
-        <ButtonGroup>
-          <Button
-            active={mode === 'area'}
-            onClick={() => setMode('area')}
-            small
-          >
-            {t('Area View')}
-          </Button>
-          <Button
-            active={mode === 'grid'}
-            onClick={() => setMode('grid')}
-            small
-          >
-            {t('Ship Grid')}
-          </Button>
-        </ButtonGroup>
+        <Title>{reference.title}</Title>
+        <Tag minimal>{t('Reference is read-only')}</Tag>
+        <HeaderSpacer />
         {onClose && (
           <Button icon="cross" minimal onClick={onClose} aria-label={t('Close reference')} />
         )}
@@ -204,19 +232,33 @@ export const ReferenceView = ({ reference, onClose }: ReferenceViewProps) => {
         </span>
       </MetaBar>
 
-      <div>
-        <InputGroup
-          leftIcon="search"
-          value={query}
-          onChange={(event) => setQuery(event.currentTarget.value)}
-          placeholder={t('Search ships')}
-          rightElement={
-            searching ? (
-              <Button icon="cross" minimal onClick={() => setQuery('')} aria-label={t('Clear')} />
-            ) : undefined
-          }
-        />
-      </div>
+      <Toolbar>
+        <ButtonGroup>
+          <Button active={mode === 'area'} onClick={() => setMode('area')} small>
+            {t('Area View')}
+          </Button>
+          <Button active={mode === 'grid'} onClick={() => setMode('grid')} small>
+            {t('Ship Grid')}
+          </Button>
+        </ButtonGroup>
+        {onReopen && (
+          <Button small text={t('Open another reference')} onClick={onReopen} />
+        )}
+        <SearchBox>
+          <InputGroup
+            fill
+            leftIcon="search"
+            value={query}
+            onChange={(event) => setQuery(event.currentTarget.value)}
+            placeholder={t('Search ships')}
+            rightElement={
+              searching ? (
+                <Button icon="cross" minimal onClick={() => setQuery('')} aria-label={t('Clear')} />
+              ) : undefined
+            }
+          />
+        </SearchBox>
+      </Toolbar>
 
       {searching && filtered.shipCount === 0 ? (
         <Callout>{t('No ships match')}</Callout>
@@ -255,8 +297,6 @@ export const ReferenceView = ({ reference, onClose }: ReferenceViewProps) => {
           </Group>
         ))
       )}
-
-      <Callout intent={Intent.NONE}>{t('Reference is read-only')}</Callout>
     </Wrapper>
   )
 }

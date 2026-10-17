@@ -25,7 +25,9 @@ you select ships and apply a destination or remove their assignments together;
 one undo reverses the batch. The grid palette retains individual click-to-assign
 controls. Share provides text sharing and image capture in detached windows.
 
-The main view shows the planner tabs directly. It owns its own plugin state and
+Compact navigation buttons and a view selector distinguish the plugin controls
+from poi's tabs. Area labels can show map labels or captured sortie-tag names;
+this setting does not rename your fleets. Navy Staff owns its own plugin state and
 saved files (`poi-plugin-navy-staff/<member ID>.json`), one per teitoku. The first
 account file imports an existing sortie plan from Ship Info's legacy data; once
 an account file exists, later accounts start empty. The Ship Info source stays
@@ -63,6 +65,11 @@ Website viewing and QR generation are not included.
 An opened reference is independent of generated share output. Sharing your own
 plan does not replace the reference you are consulting. Shared text is for
 read-only viewing, not for restoring an editable workspace.
+
+Share keeps generated text and copy/save feedback together. Image capture has
+an on-demand preview in detached windows. Reference viewing puts the roster,
+search, and view controls first; opening another reference or inspecting its
+encoded text uses a separate expandable area.
 
 ## Install
 

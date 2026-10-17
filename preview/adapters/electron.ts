@@ -10,6 +10,14 @@ export const clipboard = {
 }
 
 export const remote = {
+  // The real @electron/remote exposes an async clipboard; Share awaits it and
+  // catches a rejected promise. Recorded in the same host log as the renderer
+  // clipboard so existing assertions keep working.
+  clipboard: {
+    writeText: async (text: string) => {
+      host.log.clipboardWrites.push(text)
+    },
+  },
   dialog: {
     showSaveDialog: async (browserWindow?: unknown, options?: unknown) => {
       const result = { ...host.saveDialog }

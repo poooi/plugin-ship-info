@@ -1,12 +1,14 @@
 // Reference tools: open a shared reference by pasting text or choosing a file,
-// then show it read-only. This component never generates share text, dispatches
-// Redux actions, writes persistence, or creates an editable workspace. Its state
-// is independent of the Share page.
+// then show it read-only. The open controls appear immediately when nothing is
+// open, and are hidden behind "Open another reference" once a reference is
+// shown. This component never generates share text, dispatches Redux actions,
+// writes persistence, or creates an editable workspace; its state is
+// independent of the Share page.
 //
 // The native codec is imported through ./codec.ts; the browser preview maps that
 // one module to preview/adapters/reference-codec.ts (see preview/aliases.ts).
 
-import { Button, ButtonGroup, Callout, Card, Intent, TextArea } from '@blueprintjs/core'
+import { Button, Callout, Card, Intent, TextArea } from '@blueprintjs/core'
 import React, { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
@@ -21,34 +23,22 @@ import {
 } from './helpers.ts'
 import { ReferenceView } from './reference-view.tsx'
 
-const Panel = styled.div`
+const FormCard = styled(Card)`
   display: flex;
   flex-direction: column;
-  gap: 0.5em;
-  margin-top: 0.5em;
+  gap: 12px;
+  padding: 16px;
 `
 
-const Toolbar = styled.div`
+const Row = styled.div`
   display: flex;
   align-items: center;
-  gap: 0.5em;
+  gap: 8px;
   flex-wrap: wrap;
 `
 
-const SectionCard = styled(Card)`
-  &:not(:first-of-type) {
-    margin-top: 1em;
-  }
-`
-
-const SectionTitle = styled.h4`
-  margin: 0 0 0.25em;
-`
-
-const Description = styled.p`
-  margin: 0 0 0.75em;
-  opacity: 0.8;
-  font-size: 0.9em;
+const Disclosure = styled.div`
+  margin-top: 12px;
 `
 
 // The file input is triggered by its own button, so it stays out of the tab
@@ -73,14 +63,19 @@ export const ReferenceTools = ({
   const [errorKey, setErrorKey] = useState<ReferenceErrorMessageKey | null>(null)
   const [importing, setImporting] = useState(false)
   const [draft, setDraft] = useState('')
+  const [showCode, setShowCode] = useState(false)
   const fileInput = useRef<HTMLInputElement>(null)
-  // Guards one-shot file reads: closing or a newer open makes an in-flight read
-  // stale so a late resolution cannot reopen or overwrite state.
+  // Guards one-shot file reads: cancelling, closing, or a newer open makes an
+  // in-flight read stale so a late resolution cannot reopen or overwrite state.
   const readGuard = useRef(createRequestGuard())
 
   const openReference = (next: DecodedReference, text: string) => {
     setReference(next)
     setCode(text)
+    setShowCode(false)
+    setDraft('')
+    setImporting(false)
+    setErrorKey(null)
     onOpenChange?.(next)
   }
 
@@ -88,10 +83,8 @@ export const ReferenceTools = ({
     readGuard.current.invalidate()
     setErrorKey(null)
     try {
-      const decoded = decodeReference(text)
-      setDraft('')
-      setImporting(false)
-      openReference(decoded, text)
+      // A failed replacement keeps the current reference in place.
+      openReference(decodeReference(text), text)
     } catch (error) {
       setErrorKey(errorMessageKey(error))
     }
@@ -115,89 +108,98 @@ export const ReferenceTools = ({
     }
   }
 
+  const cancelForm = () => {
+    readGuard.current.invalidate()
+    setErrorKey(null)
+    setDraft('')
+    setImporting(false)
+  }
+
   const handleClose = () => {
     readGuard.current.invalidate()
     setErrorKey(null)
     setDraft('')
     setImporting(false)
+    setShowCode(false)
     setReference(null)
     setCode('')
     onOpenChange?.(null)
   }
 
+  const showForm = !reference || importing
+
   return (
     <div className={className} data-testid="reference-tools">
-      <SectionCard>
-        <SectionTitle>{t('Open reference')}</SectionTitle>
-        <Description>{t('OpenReferenceDescription')}</Description>
-        <Toolbar>
-          <Button
-            icon="import"
-            active={importing}
-            onClick={() => setImporting((value) => !value)}
-          >
-            {t('Open reference')}
-          </Button>
-        </Toolbar>
-
-        {importing && (
-          <Callout>
-            <Panel>
-              <TextArea
-                fill
-                value={draft}
-                onChange={(event) => setDraft(event.currentTarget.value)}
-                placeholder={t('Paste a share code or open a text file')}
-                aria-label={t('Paste a share code or open a text file')}
-              />
-              <ButtonGroup>
-                <Button
-                  intent={Intent.PRIMARY}
-                  disabled={draft.trim().length === 0}
-                  onClick={() => handleDecode(draft)}
-                >
-                  {t('Open')}
-                </Button>
-                <Button onClick={() => fileInput.current?.click()}>
-                  {t('Open file')}
-                </Button>
-              </ButtonGroup>
-              <HiddenFileInput
-                ref={fileInput}
-                type="file"
-                accept=".txt,text/plain"
-                aria-label={t('Open file')}
-                data-testid="reference-file-input"
-                onChange={(event) => {
-                  const file = event.currentTarget.files?.[0]
-                  event.currentTarget.value = ''
-                  void handleFile(file)
-                }}
-              />
-            </Panel>
-          </Callout>
-        )}
-      </SectionCard>
-
-      {errorKey && (
-        <Callout intent={Intent.DANGER} data-testid="reference-error">
-          {t(errorKey)}
-        </Callout>
+      {showForm && (
+        <FormCard>
+          <TextArea
+            fill
+            value={draft}
+            onChange={(event) => setDraft(event.currentTarget.value)}
+            placeholder={t('Paste a share code or open a text file')}
+            aria-label={t('Paste a share code or open a text file')}
+          />
+          <Row>
+            <Button
+              intent={Intent.PRIMARY}
+              disabled={draft.trim().length === 0}
+              onClick={() => handleDecode(draft)}
+            >
+              {t('Open')}
+            </Button>
+            <Button onClick={() => fileInput.current?.click()}>{t('Open file')}</Button>
+            {reference && <Button onClick={cancelForm}>{t('Cancel')}</Button>}
+          </Row>
+          {errorKey && (
+            <Callout intent={Intent.DANGER} data-testid="reference-error">
+              {t(errorKey)}
+            </Callout>
+          )}
+          <HiddenFileInput
+            ref={fileInput}
+            type="file"
+            accept=".txt,text/plain"
+            aria-label={t('Open file')}
+            data-testid="reference-file-input"
+            onChange={(event) => {
+              const file = event.currentTarget.files?.[0]
+              event.currentTarget.value = ''
+              void handleFile(file)
+            }}
+          />
+        </FormCard>
       )}
 
       {reference && (
-        <SectionCard data-testid="reference-result">
-          <ReferenceView reference={reference} onClose={handleClose} />
+        <div data-testid="reference-result">
+          <ReferenceView
+            reference={reference}
+            onClose={handleClose}
+            onReopen={() => {
+              setErrorKey(null)
+              setImporting(true)
+            }}
+          />
           {code && (
-            <TextArea
-              fill
-              readOnly
-              value={code}
-              aria-label={t('Share text')}
-              data-testid="reference-share-text"
-            />
+            <Disclosure>
+              <Button
+                small
+                minimal
+                text={t(showCode ? 'Hide share text' : 'Show share text')}
+                onClick={() => setShowCode((value) => !value)}
+              />
+              {showCode && (
+                <TextArea
+                  fill
+                  readOnly
+                  value={code}
+                  aria-label={t('Share text')}
+                  data-testid="reference-share-text"
+                />
+              )}
+            </Disclosure>
           )}
-        </SectionCard>
+        </div>
       )}
     </div>
   )

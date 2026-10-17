@@ -49,7 +49,7 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 const playOnMainView = async () => {
-  await expect(await screen.findByRole('tab', { name: 'Plan' })).toBeTruthy()
+  await expect(await screen.findByRole('button', { name: 'Plan' })).toBeTruthy()
   return document.querySelector('#poi-plugin-navy-staff') as HTMLElement
 }
 
@@ -95,7 +95,7 @@ export const BothPluginsIndependent: Story = {
   ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    await expect(await canvas.findByRole('tab', { name: 'Area View' })).toBeTruthy()
+    await expect(await canvas.findByRole('combobox', { name: 'View' })).toBeTruthy()
     // 'Alpha' appears in both roots; scope to the Ship Info table.
     const shipInfoRoot = document.querySelector(
       '#poi-plugin-ship-info',
@@ -223,8 +223,9 @@ export const DetachedDisplayOptionUsesGlobalConfig: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    await userEvent.click(
-      await canvas.findByRole('checkbox', { name: 'Show fleet name' }),
+    await userEvent.selectOptions(
+      await canvas.findByRole('combobox', { name: 'Area labels' }),
+      'fleet',
     )
     await waitFor(async () => {
       const calls = getEnvironment().configCalls
@@ -448,9 +449,7 @@ export const DisposeStopsAccountSupervisor: Story = {
 
 const openDenseGrid = async () => {
   const container = document.querySelector('#poi-plugin-navy-staff') as HTMLElement
-  await userEvent.click(
-    await within(container).findByRole('tab', { name: 'Grid Palette' }),
-  )
+  await userEvent.selectOptions(await within(container).findByRole('combobox', { name: 'View' }), 'grid')
   await within(container).findByRole('heading', { level: 2, name: 'DD' })
   return container
 }
@@ -584,14 +583,14 @@ export const DensePlanScrollRestored: Story = {
 
     // A page visited for the first time opens at the top.
     await userEvent.click(
-      within(container).getByRole('tab', { name: 'Share' }),
+      within(container).getByRole('button', { name: 'Share' }),
     )
     await waitFor(async () => {
       await expect(body.scrollTop).toBe(0)
     })
 
     // Returning to Plan restores its previous position.
-    await userEvent.click(within(container).getByRole('tab', { name: 'Plan' }))
+    await userEvent.click(within(container).getByRole('button', { name: 'Plan' }))
     await waitFor(async () => {
       await expect(body.scrollTop).toBeGreaterThan(0)
     })
