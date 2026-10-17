@@ -4,11 +4,9 @@ import { useTranslation } from 'react-i18next'
 import { useDispatch, useSelector } from 'react-redux'
 import type { Action } from 'redux'
 import type { ThunkDispatch } from 'redux-thunk'
-import styled from 'styled-components'
 import type { IState } from 'views/utils/selectors'
 
-import { onRedo, onRestore, onUndo } from './workspace/creators'
-import { usePreview } from './workspace/preview'
+import { onRedo, onUndo } from './workspace/creators'
 import {
   canRedoSelector,
   canUndoSelector,
@@ -18,20 +16,10 @@ import {
 } from './workspace/selectors'
 import type { NavyOperation } from './workspace/types'
 
-const Bar = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.5em;
-  padding: 0.5em 1em 0;
-  flex-wrap: wrap;
-`
-
-const PreviewNote = styled.span`
-  font-size: 0.85em;
-  opacity: 0.85;
-`
-
-const opLabel = (op: NavyOperation, t: (key: string, options?: any) => string): string => {
+export const opLabel = (
+  op: NavyOperation,
+  t: (key: string, options?: any) => string,
+): string => {
   switch (op.kind) {
     case 'initial':
       return t('Initial state')
@@ -55,12 +43,21 @@ const opLabel = (op: NavyOperation, t: (key: string, options?: any) => string): 
       return t('Updated area information')
     case 'apply-tags':
       return t('Applied actual sortie tags')
+    case 'batch-assign':
+      if (op.assigned > 0 && op.removed > 0) {
+        return t('Assigned {{assigned}} and removed {{removed}} ships', {
+          assigned: op.assigned,
+          removed: op.removed,
+        })
+      }
+      if (op.removed > 0) return t('Removed {{count}} ships', { count: op.removed })
+      return t('Assigned {{count}} ships', { count: op.assigned })
     default:
       return t('Edited')
   }
 }
 
-const formatTime = (time: string): string => {
+export const formatRevisionTime = (time: string): string => {
   const date = new Date(time)
   if (Number.isNaN(date.getTime())) return time
   try {
@@ -70,82 +67,61 @@ const formatTime = (time: string): string => {
   }
 }
 
-// Linear history controls. Undo/redo move the durable cursor; selecting another
-// revision opens a transient read-only preview; restore appends one revision.
-export const HistoryBar = () => {
+// Undo/redo stay in the Plan header so they are reachable while editing. They
+// move the durable cursor; a History inspection is a separate task that never
+// changes the editable cursor.
+export const UndoRedo = ({ disabled = false }: { disabled?: boolean }) => {
   const dispatch = useDispatch<ThunkDispatch<IState, unknown, Action>>()
-  const workspace = useSelector(selectedWorkspaceSelector)
-  const revisions = useSelector(revisionsSelector)
-  const cursor = useSelector(cursorSelector)
   const canUndo = useSelector(canUndoSelector)
   const canRedo = useSelector(canRedoSelector)
-  const { target: preview, setTarget } = usePreview()
   const { t } = useTranslation('poi-plugin-navy-staff')
 
-  if (!workspace || revisions.length === 0) return null
-
-  const currentRevisionId = revisions[cursor]?.id
-  const previewing = Boolean(
-    preview &&
-      preview.workspaceId === workspace.id &&
-      revisions.some((revision) => revision.id === preview.revisionId),
-  )
-
-  const handleSelect = (value: string) => {
-    if (value === currentRevisionId) {
-      setTarget(null)
-    } else {
-      setTarget({ revisionId: value, workspaceId: workspace.id })
-    }
-  }
-
   return (
-    <Bar>
+    <>
       <Button
         aria-label={t('Undo')}
-        disabled={!canUndo || previewing}
+        disabled={disabled || !canUndo}
         icon="undo"
         onClick={() => dispatch(onUndo())}
       />
       <Button
         aria-label={t('Redo')}
-        disabled={!canRedo || previewing}
+        disabled={disabled || !canRedo}
         icon="redo"
         onClick={() => dispatch(onRedo())}
       />
-      <HTMLSelect
-        aria-label={t('History')}
-        value={previewing ? preview!.revisionId : currentRevisionId}
-        onChange={(event) => handleSelect(event.currentTarget.value)}
-      >
-        {revisions.map((revision, index) => (
-          <option key={revision.id} value={revision.id}>
-            {`${index + 1}. ${opLabel(revision.op, t)} — ${formatTime(revision.time)}`}
-          </option>
-        ))}
-      </HTMLSelect>
-      {previewing && (
-        <>
-          <PreviewNote>{t('Viewing an earlier revision (read-only)')}</PreviewNote>
-          <Button
-            intent={Intent.WARNING}
-            onClick={() => {
-              dispatch(
-                onRestore({
-                  id: preview!.revisionId,
-                  now: new Date().toISOString(),
-                }),
-              )
-              // Restore appends a new current revision, so leave preview and let
-              // Undo operate on the restored revision immediately.
-              setTarget(null)
-            }}
-          >
-            {t('Restore this revision')}
-          </Button>
-          <Button onClick={() => setTarget(null)}>{t('Exit preview')}</Button>
-        </>
-      )}
-    </Bar>
+    </>
+  )
+}
+
+// A controlled revision selector for the History task. It only reports the
+// chosen revision; restoring or sharing is an explicit action in the task.
+export const HistorySelector = ({
+  value,
+  onChange,
+}: {
+  value: string
+  onChange: (revisionId: string) => void
+}) => {
+  const workspace = useSelector(selectedWorkspaceSelector)
+  const revisions = useSelector(revisionsSelector)
+  const cursor = useSelector(cursorSelector)
+  const { t } = useTranslation('poi-plugin-navy-staff')
+
+  if (!workspace || revisions.length === 0) return null
+  const currentRevisionId = revisions[cursor]?.id
+
+  return (
+    <HTMLSelect
+      aria-label={t('History')}
+      value={value || currentRevisionId}
+      onChange={(event) => onChange(event.currentTarget.value)}
+    >
+      {revisions.map((revision, index) => (
+        <option key={revision.id} value={revision.id}>
+          {`${index + 1}. ${opLabel(revision.op, t)} — ${formatRevisionTime(revision.time)}`}
+        </option>
+      ))}
+    </HTMLSelect>
   )
 }

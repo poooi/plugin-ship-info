@@ -11,6 +11,7 @@ import { shipMenuDataSelector } from '../planner/selectors'
 import { freshWorkspaceAreas } from './capture'
 import {
   onAddShip,
+  onBatchAssign,
   onCreateWorkspace,
   onMoveShip,
   onRemoveShip,
@@ -33,6 +34,7 @@ import {
 export { NAVY_ACTIONS } from './action-types'
 export {
   onAddShip,
+  onBatchAssign,
   onCreateWorkspace,
   onDeleteWorkspace,
   onMoveShip,
@@ -149,4 +151,63 @@ export const removeShipFromArea = (areaId: string, shipId: number): NavyThunk =>
   dispatch,
 ) => {
   dispatch(onRemoveShip({ areaId, now: new Date().toISOString(), shipId }))
+}
+
+/**
+ * Batch assignment from the ship list. Assigns (or removes, when `target` is
+ * null) the eligible listed ships as one revision; a no-op batch appends
+ * nothing in the reducer.
+ *
+ * Eligibility mirrors the single-ship rules under the existing account/load
+ * boundary: an already-assigned ship may be moved without a live record, while
+ * an unassigned ship may only be added when a matching live record exists
+ * (missing-roster and cached-unassigned ships are skipped). Only ships that
+ * actually change are sent, so records are captured for real additions only.
+ */
+export const applyShipBatch = ({
+  target,
+  shipIds,
+}: {
+  target: string | null
+  shipIds: number[]
+}): NavyThunk => (dispatch, getState) => {
+  if (shipIds.length === 0) return
+  const state = getState()
+  const workspace = selectedWorkspaceSelector(state)
+  if (!workspace) return
+  const content = contentAtCursor(workspace)
+  const now = new Date().toISOString()
+  const eligible: number[] = []
+  const records: NavyShipRecord[] = []
+
+  for (const shipId of shipIds) {
+    const currentAreaId = content.areas
+      .map((area) => area.id)
+      .find((areaId) => (content.assignments[areaId] ?? []).includes(shipId))
+
+    if (target === null) {
+      // Removal only applies to a currently assigned ship.
+      if (currentAreaId) eligible.push(shipId)
+      continue
+    }
+    if (currentAreaId) {
+      if (currentAreaId === target) continue // same-area no-op: never enrich
+      eligible.push(shipId)
+      // A changed move is enriched with the live record when the roster is
+      // available, exactly like a single move; a captured ship keeps its saved
+      // values when the live record is unavailable.
+      const movedRecord = recordForShip(state, shipId, now)
+      if (movedRecord) records.push(movedRecord)
+      continue
+    }
+    // Addition requires a live record, exactly as addShipToArea does.
+    const record = recordForShip(state, shipId, now)
+    if (record) {
+      eligible.push(shipId)
+      records.push(record)
+    }
+  }
+
+  if (eligible.length === 0) return
+  dispatch(onBatchAssign({ now, records, shipIds: eligible, target }))
 }

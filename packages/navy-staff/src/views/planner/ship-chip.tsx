@@ -10,13 +10,25 @@ import { Popover } from 'views/components/etc/overlay'
 import type { IState } from 'views/utils/selectors'
 
 import { shipTypeLabel } from '@poi-plugins/ship-info-shared/ship-types'
-import { FleetIcon } from '@poi-plugins/ship-info-shared/ui/fleet-icon'
 import { assignShip, removeShipFromArea } from '../workspace/actions'
 import type { WorkspaceShipRow } from '../workspace/selectors'
+import { ActualSortieTag } from './actual-sortie-tag'
+import { FleetBadge } from './fleet-badge'
 import type { AreaChoice } from './types'
 
 const Chip = styled(Tag)`
-  margin: 0.5ex 1ex;
+  margin: 0;
+  max-width: 100%;
+`
+
+// The inner text ellipsizes; the full label stays available as a tooltip.
+const ChipContent = styled.span`
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
 `
 
 interface IProps {
@@ -24,12 +36,26 @@ interface IProps {
   others: AreaChoice[]
   planAreaId: string
   readOnly: boolean
+  /** True to prefer translated fleet labels for the live sortie tag. */
+  displayFleetName: boolean
 }
+
+// The chip already separates name/level with whitespace, so the inline tag needs
+// its own small gap; list/grid use their own row gaps.
+const ChipActualTag = styled(ActualSortieTag)`
+  margin-left: 0.35em;
+`
 
 // A saved ship row. There is no automatic reconciliation: the chip never moves
 // itself to a live sortie tag, and removing/moving is always explicit. A history
 // preview renders the same chip read-only.
-export const ShipChip = ({ row, others, planAreaId, readOnly }: IProps) => {
+export const ShipChip = ({
+  row,
+  others,
+  planAreaId,
+  readOnly,
+  displayFleetName,
+}: IProps) => {
   const dispatch = useDispatch<ThunkDispatch<IState, unknown, Action>>()
   const { t } = useTranslation(['poi-plugin-navy-staff', 'resources'])
 
@@ -40,10 +66,13 @@ export const ShipChip = ({ row, others, planAreaId, readOnly }: IProps) => {
   const name = row.live
     ? t(row.name ?? '', { ns: 'resources' })
     : row.name ?? `#${row.ownedId}`
+  const label = `${typeLabel}${typeLabel ? ' | ' : ''}${name} Lv.${row.level ?? '?'}`
 
   return (
     <Chip
+      large
       minimal
+      title={label}
       interactive={!readOnly}
       onRemove={readOnly ? undefined : () => dispatch(removeShipFromArea(planAreaId, row.ownedId))}
       onContextMenu={
@@ -74,13 +103,14 @@ export const ShipChip = ({ row, others, planAreaId, readOnly }: IProps) => {
           </Menu>
         }
       >
-        <span>
+        <ChipContent>
           {typeLabel}
           {typeLabel ? ' | ' : ''}
           {name} <span>Lv.{row.level ?? '?'}</span>
-        </span>
+        </ChipContent>
       </Popover>
-      <span>{row.fleetId > -1 && <FleetIcon fleetId={row.fleetId} />}</span>
+      <FleetBadge fleetId={row.fleetId} />
+      <ChipActualTag actualTag={row.actualTag} translated={displayFleetName} />
     </Chip>
   )
 }

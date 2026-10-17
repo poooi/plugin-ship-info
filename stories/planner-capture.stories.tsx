@@ -1,153 +1,184 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
-import {
-  expect,
-  screen,
-  spyOn,
-  userEvent,
-  waitFor,
-  within,
-} from 'storybook/test'
+import { expect, fireEvent, screen, userEvent, waitFor, within } from 'storybook/test'
 
 import { host } from '../preview/adapters/logs'
-import type { PlannerScenarioOptions } from '../preview/planner-fixtures'
-import {
-  getCaptureRequests,
-  plannerScenarioState,
-  resetCapture,
-  setCaptureOutcome,
-} from '../preview/planner-fixtures'
+import { densePlannerState, plannerScenarioState } from '../preview/planner-fixtures'
 import { reactClass as NavyStaff } from '../packages/navy-staff/src/views'
 
-const params = (isMain: boolean, options?: PlannerScenarioOptions) => ({
-  shipInfo: {
-    isMain,
-    plugin: 'navy-staff' as const,
-    state: plannerScenarioState(options),
-  },
-})
-
-const openPlanner = async () => {
-  const view = await screen.findByRole('tab', { name: 'Area View' })
-  return view.closest('#poi-plugin-navy-staff') as HTMLElement
-}
-
-const openGrid = async () => {
-  const container = await openPlanner()
-  await userEvent.click(
-    within(container).getByRole('tab', { name: 'Ship Grid' }),
-  )
-  await within(container).findByRole('heading', { level: 2, name: 'DD' })
-  return container
-}
-
-const capture = async () => {
-  await userEvent.click(screen.getByRole('button', { name: 'Save to image' }))
-  await waitFor(async () => {
-    await expect(getCaptureRequests().length).toBe(1)
-  })
-  return getCaptureRequests()[0]
-}
-
-const meta = {
-  title: 'NavyStaff/Capture',
-  component: NavyStaff,
-  // The capture adapter state is module-level, so reset it before every story
-  // to keep success/failure outcomes from leaking between runs.
-  beforeEach: () => {
-    resetCapture()
-  },
-} satisfies Meta<typeof NavyStaff>
-
+// Real renderer and PNG pixel checks; only the OS dialog/filesystem boundary is mocked.
+const meta = { title: 'NavyStaff/Capture', component: NavyStaff } satisfies Meta<typeof NavyStaff>
 export default meta
 type Story = StoryObj<typeof meta>
 
-export const MainWindowHidesCapture: Story = {
-  name: 'Main window does not offer image capture',
-  parameters: params(true),
-  play: async () => {
-    await openPlanner()
-    await expect(screen.queryByRole('button', { name: 'Save to image' })).toBeNull()
-  },
+const openShare = async () => {
+  await userEvent.click(await screen.findByRole('button', { name: 'Share' }))
+  await userEvent.click(screen.getByRole('button', { name: 'Start sharing' }))
+  expect(screen.queryByTestId('share-image-preview')).toBeNull()
+  await userEvent.click(screen.getByRole('button', { name: 'Show image preview' }))
+  return screen.getByTestId('share-image-preview')
 }
 
-export const DetachedWindowShowsCapture: Story = {
-  name: 'Detached window offers image capture',
-  parameters: params(false),
-  play: async () => {
-    await openPlanner()
-    await expect(
-      await screen.findByRole('button', { name: 'Save to image' }),
-    ).toBeTruthy()
-  },
+const saveImage = async (scope: HTMLElement) => {
+  const count = host.log.writtenFiles.length
+  const path = '/capture/reference.png'
+  host.saveDialog = { canceled: false, filePath: path }
+  await userEvent.click(within(scope).getByRole('button', { name: 'Save as image' }))
+  await waitFor(() => expect(host.log.writtenFiles.length).toBe(count + 1), { timeout: 15000 })
+  const data = host.log.writtenFiles[count].data as Uint8Array<ArrayBuffer>
+  expect([...data.slice(0, 8)]).toEqual([137, 80, 78, 71, 13, 10, 26, 10])
+  const options = host.log.saveDialogCalls.at(-1)!.options as { defaultPath: string }
+  expect(options.defaultPath).toMatch(/\.png$/)
+  expect(options.defaultPath).not.toBe('download.png')
+  const view = within(scope).getByTestId('reference-view')
+  expect(options.defaultPath).toContain(view.getAttribute('aria-label')!)
+  const selectedView = within(scope).getByRole('button', { pressed: true })
+  expect(options.defaultPath).toContain(selectedView.getAttribute('aria-label')!)
+  const image = new Image()
+  const url = URL.createObjectURL(new Blob([data], { type: 'image/png' }))
+  try {
+    image.src = url
+    await image.decode()
+  } finally { URL.revokeObjectURL(url) }
+  expect(image.naturalWidth).toBeGreaterThan(0)
+  return image
 }
 
-export const AreaCaptureSuccessDownloadsImage: Story = {
-  name: 'Area capture uses the area element and real dimensions, then downloads',
-  parameters: params(false),
-  play: async () => {
-    await openPlanner()
-    const request = await capture()
-
-    // The intended element is the area container rendered inside the dialog.
-    await expect(request.element.textContent).toContain('E1')
-    await expect(request.element.textContent).not.toContain('Save to image')
-    await expect(request.options).toMatchObject({
-      allowTaint: true,
-      backgroundColor: '#333',
-    })
-    // Options are sized from the element's real rect; lodash `ceil(value, 16)`
-    // is decimal precision (effectively the raw size), so compare to the bounds
-    // the adapter recorded at capture time.
-    await expect(request.options.width).toBeCloseTo(request.rect.width, 3)
-    await expect(request.options.height).toBeCloseTo(request.rect.height, 3)
-
-    await waitFor(async () => {
-      await expect(host.log.downloads.length).toBe(1)
-    })
-    await expect(host.log.downloads[0]).toContain('data:image/png')
+const captureStory = (mode: 'area' | 'list' | 'grid', isMain: boolean): Story => ({
+  name: mode + ': 300 ships, modern CSS, full-height PNG and decoded-text equivalence',
+  parameters: {
+    shipInfo: {
+      isMain, dimensions: { width: 720, height: 640 },
+      theme: mode === 'list' ? 'light' : 'dark', plugin: 'navy-staff',
+      state: densePlannerState({
+        current: Array.from({ length: 10 }, (_, group) =>
+          Array.from({ length: 30 }, (_, index) => group * 30 + index + 1)),
+      }),
+    },
   },
-}
-
-export const GridCaptureUsesGridElement: Story = {
-  name: 'Ship Grid capture targets the grid cells, not the toolbar or palette',
-  parameters: params(false),
   play: async () => {
-    await openGrid()
-    const request = await capture()
-
-    // The captured element is the ship grid: it contains real cells but not the
-    // toolbar, help callout, palette or dialog tabs that surround it.
-    await expect(request.element.textContent).toContain('Zeta')
-    await expect(request.element.textContent).not.toContain('Palette')
-    await expect(request.element.textContent).not.toContain('Refresh')
-    await expect(request.element.textContent).not.toContain('Ship Grid')
-
-    await waitFor(async () => {
-      await expect(host.log.downloads.length).toBe(1)
-    })
-  },
-}
-
-export const CaptureRejectionLogsAndDoesNotDownload: Story = {
-  name: 'Rejected capture logs the error and does not download',
-  parameters: params(false),
-  play: async () => {
-    setCaptureOutcome('failure')
-    const errorSpy = spyOn(console, 'error').mockImplementation(() => undefined)
-    try {
-      await openPlanner()
-      await userEvent.click(screen.getByRole('button', { name: 'Save to image' }))
-
-      // The catch path in captureRect logs the renderer failure.
-      await waitFor(async () => {
-        await expect(errorSpy).toHaveBeenCalled()
+    const preview = await openShare()
+    await userEvent.click(within(preview).getByRole('button', { name: { area: 'Area View', list: 'Ship List', grid: 'Ship Grid' }[mode] }))
+    const target = within(preview).getByTestId('reference-capture')
+    expect(within(target).getAllByTestId('reference-ship')).toHaveLength(300)
+    expect(target.textContent).not.toMatch(/#\d+/u)
+    if (mode === 'grid') {
+      const groups = within(target).getAllByTestId('reference-area')
+      expect(groups).toHaveLength(10)
+      groups.forEach((group, index) => {
+        expect(within(group).getByText(`E${index + 1}`)).toBeTruthy()
+        expect(within(group).getAllByTestId('reference-ship')).toHaveLength(30)
       })
-      await waitFor(async () => {
-        await expect(getCaptureRequests().length).toBe(1)
-      })
-      await expect(host.log.downloads.length).toBe(0)
-    } finally {
-      errorSpy.mockRestore()
     }
+    expect(within(target).queryByRole('button')).toBeNull()
+    const sharedContent = target.textContent
+    // A pixel marker below the viewport proves modern CSS and full capture.
+    const marker = document.createElement('div')
+    marker.style.cssText = 'height:12px;width:100%;background:oklch(62.8% 0.2577 29.23);'
+    target.append(marker)
+    try {
+      const bounds = target.getBoundingClientRect()
+      const markerBounds = marker.getBoundingClientRect()
+      expect(bounds.height).toBeGreaterThan(window.innerHeight)
+      const image = await saveImage(preview)
+      const scale = image.naturalWidth / bounds.width
+      expect(Math.abs(image.naturalHeight - bounds.height * scale)).toBeLessThan(4)
+      const canvas = document.createElement('canvas')
+      canvas.width = image.naturalWidth
+      canvas.height = image.naturalHeight
+      const ctx = canvas.getContext('2d')!
+      ctx.drawImage(image, 0, 0)
+      const pixel = ctx.getImageData(
+        Math.floor((markerBounds.left - bounds.left + 5) * scale),
+        Math.floor((markerBounds.top - bounds.top + 5) * scale), 1, 1,
+      ).data
+      expect(pixel[0]).toBeGreaterThan(230)
+      expect(pixel[1]).toBeLessThan(30)
+      expect(pixel[2]).toBeLessThan(30)
+      expect(pixel[3]).toBe(255)
+    } finally { marker.remove() }
+
+    const text = (screen.getByTestId('share-text') as HTMLTextAreaElement).value
+    await userEvent.click(within(screen.getByRole('navigation')).getByRole('button', { name: 'Reference' }))
+    fireEvent.change(screen.getByPlaceholderText('Paste a share code or open a text file'), { target: { value: text } })
+    await userEvent.click(screen.getByRole('button', { name: 'Open' }))
+    const reference = await screen.findByTestId('reference-result')
+    await userEvent.click(within(reference).getByRole('button', { name: { area: 'Area View', list: 'Ship List', grid: 'Ship Grid' }[mode] }))
+    expect(within(reference).getByTestId('reference-capture').textContent).toBe(sharedContent)
+    await saveImage(reference)
+  },
+})
+
+export const AreaFullHeightImage = captureStory('area', true)
+export const ListFullHeightImage = captureStory('list', false)
+export const GridFullHeightImage = captureStory('grid', true)
+
+export const ImageFailureCanRetry: Story = {
+  name: 'Image failure is adjacent to Save and can be retried',
+  parameters: { shipInfo: { plugin: 'navy-staff', state: plannerScenarioState({ current: [[1], []] }) } },
+  play: async () => {
+    const preview = await openShare()
+    host.saveDialog = { canceled: false, filePath: '/capture/reference.png' }
+    const count = host.log.writtenFiles.length
+    host.failFileWrites = true
+    try {
+      await userEvent.click(within(preview).getByRole('button', { name: 'Save as image' }))
+      const error = await within(preview).findByTestId('image-error')
+      expect(error.textContent).toContain('Could not save the image')
+      expect(host.log.writtenFiles).toHaveLength(count)
+      expect(within(preview).getByRole('button', { name: 'Save as image' })).not.toBeDisabled()
+    } finally {
+      host.failFileWrites = false
+    }
+    await saveImage(preview)
+    expect(within(preview).queryByTestId('image-error')).toBeNull()
+  },
+}
+
+export const ImageSaveCanCancel: Story = {
+  name: 'Cancel image save without an error or file write, then save successfully',
+  parameters: { shipInfo: { plugin: 'navy-staff', state: plannerScenarioState({ current: [[1], []] }) } },
+  play: async () => {
+    const preview = await openShare()
+    host.saveDialog = { canceled: true }
+    const count = host.log.writtenFiles.length
+    const calls = host.log.saveDialogCalls.length
+    const save = within(preview).getByRole('button', { name: 'Save as image' })
+    await userEvent.click(save)
+    await waitFor(() => {
+      expect(host.log.saveDialogCalls).toHaveLength(calls + 1)
+      expect(save).not.toBeDisabled()
+    })
+    expect(within(preview).queryByTestId('image-error')).toBeNull()
+    expect(host.log.writtenFiles).toHaveLength(count)
+    await saveImage(preview)
+  },
+}
+
+export const HistoricalImageIgnoresEditorFilters: Story = {
+  name: 'Historical images share the captured level and ignore editor filters',
+  parameters: {
+    shipInfo: {
+      plugin: 'navy-staff',
+      state: (() => {
+        const state = plannerScenarioState({ current: [[1], []] })
+        state['poi-plugin-navy-staff'].navy.workspaces[0].revisions[0].content.ships['1'] = {
+          ownedId: 1, masterId: 1, name: 'Alpha', level: 5, typeId: 2, typeLabel: 'DD',
+          observedAt: '2026-01-01T00:00:00.000Z',
+        }
+        return state
+      })(),
+    },
+  },
+  play: async () => {
+    await userEvent.click(await screen.findByRole('button', { name: 'Ship List' }))
+    await userEvent.selectOptions(screen.getByLabelText('Assignment'), 'unassigned')
+    await userEvent.click(screen.getByRole('button', { name: 'History' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Share this state' }))
+    const preview = await openShare()
+    const target = within(preview).getByTestId('reference-capture')
+    expect(within(target).getByText('Lv.5')).toBeTruthy()
+    expect(within(target).queryByText('Lv.50')).toBeNull()
+    expect(within(target).getAllByTestId('reference-ship')).toHaveLength(1)
+    await saveImage(preview)
   },
 }

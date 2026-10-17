@@ -9,10 +9,14 @@
 
 import type { DecodedReference } from './types.ts'
 
-/** The minimal master fields a reference row needs to display. */
+/** The minimal master fields a reference row needs to display and search. */
 export interface ReferenceMaster {
   readonly name: string
   readonly type: string
+  /** Kana reading from the current host master data, when present. */
+  readonly yomi?: string
+  /** Romaji derived from `yomi` at read time; never stored in the reference. */
+  readonly romaji?: string
 }
 
 /** Caller-supplied lookup of the current masters, keyed by master ID. */
@@ -31,6 +35,10 @@ export interface ResolvedShip {
   readonly name: string
   /** Type label, or null when the master metadata is missing. */
   readonly type: string | null
+  /** Kana reading from the current masters ('' when missing/unknown). */
+  readonly yomi: string
+  /** Romaji reading derived from `yomi` ('' when missing/unknown). */
+  readonly romaji: string
   /** True only when the master ID resolved from the supplied masters. */
   readonly known: boolean
 }
@@ -41,13 +49,19 @@ export const resolveShip = (
   masters: MasterCatalog,
 ): ResolvedShip => {
   if (masterId === null) {
-    return { name: UNKNOWN_SHIP_NAME, type: null, known: false }
+    return { name: UNKNOWN_SHIP_NAME, type: null, known: false, romaji: '', yomi: '' }
   }
   const master = masters.get(masterId)
   if (master === undefined) {
-    return { name: UNKNOWN_SHIP_NAME, type: null, known: false }
+    return { name: UNKNOWN_SHIP_NAME, type: null, known: false, romaji: '', yomi: '' }
   }
-  return { name: master.name, type: master.type, known: true }
+  return {
+    name: master.name,
+    type: master.type,
+    known: true,
+    romaji: master.romaji ?? '',
+    yomi: master.yomi ?? '',
+  }
 }
 
 export interface ProjectedShip {
@@ -55,6 +69,9 @@ export interface ProjectedShip {
   readonly level: number | null
   readonly name: string
   readonly type: string | null
+  /** Search-only readings from the current masters; '' when unknown. */
+  readonly yomi: string
+  readonly romaji: string
   readonly known: boolean
 }
 
@@ -108,6 +125,8 @@ export const projectReference = (
         name: resolved.name,
         type: resolved.type,
         known: resolved.known,
+        romaji: resolved.romaji,
+        yomi: resolved.yomi,
       })
       shipCount += 1
       if (resolved.known) knownShipCount += 1

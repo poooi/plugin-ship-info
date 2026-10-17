@@ -18,6 +18,7 @@ import { reducer as navyReducer } from '../packages/navy-staff/src/views/redux'
 import type { NavyWorkspace } from '../packages/navy-staff/src/views/workspace/types'
 import {
   onAddShip,
+  onBatchAssign,
   onDeleteWorkspace,
   onMoveShip,
   onRedo,
@@ -249,6 +250,61 @@ describe('Navy workspace reducer', () => {
     const state = init(mkNavy())
     expect(Object.keys(state)).toEqual(['account', 'error', 'navy', 'ready'])
     expect(state.navy).not.toHaveProperty('preview')
+  })
+})
+
+describe('Navy batch assignment', () => {
+  const revisionCount = (state: NavySlice) =>
+    state.navy.workspaces.find((w) => w.id === state.navy.selectedWorkspaceId)!
+      .revisions.length
+
+  it('applies many assignments as exactly one revision and one undo step', () => {
+    let state = init(mkNavy([mkWorkspace({ current: [[], []] })]))
+    const before = revisionCount(state)
+    state = navyReducer(
+      state,
+      onBatchAssign({ now: NOW, records: [record(10), record(11)], shipIds: [10, 11], target: 'area-1' }),
+    )
+    expect(assignmentsOf(state)['area-1']).toEqual([10, 11])
+    expect(revisionCount(state)).toBe(before + 1)
+    // One undo returns to the pre-batch cursor.
+    state = navyReducer(state, onUndo())
+    expect(state.navy.workspaces[0].cursor).toBe(before - 1)
+  })
+
+  it('moves already-assigned ships to the target without needing records', () => {
+    const state = init(mkNavy([mkWorkspace({ current: [[10, 11], []] })]))
+    const next = navyReducer(
+      state,
+      onBatchAssign({ now: NOW, records: [], shipIds: [10, 11], target: 'area-2' }),
+    )
+    expect(assignmentsOf(next)['area-1']).toEqual([])
+    expect(assignmentsOf(next)['area-2']).toEqual([10, 11])
+  })
+
+  it('removes assigned ships when the target is null', () => {
+    const state = init(mkNavy([mkWorkspace({ current: [[10, 11], [12]] })]))
+    const next = navyReducer(
+      state,
+      onBatchAssign({ now: NOW, records: [], shipIds: [10, 12], target: null }),
+    )
+    expect(assignmentsOf(next)['area-1']).toEqual([11])
+    expect(assignmentsOf(next)['area-2']).toEqual([])
+  })
+
+  it('appends nothing for a batch that changes no ship', () => {
+    const state = init(mkNavy([mkWorkspace({ current: [[10], []] })]))
+    const sameTarget = navyReducer(
+      state,
+      onBatchAssign({ now: NOW, records: [], shipIds: [10], target: 'area-1' }),
+    )
+    expect(sameTarget).toBe(state)
+
+    const removeUnassigned = navyReducer(
+      state,
+      onBatchAssign({ now: NOW, records: [], shipIds: [99], target: null }),
+    )
+    expect(removeUnassigned).toBe(state)
   })
 })
 

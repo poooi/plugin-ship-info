@@ -65,6 +65,25 @@ export const setLanguage = (language: Language) => {
 
 // A Navy-only instance with `fallbackLng: false`. Used by a browser scenario to
 // prove the Navy UI resolves its own namespace without borrowing Ship Info.
+//
+// The real poi host (views/utils/tools.ts `readI18nResources`) normalizes every
+// resource key with `escapeI18nKey`, matching this exact transformation. This
+// instance reproduces it so a sentence-style key that only survived in
+// raw-resource Storybook is caught here. The shared `i18n` instance is left
+// untouched.
+const escapeI18nKey = (key: string): string =>
+  key.replace(/\.\W/g, '').replace(/\.$/, '').replace(/:\s/g, '').replace(/:$/, '')
+
+const normalizeResourceKeys = (
+  resource: Record<string, string>,
+): Record<string, string> => {
+  const out: Record<string, string> = {}
+  for (const [key, value] of Object.entries(resource)) {
+    out[escapeI18nKey(key)] = value
+  }
+  return out
+}
+
 export const createNavyOnlyI18n = (lng: Language = 'en-US'): I18nInstance => {
   const instance = i18next.createInstance()
   instance.init({
@@ -75,11 +94,11 @@ export const createNavyOnlyI18n = (lng: Language = 'en-US'): I18nInstance => {
     lng,
     ns: ['poi-plugin-navy-staff'],
     resources: {
-      'en-US': { 'poi-plugin-navy-staff': navyEnUS },
-      'ja-JP': { 'poi-plugin-navy-staff': navyJaJP },
-      'ko-KR': { 'poi-plugin-navy-staff': navyKoKR },
-      'zh-CN': { 'poi-plugin-navy-staff': navyZhCN },
-      'zh-TW': { 'poi-plugin-navy-staff': navyZhTW },
+      'en-US': { 'poi-plugin-navy-staff': normalizeResourceKeys(navyEnUS) },
+      'ja-JP': { 'poi-plugin-navy-staff': normalizeResourceKeys(navyJaJP) },
+      'ko-KR': { 'poi-plugin-navy-staff': normalizeResourceKeys(navyKoKR) },
+      'zh-CN': { 'poi-plugin-navy-staff': normalizeResourceKeys(navyZhCN) },
+      'zh-TW': { 'poi-plugin-navy-staff': normalizeResourceKeys(navyZhTW) },
     },
   })
   return instance

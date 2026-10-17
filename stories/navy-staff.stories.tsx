@@ -10,6 +10,8 @@ import { host } from '../preview/adapters/logs'
 import { mkNavyData } from '../tests/ui/fixtures'
 import {
   assignedShipIds,
+  denseLongNameMasters,
+  densePlannerState,
   navyAccountFile,
   persistedNavyFile,
   persistedPluginFile,
@@ -20,8 +22,10 @@ import { disposeScenario, getEnvironment } from '../preview/scenario'
 import { reactClass as NavyStaff } from '../packages/navy-staff/src/views'
 import { reactClass as ShipInfo } from '../packages/ship-info/src/views'
 
+// Responsive shell: fills the scenario surface the decorator sizes, instead of
+// pinning a fixed 1200px panel, so narrow/medium/wide stories are meaningful.
 const Shell: React.FC = () => (
-  <div style={{ display: 'flex', height: 680, width: 1200 }}>
+  <div style={{ display: 'flex', height: '100%', width: '100%' }}>
     <NavyStaff />
   </div>
 )
@@ -45,7 +49,7 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 const playOnMainView = async () => {
-  await expect(await screen.findByRole('tab', { name: 'Area View' })).toBeTruthy()
+  await expect(await screen.findByRole('button', { name: 'Plan' })).toBeTruthy()
   return document.querySelector('#poi-plugin-navy-staff') as HTMLElement
 }
 
@@ -73,6 +77,58 @@ export const NavyAlone: Story = {
   },
 }
 
+export const FleetBadgesInPlanningViews: Story = {
+  name: 'All planning views follow live fleet membership; history and sharing omit it',
+  parameters: {
+    shipInfo: {
+      lifecycle: false,
+      plugin: 'navy-staff',
+      state: plannerScenarioState({
+        current: [[1, 2], [3]],
+        mapname: ['E1', 'E2'],
+        extra: { fleets: [[1], [2], [], []] },
+      }),
+    },
+  },
+  play: async () => {
+    const container = await playOnMainView()
+    const ui = within(container)
+    const environment = getEnvironment()
+    const navyBefore = JSON.stringify(environment.store.getState()['poi-plugin-navy-staff'].navy)
+    for (const name of ['Area View', 'Ship List', 'Grid Palette']) {
+      await userEvent.click(ui.getByRole('button', { name }))
+      expect(ui.getByRole('img', { name: 'Fleet 1' })).toBeTruthy()
+      expect(ui.getByRole('img', { name: 'Fleet 2' })).toBeTruthy()
+      expect(ui.getAllByRole('img', { name: /^Fleet \d$/ })).toHaveLength(2)
+      if (name === 'Grid Palette') {
+        expect(ui.getByRole('button', { name: 'Alpha Lv.50' })).toHaveAccessibleDescription('E1 Fleet 1')
+      }
+    }
+    environment.store.dispatch({ type: 'TEST/REPLACE', state: { fleets: [[], [], [1], [2]] } })
+    for (const name of ['Grid Palette', 'Ship List', 'Area View']) {
+      await userEvent.click(ui.getByRole('button', { name }))
+      await waitFor(() => expect(ui.getByRole('img', { name: 'Fleet 3' })).toBeTruthy())
+      expect(ui.getByRole('img', { name: 'Fleet 4' })).toBeTruthy()
+      expect(ui.queryByRole('img', { name: 'Fleet 1' })).toBeNull()
+    }
+    await userEvent.click(ui.getByRole('button', { name: 'History' }))
+    for (const name of ['Area View', 'Ship List', 'Grid Palette']) {
+      await userEvent.click(ui.getByRole('button', { name }))
+      expect(ui.queryByRole('img', { name: /^Fleet \d$/ })).toBeNull()
+    }
+    await userEvent.click(ui.getByRole('button', { name: 'Return to current plan' }))
+    await userEvent.click(within(ui.getByRole('navigation')).getByRole('button', { name: 'Share' }))
+    await userEvent.click(ui.getByRole('button', { name: 'Start sharing' }))
+    await userEvent.click(ui.getByRole('button', { name: 'Show image preview' }))
+    const preview = within(ui.getByTestId('share-image-preview'))
+    for (const name of ['Area View', 'Ship List', 'Ship Grid']) {
+      await userEvent.click(preview.getByRole('button', { name }))
+      expect(preview.queryByRole('img', { name: /^Fleet \d$/ })).toBeNull()
+    }
+    expect(JSON.stringify(environment.store.getState()['poi-plugin-navy-staff'].navy)).toBe(navyBefore)
+  },
+}
+
 export const BothPluginsIndependent: Story = {
   name: 'Both plugins share one host store with isolated slices',
   parameters: {
@@ -91,7 +147,7 @@ export const BothPluginsIndependent: Story = {
   ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    await expect(await canvas.findByRole('tab', { name: 'Area View' })).toBeTruthy()
+    await expect(await canvas.findByRole('button', { name: 'Area View' })).toBeTruthy()
     // 'Alpha' appears in both roots; scope to the Ship Info table.
     const shipInfoRoot = document.querySelector(
       '#poi-plugin-ship-info',
@@ -219,8 +275,9 @@ export const DetachedDisplayOptionUsesGlobalConfig: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    await userEvent.click(
-      await canvas.findByRole('checkbox', { name: 'Show fleet name' }),
+    await userEvent.selectOptions(
+      await canvas.findByRole('combobox', { name: 'Area labels' }),
+      'fleet',
     )
     await waitFor(async () => {
       const calls = getEnvironment().configCalls
@@ -324,20 +381,24 @@ export const HistoryPreviewWritesNothing: Story = {
     const fileText = () => JSON.stringify(host.log.files[file])
     const before = fileText()
 
+    // History selection lives on the History page.
+    await userEvent.click(await screen.findByRole('button', { name: 'History' }))
+
     await userEvent.selectOptions(
       screen.getByLabelText('History') as HTMLSelectElement,
       'rev-1',
     )
     await expect(
-      screen.getByText('Viewing an earlier revision (read-only)'),
+      screen.getByText('History is read-only. Return to the current plan to edit.'),
     ).toBeTruthy()
 
     await userEvent.selectOptions(
       screen.getByLabelText('History') as HTMLSelectElement,
       'rev-2',
     )
+    await userEvent.click(screen.getByRole('button', { name: 'Return to current plan' }))
     await expect(
-      screen.queryByText('Viewing an earlier revision (read-only)'),
+      screen.queryByText('History is read-only. Return to the current plan to edit.'),
     ).toBeNull()
 
     expect(fileText()).toBe(before)
@@ -428,5 +489,215 @@ export const DisposeStopsAccountSupervisor: Story = {
 
     expect(host.log.files[navyAccountFile('202')]).toBeUndefined()
     expect(host.log.writtenFiles.length).toBe(writesBefore)
+  },
+}
+
+// ---------------------------------------------------------------------------
+// Dense visual scenarios: 300 owned ships across ten unevenly assigned areas.
+// These inspect real card density, wrapping and overflow at narrow/medium/wide
+// widths and in both themes. `lifecycle:false` because the fixture already
+// carries real saved assignments and captured ship records.
+// ---------------------------------------------------------------------------
+
+const openDenseGrid = async () => {
+  const container = document.querySelector('#poi-plugin-navy-staff') as HTMLElement
+  await userEvent.click(await within(container).findByRole('button', { name: 'Grid Palette' }))
+  await within(container).findByRole('heading', { level: 2, name: 'DD' })
+  return container
+}
+
+// Every card is rendered (no virtualization) and the last group is reachable;
+// the scroll container never overflows horizontally.
+const assertDenseGrid = async (container: HTMLElement) => {
+  const cells = await within(container).findAllByRole('button', { name: /Lv\./ })
+  await expect(cells.length).toBe(300)
+  await expect(
+    within(container).getByRole('heading', { level: 2, name: 'Auxiliary' }),
+  ).toBeTruthy()
+  // Cards must stay readable at every width: no-overflow alone would also pass
+  // for the former ~84px cards.
+  const firstRect = cells[0].getBoundingClientRect()
+  await expect(firstRect.width).toBeGreaterThanOrEqual(155)
+  await expect(firstRect.height).toBeGreaterThanOrEqual(52)
+  const scroll = container.querySelector('.navy-staff-scrollable') as HTMLElement
+  await expect(scroll.scrollWidth).toBeLessThanOrEqual(scroll.clientWidth + 1)
+  const lastCard = cells[cells.length - 1]
+  lastCard.scrollIntoView({ block: 'end' })
+  const lastRect = lastCard.getBoundingClientRect()
+  const scrollRect = scroll.getBoundingClientRect()
+  await expect(lastRect.top).toBeGreaterThanOrEqual(scrollRect.top)
+  await expect(lastRect.bottom).toBeLessThanOrEqual(scrollRect.bottom + 1)
+  scroll.scrollTop = 0
+}
+
+const denseParams = (
+  dimensions: { width: number; height: number },
+  overrides: Record<string, any> = {},
+) => ({
+  shipInfo: {
+    dimensions,
+    lifecycle: false,
+    plugin: 'navy-staff' as const,
+    state: densePlannerState(),
+    ...overrides,
+  },
+})
+
+export const DensePlanWide: Story = {
+  name: '300 ships at 1200px: full grid, last group present, no horizontal overflow',
+  parameters: denseParams({ width: 1200, height: 900 }),
+  play: async () => {
+    await assertDenseGrid(await openDenseGrid())
+  },
+}
+
+export const DensePlanMedium: Story = {
+  name: '300 ships at 720px: cards reflow without horizontal overflow',
+  parameters: denseParams({ width: 720, height: 900 }),
+  play: async () => {
+    await assertDenseGrid(await openDenseGrid())
+  },
+}
+
+export const DensePlanNarrow: Story = {
+  name: '300 ships at 480px: single/narrow columns, no horizontal overflow',
+  parameters: denseParams({ width: 480, height: 900 }),
+  play: async () => {
+    await assertDenseGrid(await openDenseGrid())
+  },
+}
+
+export const DensePlanLight: Story = {
+  name: '300 ships in the light theme render readable text without portraits',
+  parameters: denseParams({ width: 1200, height: 900 }, { theme: 'light' }),
+  play: async () => {
+    await assertDenseGrid(await openDenseGrid())
+  },
+}
+
+export const DensePlanPortraits: Story = {
+  name: '300 ships with portraits keep the artwork and the assignment edge',
+  parameters: denseParams(
+    { width: 1200, height: 900 },
+    {
+      state: densePlannerState({
+        config: {
+          plugin: { ShipInfo: {} },
+          poi: { appearance: { avatar: true } },
+        },
+      }),
+    },
+  ),
+  play: async () => {
+    const container = await openDenseGrid()
+    await assertDenseGrid(container)
+    const firstCard = within(container).getAllByRole('button', { name: /Lv\./ })[0]
+    await expect(firstCard.querySelector('img')).toBeTruthy()
+  },
+}
+
+const denseLongAreaNames = [
+  'Prologue: Deep-Sea Engagement Zone Alpha',
+  'Chapter 1: Night Battle at the Narrow Strait',
+  'Chapter 2: Combined Fleet Air Defense',
+  'Chapter 3: Southern Transport Escort',
+  'Chapter 4: Submarine Patrol Line',
+  'Extra Operation: Ironbottom Sound Revisited',
+  'E7', 'E8', 'E9', 'E10',
+]
+
+const stickyFiltersStory = (width: number, theme: 'dark' | 'light'): Story => ({
+  name: `Scrolled grid/list filters cover the scrollport edge (${width}px, ${theme})`,
+  parameters: denseParams({ width, height: 700 }, { theme }),
+  play: async () => {
+    const container = await openDenseGrid()
+    const body = container.querySelector('.navy-staff-scrollable') as HTMLElement
+    const nav = within(container).getByRole('navigation')
+    for (const button of within(nav).getAllByRole('button')) {
+      expect(parseFloat(getComputedStyle(button).paddingLeft)).toBeGreaterThanOrEqual(20)
+      expect(parseFloat(getComputedStyle(button).paddingRight)).toBeGreaterThanOrEqual(20)
+    }
+    expect(nav.scrollWidth).toBeLessThanOrEqual(container.clientWidth)
+    for (const mode of ['grid', 'list']) {
+      body.scrollTop = 0
+      await userEvent.click(within(container).getByRole('button', { name: mode === 'grid' ? 'Grid Palette' : 'Ship List' }))
+      const input = within(container).getByPlaceholderText('Search')
+      let bar = input.parentElement!
+      while (bar.parentElement && getComputedStyle(bar).position !== 'sticky') {
+        bar = bar.parentElement
+      }
+      body.scrollTop = 400
+      await waitFor(() => {
+        expect(body.scrollTop).toBeGreaterThan(0)
+        expect(getComputedStyle(bar).position).toBe('sticky')
+        const bounds = bar.getBoundingClientRect()
+        const edge = body.getBoundingClientRect().top
+        expect(Math.abs(bounds.top - edge)).toBeLessThanOrEqual(1)
+        // The former padding gap must be covered by the toolbar, not a card.
+        expect(bar.contains(document.elementFromPoint(bounds.left + 3, edge + 2))).toBe(true)
+      })
+      if (mode === 'list') {
+        const list = within(container).getByTestId('ship-list')
+        const apply = within(list).getByRole('button', { name: 'Apply to selected' })
+        const bounds = apply.getBoundingClientRect()
+        const toolbarBounds = bar.getBoundingClientRect()
+        expect(bar.contains(apply)).toBe(true)
+        expect(bounds.top).toBeGreaterThanOrEqual(toolbarBounds.top)
+        expect(bounds.bottom).toBeLessThanOrEqual(toolbarBounds.bottom)
+        expect(apply.contains(document.elementFromPoint(bounds.left + bounds.width / 2, bounds.top + bounds.height / 2))).toBe(true)
+        await userEvent.click(within(list).getByRole('button', { name: 'Select all matching' }))
+        await userEvent.selectOptions(within(list).getByLabelText('Assign to'), within(list).getByRole('option', { name: 'E1' }))
+        await userEvent.click(apply)
+        expect(apply).toBeDisabled()
+        expect(body.scrollTop).toBeGreaterThan(0)
+        expect(body.scrollWidth).toBeLessThanOrEqual(body.clientWidth)
+      }
+    }
+  },
+})
+
+export const StickyFiltersWide = stickyFiltersStory(1200, 'dark')
+export const StickyFiltersNarrow = stickyFiltersStory(480, 'light')
+
+export const DensePlanLongNames: Story = {
+  name: 'Long workspace and area names wrap without overflowing the cards',
+  parameters: denseParams(
+    { width: 1200, height: 900 },
+    {
+      state: densePlannerState(
+        { mapname: denseLongAreaNames, mstShips: denseLongNameMasters },
+        'Event Plan: Final Combined Fleet Sortie (Long Workspace Name)',
+      ),
+    },
+  ),
+  play: async () => {
+    await assertDenseGrid(await openDenseGrid())
+  },
+}
+
+export const DensePlanScrollRestored: Story = {
+  name: 'Each page keeps its own scroll position with 300 ships',
+  parameters: denseParams({ width: 1200, height: 900 }),
+  play: async () => {
+    const container = await openDenseGrid()
+    const body = container.querySelector('.navy-staff-scrollable') as HTMLElement
+
+    // Scroll the grid deep into the roster.
+    body.scrollTop = 600
+    await expect(body.scrollTop).toBeGreaterThan(0)
+
+    // A page visited for the first time opens at the top.
+    await userEvent.click(
+      within(container).getByRole('button', { name: 'Share' }),
+    )
+    await waitFor(async () => {
+      await expect(body.scrollTop).toBe(0)
+    })
+
+    // Returning to Plan restores its previous position.
+    await userEvent.click(within(container).getByRole('button', { name: 'Plan' }))
+    await waitFor(async () => {
+      await expect(body.scrollTop).toBeGreaterThan(0)
+    })
   },
 }

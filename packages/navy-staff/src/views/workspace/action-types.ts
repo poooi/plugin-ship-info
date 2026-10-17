@@ -5,6 +5,7 @@ import { PLUGIN_KEY } from '../plugin-identity'
 export const NAVY_ACTIONS = {
   addShip: `@@${PLUGIN_KEY}@ws-add-ship`,
   applySync: `@@${PLUGIN_KEY}@ws-apply-sync`,
+  batchAssign: `@@${PLUGIN_KEY}@ws-batch-assign`,
   create: `@@${PLUGIN_KEY}@ws-create`,
   delete: `@@${PLUGIN_KEY}@ws-delete`,
   moveShip: `@@${PLUGIN_KEY}@ws-move-ship`,

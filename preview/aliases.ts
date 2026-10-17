@@ -23,7 +23,6 @@ export const hostAliases: HostAlias[] = [
     replacement: resolve('./adapters/redux-observers.ts'),
   },
   { find: 'url', replacement: resolve('./adapters/url.ts') },
-  { find: 'wanakana', replacement: resolve('./adapters/wanakana.ts') },
   {
     find: 'views/components/etc/avatar',
     replacement: resolve('./adapters/avatar.tsx'),
@@ -56,17 +55,12 @@ export const hostAliases: HostAlias[] = [
   { find: 'views/utils/tools', replacement: resolve('./adapters/tools.ts') },
 ]
 
-// The vendored capture renderer is imported relatively, which Vite aliases do
-// not intercept; this pre-plugin stubs it (capture is a later layer). It also
-// maps the reference module's relative `./codec.ts` import (which needs
-// `node:zlib`) to the browser mock.
+// This pre-plugin maps the reference module's relative `./codec.ts` import
+// (which needs `node:zlib`) to the browser mock.
 export const poiHostResolver = (): Plugin => ({
   enforce: 'pre',
   name: 'poi-preview-host-resolver',
   resolveId(source, importer) {
-    if (source.endsWith('/lib/html2canvas') || source === 'lib/html2canvas') {
-      return resolve('./adapters/html2canvas.ts')
-    }
     if (
       source === './codec.ts' &&
       importer &&

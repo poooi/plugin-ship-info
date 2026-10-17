@@ -4,6 +4,11 @@ Status: implementation in progress; the delivery status and verification are rec
 
 Current delivery scope: reference snapshots are imported and viewed read-only inside Navy Staff. Website decoding and deployment are deferred. Keep the URL/QR PoC as experimental evidence, not a dependency of the plugin feature; do not add browser WASM support or advertise scan-to-open website viewing in this stage.
 
+The current page structure, responsive layout, and navigation behavior are
+documented in the [interface guide](navy-staff-interface.md). Planning, history,
+synchronization, and sharing use separate pages; the 300-ship browser scenarios
+cover the larger planning surface.
+
 ## 1. Requirements
 
 - Multiple independent workspaces.

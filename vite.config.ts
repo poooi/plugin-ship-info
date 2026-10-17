@@ -17,7 +17,6 @@ const POI_BOUNDARY_IDS = [
   'electron',
   'react-fontawesome',
   'redux-observers',
-  'wanakana',
 ]
 
 const VIRTUAL_PREFIX = '\0poi-boundary:'

@@ -12,9 +12,9 @@ export interface DisplayableArea {
 }
 
 /**
- * Resolves the label to show for a captured area. "Show fleet name" switches to
- * the captured localized fleet label when present, falling back to the captured
- * map label; identity and area count never change.
+ * Resolves the label to show for a captured area. The "Area labels" select
+ * switches to the captured localized fleet label when present, falling back to
+ * the captured map label; identity and area count never change.
  */
 export const resolveAreaLabel = (
   area: DisplayableArea,

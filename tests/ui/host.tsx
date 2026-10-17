@@ -74,7 +74,10 @@ const romajiMap: Record<string, string> = {
   イプシロン: 'ipushiron',
 }
 
-export const wanakanaModule = { toRomaji: (s: string) => romajiMap[s] ?? s }
+export const wanakanaModule = {
+  toHiragana: (s: string) => s,
+  toRomaji: (s: string) => romajiMap[s] ?? s,
+}
 
 export const reduxObserversModule = {
   observe: () => () => undefined,

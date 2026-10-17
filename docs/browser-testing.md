@@ -5,7 +5,7 @@ The plugin has two independent UI test layers:
 | Layer | Runner | State | Scenarios |
 | --- | --- | --- | --- |
 | Node/jsdom | `pnpm test` (`vp test run`) | jsdom via `tests/setup.ts` | Persistence, selectors, reducers, CSV, and UI integration |
-| Browser | `pnpm run test:browser` (`vitest run --config vitest.browser.config.ts`) | Real Chromium via Playwright | 101 story scenarios across 13 files |
+| Browser | `pnpm run test:browser` (`vitest run --config vitest.browser.config.ts`) | Real Chromium via Playwright | Every story across 15 story files |
 
 The browser project is deliberately a separate Vitest config. It does **not**
 inherit `tests/setup.ts` or the jsdom geometry stubs in `tests/ui/mocks.tsx`,
@@ -68,8 +68,8 @@ segment, which Storybook then tries to index as a story module (EISDIR).
     the plugin graph imports to pure browser adapters.
   - `preview/adapters/` holds those adapters: Electron clipboard/files/save
     dialog/capture logs, in-memory `fs-extra`, `path`, `url`, host selectors,
-    real Blueprint overlays, font/avatar/icon stand-ins, and the configurable
-    `html2canvas` capture boundary.
+    real Blueprint overlays, and font/avatar/icon stand-ins. Kana conversion and
+    Navy Staff's `modern-screenshot` renderer run from their real packages.
   - `preview/scenario.tsx` builds one environment per story. It registers the
     real reducer(s) selected by `shipInfo.plugin` (`ship-info`, `navy-staff` or
     `both`) under their plugin keys, points `views/create-store` at the live
@@ -120,8 +120,8 @@ Toolbar globals switch theme (`dark`/`light`) and locale
 class is applied to the preview body so portaled overlays are themed too.
 
 Play functions read the active environment via `getEnvironment()` from
-`preview/scenario.tsx`, the host call logs via `preview/adapters/logs.ts`, and
-the capture requests via `preview/planner-fixtures.ts`.
+`preview/scenario.tsx` and host call logs via `preview/adapters/logs.ts`.
+Image stories decode the recorded PNG data URLs for pixel and dimension checks.
 
 ## Coverage matrix
 
@@ -219,10 +219,19 @@ the export names.
 | `ShipGrid/ContextMenuRemovesCell` | Right-click removes a cell. |
 | `ShipGrid/TaggedShipIsProtected` | Tagged ships ignore pointer, context-menu and keyboard activation. |
 | `ShipGrid/KeyboardAssignsCell` | Enter on a cell assigns it. |
-| `Capture/MainWindowHidesCapture` / `Capture/DetachedWindowShowsCapture` | Capture is offered only in a detached window. |
-| `Capture/AreaCaptureSuccessDownloadsImage` | Capture targets the area element, sizes from its rect, and downloads. |
-| `Capture/GridCaptureUsesGridElement` | Grid capture targets the grid cells, not toolbar/palette. |
-| `Capture/CaptureRejectionLogsAndDoesNotDownload` | A rejected capture logs and downloads nothing. |
+| `Capture/AreaFullHeightImage`, `ListFullHeightImage`, `GridFullHeightImage` | All three shared views capture 300 ships with real Chromium rendering, full PNG height, and an `oklch` pixel marker below the viewport; opened text references render identical content and can also save images. Main/detached windows and light/dark themes are exercised. |
+| `Capture/ImageFailureCanRetry` | A PNG write failure shows adjacent feedback and retry succeeds. |
+| `Capture/ImageSaveCanCancel` | Cancel leaves no file or error; retry saves PNG bytes using a meaningful default filename. |
+| `ShipGrid/StableListLight`, `StableListDark` | Level order survives assignments and undo/redo; assigned rows are tinted with their area's color marker, Apply clears selection even for no-op batches, and list help describes batch removal. |
+| `Integrated/StickyFiltersWide`, `StickyFiltersNarrow` | Scrolled list/grid filters cover the top padding gap; page navigation has roomier horizontal padding without overflowing. |
+| `Capture/HistoricalImageIgnoresEditorFilters` | Historical sharing preserves the captured level and ignores editor filters. |
+| `References/KanaRomajiAndFuzzySearch` | Plan and reference search normalize kana variants and romaji, and tolerate a typo using real wanakana. |
+| `References/PasteFromClipboard` | Paste fills the draft before explicit Open; failed clipboard reads preserve both the draft and reference, and retry succeeds without editing the workspace. |
+| `Integrated/FleetBadgesInPlanningViews` | All three planning views follow current fleet membership; history and sharing omit live fleet badges without changing workspace data. |
+| `ActualTags/ActualAndPlannedAreIndependent` | Actual game tags coexist with different plan assignments in all three views; plan edits and game updates stay independent, and history/sharing exclude live tags. |
+| `ActualTags/MissingTagMetadata` | A known game tag without host metadata remains visible by tag number. |
+| `ActualTags/DenseTagsDark`, `DenseTagsLight` | Actual tags and plan assignments fit the 300-ship roster at 480px in both themes. |
+| `ActualTags/TranslatedPortraitTags` | Long translated actual tags fit portrait cards; full tooltips remain reachable and tag clicks still apply the planned destination. |
 
 ### Navy Staff
 
@@ -230,9 +239,26 @@ The planner surface now lives in `poi-plugin-navy-staff` with its own main view,
 so the old `Sidebar/Planner/*` stories render `NavyStaff/*` directly (no sidebar
 button or modal) with `shipInfo.plugin: 'navy-staff'`.
 
+The interface has three primary pages: Plan, Reference, and Share. History and
+Update from game (synchronization) are tasks inside Plan. Area View, Ship List,
+and Grid Palette are the three presentations of the plan.
+Workspace rename/duplicate/delete sit in a workspace-actions menu with
+rename/delete dialogs; the palette is a single "Assign to" select. The reference
+stories open the Reference page; sharing stories open Share. Dense visual scenarios
+(`NavyStaff/Integrated/DensePlan*`) render a 300-owned-ship / ten-area fixture
+and assert density, no horizontal overflow, last-group reachability, both
+themes, portraits, long names, and per-page scroll restoration.
+
 | Story export | Asserts |
 | --- | --- |
-| `NavyStaff/Area/*`, `NavyStaff/ShipGrid/*`, `NavyStaff/Capture/*` | The moved planner workflows: search/type tabs, add/move/remove, tag synchronization, both layouts, and detached-only capture. |
+| `NavyStaff/Integrated/DensePlanWide` / `DensePlanMedium` / `DensePlanNarrow` | 300 cards render at 1200/720/480px with no horizontal overflow and the last group reachable. |
+| `NavyStaff/Integrated/DensePlanLight` / `DensePlanPortraits` / `DensePlanLongNames` | Light theme, portrait mode (artwork kept, contrast backed), and long workspace/area names. |
+| `NavyStaff/Integrated/DensePlanScrollRestored` | Each page keeps its own scroll position; a first-visited page opens at the top. |
+| `NavyStaff/Area/PreviewIsReadOnlyInBothViews` | A preview exposes no assignment controls and clicking/right-clicking a read-only card leaves assignments unchanged. |
+
+| Story export | Asserts |
+| --- | --- |
+| `NavyStaff/Area/*`, `NavyStaff/ShipGrid/*`, `NavyStaff/Capture/*` | Planner search/type tabs, add/move/remove, tag synchronization, planning layouts, and shared reference image capture. |
 | `NavyStaff/Integrated/NavyAlone` | Navy Staff alone renders its main view with no Ship Info table or sidebar present. |
 | `NavyStaff/Integrated/UpgradesStoredFileAndSaves` | An unversioned Navy file upgrades to v1, retains the plan and archive, and a later UI edit saves in v1. |
 | `NavyStaff/Integrated/BothPluginsIndependent` | Both plugins run on one host store with isolated slices (Navy plan vs Ship Info bookmarks). |
@@ -262,12 +288,13 @@ button or modal) with `shipInfo.plugin: 'navy-staff'`.
 ## Honest boundaries
 
 - This is **not** real Electron end-to-end verification, and not 100% code
-  coverage. Electron, the filesystem, the save dialog and capture are in-memory
+  coverage. Electron, the filesystem, and the save dialog are in-memory
   adapters; the browser suite verifies the plugin's rendered UI and its calls
   into those boundaries.
-- Capture uses a configurable stub renderer. The stories verify the intended
-  element, the sizing options, the download call and the rejected path; they do
-  not validate the vendored `lib/html2canvas` renderer's output.
+- Navy Staff capture uses the real `modern-screenshot` renderer. Stories check
+  decoded PNG dimensions and modern-color pixels below the viewport. Save
+  dialogs and PNG file writes are recorded by adapters; this does not verify
+  poi's actual OS save dialog or its installed fonts and theme.
 - Host-provided images/fonts are deterministic stand-ins (Blueprint icons,
   placeholder boxes, data-URI SVG) so previews make no external requests.
 - Each plugin's persistence lifecycle (read on `pluginDidLoad`, subscribe to the

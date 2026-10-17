@@ -12,7 +12,7 @@ import {
   withName,
   withShipRecord,
 } from './operations'
-import { emptyNavyData, type NavyData, type NavyOperation, type NavyWorkspace, type NavyWorkspaceContent } from './types'
+import { emptyNavyData, type NavyData, type NavyOperation, type NavyShipRecord, type NavyWorkspace, type NavyWorkspaceContent } from './types'
 
 const replaceWorkspace = (navy: NavyData, next: NavyWorkspace): NavyData => ({
   ...navy,
@@ -198,6 +198,50 @@ export const navyReducer = (
             toAreaId: action.toAreaId as string,
           },
           content,
+          action.now as string,
+        ),
+      )
+    }
+    case NAVY_ACTIONS.batchAssign: {
+      const workspace = selectedWorkspace(state)
+      if (!workspace) return state
+      const before = contentAtCursor(workspace)
+      const target = action.target as string | null
+      const shipIds = (action.shipIds as number[]) ?? []
+      let next = before
+      let assigned = 0
+      let removed = 0
+      for (const shipId of shipIds) {
+        if (target === null) {
+          const areaId = Object.keys(next.assignments).find((id) =>
+            (next.assignments[id] ?? []).includes(shipId),
+          )
+          if (!areaId) continue
+          const after = removeShipFromArea(next, areaId, shipId)
+          if (after !== next) {
+            next = after
+            removed += 1
+          }
+        } else {
+          // placeShip also clears the ship from any other area (a move).
+          const after = placeShip(next, target, shipId)
+          if (after !== next) {
+            next = after
+            assigned += 1
+          }
+        }
+      }
+      // Skip no-op batches: never append a revision that changes nothing.
+      if (next === before) return state
+      for (const record of (action.records as NavyShipRecord[] | undefined) ?? []) {
+        next = withShipRecord(next, record)
+      }
+      return replaceWorkspace(
+        state,
+        appendRevision(
+          workspace,
+          { assigned, kind: 'batch-assign', removed },
+          next,
           action.now as string,
         ),
       )

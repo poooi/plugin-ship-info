@@ -1,7 +1,8 @@
+import { get } from 'lodash'
 import fp from 'lodash/fp'
 import React, { forwardRef, Ref } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import type { Action } from 'redux'
 import type { ThunkDispatch } from 'redux-thunk'
 import styled from 'styled-components'
@@ -10,17 +11,34 @@ import type { IState } from 'views/utils/selectors'
 import { shipSuperTypeMap } from '@poi-plugins/ship-info-shared/ship-types'
 import { assignShip } from '../workspace/actions'
 import type { DisplayContent, WorkspaceShipRow } from '../workspace/selectors'
+import { DISPLAY_FLEET_NAME_CONFIG } from '../plugin-identity'
 import { ShipItem } from './ship-item'
+import { resolveAreaLabel } from './types'
 
+// Container-driven grid: tracks fill the available width rather than the
+// browser viewport, so a narrow plugin panel gets readable cards instead of a
+// fixed column count. `min(156px, 100%)` keeps a very narrow panel from
+// overflowing horizontally while giving ~4 usable columns at 720px and 2 at
+// 480px.
 const Grid = styled.div`
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(156px, 100%), 1fr));
+  gap: 8px;
+`
+
+// Modest group heading: keep h2 semantics but match poi's 14px body type
+// instead of Blueprint's large default heading size.
+const GroupHeading = styled.h2`
+  margin: 12px 0 6px;
+  font-size: 14px;
+  font-weight: 500;
 `
 
 interface IProps {
   display: DisplayContent
   fill: string | null
+  /** True once a destination or the explicit remove choice is selected. */
+  fillChosen: boolean
   readOnly: boolean
 }
 
@@ -35,9 +53,22 @@ const groupLabel = (
 // Grid rows come from the passed display content, so a history preview shows
 // captured ships only while editing can include eligible live-only ships.
 export const ShipGrid = forwardRef(
-  ({ display, fill, readOnly }: IProps, ref: Ref<HTMLDivElement>) => {
+  ({ display, fill, fillChosen, readOnly }: IProps, ref: Ref<HTMLDivElement>) => {
     const dispatch = useDispatch<ThunkDispatch<IState, unknown, Action>>()
     const { t } = useTranslation(['poi-plugin-navy-staff'])
+    const displayFleetName = useSelector((state: IState) =>
+      get(state.config, DISPLAY_FLEET_NAME_CONFIG, false),
+    )
+
+    // Resolve each row's assigned area from the display areas, so a card can
+    // name its assignment (beyond the colour scrim) without touching the row
+    // domain type.
+    const areaLabelFor = (row: WorkspaceShipRow): string | null => {
+      const area = display.areas.find((candidate) =>
+        candidate.ships.some((ship) => ship.ownedId === row.ownedId),
+      )
+      return area ? resolveAreaLabel(area, displayFleetName) : null
+    }
 
     const rows = display.gridShips
     const grouped = new Map<number, WorkspaceShipRow[]>()
@@ -55,7 +86,7 @@ export const ShipGrid = forwardRef(
       <div ref={ref}>
         {keys.map((key) => (
           <div key={key}>
-            <h2>{groupLabel(key, (name) => t(name))}</h2>
+            <GroupHeading>{groupLabel(key, (name) => t(name))}</GroupHeading>
             <Grid>
               {fp.flow(
                 fp.sortBy([
@@ -66,9 +97,11 @@ export const ShipGrid = forwardRef(
                   <ShipItem
                     key={row.ownedId}
                     row={row}
+                    areaLabel={areaLabelFor(row)}
                     color={row.assignedColor ?? '#000'}
+                    translated={displayFleetName}
                     onClick={
-                      readOnly
+                      readOnly || !fillChosen
                         ? undefined
                         : () => dispatch(assignShip(row.ownedId, fill))
                     }

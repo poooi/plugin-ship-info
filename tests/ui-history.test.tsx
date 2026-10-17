@@ -15,8 +15,8 @@ vi.mock('wanakana', async () => (await import('./ui/boundaries')).wanakanaModule
 vi.mock('react-fontawesome', async () => (await import('./ui/boundaries')).fontawesomeModule)
 vi.mock('redux-observers', async () => (await import('./ui/boundaries')).reduxObserversModule)
 vi.mock('electron', async () => (await import('./ui/boundaries')).createElectronModule())
-vi.mock('../packages/navy-staff/src/lib/html2canvas', () => ({
-  default: async () => ({ toDataURL: () => 'data:image/png;base64,' }),
+vi.mock('modern-screenshot', () => ({
+  domToPng: async () => 'data:image/png;base64,',
 }))
 
 import { reactClass as NavyStaff } from '../packages/navy-staff/src/views'
@@ -58,18 +58,21 @@ describe('history preview persistence isolation', () => {
     harness.render(<NavyStaff />)
     dispatchSpy.mockClear()
 
+    // History is a read-only task inside Plan.
+    fireEvent.click(screen.getByRole('button', { name: 'History' }))
     const history = screen.getByLabelText('History') as HTMLSelectElement
 
     // Open the older revision: a transient preview, no Redux action.
     fireEvent.change(history, { target: { value: 'rev-1' } })
     expect(
-      screen.getByText('Viewing an earlier revision (read-only)'),
+      screen.getByTestId('history-task'),
     ).toBeTruthy()
 
-    // Close it by selecting the current revision.
+    // The captured current revision remains read-only until returning to Plan.
     fireEvent.change(history, { target: { value: 'rev-2' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Return to current plan' }))
     expect(
-      screen.queryByText('Viewing an earlier revision (read-only)'),
+      screen.queryByTestId('history-task'),
     ).toBeNull()
 
     expect(dispatchSpy).not.toHaveBeenCalled()
@@ -80,13 +83,15 @@ describe('history preview persistence isolation', () => {
     const harness = createHarness(twoRevisionState())
     harness.render(<NavyStaff />)
 
+    fireEvent.click(screen.getByRole('button', { name: 'History' }))
     fireEvent.change(screen.getByLabelText('History') as HTMLSelectElement, {
       target: { value: 'rev-1' },
     })
-    fireEvent.click(screen.getByRole('tab', { name: 'Ship Grid' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Grid Palette' }))
 
-    // Captured ship 3 is present; the live-only Alpha (id 1) is not.
-    expect(screen.getByRole('button', { name: '#3 Lv.?' })).toBeTruthy()
+    // Captured ship 3 is present; the live-only Alpha (id 1) is not. A
+    // read-only card is a labelled group, not a button.
+    expect(screen.getByLabelText('#3 Lv.?')).toBeTruthy()
     expect(screen.queryByRole('button', { name: /Alpha/ })).toBeNull()
   })
 })

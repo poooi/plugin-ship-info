@@ -14,12 +14,20 @@ Localized display names:
 
 The package name remains `poi-plugin-navy-staff`.
 
-Plans which ship girls to send to each sortie area, with an area view and a ship
-grid view, manual add/move/remove, and an image export in detached windows. Live
+Plans which ship girls to send to each sortie area, with an area view, a ship
+list for batch assignment, and a grid palette for individual assignment. Live
 sortie tags are never applied automatically. Separate actions preview and apply
 updates to area information and actual sortie tags as undoable revisions.
 
-The main view shows the planner tabs directly. It owns its own plugin state and
+The interface separates **Plan**, **Reference**, and **Share**. Workspace actions,
+undo/redo, history, and updates from the game belong to Plan. The ship list lets
+you select ships and apply a destination or remove their assignments together;
+one undo reverses the batch. The grid palette retains individual click-to-assign
+controls. Share provides text sharing and image capture in detached windows.
+
+Compact navigation buttons and a view selector distinguish the plugin controls
+from poi's tabs. Area labels can show map labels or captured sortie-tag names;
+this setting does not rename your fleets. Navy Staff owns its own plugin state and
 saved files (`poi-plugin-navy-staff/<member ID>.json`), one per teitoku. The first
 account file imports an existing sortie plan from Ship Info's legacy data; once
 an account file exists, later accounts start empty. The Ship Info source stays
@@ -46,13 +54,22 @@ changes. Workspaces belong to their account file without a separate binding
 step. Live ship details are shown only while the loaded file matches the host
 account and its roster is available.
 
-Export the current plan or a historical revision as compressed share text, then
+Share the current plan or a historical revision as compressed text, then
 copy it or save it to a text file. Paste or open a reference inside the plugin
 to view it read-only without changing any workspace. References contain master
 IDs and levels, captured area labels and colors, and timestamps. Names and types
 come from poi's current master data; missing masters display `???` while keeping
 the ID and level. Only the exact current reference version is accepted.
 Website viewing and QR generation are not included.
+
+An opened reference is independent of generated share output. Sharing your own
+plan does not replace the reference you are consulting. Shared text is for
+read-only viewing, not for restoring an editable workspace.
+
+Share keeps generated text and copy/save feedback together. Image capture has
+an on-demand preview in detached windows. Reference viewing puts the roster,
+search, and view controls first; opening another reference or inspecting its
+encoded text uses a separate expandable area.
 
 ## Install
 

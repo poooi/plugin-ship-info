@@ -128,15 +128,50 @@ const liveRowsByIdSelector = createSelector(
 const fleetIdMapSelector = (state: IState): Record<number, number> =>
   get(state, 'info.ships') ? shipFleetIdMapSelector(state) : {}
 
+/**
+ * Live owned ID to 1-based sortie tag, read straight from the raw roster
+ * (`api_sally_area`) so a ship with missing master metadata still reports its
+ * tag. Empty unless the loaded account matches the host; 0/absent means
+ * untagged and is omitted rather than mapped to a badge.
+ */
+const tagByOwnedIdSelector = createSelector(
+  [liveRosterAvailableSelector, (state: IState) => get(state, 'info.ships')],
+  (available, ships): Record<number, number> => {
+    const map: Record<number, number> = {}
+    if (!available || !ships || typeof ships !== 'object') return map
+    for (const key of Object.keys(ships as Record<string, unknown>)) {
+      const ownedId = Number(key)
+      const raw = (ships as Record<string, { api_sally_area?: unknown }>)[key]
+      const tag = raw?.api_sally_area
+      if (
+        Number.isInteger(ownedId) &&
+        typeof tag === 'number' &&
+        Number.isInteger(tag) &&
+        tag >= 1
+      ) {
+        map[ownedId] = tag
+      }
+    }
+    return map
+  },
+)
+
 /** Display content for the editable current revision (live overlay when live). */
 export const editingDisplayContentSelector = createSelector(
-  [selectedContentSelector, liveRosterAvailableSelector, liveRowsByIdSelector, fleetIdMapSelector],
-  (content, liveAvailable, liveById, fleetIdMap): DisplayContent =>
+  [
+    selectedContentSelector,
+    liveRosterAvailableSelector,
+    liveRowsByIdSelector,
+    fleetIdMapSelector,
+    tagByOwnedIdSelector,
+  ],
+  (content, liveAvailable, liveById, fleetIdMap, tagByOwnedId): DisplayContent =>
     content
       ? buildDisplayContent(content, {
           allowLive: liveAvailable,
           fleetIdMap,
           liveById,
+          tagByOwnedId,
         })
       : emptyDisplayContent(),
 )

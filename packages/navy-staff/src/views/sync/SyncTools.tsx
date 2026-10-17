@@ -7,6 +7,7 @@ import {
   Button,
   ButtonGroup,
   Callout,
+  Card,
   Checkbox,
   HTMLSelect,
   Intent,
@@ -53,16 +54,24 @@ import {
   syncSourceSelector,
 } from './selectors'
 
-const Toolbar = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.5em;
-  padding: 0.5em 1em 0;
-  flex-wrap: wrap;
+const SectionCard = styled(Card)`
+  & + & {
+    margin-top: 1em;
+  }
+`
+
+const SectionTitle = styled.h4`
+  margin: 0 0 0.25em;
+`
+
+const SectionDescription = styled.p`
+  margin: 0 0 0.75em;
+  opacity: 0.8;
+  font-size: 0.9em;
 `
 
 const Panel = styled.div`
-  margin: 0.5em 1em 0;
+  margin-top: 0.75em;
   border: 1px solid rgba(128, 128, 128, 0.3);
   border-radius: 4px;
   padding: 0.75em;
@@ -317,27 +326,99 @@ export const SyncTools = ({
     )
   }
 
+  const renderFlow = () => (
+    <Panel>
+      <h6>{t('Slot mapping')}</h6>
+      {source?.areas.map((area) => {
+        const selectedId = selection[area.slot] ?? NO_MAPPING
+        const local = workspace?.content.areas.find((a) => a.id === selectedId)
+        return (
+          <Row key={area.slot}>
+            <Tag minimal style={{ color: area.color }}>
+              {area.label}
+            </Tag>
+            <span>→</span>
+            <HTMLSelect
+              aria-label={`${t('Slot mapping')}: ${area.label}`}
+              value={selectedId}
+              onChange={(event) =>
+                changeSelection(area.slot, event.currentTarget.value)
+              }
+            >
+              <option value={NO_MAPPING}>
+                {mode === 'areas' ? t('New area') : t('Ignore slot')}
+              </option>
+              {workspace?.content.areas.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.label}
+                </option>
+              ))}
+            </HTMLSelect>
+            {local && (
+              <Tag minimal style={{ color: local.color }}>
+                {local.label}
+              </Tag>
+            )}
+          </Row>
+        )
+      })}
+
+      <Checkbox
+        checked={confirmed}
+        label={t('Confirm intended event')}
+        onChange={(event) => {
+          setConfirmed(event.currentTarget.checked)
+          setPrepared(null)
+          setStale(null)
+        }}
+      />
+
+      <ButtonGroup>
+        <Button
+          intent={Intent.PRIMARY}
+          disabled={historyPreview || !confirmed || !source}
+          onClick={handlePreview}
+        >
+          {t('Preview changes')}
+        </Button>
+        <Button onClick={closeMode}>{t('Cancel')}</Button>
+      </ButtonGroup>
+
+      {errorKey && (
+        <Callout intent={Intent.DANGER} data-testid="sync-error">
+          {t(errorKey)}
+        </Callout>
+      )}
+
+      {stale && (
+        <Callout intent={Intent.WARNING} data-testid="sync-stale">
+          <div>{t('Preview is stale. Refresh the preview.')}</div>
+          <ul>
+            {stale.map((reason) => (
+              <li key={reason}>{t(STALE_MESSAGE_KEYS[reason])}</li>
+            ))}
+          </ul>
+          <Button onClick={handlePreview}>{t('Refresh preview')}</Button>
+        </Callout>
+      )}
+
+      {prepared && (
+        <div data-testid="sync-preview">
+          {renderSummary()}
+          <Button
+            intent={Intent.PRIMARY}
+            disabled={historyPreview || stale !== null}
+            onClick={handleAccept}
+          >
+            {t('Accept')}
+          </Button>
+        </div>
+      )}
+    </Panel>
+  )
+
   return (
     <div className={className} data-testid="sync-tools">
-      <Toolbar>
-        <Button
-          icon="edit"
-          active={mode === 'areas'}
-          disabled={historyPreview || !workspace || !source}
-          onClick={() => openMode('areas')}
-        >
-          {t('Update area information')}
-        </Button>
-        <Button
-          icon="tag"
-          active={mode === 'tags'}
-          disabled={historyPreview || !workspace || !source || !accountMatches}
-          onClick={() => openMode('tags')}
-        >
-          {t('Apply actual sortie tags')}
-        </Button>
-      </Toolbar>
-
       {historyPreview && <Callout>{t('History preview open')}</Callout>}
       {!historyPreview && rosterOtherAccount && (
         <Callout intent={Intent.WARNING}>{t('Different account')}</Callout>
@@ -346,96 +427,33 @@ export const SyncTools = ({
         <Callout>{t('No loaded roster for this account.')}</Callout>
       )}
 
-      {mode && (
-        <Panel>
-          <h6>{t('Slot mapping')}</h6>
-          {source?.areas.map((area) => {
-            const selectedId = selection[area.slot] ?? NO_MAPPING
-            const local = workspace?.content.areas.find((a) => a.id === selectedId)
-            return (
-              <Row key={area.slot}>
-                <Tag minimal style={{ color: area.color }}>
-                  {area.label}
-                </Tag>
-                <span>→</span>
-                <HTMLSelect
-                  aria-label={`${t('Slot mapping')}: ${area.label}`}
-                  value={selectedId}
-                  onChange={(event) =>
-                    changeSelection(area.slot, event.currentTarget.value)
-                  }
-                >
-                  <option value={NO_MAPPING}>
-                    {mode === 'areas' ? t('New area') : t('Ignore slot')}
-                  </option>
-                  {workspace?.content.areas.map((option) => (
-                    <option key={option.id} value={option.id}>
-                      {option.label}
-                    </option>
-                  ))}
-                </HTMLSelect>
-                {local && (
-                  <Tag minimal style={{ color: local.color }}>
-                    {local.label}
-                  </Tag>
-                )}
-              </Row>
-            )
-          })}
+      <SectionCard>
+        <SectionTitle>{t('Update area information')}</SectionTitle>
+        <SectionDescription>{t('syncAreaDescription')}</SectionDescription>
+        <Button
+          icon="edit"
+          active={mode === 'areas'}
+          disabled={historyPreview || !workspace || !source}
+          onClick={() => openMode('areas')}
+        >
+          {t('Update area information')}
+        </Button>
+        {mode === 'areas' && renderFlow()}
+      </SectionCard>
 
-          <Checkbox
-            checked={confirmed}
-            label={t('Confirm intended event')}
-            onChange={(event) => {
-              setConfirmed(event.currentTarget.checked)
-              setPrepared(null)
-              setStale(null)
-            }}
-          />
-
-          <ButtonGroup>
-            <Button
-              intent={Intent.PRIMARY}
-              disabled={historyPreview || !confirmed || !source}
-              onClick={handlePreview}
-            >
-              {t('Preview changes')}
-            </Button>
-            <Button onClick={closeMode}>{t('Cancel')}</Button>
-          </ButtonGroup>
-
-          {errorKey && (
-            <Callout intent={Intent.DANGER} data-testid="sync-error">
-              {t(errorKey)}
-            </Callout>
-          )}
-
-          {stale && (
-            <Callout intent={Intent.WARNING} data-testid="sync-stale">
-              <div>{t('Preview is stale. Refresh the preview.')}</div>
-              <ul>
-                {stale.map((reason) => (
-                  <li key={reason}>{t(STALE_MESSAGE_KEYS[reason])}</li>
-                ))}
-              </ul>
-              <Button onClick={handlePreview}>{t('Refresh preview')}</Button>
-            </Callout>
-          )}
-
-          {prepared && (
-            <div data-testid="sync-preview">
-              {renderSummary()}
-              <Button
-                intent={Intent.PRIMARY}
-                disabled={historyPreview || stale !== null}
-                onClick={handleAccept}
-              >
-                {t('Accept')}
-              </Button>
-            </div>
-          )}
-        </Panel>
-      )}
+      <SectionCard>
+        <SectionTitle>{t('Apply actual sortie tags')}</SectionTitle>
+        <SectionDescription>{t('syncTagDescription')}</SectionDescription>
+        <Button
+          icon="tag"
+          active={mode === 'tags'}
+          disabled={historyPreview || !workspace || !source || !accountMatches}
+          onClick={() => openMode('tags')}
+        >
+          {t('Apply actual sortie tags')}
+        </Button>
+        {mode === 'tags' && renderFlow()}
+      </SectionCard>
     </div>
   )
 }

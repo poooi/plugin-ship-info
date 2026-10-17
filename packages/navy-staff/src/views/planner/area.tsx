@@ -16,18 +16,46 @@ import { AddShip } from './add-ship'
 import { ShipChip } from './ship-chip'
 import { resolveAreaLabel, type AreaChoice } from './types'
 
+// An area panel. It is not an interactive card: nothing happens when the panel
+// body is clicked, so it must not carry card hover/selection affordances.
 const Container = styled(Card)`
-  padding: 4px;
+  padding: 12px;
 `
 
 const Header = styled.div`
   display: flex;
   align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
 `
 
+const Title = styled.h5`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+`
+
+const Count = styled.span`
+  flex: none;
+  opacity: 0.7;
+  font-size: 0.85em;
+  font-variant-numeric: tabular-nums;
+`
+
+// Each type lane wraps its chips; sibling lanes get breathing room so adjacent
+// type groups are not glued together.
 const Lane = styled.div`
   display: flex;
   flex-wrap: wrap;
+  gap: 6px;
+
+  & + & {
+    margin-top: 8px;
+  }
 `
 
 const UnknownLabel = styled.div`
@@ -55,18 +83,17 @@ export const Area = ({ area, others, displayFleetName, readOnly, canAdd }: IProp
     .sort((a, b) => (a === -1 ? 1 : b === -1 ? -1 : a - b))
 
   return (
-    <Container interactive>
+    <Container>
       <Header>
-        <h5>
+        <Title>
           <Tag style={{ color: area.color }} minimal>
             <FA name="tag" />
           </Tag>{' '}
           {label}
-        </h5>
+        </Title>
+        <Count>{area.ships.length}</Count>
         {!readOnly && canAdd && (
-          <div>
-            <AddShip onSelect={(id) => dispatch(addShipToArea(area.id, id))} />
-          </div>
+          <AddShip onSelect={(id) => dispatch(addShipToArea(area.id, id))} />
         )}
       </Header>
 
@@ -86,6 +113,7 @@ export const Area = ({ area, others, displayFleetName, readOnly, canAdd }: IProp
                   others={others}
                   planAreaId={area.id}
                   readOnly={readOnly}
+                  displayFleetName={displayFleetName}
                 />
               )),
             )(groups[key])}

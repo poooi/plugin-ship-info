@@ -57,6 +57,8 @@ export type NavyOperation =
   | { kind: 'remove-ship'; areaId: string; shipId: number }
   | { kind: 'move-ship'; fromAreaId: string; toAreaId: string; shipId: number }
   | { kind: 'restore'; from: string }
+  // One batch edit from the ship list: a single revision/undo for many ships.
+  | { kind: 'batch-assign'; assigned: number; removed: number }
   // Manual sync batches. Each accepted batch is one revision; the summary IDs
   // are for the history label only and never identify a host event.
   | { kind: 'update-areas'; addedAreaIds: string[]; updatedAreaIds: string[] }

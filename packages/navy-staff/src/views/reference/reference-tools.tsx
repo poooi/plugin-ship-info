@@ -1,44 +1,45 @@
-// Reference tools: export the current plan as a reference, show/copy/save the
-// share text, and import a reference by pasting text or opening a text file.
-// Imported references live only in React state: this component never dispatches
-// Redux actions, never writes persistence, and never creates an editable
-// workspace.
+// Reference tools: open a shared reference by pasting text or choosing a file,
+// then show it read-only. The open controls appear immediately when nothing is
+// open, and are hidden behind "Open another reference" once a reference is
+// shown. This component never generates share text, dispatches Redux actions,
+// writes persistence, or creates an editable workspace; its state is
+// independent of the Share page.
 //
 // The native codec is imported through ./codec.ts; the browser preview maps that
 // one module to preview/adapters/reference-codec.ts (see preview/aliases.ts).
-// Clipboard and file access use the existing poi host boundaries, which the
-// preview also mocks and records.
 
-import { Button, ButtonGroup, Callout, Intent, TextArea } from '@blueprintjs/core'
-import { clipboard, remote } from 'electron'
-import { outputFile } from 'fs-extra'
+import { Button, Callout, Card, Intent, TextArea } from '@blueprintjs/core'
+import { remote } from 'electron'
 import React, { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
 
-import { decodeReference, encodeReference } from './codec.ts'
+import { decodeReference } from './codec.ts'
 import type { DecodedReference } from './types.ts'
 import {
   createRequestGuard,
   errorMessageKey,
   inputWithinLimit,
-  shareFileName,
   type ReferenceErrorMessageKey,
 } from './helpers.ts'
 import { ReferenceView } from './reference-view.tsx'
 
-const Toolbar = styled.div`
+const FormCard = styled(Card)`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+`
+
+const Row = styled.div`
   display: flex;
   align-items: center;
-  gap: 0.5em;
+  gap: 8px;
   flex-wrap: wrap;
 `
 
-const ImportPanel = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 0.5em;
-  margin-top: 0.5em;
+const Disclosure = styled.div`
+  margin-top: 12px;
 `
 
 // The file input is triggered by its own button, so it stays out of the tab
@@ -48,80 +49,54 @@ const HiddenFileInput = styled.input`
 `
 
 export interface ReferenceToolsProps {
-  /** Captures the current plan/workspace as a reference when export is clicked. */
-  onExportCapture: () => DecodedReference
-  /** Disables the export control when there is no exportable plan. */
-  exportDisabled?: boolean
+  className?: string
   /** Notifies the parent when a reference is opened or closed (read-only). */
   onOpenChange?: (reference: DecodedReference | null) => void
-  className?: string
-}
-
-const defaultSaveText = async (
-  fileName: string,
-  text: string,
-): Promise<void> => {
-  const { dialog } = remote
-  const result = await dialog.showSaveDialog(remote.getCurrentWindow(), {
-    defaultPath: fileName,
-    filters: [{ extensions: ['txt'], name: 'Text file' }],
-    title: fileName,
-  })
-  if (!result.canceled && result.filePath) {
-    await outputFile(result.filePath, text)
-  }
 }
 
 export const ReferenceTools = ({
-  onExportCapture,
-  exportDisabled = false,
-  onOpenChange,
   className,
+  onOpenChange,
 }: ReferenceToolsProps) => {
   const { t } = useTranslation('poi-plugin-navy-staff')
   const [reference, setReference] = useState<DecodedReference | null>(null)
-  const [shareText, setShareText] = useState('')
+  const [code, setCode] = useState('')
   const [errorKey, setErrorKey] = useState<ReferenceErrorMessageKey | null>(null)
   const [importing, setImporting] = useState(false)
   const [draft, setDraft] = useState('')
+  const [showCode, setShowCode] = useState(false)
+  // While an image capture is pending, block replacing the reference so a late
+  // result cannot attach to different content.
+  const [captureBusy, setCaptureBusy] = useState(false)
   const fileInput = useRef<HTMLInputElement>(null)
-  // Guards one-shot file reads: closing, exporting, or a newer import makes any
+  // Guards one-shot file reads: cancelling, closing, or a newer open makes an
   // in-flight read stale so a late resolution cannot reopen or overwrite state.
   const readGuard = useRef(createRequestGuard())
 
-  const openReference = (next: DecodedReference) => {
+  const openReference = (next: DecodedReference, text: string) => {
     setReference(next)
+    setCode(text)
+    setShowCode(false)
+    setDraft('')
+    setImporting(false)
+    setErrorKey(null)
     onOpenChange?.(next)
   }
 
-  const handleExport = () => {
-    readGuard.current.invalidate()
-    setErrorKey(null)
-    try {
-      const next = onExportCapture()
-      setShareText(encodeReference(next))
-      openReference(next)
-    } catch {
-      setErrorKey('exportFailed')
-    }
-  }
-
   const handleDecode = (text: string) => {
+    if (captureBusy) return
     readGuard.current.invalidate()
     setErrorKey(null)
     try {
-      const decoded = decodeReference(text)
-      setShareText(text)
-      setDraft('')
-      setImporting(false)
-      openReference(decoded)
+      // A failed replacement keeps the current reference in place.
+      openReference(decodeReference(text), text)
     } catch (error) {
       setErrorKey(errorMessageKey(error))
     }
   }
 
   const handleFile = async (file?: File) => {
-    if (!file) return
+    if (!file || captureBusy) return
     const token = readGuard.current.begin()
     // Bound before reading: never load an oversized file into memory.
     if (!inputWithinLimit(file.size)) {
@@ -138,23 +113,41 @@ export const ReferenceTools = ({
     }
   }
 
-  const handleCopy = () => {
-    if (!shareText) return
+  // Reads the host clipboard on explicit request and only fills the draft, so
+  // opening stays a separate, deliberate step. Reuses the file-read guard:
+  // typing, opening, cancelling, closing, or a capture makes a late clipboard
+  // result stale so it can never overwrite the current draft or reference.
+  const handlePaste = async () => {
+    if (captureBusy) return
+    const token = readGuard.current.begin()
+    setErrorKey(null)
     try {
-      clipboard.writeText(shareText)
+      const text = await remote.clipboard.readText()
+      if (!readGuard.current.isCurrent(token)) return
+      // Bound against the same input limit before filling the field.
+      if (!inputWithinLimit(text.length)) {
+        setErrorKey('shareTextTooLarge')
+        return
+      }
+      setDraft(text)
     } catch {
-      setErrorKey('shareTextCopyFailed')
+      if (!readGuard.current.isCurrent(token)) return
+      setErrorKey('clipboardReadFailed')
     }
   }
 
-  const handleSave = async () => {
-    if (!shareText) return
+  // Starting a capture invalidates any in-flight file read, so a delayed
+  // resolve cannot replace the snapshot while it is being rendered.
+  const handleCaptureBusyChange = (busy: boolean) => {
+    setCaptureBusy(busy)
+    if (busy) readGuard.current.invalidate()
+  }
+
+  const cancelForm = () => {
+    readGuard.current.invalidate()
     setErrorKey(null)
-    try {
-      await defaultSaveText(shareFileName(new Date()), shareText)
-    } catch {
-      setErrorKey('shareTextSaveFailed')
-    }
+    setDraft('')
+    setImporting(false)
   }
 
   const handleClose = () => {
@@ -162,91 +155,97 @@ export const ReferenceTools = ({
     setErrorKey(null)
     setDraft('')
     setImporting(false)
+    setShowCode(false)
     setReference(null)
-    setShareText('')
+    setCode('')
     onOpenChange?.(null)
   }
 
+  const showForm = !reference || importing
+
   return (
     <div className={className} data-testid="reference-tools">
-      <Toolbar>
-        <Button icon="export" disabled={exportDisabled} onClick={handleExport}>
-          {t('Export reference')}
-        </Button>
-        <Button icon="clipboard" disabled={!shareText} onClick={handleCopy}>
-          {t('Copy share text')}
-        </Button>
-        <Button
-          icon="floppy-disk"
-          disabled={!shareText}
-          onClick={() => void handleSave()}
-        >
-          {t('Save share text')}
-        </Button>
-        <Button
-          icon="import"
-          active={importing}
-          onClick={() => setImporting((value) => !value)}
-        >
-          {t('Import reference')}
-        </Button>
-      </Toolbar>
-
-      {shareText && (
-        <TextArea
-          fill
-          readOnly
-          value={shareText}
-          aria-label={t('Share text')}
-          data-testid="reference-share-text"
-        />
+      {showForm && (
+        <FormCard>
+          <TextArea
+            fill
+            value={draft}
+            onChange={(event) => {
+              readGuard.current.invalidate()
+              setDraft(event.currentTarget.value)
+            }}
+            placeholder={t('Paste a share code or open a text file')}
+            aria-label={t('Paste a share code or open a text file')}
+          />
+          <Row>
+            <Button
+              intent={Intent.PRIMARY}
+              disabled={captureBusy || draft.trim().length === 0}
+              onClick={() => handleDecode(draft)}
+            >
+              {t('Open')}
+            </Button>
+            <Button icon="clipboard" disabled={captureBusy} onClick={() => void handlePaste()}>
+              {t('Paste')}
+            </Button>
+            <Button disabled={captureBusy} onClick={() => fileInput.current?.click()}>
+              {t('Open file')}
+            </Button>
+            {reference && <Button onClick={cancelForm}>{t('Cancel')}</Button>}
+          </Row>
+          {errorKey && (
+            <Callout intent={Intent.DANGER} data-testid="reference-error">
+              {t(errorKey)}
+            </Callout>
+          )}
+          <HiddenFileInput
+            ref={fileInput}
+            type="file"
+            accept=".txt,text/plain"
+            aria-label={t('Open file')}
+            data-testid="reference-file-input"
+            onChange={(event) => {
+              const file = event.currentTarget.files?.[0]
+              event.currentTarget.value = ''
+              void handleFile(file)
+            }}
+          />
+        </FormCard>
       )}
 
-      {importing && (
-        <Callout>
-          <ImportPanel>
-            <TextArea
-              fill
-              value={draft}
-              onChange={(event) => setDraft(event.currentTarget.value)}
-              placeholder={t('Paste a share code or open a text file')}
-              aria-label={t('Paste a share code or open a text file')}
-            />
-            <ButtonGroup>
+      {reference && (
+        <div data-testid="reference-result">
+          <ReferenceView
+            key={code}
+            reference={reference}
+            onCaptureBusyChange={handleCaptureBusyChange}
+            onClose={handleClose}
+            onReopen={() => {
+              setErrorKey(null)
+              setImporting(true)
+            }}
+          />
+          {code && (
+            <Disclosure>
               <Button
-                intent={Intent.PRIMARY}
-                disabled={draft.trim().length === 0}
-                onClick={() => handleDecode(draft)}
-              >
-                {t('Open')}
-              </Button>
-              <Button onClick={() => fileInput.current?.click()}>
-                {t('Open file')}
-              </Button>
-            </ButtonGroup>
-            <HiddenFileInput
-              ref={fileInput}
-              type="file"
-              accept=".txt,text/plain"
-              aria-label={t('Open file')}
-              data-testid="reference-file-input"
-              onChange={(event) => {
-                const file = event.currentTarget.files?.[0]
-                event.currentTarget.value = ''
-                void handleFile(file)
-              }}
-            />
-          </ImportPanel>
-        </Callout>
+                small
+                minimal
+                text={t(showCode ? 'Hide share text' : 'Show share text')}
+                onClick={() => setShowCode((value) => !value)}
+              />
+              {showCode && (
+                <TextArea
+                  fill
+                  readOnly
+                  value={code}
+                  aria-label={t('Share text')}
+                  data-testid="reference-share-text"
+                />
+              )}
+            </Disclosure>
+          )}
+        </div>
       )}
-
-      {errorKey && (
-        <Callout intent={Intent.DANGER} data-testid="reference-error">
-          {t(errorKey)}
-        </Callout>
-      )}
-
-      {reference && <ReferenceView reference={reference} onClose={handleClose} />}
     </div>
   )
 }
