@@ -24,18 +24,18 @@ jobs:
   prepare:
     runs-on: ubuntu-latest
     env:
-      RELEASE_APP_ID: ${{ secrets.RELEASE_APP_ID }}
+      RELEASE_APP_ID: ${{ vars.RELEASE_APP_ID }}
     steps:
-      - name: Require the GitHub App credentials
+      - name: Require the GitHub App ID
         if: env.RELEASE_APP_ID == ''
         run: |
-          echo "::error::Prepare release requires a GitHub App so the generated Release PR triggers CI. Add repository secrets RELEASE_APP_ID and RELEASE_APP_PRIVATE_KEY as described in docs/releases.md."
+          echo "::error::Prepare release requires a GitHub App so the generated Release PR triggers CI. Add repository Actions variable RELEASE_APP_ID and secret RELEASE_APP_PRIVATE_KEY as described in docs/releases.md."
           exit 1
       - name: Create GitHub App token
         id: app-token
         uses: actions/create-github-app-token@v2
         with:
-          app-id: ${{ secrets.RELEASE_APP_ID }}
+          app-id: ${{ vars.RELEASE_APP_ID }}
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
       - uses: actions/checkout@v7
         with:
