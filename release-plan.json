@@ -1,0 +1,52 @@
+{
+  "base": {
+    "commit": "81142ca30a88cbaccc3d951bfbb79cc6d46e693c",
+    "packages": {
+      "poi-plugin-navy-staff": "1.2.0"
+    }
+  },
+  "files": [
+    {
+      "path": ".changeset/ledger.yaml",
+      "status": "A"
+    },
+    {
+      "path": ".changeset/navy-image-search-dependencies.md",
+      "status": "D"
+    },
+    {
+      "path": ".changeset/navy-staff-interface-pages.md",
+      "status": "D"
+    },
+    {
+      "path": ".changeset/navy-staff-planner-release.md",
+      "status": "D"
+    },
+    {
+      "path": ".changeset/yellow-toys-decide.md",
+      "status": "D"
+    },
+    {
+      "path": "packages/navy-staff/CHANGELOG.md",
+      "status": "M"
+    },
+    {
+      "path": "packages/navy-staff/package.json",
+      "status": "M"
+    }
+  ],
+  "releases": [
+    {
+      "dir": "packages/navy-staff",
+      "from": "1.2.0",
+      "id": "navy-staff",
+      "name": "poi-plugin-navy-staff",
+      "tag": "poi-plugin-navy-staff@2.0.0",
+      "to": "2.0.0"
+    }
+  ],
+  "schemaVersion": 1,
+  "selection": [
+    "navy-staff"
+  ]
+}
