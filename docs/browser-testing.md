@@ -228,6 +228,10 @@ the export names.
 | `References/KanaRomajiAndFuzzySearch` | Plan and reference search normalize kana variants and romaji, and tolerate a typo using real wanakana. |
 | `References/PasteFromClipboard` | Paste fills the draft before explicit Open; failed clipboard reads preserve both the draft and reference, and retry succeeds without editing the workspace. |
 | `Integrated/FleetBadgesInPlanningViews` | All three planning views follow current fleet membership; history and sharing omit live fleet badges without changing workspace data. |
+| `ActualTags/ActualAndPlannedAreIndependent` | Actual game tags coexist with different plan assignments in all three views; plan edits and game updates stay independent, and history/sharing exclude live tags. |
+| `ActualTags/MissingTagMetadata` | A known game tag without host metadata remains visible by tag number. |
+| `ActualTags/DenseTagsDark`, `DenseTagsLight` | Actual tags and plan assignments fit the 300-ship roster at 480px in both themes. |
+| `ActualTags/TranslatedPortraitTags` | Long translated actual tags fit portrait cards; full tooltips remain reachable and tag clicks still apply the planned destination. |
 
 ### Navy Staff
 

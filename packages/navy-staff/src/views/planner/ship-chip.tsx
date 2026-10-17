@@ -12,6 +12,7 @@ import type { IState } from 'views/utils/selectors'
 import { shipTypeLabel } from '@poi-plugins/ship-info-shared/ship-types'
 import { assignShip, removeShipFromArea } from '../workspace/actions'
 import type { WorkspaceShipRow } from '../workspace/selectors'
+import { ActualSortieTag } from './actual-sortie-tag'
 import { FleetBadge } from './fleet-badge'
 import type { AreaChoice } from './types'
 
@@ -35,12 +36,26 @@ interface IProps {
   others: AreaChoice[]
   planAreaId: string
   readOnly: boolean
+  /** True to prefer translated fleet labels for the live sortie tag. */
+  displayFleetName: boolean
 }
+
+// The chip already separates name/level with whitespace, so the inline tag needs
+// its own small gap; list/grid use their own row gaps.
+const ChipActualTag = styled(ActualSortieTag)`
+  margin-left: 0.35em;
+`
 
 // A saved ship row. There is no automatic reconciliation: the chip never moves
 // itself to a live sortie tag, and removing/moving is always explicit. A history
 // preview renders the same chip read-only.
-export const ShipChip = ({ row, others, planAreaId, readOnly }: IProps) => {
+export const ShipChip = ({
+  row,
+  others,
+  planAreaId,
+  readOnly,
+  displayFleetName,
+}: IProps) => {
   const dispatch = useDispatch<ThunkDispatch<IState, unknown, Action>>()
   const { t } = useTranslation(['poi-plugin-navy-staff', 'resources'])
 
@@ -95,6 +110,7 @@ export const ShipChip = ({ row, others, planAreaId, readOnly }: IProps) => {
         </ChipContent>
       </Popover>
       <FleetBadge fleetId={row.fleetId} />
+      <ChipActualTag actualTag={row.actualTag} translated={displayFleetName} />
     </Chip>
   )
 }

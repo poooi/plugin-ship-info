@@ -9,6 +9,7 @@ import type { IState } from 'views/utils/selectors'
 
 import { controlSurface } from '@poi-plugins/ship-info-shared/ui/styles'
 import type { WorkspaceShipRow } from '../workspace/selectors'
+import { ActualSortieTag } from './actual-sortie-tag'
 import { FleetBadge } from './fleet-badge'
 
 // A single card in the ship grid. The card sizes itself from the grid track
@@ -178,6 +179,8 @@ interface IProps {
   ip: string
   /** Assigned area label resolved by the grid, or null when unassigned. */
   areaLabel?: string | null
+  /** True to prefer translated fleet labels for the live sortie tag. */
+  translated: boolean
   onClick?: () => void
   onContextmenu?: () => void
 }
@@ -188,11 +191,13 @@ const ShipItemBase = ({
   useAvatar,
   ip,
   areaLabel,
+  translated,
   onClick,
   onContextmenu,
 }: IProps) => {
   const { t } = useTranslation(['poi-plugin-navy-staff', 'resources'])
   const descriptionId = useId()
+  const actualTagId = useId()
   const name = row.live
     ? t(row.name ?? '', { ns: 'resources' })
     : row.name ?? `#${row.ownedId}`
@@ -202,6 +207,14 @@ const ShipItemBase = ({
   const portrait = useAvatar && imageMasterId !== null
   const assignment = areaLabel ?? t('Unassigned')
   const hasFleet = row.fleetId >= 0 && row.fleetId < 4
+  const hasActualTag = row.actualTag !== null && row.actualTag >= 1
+  const describedBy = [
+    descriptionId,
+    hasFleet ? `${descriptionId}-fleet` : null,
+    hasActualTag ? actualTagId : null,
+  ]
+    .filter((id): id is string => id !== null)
+    .join(' ')
   const interactive = Boolean(onClick || onContextmenu)
 
   return (
@@ -209,7 +222,7 @@ const ShipItemBase = ({
       $edge={color}
       $interactive={interactive}
       aria-label={`${name} Lv.${row.level ?? '?'}`}
-      aria-describedby={hasFleet ? `${descriptionId} ${descriptionId}-fleet` : descriptionId}
+      aria-describedby={describedBy}
       title={`${name} Lv.${row.level ?? '?'} · ${assignment}`}
       onClick={onClick}
       onContextMenu={onContextmenu}
@@ -241,6 +254,7 @@ const ShipItemBase = ({
         <AreaLabel $portrait={portrait} id={descriptionId}>
           {assignment}
         </AreaLabel>
+        <ActualSortieTag actualTag={row.actualTag} translated={translated} id={actualTagId} />
         {hasFleet && (
           <span id={`${descriptionId}-fleet`} hidden>
             {t('Fleet {{number}}', { number: row.fleetId + 1 })}

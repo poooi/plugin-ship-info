@@ -17,6 +17,12 @@ export interface WorkspaceShipRow {
   /** True when this row was resolved from the live roster. */
   live: boolean
   fleetId: number
+  /**
+   * Live sortie tag currently carried by the ship (1-based game
+   * `api_sally_area`), or null when untagged/absent or live data is not
+   * allowed. Purely informational: it never affects the planned assignment.
+   */
+  actualTag: number | null
   avatarOffset: number
   /** Assigned area color, or null when unassigned. */
   assignedColor: string | null
@@ -43,10 +49,13 @@ export interface DisplayContent {
 export interface DisplayOptions {
   liveById?: Map<number, IPlannerShipData>
   fleetIdMap?: Record<number, number>
+  /** Live owned ID to 1-based sortie tag, read from the raw roster. */
+  tagByOwnedId?: Record<number, number>
   allowLive?: boolean
 }
 
 const emptyRow = (ownedId: number): WorkspaceShipRow => ({
+  actualTag: null,
   assignedColor: null,
   avatarOffset: 0.555,
   fleetId: -1,
@@ -71,6 +80,7 @@ const buildRow = (
   const record = content.ships[String(ownedId)] ?? null
   const typeId = live ? live.typeId : record?.typeId ?? null
   return {
+    actualTag: options.allowLive ? options.tagByOwnedId?.[ownedId] ?? null : null,
     assignedColor,
     avatarOffset: live ? live.avatarOffset ?? 0.555 : 0.555,
     // Fleet badges are live-only; previews never show them.

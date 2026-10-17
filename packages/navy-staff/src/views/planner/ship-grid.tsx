@@ -99,6 +99,7 @@ export const ShipGrid = forwardRef(
                     row={row}
                     areaLabel={areaLabelFor(row)}
                     color={row.assignedColor ?? '#000'}
+                    translated={displayFleetName}
                     onClick={
                       readOnly || !fillChosen
                         ? undefined

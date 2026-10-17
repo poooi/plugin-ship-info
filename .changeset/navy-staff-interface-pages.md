@@ -15,3 +15,5 @@ Suggest meaningful PNG filenames using the plan title, view, and save time.
 Add area-color markers to planning list rows, rename the sharing entry to Start sharing, remove redundant area-label help, and add a Paste button to the reference form.
 
 Keep list batch actions sticky with their filters. Show current fleet-number icons in every planning view without including them in history or sharing.
+
+Restore live actual sortie-tag badges in all three planning views, separate from planned assignments. Keep tagged ships identifiable when host tag metadata is unavailable, without changing saved plans or the sharing format.

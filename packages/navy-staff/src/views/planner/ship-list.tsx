@@ -6,6 +6,7 @@ import styled from 'styled-components'
 
 import { shipSuperTypeMap } from '@poi-plugins/ship-info-shared/ship-types'
 import type { WorkspaceAreaView, WorkspaceShipRow } from '../workspace/selectors'
+import { ActualSortieTag } from './actual-sortie-tag'
 import { FleetBadge } from './fleet-badge'
 import { resolveAreaLabel } from './types'
 
@@ -241,6 +242,7 @@ export const ShipList = ({
                 )}
                 <AreaLabel>{labelFor(row)}</AreaLabel>
               </AreaMeta>
+              <ActualSortieTag actualTag={row.actualTag} translated={displayFleetName} />
             </RowContent>
           }
         />

@@ -113,6 +113,7 @@ export const Area = ({ area, others, displayFleetName, readOnly, canAdd }: IProp
                   others={others}
                   planAreaId={area.id}
                   readOnly={readOnly}
+                  displayFleetName={displayFleetName}
                 />
               )),
             )(groups[key])}

@@ -15,6 +15,7 @@ import type {
 } from '../packages/navy-staff/src/views/workspace/display'
 
 const row = (over: Partial<WorkspaceShipRow>): WorkspaceShipRow => ({
+  actualTag: null,
   assignedColor: '#ff0000',
   avatarOffset: 0.555,
   fleetId: -1,

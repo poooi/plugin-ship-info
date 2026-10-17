@@ -67,6 +67,15 @@ assigned area. Unassigned rows have no marker. Help describes the current view: 
 list uses selection and Apply, while area/grid cards support right-click removal.
 These area markers represent plan assignments, not the game's actual sortie tags.
 
+All three editable plan views separately show a tag-shaped badge labeled Actual
+for the ship's current game sortie tag. The badge uses the live host tag name
+and color, independently of the plan's captured areas. A ship actually tagged
+E1 may be planned for E2; both remain visible and editing the plan changes only
+the assignment. Untagged ships have no actual-tag badge. Missing host tag
+metadata falls back to the tag number, so an existing tag never looks untagged.
+This live overlay follows the loaded account and is excluded from historical
+previews and shared references; it does not change saved or shared formats.
+
 List filters and batch actions share one sticky toolbar. Selection, destination,
 and Apply remain available while scrolling, including when controls wrap on a
 narrow panel.
