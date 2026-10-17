@@ -101,6 +101,46 @@ scenario gets a fresh environment and reset host call logs — see
 only integrated root stories opt into `shipInfo.lifecycle`; component-only
 stories stay persistence-free.
 
+## Console contract
+
+Every Chromium story must be silent on `console.warn` and `console.error`. The
+browser project loads `tests/browser-console.setup.ts`, which replaces both
+methods in `beforeEach` (before the story renders) and validates the captured
+calls in `afterEach`, restoring the originals in a `finally` even when
+validation fails. Captured output is never printed: expected output stays out of
+CI, and an unexpected call is reported in the failure message with its full
+text.
+
+A story that intentionally logs declares the exact calls it expects:
+
+```ts
+parameters: {
+  expectedConsole: [
+    {
+      method: 'error', // 'warn' | 'error'
+      message: 'PersistedDataError: persisted data is not an object',
+      count: 1, // default 1
+      args: 1, // console.error calls with exactly this many arguments; default 1
+    },
+  ],
+}
+```
+
+Rules:
+
+- `message` is the logged identity with stack frames normalized away, so a
+  logged `Error` matches its `Error: <message>` first line. The error name is
+  part of the identity and extra non-frame lines are kept, so a different name
+  or an unexpected suffix does not match.
+- `count` is exact; a declared call must occur that many times and an undeclared
+  call fails the story. There are no ignore patterns or global suppression.
+- Only two stories currently declare output, both for intentional error paths:
+  `MalformedStoredValueSurfacesLoadError` and `SaveDialogFailure`. Each still
+  asserts the user-visible failure (no write, disabled saving), not just the log.
+
+The jsdom suite is unaffected; the contract is browser-only. Unit tests for the
+helper live in `tests/browser-console.test.ts`.
+
 ## Scenario parameters
 
 Stories declare a typed `parameters.shipInfo`:
@@ -308,7 +348,7 @@ themes, portraits, long names, and per-page scroll restoration.
 - Each plugin's persistence lifecycle (read on `pluginDidLoad`, subscribe to the
   store, serialized `FileWriter`) is started only for integrated stories that opt
   in via `shipInfo.lifecycle`; component-only stories do not run it. Loads and
-  saves go through the in-memory `fs-extra` adapter, so a corrupt file, a
+  saves go through the in-memory `fs-extra` adapter, so an invalid stored value, a
   migration, or a state-change-triggered write is exercised for real (see the
   `PluginShell` and `NavyStaff/Integrated` stories) without touching the user's
   disk. Ship Info and Navy Staff use separate files, plugin keys and one writer

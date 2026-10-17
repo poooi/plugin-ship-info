@@ -179,6 +179,14 @@ export const SavesWithoutPlannerOpen: Story = {
 export const MalformedStoredValueSurfacesLoadError: Story = {
   name: 'A malformed persisted value surfaces a load error and disables saving',
   parameters: {
+    // Intentional error path: the loaded value fails structure validation once.
+    expectedConsole: [
+      {
+        method: 'error',
+        message: 'PersistedDataError: persisted data is not an object',
+        count: 1,
+      },
+    ],
     shipInfo: {
       state: plannerScenarioState(),
       files: { [PLUGIN_DATA_PATH]: '{ not valid json' },
