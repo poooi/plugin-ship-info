@@ -1,0 +1,8 @@
+poi-plugin-navy-staff@2.0.0:
+  dir: packages/navy-staff
+  intents:
+    - navy-staff-interface-pages
+    - navy-staff-planner-release
+    - plugin-packaging-and-persistence
+    - shared-package-and-ui-cleanup
+    - yellow-toys-decide
