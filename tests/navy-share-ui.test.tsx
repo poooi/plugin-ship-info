@@ -64,10 +64,10 @@ afterEach(() => {
 })
 
 describe('Share tools (zh-CN)', () => {
-  it('renders the literal generate-then-copy hint and no eager preview', () => {
+  it('renders the literal start-sharing hint and no eager preview', () => {
     renderShare()
 
-    expect(screen.getByText('生成后即可复制或保存分享文本。')).toBeTruthy()
+    expect(screen.getByText('开始分享以准备快照，然后复制或保存文本，或预览并保存图片。')).toBeTruthy()
     expect(screen.queryByTestId('reference-view')).toBeNull()
     expect(screen.queryByTestId('share-image-preview')).toBeNull()
     expect(button('Show image preview').disabled).toBe(true)
@@ -75,7 +75,7 @@ describe('Share tools (zh-CN)', () => {
 
   it('reveals a frozen ReferenceView preview only after generating', () => {
     renderShare()
-    fireEvent.click(button('Generate share text'))
+    fireEvent.click(button('Start sharing'))
 
     expect(screen.getByTestId('share-text')).toBeTruthy()
     expect(screen.queryByTestId('reference-view')).toBeNull()
@@ -90,7 +90,7 @@ describe('Share tools (zh-CN)', () => {
 
   it('keeps the generated text and image on the same frozen snapshot', () => {
     const view = renderShare()
-    fireEvent.click(button('Generate share text'))
+    fireEvent.click(button('Start sharing'))
     fireEvent.click(button('Show image preview'))
 
     // Decoding the generated text matches the title shown in the image preview.
@@ -121,12 +121,12 @@ describe('Share tools (zh-CN)', () => {
       () => new Promise<void>((resolve) => { resolveCopy = resolve }),
     )
     renderShare()
-    fireEvent.click(button('Generate share text'))
+    fireEvent.click(button('Start sharing'))
     fireEvent.click(button('Copy share text'))
 
-    expect(button('Generate share text').disabled).toBe(true)
+    expect(button('Start sharing').disabled).toBe(true)
     resolveCopy()
-    await waitFor(() => expect(button('Generate share text').disabled).toBe(false))
+    await waitFor(() => expect(button('Start sharing').disabled).toBe(false))
     expect(screen.getByText('已复制')).toBeTruthy()
     expect(screen.queryByTestId('share-error')).toBeNull()
   })
@@ -137,7 +137,7 @@ describe('Share tools (zh-CN)', () => {
       () => new Promise<void>((_resolve, reject) => { rejectCopy = reject }),
     )
     renderShare()
-    fireEvent.click(button('Generate share text'))
+    fireEvent.click(button('Start sharing'))
     fireEvent.click(button('Copy share text'))
 
     rejectCopy(new Error('clipboard unavailable'))
@@ -152,7 +152,7 @@ describe('Share tools (zh-CN)', () => {
 
   it('uses a literal Chinese save-dialog filter name', async () => {
     renderShare()
-    fireEvent.click(button('Generate share text'))
+    fireEvent.click(button('Start sharing'))
     fireEvent.click(button('Save share text'))
 
     await waitFor(() => expect(mocks.showSaveDialog).toHaveBeenCalledTimes(1))
@@ -168,19 +168,19 @@ describe('Share tools (zh-CN)', () => {
       () => new Promise<string>((_resolve, reject) => { rejectCapture = reject }),
     )
     const view = renderShare()
-    fireEvent.click(button('Generate share text'))
+    fireEvent.click(button('Start sharing'))
     fireEvent.click(button('Show image preview'))
     fireEvent.click(button('Save to image'))
 
     // Replacement is blocked while the first snapshot is capturing.
-    expect(button('Generate share text').disabled).toBe(true)
+    expect(button('Start sharing').disabled).toBe(true)
 
     await waitFor(() => expect(mocks.domToPng).toHaveBeenCalledTimes(1))
     rejectCapture(new Error('render failed'))
     await waitFor(() =>
       expect(screen.getByTestId('image-error').textContent).toBe('无法保存图片'),
     )
-    expect(button('Generate share text').disabled).toBe(false)
+    expect(button('Start sharing').disabled).toBe(false)
 
     // Regenerating a different snapshot remounts the preview: no stale error.
     view.rerender(
@@ -194,7 +194,7 @@ describe('Share tools (zh-CN)', () => {
         </I18nextProvider>
       </Provider>,
     )
-    fireEvent.click(button('Generate share text'))
+    fireEvent.click(button('Start sharing'))
     await waitFor(() =>
       expect(
         within(screen.getByTestId('share-image-preview')).getByText('新参考'),

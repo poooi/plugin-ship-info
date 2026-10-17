@@ -10,9 +10,9 @@ import { Popover } from 'views/components/etc/overlay'
 import type { IState } from 'views/utils/selectors'
 
 import { shipTypeLabel } from '@poi-plugins/ship-info-shared/ship-types'
-import { FleetIcon } from '@poi-plugins/ship-info-shared/ui/fleet-icon'
 import { assignShip, removeShipFromArea } from '../workspace/actions'
 import type { WorkspaceShipRow } from '../workspace/selectors'
+import { FleetBadge } from './fleet-badge'
 import type { AreaChoice } from './types'
 
 const Chip = styled(Tag)`
@@ -94,7 +94,7 @@ export const ShipChip = ({ row, others, planAreaId, readOnly }: IProps) => {
           {name} <span>Lv.{row.level ?? '?'}</span>
         </ChipContent>
       </Popover>
-      <span>{row.fleetId > -1 && <FleetIcon fleetId={row.fleetId} />}</span>
+      <FleetBadge fleetId={row.fleetId} />
     </Chip>
   )
 }

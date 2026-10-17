@@ -5,6 +5,7 @@ import { host } from './logs'
 
 export const clipboard = {
   writeText: (text: string) => {
+    host.clipboardText = text
     host.log.clipboardWrites.push(text)
   },
 }
@@ -14,7 +15,9 @@ export const remote = {
   // catches a rejected promise. Recorded in the same host log as the renderer
   // clipboard so existing assertions keep working.
   clipboard: {
+    readText: async () => host.clipboardText,
     writeText: async (text: string) => {
+      host.clipboardText = text
       host.log.clipboardWrites.push(text)
     },
   },

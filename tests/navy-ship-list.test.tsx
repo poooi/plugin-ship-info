@@ -56,13 +56,8 @@ const renderList = (ships: WorkspaceShipRow[]) =>
           displayFleetName={false}
           readOnly={false}
           ships={ships}
-          target=""
           selected={new Set()}
-          onApply={() => undefined}
-          onClear={() => undefined}
-          onSelectAll={() => undefined}
           onToggle={() => undefined}
-          onTargetChange={() => undefined}
         />
       </I18nextProvider>
     </ThemeProvider>,
@@ -117,5 +112,18 @@ describe('ShipList ordering and assigned tint', () => {
     expect(getComputedStyle(assigned).backgroundColor).not.toBe(
       getComputedStyle(plain).backgroundColor,
     )
+  })
+
+  it('shows a color swatch beside the area label only on assigned rows', () => {
+    renderList(
+      rows.map((entry, index) =>
+        index === 1 ? { ...entry, assignedColor: '#ff0000' } : entry,
+      ),
+    )
+
+    const swatches = screen.getAllByTestId('ship-list-area-color')
+    expect(swatches).toHaveLength(1)
+    expect(swatches[0].getAttribute('aria-hidden')).toBe('true')
+    expect(getComputedStyle(swatches[0]).backgroundColor).toBe('rgb(255, 0, 0)')
   })
 })

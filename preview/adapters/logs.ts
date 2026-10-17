@@ -43,12 +43,14 @@ const createLog = (): HostLog => ({
 })
 
 export const host = {
+  clipboardText: '',
   failFileWrites: false,
   log: createLog(),
   saveDialog: { canceled: true } as SaveDialogResult,
 }
 
 export const resetHostState = () => {
+  host.clipboardText = ''
   host.failFileWrites = false
   host.log = createLog()
   host.saveDialog = { canceled: true }

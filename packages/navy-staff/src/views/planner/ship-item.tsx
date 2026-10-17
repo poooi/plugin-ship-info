@@ -9,6 +9,7 @@ import type { IState } from 'views/utils/selectors'
 
 import { controlSurface } from '@poi-plugins/ship-info-shared/ui/styles'
 import type { WorkspaceShipRow } from '../workspace/selectors'
+import { FleetBadge } from './fleet-badge'
 
 // A single card in the ship grid. The card sizes itself from the grid track
 // (container-driven, see ship-grid.tsx), not from the browser viewport.
@@ -200,6 +201,7 @@ const ShipItemBase = ({
   const imageMasterId = row.masterId
   const portrait = useAvatar && imageMasterId !== null
   const assignment = areaLabel ?? t('Unassigned')
+  const hasFleet = row.fleetId >= 0 && row.fleetId < 4
   const interactive = Boolean(onClick || onContextmenu)
 
   return (
@@ -207,7 +209,7 @@ const ShipItemBase = ({
       $edge={color}
       $interactive={interactive}
       aria-label={`${name} Lv.${row.level ?? '?'}`}
-      aria-describedby={descriptionId}
+      aria-describedby={hasFleet ? `${descriptionId} ${descriptionId}-fleet` : descriptionId}
       title={`${name} Lv.${row.level ?? '?'} · ${assignment}`}
       onClick={onClick}
       onContextMenu={onContextmenu}
@@ -232,12 +234,18 @@ const ShipItemBase = ({
       {portrait && <Scrim />}
       <Text $portrait={portrait}>
         <NameRow>
+          <FleetBadge fleetId={row.fleetId} />
           <ShipName>{name}</ShipName>
           <ShipLevel>Lv.{row.level ?? '?'}</ShipLevel>
         </NameRow>
         <AreaLabel $portrait={portrait} id={descriptionId}>
           {assignment}
         </AreaLabel>
+        {hasFleet && (
+          <span id={`${descriptionId}-fleet`} hidden>
+            {t('Fleet {{number}}', { number: row.fleetId + 1 })}
+          </span>
+        )}
       </Text>
     </ShipGridCell>
   )

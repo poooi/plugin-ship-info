@@ -9,6 +9,7 @@
 // one module to preview/adapters/reference-codec.ts (see preview/aliases.ts).
 
 import { Button, Callout, Card, Intent, TextArea } from '@blueprintjs/core'
+import { remote } from 'electron'
 import React, { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
@@ -112,6 +113,29 @@ export const ReferenceTools = ({
     }
   }
 
+  // Reads the host clipboard on explicit request and only fills the draft, so
+  // opening stays a separate, deliberate step. Reuses the file-read guard:
+  // typing, opening, cancelling, closing, or a capture makes a late clipboard
+  // result stale so it can never overwrite the current draft or reference.
+  const handlePaste = async () => {
+    if (captureBusy) return
+    const token = readGuard.current.begin()
+    setErrorKey(null)
+    try {
+      const text = await remote.clipboard.readText()
+      if (!readGuard.current.isCurrent(token)) return
+      // Bound against the same input limit before filling the field.
+      if (!inputWithinLimit(text.length)) {
+        setErrorKey('shareTextTooLarge')
+        return
+      }
+      setDraft(text)
+    } catch {
+      if (!readGuard.current.isCurrent(token)) return
+      setErrorKey('clipboardReadFailed')
+    }
+  }
+
   // Starting a capture invalidates any in-flight file read, so a delayed
   // resolve cannot replace the snapshot while it is being rendered.
   const handleCaptureBusyChange = (busy: boolean) => {
@@ -146,7 +170,10 @@ export const ReferenceTools = ({
           <TextArea
             fill
             value={draft}
-            onChange={(event) => setDraft(event.currentTarget.value)}
+            onChange={(event) => {
+              readGuard.current.invalidate()
+              setDraft(event.currentTarget.value)
+            }}
             placeholder={t('Paste a share code or open a text file')}
             aria-label={t('Paste a share code or open a text file')}
           />
@@ -157,6 +184,9 @@ export const ReferenceTools = ({
               onClick={() => handleDecode(draft)}
             >
               {t('Open')}
+            </Button>
+            <Button icon="clipboard" disabled={captureBusy} onClick={() => void handlePaste()}>
+              {t('Paste')}
             </Button>
             <Button disabled={captureBusy} onClick={() => fileInput.current?.click()}>
               {t('Open file')}

@@ -337,8 +337,11 @@ const stableListStory = (theme: 'light' | 'dark'): Story => ({
     const names = () => list.getAllByRole('checkbox').map(input =>
       input.closest('label')!.textContent!.split('Lv.')[0])
     const beta = () => list.getByRole('checkbox', { name: /^Beta / })
+    const betaRow = () => within(beta().closest('label')!)
+    const areaColor = () => betaRow().queryByTestId('ship-list-area-color')
     const background = () => getComputedStyle(beta().closest('label')!).backgroundColor
     expect(names()).toEqual(expected)
+    expect(areaColor()).toBeNull()
     const unassignedBackground = background()
     await userEvent.click(beta())
     await userEvent.selectOptions(list.getByLabelText('Assign to'), 'area-2')
@@ -348,13 +351,21 @@ const stableListStory = (theme: 'light' | 'dark'): Story => ({
     expect(beta()).not.toBeChecked()
     expect(list.getByRole('button', { name: 'Apply to selected' })).toBeDisabled()
     await waitFor(() => expect(background()).not.toBe(unassignedBackground))
+    const color = betaRow().getByTestId('ship-list-area-color')
+    expect(color).toHaveAttribute('aria-hidden', 'true')
+    expect(getComputedStyle(color).backgroundColor).toBe('rgb(0, 255, 0)')
+    expect(betaRow().getByText('E2')).toBeTruthy()
+    const alphaRow = within(list.getByRole('checkbox', { name: /^Alpha / }).closest('label')!)
+    expect(getComputedStyle(alphaRow.getByTestId('ship-list-area-color')).backgroundColor).toBe('rgb(255, 0, 0)')
 
     await userEvent.click(screen.getByRole('button', { name: 'Undo' }))
     await waitFor(() => expect(background()).toBe(unassignedBackground))
+    expect(areaColor()).toBeNull()
     expect(names()).toEqual(expected)
     await userEvent.click(screen.getByRole('button', { name: 'Redo' }))
     expect(names()).toEqual(expected)
     await waitFor(() => expect(background()).not.toBe(unassignedBackground))
+    expect(getComputedStyle(betaRow().getByTestId('ship-list-area-color')).backgroundColor).toBe('rgb(0, 255, 0)')
 
     // A no-op batch must clear selection too.
     await userEvent.click(beta())

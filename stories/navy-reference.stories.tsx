@@ -58,7 +58,7 @@ const selectHistoryRevision = async (value: string) => {
 }
 
 const exportCurrent = async (): Promise<string> => {
-  await click('Generate share text')
+  await click('Start sharing')
   const share = (await screen.findByTestId('share-text')) as HTMLTextAreaElement
   return share.value
 }
@@ -99,6 +99,41 @@ const sampleDecoded = (): DecodedReference => ({
   schemaVersion: 1,
   title: 'Imported reference',
 })
+
+export const PasteFromClipboard: Story = {
+  name: 'Paste fills the reference draft; Open is explicit and clipboard failures preserve the reference',
+  parameters: { shipInfo: { plugin: 'navy-staff', state: plannerScenarioState() } },
+  play: async () => {
+    await openShare()
+    const text = await exportCurrent()
+    await click('Copy share text')
+    await openReference()
+    const before = JSON.stringify(navy())
+    const draft = () => screen.getByPlaceholderText('Paste a share code or open a text file')
+    await click('Paste')
+    await waitFor(() => expect(draft()).toHaveValue(text))
+    expect(screen.queryByTestId('reference-result')).toBeNull()
+    await click('Open')
+    const reference = await activeReferenceView()
+    await click('Open another reference')
+    fireEvent.change(draft(), { target: { value: 'Keep my draft' } })
+    const original = remote.clipboard.readText
+    remote.clipboard.readText = () => { throw new Error('clipboard unavailable') }
+    try {
+      await click('Paste')
+      await waitFor(() => expect(screen.getByTestId('reference-error')).toBeTruthy())
+      expect(draft()).toHaveValue('Keep my draft')
+      expect(await activeReferenceView()).toBe(reference)
+    } finally { remote.clipboard.readText = original }
+    host.clipboardText = encodeReference(sampleDecoded())
+    await click('Paste')
+    await waitFor(() => expect(draft()).toHaveValue(host.clipboardText))
+    expect(screen.queryByTestId('reference-error')).toBeNull()
+    await click('Open')
+    expect(within(await activeReferenceView()).getByText('Imported reference')).toBeTruthy()
+    expect(JSON.stringify(navy())).toBe(before)
+  },
+}
 
 const shipRecord = (level: number | null) => ({
   level,
@@ -373,7 +408,7 @@ export const ImportWithoutMasters: Story = {
   },
   play: async () => {
     await openShare()
-    const exportButton = screen.getByRole('button', { name: 'Generate share text' }) as HTMLButtonElement
+    const exportButton = screen.getByRole('button', { name: 'Start sharing' }) as HTMLButtonElement
     await expect(exportButton.disabled).toBe(true)
 
     await importCode(encodeReference(sampleDecoded()))
@@ -507,7 +542,7 @@ export const LocalizedFailures: Story = {
 }
 
 const openGeneratedReference = async () => {
-  await click(i18n.t('Generate share text', { ns: 'poi-plugin-navy-staff' }))
+  await click(i18n.t('Start sharing', { ns: 'poi-plugin-navy-staff' }))
   const code = (screen.getByTestId('share-text') as HTMLTextAreaElement).value
   await importCode(code)
 }
@@ -645,9 +680,9 @@ export const RemovedHistorySourceCannotShareCurrentSilently: Story = {
     await userEvent.selectOptions(screen.getByLabelText('Assign to'), 'area-2')
     await userEvent.click(screen.getByRole('button', { name: 'Alpha Lv.50' }))
     await openShare()
-    expect(screen.getByRole('button', { name: 'Generate share text' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Start sharing' })).toBeDisabled()
     expect((screen.getByTestId('share-text') as HTMLTextAreaElement).value).toBe(frozen)
     await click('Use current plan')
-    expect(screen.getByRole('button', { name: 'Generate share text' })).not.toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Start sharing' })).not.toBeDisabled()
   },
 }

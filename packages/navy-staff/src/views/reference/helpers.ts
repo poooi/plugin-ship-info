@@ -7,6 +7,7 @@ import { buildSearch, type SearchEntry } from '../search'
 
 /** i18n key for a decode failure; the UI passes it through `t`. */
 export type ReferenceErrorMessageKey =
+  | 'clipboardReadFailed'
   | 'exportFailed'
   | 'shareTextCopyFailed'
   | 'shareTextDamaged'

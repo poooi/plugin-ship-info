@@ -187,7 +187,7 @@ export const ShareTools = ({
             />
           )}
           <Button
-            text={t('Generate share text')}
+            text={t('Start sharing')}
             disabled={disabled || copyPending || imageBusy}
             onClick={handleGenerate}
           />

@@ -6,6 +6,7 @@ import styled from 'styled-components'
 
 import { shipSuperTypeMap } from '@poi-plugins/ship-info-shared/ship-types'
 import type { WorkspaceAreaView, WorkspaceShipRow } from '../workspace/selectors'
+import { FleetBadge } from './fleet-badge'
 import { resolveAreaLabel } from './types'
 
 // Sentinel target value for the explicit "Remove assignment" choice. The empty
@@ -27,12 +28,14 @@ export const sortShipRows = (
     return b.ownedId - a.ownedId
   })
 
+// Batch controls fill their own wrapping row inside the sticky Palette so they
+// stay in view while the list scrolls.
 const BatchBar = styled.div`
   display: flex;
+  flex: 1 1 100%;
   align-items: center;
   gap: 0.5em;
   flex-wrap: wrap;
-  margin-bottom: 0.5em;
 `
 
 const Rows = styled.div`
@@ -95,10 +98,26 @@ const Meta = styled.span`
 `
 
 const AreaMeta = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
   flex: 0 1 auto;
   min-width: 0;
   max-width: 45%;
   font-size: 0.85em;
+`
+
+const AreaColor = styled.span<{ $color: string }>`
+  display: inline-block;
+  flex: none;
+  width: 0.75em;
+  height: 0.75em;
+  border-radius: 2px;
+  background: ${(props) => props.$color};
+`
+
+const AreaLabel = styled.span`
+  min-width: 0;
   opacity: 0.8;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -110,27 +129,73 @@ export interface ShipListProps {
   areas: WorkspaceAreaView[]
   displayFleetName: boolean
   readOnly: boolean
+  selected: Set<number>
+  onToggle: (shipId: number) => void
+}
+
+export interface ShipListControlsProps {
+  areas: WorkspaceAreaView[]
+  displayFleetName: boolean
   target: string
   onTargetChange: (value: string) => void
   selected: Set<number>
-  onToggle: (shipId: number) => void
   onSelectAll: () => void
   onClear: () => void
   onApply: () => void
 }
 
+// Selection + batch assignment controls. Rendered inside the sticky Palette so
+// they stay reachable while the list scrolls; the parent gates them on the
+// editable state, so history stays free of editing controls.
+export const ShipListControls = ({
+  areas,
+  displayFleetName,
+  target,
+  onTargetChange,
+  selected,
+  onSelectAll,
+  onClear,
+  onApply,
+}: ShipListControlsProps) => {
+  const { t } = useTranslation(['poi-plugin-navy-staff', 'resources'])
+
+  return (
+    <BatchBar>
+      <Meta>{t('Selected {{count}}', { count: selected.size })}</Meta>
+      <Button small text={t('Select all matching')} onClick={onSelectAll} />
+      <Button small text={t('Clear selection')} disabled={selected.size === 0} onClick={onClear} />
+      <HTMLSelect
+        aria-label={t('Assign to')}
+        value={target}
+        onChange={(event) => onTargetChange(event.currentTarget.value)}
+      >
+        <option value="">{t('Choose destination')}</option>
+        <option value={REMOVE_TARGET}>{t('Remove assignment')}</option>
+        {areas.map((area) => (
+          <option key={area.id} value={area.id}>
+            {resolveAreaLabel(area, displayFleetName)}
+          </option>
+        ))}
+      </HTMLSelect>
+      <Button
+        small
+        intent="primary"
+        text={t('Apply to selected')}
+        disabled={selected.size === 0 || target === ''}
+        onClick={onApply}
+      />
+    </BatchBar>
+  )
+}
+
+// Row presentation only: the parent owns the sticky wrapper and batch controls.
 export const ShipList = ({
   ships,
   areas,
   displayFleetName,
   readOnly,
-  target,
-  onTargetChange,
   selected,
   onToggle,
-  onSelectAll,
-  onClear,
-  onApply,
 }: ShipListProps) => {
   const { t } = useTranslation(['poi-plugin-navy-staff', 'resources'])
   const sortedShips = useMemo(() => sortShipRows(ships), [ships])
@@ -151,54 +216,35 @@ export const ShipList = ({
     row.live ? t(row.name ?? '', { ns: 'resources' }) : row.name ?? `#${row.ownedId}`
 
   return (
-    <div data-testid="ship-list">
-      {!readOnly && (
-        <BatchBar>
-          <Meta>{t('Selected {{count}}', { count: selected.size })}</Meta>
-          <Button small text={t('Select all matching')} onClick={onSelectAll} />
-          <Button small text={t('Clear selection')} disabled={selected.size === 0} onClick={onClear} />
-          <HTMLSelect
-            aria-label={t('Assign to')}
-            value={target}
-            onChange={(event) => onTargetChange(event.currentTarget.value)}
-          >
-            <option value="">{t('Choose destination')}</option>
-            <option value={REMOVE_TARGET}>{t('Remove assignment')}</option>
-            {areas.map((area) => (
-              <option key={area.id} value={area.id}>
-                {resolveAreaLabel(area, displayFleetName)}
-              </option>
-            ))}
-          </HTMLSelect>
-          <Button
-            small
-            intent="primary"
-            text={t('Apply to selected')}
-            disabled={selected.size === 0 || target === ''}
-            onClick={onApply}
-          />
-        </BatchBar>
-      )}
-      <Rows>
-        {sortedShips.map((row) => (
-          <Row
-            key={row.ownedId}
-            $assigned={row.assignedColor !== null}
-            checked={selected.has(row.ownedId)}
-            data-assigned={row.assignedColor !== null ? 'true' : 'false'}
-            disabled={readOnly}
-            onChange={() => onToggle(row.ownedId)}
-            labelElement={
-              <RowContent>
-                <ShipName>{nameFor(row)}</ShipName>
-                <Meta>Lv.{row.level ?? '?'}</Meta>
-                <Meta>{typeFor(row)}</Meta>
-                <AreaMeta>{labelFor(row)}</AreaMeta>
-              </RowContent>
-            }
-          />
-        ))}
-      </Rows>
-    </div>
+    <Rows>
+      {sortedShips.map((row) => (
+        <Row
+          key={row.ownedId}
+          $assigned={row.assignedColor !== null}
+          checked={selected.has(row.ownedId)}
+          data-assigned={row.assignedColor !== null ? 'true' : 'false'}
+          disabled={readOnly}
+          onChange={() => onToggle(row.ownedId)}
+          labelElement={
+            <RowContent>
+              <FleetBadge fleetId={row.fleetId} />
+              <ShipName>{nameFor(row)}</ShipName>
+              <Meta>Lv.{row.level ?? '?'}</Meta>
+              <Meta>{typeFor(row)}</Meta>
+              <AreaMeta>
+                {row.assignedColor !== null && (
+                  <AreaColor
+                    $color={row.assignedColor}
+                    aria-hidden
+                    data-testid="ship-list-area-color"
+                  />
+                )}
+                <AreaLabel>{labelFor(row)}</AreaLabel>
+              </AreaMeta>
+            </RowContent>
+          }
+        />
+      ))}
+    </Rows>
   )
 }

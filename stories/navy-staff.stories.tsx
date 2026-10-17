@@ -77,6 +77,58 @@ export const NavyAlone: Story = {
   },
 }
 
+export const FleetBadgesInPlanningViews: Story = {
+  name: 'All planning views follow live fleet membership; history and sharing omit it',
+  parameters: {
+    shipInfo: {
+      lifecycle: false,
+      plugin: 'navy-staff',
+      state: plannerScenarioState({
+        current: [[1, 2], [3]],
+        mapname: ['E1', 'E2'],
+        extra: { fleets: [[1], [2], [], []] },
+      }),
+    },
+  },
+  play: async () => {
+    const container = await playOnMainView()
+    const ui = within(container)
+    const environment = getEnvironment()
+    const navyBefore = JSON.stringify(environment.store.getState()['poi-plugin-navy-staff'].navy)
+    for (const name of ['Area View', 'Ship List', 'Grid Palette']) {
+      await userEvent.click(ui.getByRole('button', { name }))
+      expect(ui.getByRole('img', { name: 'Fleet 1' })).toBeTruthy()
+      expect(ui.getByRole('img', { name: 'Fleet 2' })).toBeTruthy()
+      expect(ui.getAllByRole('img', { name: /^Fleet \d$/ })).toHaveLength(2)
+      if (name === 'Grid Palette') {
+        expect(ui.getByRole('button', { name: 'Alpha Lv.50' })).toHaveAccessibleDescription('E1 Fleet 1')
+      }
+    }
+    environment.store.dispatch({ type: 'TEST/REPLACE', state: { fleets: [[], [], [1], [2]] } })
+    for (const name of ['Grid Palette', 'Ship List', 'Area View']) {
+      await userEvent.click(ui.getByRole('button', { name }))
+      await waitFor(() => expect(ui.getByRole('img', { name: 'Fleet 3' })).toBeTruthy())
+      expect(ui.getByRole('img', { name: 'Fleet 4' })).toBeTruthy()
+      expect(ui.queryByRole('img', { name: 'Fleet 1' })).toBeNull()
+    }
+    await userEvent.click(ui.getByRole('button', { name: 'History' }))
+    for (const name of ['Area View', 'Ship List', 'Grid Palette']) {
+      await userEvent.click(ui.getByRole('button', { name }))
+      expect(ui.queryByRole('img', { name: /^Fleet \d$/ })).toBeNull()
+    }
+    await userEvent.click(ui.getByRole('button', { name: 'Return to current plan' }))
+    await userEvent.click(within(ui.getByRole('navigation')).getByRole('button', { name: 'Share' }))
+    await userEvent.click(ui.getByRole('button', { name: 'Start sharing' }))
+    await userEvent.click(ui.getByRole('button', { name: 'Show image preview' }))
+    const preview = within(ui.getByTestId('share-image-preview'))
+    for (const name of ['Area View', 'Ship List', 'Ship Grid']) {
+      await userEvent.click(preview.getByRole('button', { name }))
+      expect(preview.queryByRole('img', { name: /^Fleet \d$/ })).toBeNull()
+    }
+    expect(JSON.stringify(environment.store.getState()['poi-plugin-navy-staff'].navy)).toBe(navyBefore)
+  },
+}
+
 export const BothPluginsIndependent: Story = {
   name: 'Both plugins share one host store with isolated slices',
   parameters: {
@@ -570,7 +622,10 @@ const stickyFiltersStory = (width: number, theme: 'dark' | 'light'): Story => ({
       body.scrollTop = 0
       await userEvent.click(within(container).getByRole('button', { name: mode === 'grid' ? 'Grid Palette' : 'Ship List' }))
       const input = within(container).getByPlaceholderText('Search')
-      const bar = input.parentElement!.parentElement!
+      let bar = input.parentElement!
+      while (bar.parentElement && getComputedStyle(bar).position !== 'sticky') {
+        bar = bar.parentElement
+      }
       body.scrollTop = 400
       await waitFor(() => {
         expect(body.scrollTop).toBeGreaterThan(0)
@@ -581,6 +636,22 @@ const stickyFiltersStory = (width: number, theme: 'dark' | 'light'): Story => ({
         // The former padding gap must be covered by the toolbar, not a card.
         expect(bar.contains(document.elementFromPoint(bounds.left + 3, edge + 2))).toBe(true)
       })
+      if (mode === 'list') {
+        const list = within(container).getByTestId('ship-list')
+        const apply = within(list).getByRole('button', { name: 'Apply to selected' })
+        const bounds = apply.getBoundingClientRect()
+        const toolbarBounds = bar.getBoundingClientRect()
+        expect(bar.contains(apply)).toBe(true)
+        expect(bounds.top).toBeGreaterThanOrEqual(toolbarBounds.top)
+        expect(bounds.bottom).toBeLessThanOrEqual(toolbarBounds.bottom)
+        expect(apply.contains(document.elementFromPoint(bounds.left + bounds.width / 2, bounds.top + bounds.height / 2))).toBe(true)
+        await userEvent.click(within(list).getByRole('button', { name: 'Select all matching' }))
+        await userEvent.selectOptions(within(list).getByLabelText('Assign to'), within(list).getByRole('option', { name: 'E1' }))
+        await userEvent.click(apply)
+        expect(apply).toBeDisabled()
+        expect(body.scrollTop).toBeGreaterThan(0)
+        expect(body.scrollWidth).toBeLessThanOrEqual(body.clientWidth)
+      }
     }
   },
 })

@@ -222,10 +222,12 @@ the export names.
 | `Capture/AreaFullHeightImage`, `ListFullHeightImage`, `GridFullHeightImage` | All three shared views capture 300 ships with real Chromium rendering, full PNG height, and an `oklch` pixel marker below the viewport; opened text references render identical content and can also save images. Main/detached windows and light/dark themes are exercised. |
 | `Capture/ImageFailureCanRetry` | A PNG write failure shows adjacent feedback and retry succeeds. |
 | `Capture/ImageSaveCanCancel` | Cancel leaves no file or error; retry saves PNG bytes using a meaningful default filename. |
-| `ShipGrid/StableListLight`, `StableListDark` | Level order survives assignments and undo/redo; assigned rows are tinted, Apply clears selection even for no-op batches, and list help describes batch removal. |
+| `ShipGrid/StableListLight`, `StableListDark` | Level order survives assignments and undo/redo; assigned rows are tinted with their area's color marker, Apply clears selection even for no-op batches, and list help describes batch removal. |
 | `Integrated/StickyFiltersWide`, `StickyFiltersNarrow` | Scrolled list/grid filters cover the top padding gap; page navigation has roomier horizontal padding without overflowing. |
 | `Capture/HistoricalImageIgnoresEditorFilters` | Historical sharing preserves the captured level and ignores editor filters. |
 | `References/KanaRomajiAndFuzzySearch` | Plan and reference search normalize kana variants and romaji, and tolerate a typo using real wanakana. |
+| `References/PasteFromClipboard` | Paste fills the draft before explicit Open; failed clipboard reads preserve both the draft and reference, and retry succeeds without editing the workspace. |
+| `Integrated/FleetBadgesInPlanningViews` | All three planning views follow current fleet membership; history and sharing omit live fleet badges without changing workspace data. |
 
 ### Navy Staff
 

@@ -34,7 +34,7 @@ import { poiSurface } from '@poi-plugins/ship-info-shared/ui/styles'
 import { formatRevisionTime, HistorySelector, opLabel, UndoRedo } from './history'
 import { Area } from './planner/area'
 import { ShipGrid } from './planner/ship-grid'
-import { REMOVE_TARGET, ShipList } from './planner/ship-list'
+import { REMOVE_TARGET, ShipList, ShipListControls } from './planner/ship-list'
 import { resolveAreaLabel } from './planner/types'
 import { DISPLAY_FLEET_NAME_CONFIG, PLUGIN_KEY } from './plugin-identity'
 import { ReferenceTools, ShareTools } from './reference'
@@ -567,7 +567,6 @@ const PlanViews = ({
               <option value="map">{t('Show original')}</option>
               <option value="fleet">{t('Show translation')}</option>
             </HTMLSelect>
-            <Muted>{t('areaLabelsHelp')}</Muted>
             <HeaderSpacer />
             <Popover
               position={Position.BOTTOM_RIGHT}
@@ -599,22 +598,31 @@ const PlanViews = ({
           ))}
         </AreaList>
       ) : view === 'list' ? (
-        <>
-          {!previewOnly && !readOnly && <Palette>{filters}</Palette>}
+        <div data-testid="ship-list">
+          {!previewOnly && !readOnly && (
+            <Palette>
+              {filters}
+              <ShipListControls
+                areas={display.areas}
+                displayFleetName={displayFleetName}
+                target={effectiveTarget}
+                onTargetChange={onTargetChange}
+                selected={selection}
+                onSelectAll={() => onSelectAll(filteredRows.map((row) => row.ownedId))}
+                onClear={onClearSelection}
+                onApply={() => onBatch(batchTarget, [...selection])}
+              />
+            </Palette>
+          )}
           <ShipList
             ships={filteredRows}
             areas={display.areas}
             displayFleetName={displayFleetName}
             readOnly={readOnly}
-            target={effectiveTarget}
-            onTargetChange={onTargetChange}
             selected={selection}
             onToggle={onToggleSelection}
-            onSelectAll={() => onSelectAll(filteredRows.map((row) => row.ownedId))}
-            onClear={onClearSelection}
-            onApply={() => onBatch(batchTarget, [...selection])}
           />
-        </>
+        </div>
       ) : (
         <>
           {!previewOnly && !readOnly && (

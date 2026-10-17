@@ -8,6 +8,14 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('views/utils/selectors', () => ({ constSelector: () => ({}) }))
 
+const mocks = vi.hoisted(() => ({
+  readText: vi.fn(async (): Promise<string> => ''),
+}))
+
+vi.mock('electron', () => ({
+  remote: { clipboard: { readText: mocks.readText } },
+}))
+
 import { createNavyOnlyI18n } from '../preview/i18n'
 import { encodeReference } from '../packages/navy-staff/src/views/reference/codec'
 import { ReferenceTools } from '../packages/navy-staff/src/views/reference/reference-tools'
@@ -137,5 +145,91 @@ describe('Reference tools opening and guards (zh-CN)', () => {
     } finally {
       File.prototype.text = originalText
     }
+  })
+
+  it('fills the draft from the clipboard without opening it', async () => {
+    mocks.readText.mockResolvedValueOnce(codeFor('参考B'))
+    renderTools()
+
+    fireEvent.click(button('粘贴'))
+
+    await waitFor(() =>
+      expect((pasteBox() as HTMLTextAreaElement).value).toBe(codeFor('参考B')),
+    )
+    expect(screen.queryByTestId('reference-view')).toBeNull()
+  })
+
+  it('opens the pasted draft only after the explicit Open click', async () => {
+    mocks.readText.mockResolvedValueOnce(codeFor('参考B'))
+    renderTools()
+    fireEvent.click(button('粘贴'))
+    await waitFor(() =>
+      expect((pasteBox() as HTMLTextAreaElement).value).toBe(codeFor('参考B')),
+    )
+
+    fireEvent.click(button('打开'))
+    expect(within(screen.getByTestId('reference-view')).getByText('参考B')).toBeTruthy()
+  })
+
+  it('keeps the draft and current reference when the clipboard read fails', async () => {
+    renderTools()
+    openReference('参考A')
+    fireEvent.click(button('打开其他参考'))
+
+    fireEvent.change(pasteBox(), { target: { value: 'typed draft' } })
+    mocks.readText.mockRejectedValueOnce(new Error('denied'))
+    fireEvent.click(button('粘贴'))
+
+    await waitFor(() =>
+      expect(screen.getByTestId('reference-error').textContent).toBe('无法读取剪贴板。'),
+    )
+    expect((pasteBox() as HTMLTextAreaElement).value).toBe('typed draft')
+    expect(within(screen.getByTestId('reference-view')).getByText('参考A')).toBeTruthy()
+  })
+
+  it('rejects oversized clipboard text before filling the field', async () => {
+    mocks.readText.mockResolvedValueOnce('x'.repeat(200000))
+    renderTools()
+
+    fireEvent.click(button('粘贴'))
+
+    await waitFor(() =>
+      expect(screen.getByTestId('reference-error').textContent).toBe('分享文本过大，无法打开。'),
+    )
+    expect((pasteBox() as HTMLTextAreaElement).value).toBe('')
+  })
+
+  it('drops a stale clipboard read once the user types or cancels', async () => {
+    let resolveRead: ((text: string) => void) | undefined
+    mocks.readText.mockImplementationOnce(
+      () =>
+        new Promise<string>((resolve) => {
+          resolveRead = resolve
+        }),
+    )
+    renderTools()
+    openReference('参考A')
+    fireEvent.click(button('打开其他参考'))
+
+    fireEvent.click(button('粘贴'))
+    fireEvent.change(pasteBox(), { target: { value: 'typed' } })
+    await act(async () => {
+      resolveRead?.(codeFor('参考B'))
+    })
+    expect((pasteBox() as HTMLTextAreaElement).value).toBe('typed')
+
+    mocks.readText.mockImplementationOnce(
+      () =>
+        new Promise<string>((resolve) => {
+          resolveRead = resolve
+        }),
+    )
+    fireEvent.click(button('粘贴'))
+    fireEvent.click(button('取消'))
+    await act(async () => {
+      resolveRead?.(codeFor('参考B'))
+    })
+    expect(screen.queryByPlaceholderText('粘贴分享代码或打开文本文件')).toBeNull()
+    expect(within(screen.getByTestId('reference-view')).getByText('参考A')).toBeTruthy()
   })
 })

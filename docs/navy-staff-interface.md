@@ -62,8 +62,19 @@ included accidentally. Applying a batch also clears selection, including a
 batch that changes nothing. Rows sort by descending level, with descending
 owned ID as a stable tie-breaker and unknown levels last. Assignment changes
 do not reorder rows. Assigned rows have a subtle background tint in both
-themes; the area name remains visible. Help describes the current view: the
+themes; a fixed-size color marker beside the area name distinguishes the
+assigned area. Unassigned rows have no marker. Help describes the current view: the
 list uses selection and Apply, while area/grid cards support right-click removal.
+These area markers represent plan assignments, not the game's actual sortie tags.
+
+List filters and batch actions share one sticky toolbar. Selection, destination,
+and Apply remain available while scrolling, including when controls wrap on a
+narrow panel.
+
+All three editable plan views show the same fleet-number icons as Ship Info
+for ships currently assigned to a fleet. These badges follow the live host
+roster; they are not saved in history, included in share codes or images, or
+shown on opened references.
 
 Ship search in the list, grid, add-ship picker, and references accepts names,
 kana readings, romaji, and approximate spellings. Hiragana, katakana, halfwidth
@@ -78,7 +89,10 @@ existing production rules.
 
 ## Reference and sharing
 
-Reference initially shows the paste field and Open/Open file actions together.
+Reference initially shows the text field and Paste/Open/Open file actions together.
+Paste explicitly reads poi's clipboard into the draft; Open loads that draft.
+Clipboard failures preserve the draft and current reference. A delayed paste
+cannot overwrite newer typing or a cancelled form.
 Opening a reference collapses that form. The reference title, read-only status,
 close action, metadata, search, and view controls sit above the roster. Open
 another reference reveals the form again; a failed replacement or cancellation
@@ -87,19 +101,19 @@ keeps the current reference. Its encoded source is available through a disclosur
 Use Share and Open reference wording. A reference never becomes an editable
 workspace, and shared text is not a backup/restore format. The real codec, exact
 version matching, master lookup, and unknown-name behavior remain unchanged.
-Generating share text freezes a separate result; opening or closing a reference
+Starting sharing freezes a separate result; opening or closing a reference
 does not replace it.
 
-The text-sharing section keeps generation, encoded output, copy/save actions,
-and outcome messages together. Generating text does not add a second roster
+The sharing section keeps preparation, encoded output, copy/save actions,
+and outcome messages together. Starting sharing does not add a second roster
 preview. The result retains its source label when the selected source changes.
 Clipboard writes use poi's remote main-process clipboard and await completion;
 regeneration is disabled during copying so a late result cannot label newer text
 as copied. A failed copy leaves the generated text available for retry or saving.
 
 Image sharing uses the same read-only renderer as an opened text reference.
-Generate share text, then optionally reveal its image preview. Both use the
-same frozen decoded snapshot: assignments, master IDs, and levels do not change
+Start sharing prepares both output forms; the image preview can then be revealed.
+Both use the same frozen decoded snapshot: assignments, master IDs, and levels do not change
 when the editable plan or selected source changes. Names and types still resolve
 from the current poi master data, with `???` for missing masters.
 

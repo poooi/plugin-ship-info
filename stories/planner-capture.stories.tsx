@@ -12,7 +12,7 @@ type Story = StoryObj<typeof meta>
 
 const openShare = async () => {
   await userEvent.click(await screen.findByRole('button', { name: 'Share' }))
-  await userEvent.click(screen.getByRole('button', { name: 'Generate share text' }))
+  await userEvent.click(screen.getByRole('button', { name: 'Start sharing' }))
   expect(screen.queryByTestId('share-image-preview')).toBeNull()
   await userEvent.click(screen.getByRole('button', { name: 'Show image preview' }))
   return screen.getByTestId('share-image-preview')
