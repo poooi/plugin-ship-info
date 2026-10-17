@@ -51,6 +51,10 @@ uploads, the following:
 | Copied attachment (trace archive) | `.vitest/attachments/` |
 | Retained Playwright trace (`.trace.zip`) | `.vitest/traces/` (configured `browser.trace.tracesDir`) |
 
+The **Publish release** job (`publish-release.yml`) runs the same Chromium suite
+as a gate before packing or publishing and uploads the same paths as
+`publish-browser-failure-artifacts` on failure.
+
 `browser.trace.tracesDir` is set to an absolute `.vitest/traces` path on purpose:
 the default `stories/__traces__` directory name contains a `.stories.tsx`
 segment, which Storybook then tries to index as a story module (EISDIR).
