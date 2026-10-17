@@ -111,9 +111,9 @@ export const ShowsTabsWithoutDialog: Story = {
   play: async () => {
     const view = await openPlanner()
     await expect(screen.queryByRole('dialog')).toBeNull()
-    const selector = within(view).getByRole('combobox', { name: 'View' })
-    await expect(selector).toHaveValue('area')
-    await expect(within(selector).getAllByRole('option')).toHaveLength(3)
+    const selector = within(view).getByRole('group', { name: 'View' })
+    await expect(within(selector).getByRole('button', { name: 'Area View' })).toHaveAttribute('aria-pressed', 'true')
+    await expect(within(selector).getAllByRole('button')).toHaveLength(3)
     await expect(within(view).queryByRole('tablist')).toBeNull()
   },
 }
@@ -694,7 +694,7 @@ export const PreviewIsReadOnlyInBothViews: Story = {
     ).toBeNull()
 
     // Grid view: no palette control and no interactive cards.
-    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'View' }), 'grid')
+    await userEvent.click(screen.getByRole('button', { name: 'Grid Palette' }))
     await expect(screen.queryByLabelText('Assign to')).toBeNull()
     await expect(screen.queryByRole('button', { name: /Lv\./ })).toBeNull()
 
@@ -727,7 +727,7 @@ export const HistoryCurrentRevisionUsesCapturedContent: Story = {
     await expect(within(areaCard('E1')).queryByText(/Lv\.150/)).toBeNull()
 
     // Grid shows captured ships only: ship 3 present, live-only Alpha absent.
-    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'View' }), 'grid')
+    await userEvent.click(screen.getByRole('button', { name: 'Grid Palette' }))
     await expect(screen.getByRole('group', { name: 'Gamma Lv.5' })).toBeTruthy()
     await expect(screen.queryByRole('group', { name: /Alpha/ })).toBeNull()
   },

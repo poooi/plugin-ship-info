@@ -220,7 +220,10 @@ the export names.
 | `ShipGrid/TaggedShipIsProtected` | Tagged ships ignore pointer, context-menu and keyboard activation. |
 | `ShipGrid/KeyboardAssignsCell` | Enter on a cell assigns it. |
 | `Capture/AreaFullHeightImage`, `ListFullHeightImage`, `GridFullHeightImage` | All three shared views capture 300 ships with real Chromium rendering, full PNG height, and an `oklch` pixel marker below the viewport; opened text references render identical content and can also save images. Main/detached windows and light/dark themes are exercised. |
-| `Capture/ImageFailureCanRetry` | A download failure shows adjacent feedback and retry succeeds. |
+| `Capture/ImageFailureCanRetry` | A PNG write failure shows adjacent feedback and retry succeeds. |
+| `Capture/ImageSaveCanCancel` | Cancel leaves no file or error; retry saves PNG bytes using a meaningful default filename. |
+| `ShipGrid/StableListLight`, `StableListDark` | Level order survives assignments and undo/redo; assigned rows are tinted, Apply clears selection even for no-op batches, and list help describes batch removal. |
+| `Integrated/StickyFiltersWide`, `StickyFiltersNarrow` | Scrolled list/grid filters cover the top padding gap; page navigation has roomier horizontal padding without overflowing. |
 | `Capture/HistoricalImageIgnoresEditorFilters` | Historical sharing preserves the captured level and ignores editor filters. |
 | `References/KanaRomajiAndFuzzySearch` | Plan and reference search normalize kana variants and romaji, and tolerate a typo using real wanakana. |
 
@@ -282,9 +285,9 @@ themes, portraits, long names, and per-page scroll restoration.
   adapters; the browser suite verifies the plugin's rendered UI and its calls
   into those boundaries.
 - Navy Staff capture uses the real `modern-screenshot` renderer. Stories check
-  decoded PNG dimensions and modern-color pixels below the viewport. The OS
-  download is still recorded by an adapter; this does not verify poi's actual
-  download UI or its installed fonts and theme.
+  decoded PNG dimensions and modern-color pixels below the viewport. Save
+  dialogs and PNG file writes are recorded by adapters; this does not verify
+  poi's actual OS save dialog or its installed fonts and theme.
 - Host-provided images/fonts are deterministic stand-ins (Blueprint icons,
   placeholder boxes, data-URI SVG) so previews make no external requests.
 - Each plugin's persistence lifecycle (read on `pluginDidLoad`, subscribe to the

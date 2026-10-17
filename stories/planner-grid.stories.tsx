@@ -24,9 +24,9 @@ const edgeColorOf = (element: HTMLElement): string =>
   getComputedStyle(element).borderLeftColor
 
 const openGrid = async () => {
-  const view = await screen.findByRole('combobox', { name: 'View' })
+  const view = await screen.findByRole('button', { name: 'Area View' })
   const container = view.closest('#poi-plugin-navy-staff') as HTMLElement
-  await userEvent.selectOptions(within(container).getByRole('combobox', { name: 'View' }), 'grid')
+  await userEvent.click(within(container).getByRole('button', { name: 'Grid Palette' }))
   await within(container).findByRole('heading', { level: 2, name: 'DD' })
   return container
 }
@@ -252,8 +252,8 @@ export const DestinationAndViewSurviveShareDetour: Story = {
 
     // Grid view and destination are preserved across the detour.
     await expect(
-      screen.getByRole('combobox', { name: 'View' }),
-    ).toHaveValue('grid')
+      screen.getByRole('button', { name: 'Grid Palette' }),
+    ).toHaveAttribute('aria-pressed', 'true')
     await expect(assignTo().value).toBe('area-1')
 
     // Switching workspace clears the now-invalid destination.
@@ -286,7 +286,7 @@ export const ListBatchAssignmentAndUndo: Story = {
   name: 'List selection edits nothing; applying multiple ships is one undoable revision',
   parameters: params({ current: [[], []], mapname: ['E1', 'E2'] }),
   play: async () => {
-    await userEvent.selectOptions(await screen.findByRole('combobox', { name: 'View' }), 'list')
+    await userEvent.click(await screen.findByRole('button', { name: 'Ship List' }))
     const list = within(screen.getAllByTestId('ship-list').find(element => element.checkVisibility())!)
     const workspace = () => {
       const navy = getEnvironment().store.getState()['poi-plugin-navy-staff'].navy
@@ -325,6 +325,52 @@ export const ListBatchAssignmentAndUndo: Story = {
   },
 }
 
+const stableListStory = (theme: 'light' | 'dark'): Story => ({
+  name: `Level order, assignment tint, cleared selection and list-specific help (${theme})`,
+  parameters: {
+    shipInfo: { ...params({ current: [[1], []], mapname: ['E1', 'E2'] }).shipInfo, theme },
+  },
+  play: async () => {
+    await userEvent.click(await screen.findByRole('button', { name: 'Ship List' }))
+    const list = within(screen.getByTestId('ship-list'))
+    const expected = ['Gamma', 'Delta', 'Eta', 'Zeta', 'Alpha', 'Theta', 'Beta', 'Epsilon']
+    const names = () => list.getAllByRole('checkbox').map(input =>
+      input.closest('label')!.textContent!.split('Lv.')[0])
+    const beta = () => list.getByRole('checkbox', { name: /^Beta / })
+    const background = () => getComputedStyle(beta().closest('label')!).backgroundColor
+    expect(names()).toEqual(expected)
+    const unassignedBackground = background()
+    await userEvent.click(beta())
+    await userEvent.selectOptions(list.getByLabelText('Assign to'), 'area-2')
+    await userEvent.click(list.getByRole('button', { name: 'Apply to selected' }))
+    await waitFor(() => expect(assignedShipIds(getEnvironment())).toEqual([1, 2]))
+    expect(names()).toEqual(expected)
+    expect(beta()).not.toBeChecked()
+    expect(list.getByRole('button', { name: 'Apply to selected' })).toBeDisabled()
+    await waitFor(() => expect(background()).not.toBe(unassignedBackground))
+
+    await userEvent.click(screen.getByRole('button', { name: 'Undo' }))
+    await waitFor(() => expect(background()).toBe(unassignedBackground))
+    expect(names()).toEqual(expected)
+    await userEvent.click(screen.getByRole('button', { name: 'Redo' }))
+    expect(names()).toEqual(expected)
+    await waitFor(() => expect(background()).not.toBe(unassignedBackground))
+
+    // A no-op batch must clear selection too.
+    await userEvent.click(beta())
+    await userEvent.click(list.getByRole('button', { name: 'Apply to selected' }))
+    expect(beta()).not.toBeChecked()
+    await userEvent.click(screen.getByRole('button', { name: 'Help' }))
+    const help = await screen.findByTestId('plan-help')
+    expect(help.textContent).toContain('Remove assignment')
+    expect(help.textContent).toContain('Apply')
+    expect(help.textContent).not.toMatch(/right.click/i)
+  },
+})
+
+export const StableListLight = stableListStory('light')
+export const StableListDark = stableListStory('dark')
+
 export const PaletteDefaultDoesNotRemove: Story = {
   name: 'The default palette choice is inert for assigned ships',
   parameters: params({ current: [[1], []], mapname: ['E1', 'E2'] }),
@@ -343,7 +389,7 @@ export const FilteredListSelectionStaysExplicit: Story = {
   name: 'List select-all respects filters; hidden selections clear when filters or page change',
   parameters: params({ current: [[1], []], mapname: ['E1', 'E2'] }),
   play: async () => {
-    await userEvent.selectOptions(await screen.findByRole('combobox', { name: 'View' }), 'list')
+    await userEvent.click(await screen.findByRole('button', { name: 'Ship List' }))
     const list = within(screen.getAllByTestId('ship-list').find(element => element.checkVisibility())!)
     const apply = () => list.getByRole('button', { name: 'Apply to selected' })
     await userEvent.selectOptions(screen.getByLabelText('Assignment'), 'unassigned')
@@ -371,7 +417,7 @@ export const FilteredListSelectionStaysExplicit: Story = {
     expect((screen.getByLabelText('Assignment') as HTMLSelectElement).value).toBe('unassigned')
 
     // The list and palette show the same filtered roster but different actions.
-    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'View' }), 'grid')
+    await userEvent.click(screen.getByRole('button', { name: 'Grid Palette' }))
     expect(screen.queryByRole('button', { name: 'Alpha Lv.50' })).toBeNull()
     expect(screen.getByRole('button', { name: 'Beta Lv.20' })).toBeTruthy()
   },
@@ -399,7 +445,7 @@ export const RemovedDestinationBecomesUnselected: Story = {
     const before = getEnvironment().store.getState()['poi-plugin-navy-staff'].navy
     await userEvent.click(cell('Alpha Lv.50'))
     expect(getEnvironment().store.getState()['poi-plugin-navy-staff'].navy).toBe(before)
-    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'View' }), 'list')
+    await userEvent.click(screen.getByRole('button', { name: 'Ship List' }))
     const list = within(screen.getAllByTestId('ship-list').find(element => element.checkVisibility())!)
     await userEvent.click(list.getByRole('checkbox', { name: /^Alpha / }))
     expect(list.getByRole('button', { name: 'Apply to selected' })).toBeDisabled()

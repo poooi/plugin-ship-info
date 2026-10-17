@@ -331,7 +331,8 @@ export const MissingMasterRawExport: Story = {
     await openShare()
     await importCode(await exportCurrent())
     const currentView = await activeReferenceView()
-    await expect(within(currentView).getByText('#9999')).toBeTruthy()
+    await expect(within(currentView).getByText('???')).toBeTruthy()
+    await expect(within(currentView).queryByText('#9999')).toBeNull()
     await expect(within(currentView).getByText('Lv.42')).toBeTruthy()
 
     // Historical export: captured record only.
@@ -339,7 +340,8 @@ export const MissingMasterRawExport: Story = {
     await click('Share this state')
     await importCode(await exportCurrent())
     const historyView = await activeReferenceView()
-    await expect(within(historyView).getByText('#9999')).toBeTruthy()
+    await expect(within(historyView).getByText('???')).toBeTruthy()
+    await expect(within(historyView).queryByText('#9999')).toBeNull()
     await expect(within(historyView).getByText('Lv.7')).toBeTruthy()
   },
 }
@@ -380,7 +382,7 @@ export const ImportWithoutMasters: Story = {
     await expect(within(view).getAllByText('???')).toHaveLength(2)
     await expect(within(view).getByText('Lv.50')).toBeTruthy()
     await expect(within(view).getByText('Lv.?')).toBeTruthy()
-    await expect(within(view).getByText('#999999')).toBeTruthy()
+    await expect(within(view).queryByText('#999999')).toBeNull()
 
     // The produced output is labeled by the opened reference's own title, not
     // the current workspace ("Plan").
@@ -445,7 +447,7 @@ export const DeferredFileSuperseded: Story = {
 export const EmptyGroupsAndGridArea: Story = {
   name: 'Empty captured groups stay visible and the grid shows assignment area',
   parameters: {
-    shipInfo: { lifecycle: false, plugin: 'navy-staff', state: plannerScenarioState({ current: [[1], []] }) },
+    shipInfo: { lifecycle: false, plugin: 'navy-staff', state: plannerScenarioState({ current: [[1], []], mapname: ['E1', 'E2'] }) },
   },
   play: async () => {
     await openShare()
@@ -454,9 +456,16 @@ export const EmptyGroupsAndGridArea: Story = {
     // Empty captured area stays visible with a zero count when not searching.
     await expect(within(view).getByText('E2')).toBeTruthy()
 
-    await userEvent.selectOptions(within(view).getByRole('combobox', { name: 'View' }), 'grid')
-    // The grid keeps the assigning area label for the row.
-    await expect(within(view).getAllByText('E1').length).toBeGreaterThan(0)
+    await userEvent.click(within(view).getByRole('button', { name: 'Ship Grid' }))
+    const groups = within(view).getAllByTestId('reference-area')
+    expect(groups).toHaveLength(2)
+    expect(within(groups[0]).getByText('E1')).toBeTruthy()
+    expect(within(groups[0]).getAllByTestId('reference-ship')).toHaveLength(1)
+    expect(within(groups[1]).getByText('E2')).toBeTruthy()
+    expect(within(groups[1]).queryAllByTestId('reference-ship')).toHaveLength(0)
+    fireEvent.change(within(view).getByRole('textbox'), { target: { value: 'Alpha' } })
+    expect(within(view).getAllByTestId('reference-area')).toHaveLength(1)
+    expect(within(view).queryByText('E2')).toBeNull()
   },
 }
 
@@ -562,7 +571,7 @@ export const KanaRomajiAndFuzzySearch: Story = {
     },
   },
   play: async () => {
-    await userEvent.selectOptions(await screen.findByRole('combobox', { name: 'View' }), 'list')
+    await userEvent.click(await screen.findByRole('button', { name: 'Ship List' }))
     const queries = ['金剛', 'こんごう', 'コンゴウ', 'ｺﾝｺﾞｳ', 'KONGOU', 'kongu']
     const search = screen.getByPlaceholderText('Search')
     for (const value of queries) {
@@ -602,7 +611,7 @@ export const ReferenceIndependentFromSharing: Story = {
     expect(within(reference).getByText('Imported reference')).toBeTruthy()
 
     await openPage('plan')
-    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'View' }), 'grid')
+    await userEvent.click(screen.getByRole('button', { name: 'Grid Palette' }))
     await userEvent.selectOptions(screen.getByLabelText('Assign to'), 'area-2')
     await userEvent.click(screen.getByRole('button', { name: 'Alpha Lv.50' }))
     await waitFor(() => expect(JSON.stringify(navy())).not.toBe(before))
@@ -632,7 +641,7 @@ export const RemovedHistorySourceCannotShareCurrentSilently: Story = {
     const frozen = await exportCurrent()
     await openPage('plan')
     await click('Undo')
-    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'View' }), 'grid')
+    await userEvent.click(screen.getByRole('button', { name: 'Grid Palette' }))
     await userEvent.selectOptions(screen.getByLabelText('Assign to'), 'area-2')
     await userEvent.click(screen.getByRole('button', { name: 'Alpha Lv.50' }))
     await openShare()

@@ -181,7 +181,7 @@
   "Area labels": "해역 라벨",
   "Map labels": "지도 라벨",
   "Sortie tag names": "출격 태그 이름",
-  "areaLabelsHelp": "수집된 해역 라벨만 변경하며 함대 이름은 변경하지 않습니다.",
+  "areaLabelsHelp": "수집된 해역 라벨의 원문 또는 번역을 표시합니다. 번역이 없으면 원문으로 표시됩니다.",
   "Text file": "텍스트 파일",
   "Image": "이미지",
   "Show image preview": "이미지 미리보기 표시",
@@ -192,5 +192,9 @@
   "Show share text": "공유 텍스트 표시",
   "Hide share text": "공유 텍스트 숨기기",
   "Hide image preview": "이미지 미리보기 숨기기",
-  "imageCaptureFailed": "이미지를 저장할 수 없습니다"
+  "imageCaptureFailed": "이미지를 저장할 수 없습니다",
+  "Show original": "원문 표시",
+  "Show translation": "번역 표시",
+  "helpContentList": "행을 선택하고 대상 또는 '배치 해제'를 고른 뒤 '선택 항목에 적용'을 누르세요.",
+  "PNG image": "PNG 이미지"
 }

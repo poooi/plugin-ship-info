@@ -8,8 +8,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => ({
   domToPng: vi.fn(async (..._args: unknown[]) => 'data:image/png;base64,c2hhcmU='),
-  downloadURL: vi.fn(async (_url: string) => undefined),
-  showSaveDialog: vi.fn(async (_window?: unknown, _options?: unknown) => ({ canceled: true })),
+  outputFile: vi.fn(async (_path: string, _bytes: unknown) => undefined),
+  showSaveDialog: vi.fn(async (_window?: unknown, _options?: unknown) => ({ canceled: false, filePath: '/tmp/reference.png' })),
   writeText: vi.fn(async (_text: string): Promise<void> => undefined),
 }))
 
@@ -19,9 +19,9 @@ vi.mock('electron', () => ({
     clipboard: { writeText: mocks.writeText },
     dialog: { showSaveDialog: mocks.showSaveDialog },
     getCurrentWindow: () => ({}),
-    getCurrentWebContents: () => ({ downloadURL: mocks.downloadURL }),
   },
 }))
+vi.mock('fs-extra', () => ({ outputFile: mocks.outputFile }))
 vi.mock('modern-screenshot', () => ({ domToPng: mocks.domToPng }))
 vi.mock('views/utils/selectors', () => ({ constSelector: () => ({}) }))
 
@@ -175,6 +175,7 @@ describe('Share tools (zh-CN)', () => {
     // Replacement is blocked while the first snapshot is capturing.
     expect(button('Generate share text').disabled).toBe(true)
 
+    await waitFor(() => expect(mocks.domToPng).toHaveBeenCalledTimes(1))
     rejectCapture(new Error('render failed'))
     await waitFor(() =>
       expect(screen.getByTestId('image-error').textContent).toBe('无法保存图片'),

@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import React from 'react'
+import { thunk } from 'redux-thunk'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('views/env-parts/i18next', async () => ({
@@ -20,6 +21,8 @@ vi.mock('modern-screenshot', () => ({
 }))
 
 import { reactClass as NavyStaff } from '../packages/navy-staff/src/views'
+import { PLUGIN_KEY } from '../packages/navy-staff/src/views/plugin-identity'
+import { reducer as navyReducer } from '../packages/navy-staff/src/views/redux'
 import { plannerState } from './ui/fixtures'
 import { createHarness } from './ui/harness'
 
@@ -52,19 +55,64 @@ describe('Navy Staff navigation and controls', () => {
     expect(screen.queryByRole('tab', { name: 'Plan' })).toBeNull()
   })
 
-  it('exposes the Plan view and area-label selects', () => {
+  it('uses icon view buttons and the area-label select', () => {
     const harness = createHarness(plannerState())
     harness.render(<NavyStaff />)
 
-    const view = screen.getByLabelText('View') as HTMLSelectElement
-    expect(view.value).toBe('area')
-    expect(within(view).getByRole('option', { name: 'Grid Palette' })).toBeTruthy()
+    const area = screen.getByRole('button', { name: 'Area View' })
+    const list = screen.getByRole('button', { name: 'Ship List' })
+    const grid = screen.getByRole('button', { name: 'Grid Palette' })
+    expect(area.getAttribute('aria-pressed')).toBe('true')
+    expect(grid.getAttribute('aria-pressed')).toBe('false')
+
+    fireEvent.click(list)
+    expect(list.getAttribute('aria-pressed')).toBe('true')
+    expect(area.getAttribute('aria-pressed')).toBe('false')
 
     const labels = screen.getByLabelText('Area labels') as HTMLSelectElement
     expect(labels.value).toBe('map')
-    expect(within(labels).getByRole('option', { name: 'Sortie tag names' })).toBeTruthy()
+    expect(within(labels).getByRole('option', { name: 'Show original' })).toBeTruthy()
+    expect(within(labels).getByRole('option', { name: 'Show translation' })).toBeTruthy()
 
-    // The old area/grid tabs are gone.
+    const viewGroup = screen.getByRole('group', { name: 'View' })
+    expect(within(viewGroup).getByRole('button', { name: 'Area View' })).toBeTruthy()
+    expect(within(viewGroup).getByRole('button', { name: 'Ship List' })).toBeTruthy()
+    expect(within(viewGroup).getByRole('button', { name: 'Grid Palette' })).toBeTruthy()
+
+    // The old View dropdown and area/grid tabs are gone.
+    expect(screen.queryByRole('combobox', { name: 'View' })).toBeNull()
     expect(screen.queryByRole('tab', { name: 'Area View' })).toBeNull()
+  })
+
+  it('applies the selected ships in one batch and clears the selection', async () => {
+    const harness = createHarness(plannerState(), {
+      middleware: [thunk],
+      pluginReducers: { [PLUGIN_KEY]: navyReducer },
+    })
+    harness.render(<NavyStaff />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ship List' }))
+    const alpha = screen.getByRole('checkbox', { name: /Alpha/ }) as HTMLInputElement
+    fireEvent.click(alpha)
+    expect(alpha.checked).toBe(true)
+
+    fireEvent.change(screen.getByLabelText('Assign to'), {
+      target: { value: 'area-2' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Apply to selected' }))
+
+    await waitFor(() => {
+      const navy = harness.store.getState()['poi-plugin-navy-staff'].navy
+      const workspace = navy.workspaces.find(
+        (item: { id: string }) => item.id === navy.selectedWorkspaceId,
+      )
+      const content = workspace.revisions[workspace.cursor].content
+      expect(content.assignments['area-2']).toContain(1)
+    })
+
+    // handleBatch clears the selection after the single revision is committed.
+    for (const box of screen.getAllByRole('checkbox') as HTMLInputElement[]) {
+      expect(box.checked).toBe(false)
+    }
   })
 })

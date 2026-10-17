@@ -181,7 +181,7 @@
   "Area labels": "海域ラベル",
   "Map labels": "マップ名",
   "Sortie tag names": "出撃タグ名",
-  "areaLabelsHelp": "取得済みの海域ラベルのみを変更し、艦隊名は変更しません。",
+  "areaLabelsHelp": "取得済み海域ラベルの原文または翻訳を表示します。翻訳がない場合は原文に戻ります。",
   "Text file": "テキストファイル",
   "Image": "画像",
   "Show image preview": "画像プレビューを表示",
@@ -192,5 +192,9 @@
   "Show share text": "共有テキストを表示",
   "Hide share text": "共有テキストを隠す",
   "Hide image preview": "画像プレビューを隠す",
-  "imageCaptureFailed": "画像を保存できませんでした"
+  "imageCaptureFailed": "画像を保存できませんでした",
+  "Show original": "原文を表示",
+  "Show translation": "翻訳を表示",
+  "helpContentList": "行を選択し、割り当て先または「割り当てを解除」を選んで「選択に適用」を押します。",
+  "PNG image": "PNG 画像"
 }

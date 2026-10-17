@@ -1,5 +1,6 @@
 import { Button, Checkbox, HTMLSelect } from '@blueprintjs/core'
-import React from 'react'
+import { rgba } from 'polished'
+import React, { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
 
@@ -10,6 +11,21 @@ import { resolveAreaLabel } from './types'
 // Sentinel target value for the explicit "Remove assignment" choice. The empty
 // string is the safe default ("Choose destination") and never mutates.
 export const REMOVE_TARGET = '__remove__'
+
+/**
+ * Presentation order for the list: level descending, null levels last, then
+ * owned id descending (matching the grid). Assignment state never affects order.
+ */
+export const sortShipRows = (
+  rows: readonly WorkspaceShipRow[],
+): WorkspaceShipRow[] =>
+  [...rows].sort((a, b) => {
+    if (a.level === null && b.level === null) return b.ownedId - a.ownedId
+    if (a.level === null) return 1
+    if (b.level === null) return -1
+    if (a.level !== b.level) return b.level - a.level
+    return b.ownedId - a.ownedId
+  })
 
 const BatchBar = styled.div`
   display: flex;
@@ -27,14 +43,20 @@ const Rows = styled.div`
 
 // Whole-row selection only. Clicking a row never edits the plan. Blueprint's
 // control indicator is floated by default; flex it in so the checkbox and the
-// row content share one baseline.
-const Row = styled(Checkbox)`
+// row content share one baseline. Assigned rows get a subtle theme-aware tint
+// that stays distinct from the hover state.
+const Row = styled(Checkbox)<{ $assigned: boolean }>`
   display: flex;
   align-items: center;
   gap: 0.5em;
   margin: 0;
   padding: 4px 6px;
   border-radius: 4px;
+  background: ${(props) =>
+    props.$assigned
+      ? rgba(props.theme.COBALT3, props.theme.variant === 'dark' ? 0.18 : 0.1)
+      : 'transparent'};
+  transition: background-color 120ms ease;
 
   .bp6-control-indicator {
     float: none;
@@ -43,7 +65,8 @@ const Row = styled(Checkbox)`
   }
 
   &:hover {
-    background: rgba(128, 128, 128, 0.1);
+    background: ${(props) =>
+      rgba(props.theme.COBALT3, props.theme.variant === 'dark' ? 0.26 : 0.16)};
   }
 `
 
@@ -110,6 +133,7 @@ export const ShipList = ({
   onApply,
 }: ShipListProps) => {
   const { t } = useTranslation(['poi-plugin-navy-staff', 'resources'])
+  const sortedShips = useMemo(() => sortShipRows(ships), [ships])
 
   const labelFor = (row: WorkspaceShipRow): string => {
     const area = areas.find((candidate) =>
@@ -156,10 +180,12 @@ export const ShipList = ({
         </BatchBar>
       )}
       <Rows>
-        {ships.map((row) => (
+        {sortedShips.map((row) => (
           <Row
             key={row.ownedId}
+            $assigned={row.assignedColor !== null}
             checked={selected.has(row.ownedId)}
+            data-assigned={row.assignedColor !== null ? 'true' : 'false'}
             disabled={readOnly}
             onChange={() => onToggle(row.ownedId)}
             labelElement={

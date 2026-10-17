@@ -181,7 +181,7 @@
   "Area labels": "海域標籤",
   "Map labels": "地圖標籤",
   "Sortie tag names": "出擊標籤名稱",
-  "areaLabelsHelp": "僅變更已擷取的海域標籤，不變更艦隊名稱。",
+  "areaLabelsHelp": "顯示已擷取海域的原文或譯文。缺少譯文時回退為原文。",
   "Text file": "文字檔",
   "Image": "圖片",
   "Show image preview": "顯示圖片預覽",
@@ -192,5 +192,9 @@
   "Show share text": "顯示分享文字",
   "Hide share text": "隱藏分享文字",
   "Hide image preview": "隱藏圖片預覽",
-  "imageCaptureFailed": "無法儲存圖片"
+  "imageCaptureFailed": "無法儲存圖片",
+  "Show original": "顯示原文",
+  "Show translation": "顯示譯文",
+  "helpContentList": "勾選艦娘，選擇目標或「移除分配」，然後按「套用到所選」。",
+  "PNG image": "PNG 圖片"
 }

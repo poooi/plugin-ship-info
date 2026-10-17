@@ -12,9 +12,11 @@ sharing a reference are separate tasks.
 
 ## Navigation
 
-Plan, Reference, and Share use a compact icon-and-text button group, visually
-distinct from poi's host tabs. A labeled View selector inside Plan switches
-between Area View, Ship List, and Grid Palette without adding another tab row.
+Plan, Reference, and Share use an icon-and-text button group with generous
+horizontal padding, visually distinct from poi's host tabs. Icon-only buttons
+switch between Area View, Ship List, and Grid Palette inside Plan, and between
+the corresponding read-only views in Share and Reference. Each button retains
+a translated accessible name, hover hint, and explicit active state.
 
 The workspace selector belongs to Plan. New workspace is a direct
 action; rename, duplicate, and delete belong in the workspace menu. Rename and
@@ -56,7 +58,12 @@ selection of all matching rows, and an explicit Apply action. Selecting ships
 does not edit the plan. Applying a destination or removing assignments creates
 one undoable batch; unchanged ships do not create extra revisions. Clear the
 selection when filters or the editing context change so hidden rows cannot be
-included accidentally.
+included accidentally. Applying a batch also clears selection, including a
+batch that changes nothing. Rows sort by descending level, with descending
+owned ID as a stable tie-breaker and unknown levels last. Assignment changes
+do not reorder rows. Assigned rows have a subtle background tint in both
+themes; the area name remains visible. Help describes the current view: the
+list uses selection and Apply, while area/grid cards support right-click removal.
 
 Ship search in the list, grid, add-ship picker, and references accepts names,
 kana readings, romaji, and approximate spellings. Hiragana, katakana, halfwidth
@@ -102,10 +109,19 @@ includes the title, metadata, and roster, excluding controls. Editor filters
 do not affect it. The preview remains collapsible rather than adding a permanent
 second roster after text generation.
 
+Ship Grid groups cards by captured area, preserving area order and showing a
+heading, color, and ship count for each group. All three shared views omit
+visible ship IDs, including saved images. Master IDs remain inside the compact
+share data solely for resolving ship metadata; player-owned ship IDs are not
+included in the share format.
+
 Navy Staff uses `modern-screenshot` to render the complete element through
 Chromium's SVG/Canvas support, including modern CSS colors such as `oklch`.
 Image saving works in the main and detached windows. Capture failures appear
-beside the Save to image action and allow retry. poi still handles the download.
+beside the Save to image action and allow retry. The save dialog suggests a
+PNG filename containing the plan title, localized view name, and save time.
+Cancelling leaves no file and does not render an image; successful saves write
+the rendered PNG bytes to the selected location.
 
 ## Layout and density
 
@@ -113,9 +129,9 @@ Share and Reference use consistent section padding and gaps between headings,
 descriptions, fields, and actions. Errors appear beside the action they describe.
 Controls wrap on narrow panels; the reference close action stays with the title.
 
-The Area labels selector explicitly offers Map labels and Sortie tag names.
-It changes the displayed captured-area labels, retaining the map label when
-there is no localized sortie-tag name. It does not rename owned fleets or alter
+The Area labels selector offers Show original and Show translation.
+It changes the displayed captured-area labels, retaining the original label
+when no translation is available. It does not rename owned fleets or alter
 area identity, assignments, or stored configuration keys.
 
 Cards size themselves from the plugin's available width, not the browser's
@@ -140,6 +156,8 @@ every plan.
 The grid's assignment destination uses a labeled Blueprint select. A long
 event's area list must not turn the sticky control into several rows of buttons
 that obscure the ships while scrolling.
+The sticky filter bar reaches the scrollport's top edge, including the body's
+padding, so scrolled cards cannot show through a gap below the navigation.
 
 ## Verification
 

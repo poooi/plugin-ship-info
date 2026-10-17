@@ -181,7 +181,7 @@
   "Area labels": "Area labels",
   "Map labels": "Map labels",
   "Sortie tag names": "Sortie tag names",
-  "areaLabelsHelp": "Changes captured area labels only, not owned fleet names.",
+  "areaLabelsHelp": "Show original captured labels or their translation. Missing translations fall back to the original.",
   "Text file": "Text file",
   "Image": "Image",
   "Show image preview": "Show image preview",
@@ -192,5 +192,9 @@
   "Show share text": "Show share text",
   "Hide share text": "Hide share text",
   "Hide image preview": "Hide image preview",
-  "imageCaptureFailed": "Could not save the image"
+  "imageCaptureFailed": "Could not save the image",
+  "Show original": "Show original",
+  "Show translation": "Show translation",
+  "helpContentList": "Select rows, choose a destination or Remove assignment, then Apply to selected.",
+  "PNG image": "PNG image"
 }

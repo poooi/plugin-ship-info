@@ -41,6 +41,7 @@ import { ReferenceTools, ShareTools } from './reference'
 import { captureReference } from './reference/capture'
 import { buildMasterReadings, buildSearch } from './search'
 import { SyncBar, syncSourceSelector } from './sync'
+import { ViewToggle } from './view-toggle'
 import {
   applyShipBatch,
   createWorkspace,
@@ -103,6 +104,12 @@ const NavBar = styled.div`
   align-items: center;
   gap: 0.5em;
   padding: 0.25em 0;
+
+  /* Generous horizontal padding keeps the page labels easy to hit. */
+  .nav-buttons .bp6-button {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
 `
 
 const HeaderSpacer = styled.div`
@@ -153,7 +160,9 @@ const AreaList = styled.div`
 
 const Palette = styled.div`
   position: sticky;
-  top: 0;
+  /* Body has 1em top padding; offset the sticky position by the same amount so
+     scrolled cards cannot show through the padding strip above the palette. */
+  top: -1em;
   z-index: 20;
   display: flex;
   align-items: center;
@@ -538,16 +547,15 @@ const PlanViews = ({
       {!previewOnly && (
         <>
           <Toolbar>
-            <FieldLabel>{t('View')}</FieldLabel>
-            <HTMLSelect
-              aria-label={t('View')}
+            <ViewToggle
               value={view}
-              onChange={(event) => onViewChange(event.currentTarget.value as PlanView)}
-            >
-              <option value="area">{t('Area View')}</option>
-              <option value="list">{t('Ship List')}</option>
-              <option value="grid">{t('Grid Palette')}</option>
-            </HTMLSelect>
+              onChange={(next) => onViewChange(next)}
+              labels={{
+                area: t('Area View'),
+                grid: t('Grid Palette'),
+                list: t('Ship List'),
+              }}
+            />
             <FieldLabel>{t('Area labels')}</FieldLabel>
             <HTMLSelect
               aria-label={t('Area labels')}
@@ -556,8 +564,8 @@ const PlanViews = ({
                 window.config.set(DISPLAY_FLEET_NAME_CONFIG, event.currentTarget.value === 'fleet')
               }
             >
-              <option value="map">{t('Map labels')}</option>
-              <option value="fleet">{t('Sortie tag names')}</option>
+              <option value="map">{t('Show original')}</option>
+              <option value="fleet">{t('Show translation')}</option>
             </HTMLSelect>
             <Muted>{t('areaLabelsHelp')}</Muted>
             <HeaderSpacer />
@@ -565,7 +573,7 @@ const PlanViews = ({
               position={Position.BOTTOM_RIGHT}
               content={
                 <HelpContent role="tooltip" aria-label={t('Help')} data-testid="plan-help">
-                  {t('helpContent')}
+                  {view === 'list' ? t('helpContentList') : t('helpContent')}
                 </HelpContent>
               }
             >
@@ -834,7 +842,7 @@ const NavyStaffContent = () => {
     <Wrapper id="poi-plugin-navy-staff">
       <NavGlobalStyle />
       <NavBar role="navigation" aria-label={t('Navy Staff sections')}>
-        <ButtonGroup>
+        <ButtonGroup className="nav-buttons">
           <Button
             active={activeTab === 'plan'}
             aria-pressed={activeTab === 'plan'}

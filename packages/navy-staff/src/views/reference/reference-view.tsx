@@ -8,7 +8,6 @@
 import {
   Button,
   Callout,
-  HTMLSelect,
   InputGroup,
   Intent,
   Tag,
@@ -21,8 +20,9 @@ import styled, { ThemeContext } from 'styled-components'
 import { constSelector } from 'views/utils/selectors'
 
 import { shipTypeLabelKeys } from '@poi-plugins/ship-info-shared/ship-types'
-import { captureRect } from '../planner/capture'
+import { captureRect, imageFileName } from '../planner/capture'
 import { readingToRomaji } from '../search'
+import { ViewToggle } from '../view-toggle'
 import {
   projectReference,
   type MasterCatalog,
@@ -122,8 +122,8 @@ const ShipRow = styled.div<{ $withArea: boolean }>`
   display: grid;
   grid-template-columns: ${(props) =>
     props.$withArea
-      ? 'minmax(4em, auto) minmax(0, 1fr) auto auto auto'
-      : 'minmax(4em, auto) minmax(0, 1fr) auto auto'};
+      ? 'minmax(4em, auto) minmax(0, 1fr) auto auto'
+      : 'minmax(4em, auto) minmax(0, 1fr) auto'};
   gap: 8px;
   align-items: center;
   padding: 5px 8px;
@@ -163,12 +163,6 @@ const Name = styled.span`
   text-overflow: ellipsis;
   white-space: nowrap;
   font-weight: 600;
-`
-
-const MasterId = styled.span`
-  font-family: monospace;
-  opacity: 0.75;
-  white-space: nowrap;
 `
 
 const Level = styled.span`
@@ -271,19 +265,22 @@ export const ReferenceView = ({
           {ship.areaLabel}
         </Tag>
       )}
-      <MasterId>{ship.masterId === null ? '—' : `#${ship.masterId}`}</MasterId>
       <Level>Lv.{ship.level ?? '?'}</Level>
     </ShipRow>
   )
 
   const handleCapture = async () => {
     if (!captureRef.current || capturePending) return
+    const viewLabel =
+      mode === 'area' ? t('Area View') : mode === 'list' ? t('Ship List') : t('Ship Grid')
     setCapturePending(true)
     setCaptureFailed(false)
     onCaptureBusyChange?.(true)
     try {
       await captureRect(captureRef.current, {
         backgroundColor: opaqueBackground(),
+        fileName: imageFileName(reference.title, viewLabel),
+        filterName: t('PNG image'),
       })
     } catch {
       setCaptureFailed(true)
@@ -298,16 +295,16 @@ export const ReferenceView = ({
   return (
     <Wrapper data-testid="reference-view" aria-label={reference.title}>
       <Toolbar>
-        <HTMLSelect
-          aria-label={t('View')}
+        <ViewToggle
           value={mode}
+          onChange={setMode}
           disabled={capturePending}
-          onChange={(event) => setMode(event.currentTarget.value as ViewMode)}
-        >
-          <option value="area">{t('Area View')}</option>
-          <option value="list">{t('Ship List')}</option>
-          <option value="grid">{t('Ship Grid')}</option>
-        </HTMLSelect>
+          labels={{
+            area: t('Area View'),
+            grid: t('Ship Grid'),
+            list: t('Ship List'),
+          }}
+        />
         {onReopen && (
           <Button
             small
@@ -402,23 +399,34 @@ export const ReferenceView = ({
         ) : mode === 'list' ? (
           occurrences.map((ship, index) => renderRow(ship, `list-${index}`, true))
         ) : (
-          <CardGrid>
-            {occurrences.map((ship, index) => (
-              <ShipCard
-                key={`grid-${index}`}
-                $color={ship.areaColor}
-                data-testid="reference-ship"
-                title={`${ship.name} Lv.${ship.level ?? '?'} · ${ship.areaLabel}`}
-              >
-                <TypeLabel>{ship.type ? t(ship.type) : t('Unknown type')}</TypeLabel>
-                <Name>{ship.name}</Name>
-                <CardMeta>
-                  Lv.{ship.level ?? '?'} · {ship.masterId === null ? '—' : `#${ship.masterId}`}
-                </CardMeta>
-                <CardMeta>{ship.areaLabel}</CardMeta>
-              </ShipCard>
-            ))}
-          </CardGrid>
+          filtered.groups
+            // Same empty-group/search behavior as area mode.
+            .filter((group) => !searching || group.shipCount > 0)
+            .map((group, groupIndex) => (
+              <Group key={`${groupIndex}-${group.label}`} data-testid="reference-area">
+                <GroupHeader>
+                  <Swatch $color={group.color} aria-hidden />
+                  <Tag minimal style={{ color: group.color }}>
+                    {group.label}
+                  </Tag>
+                  <span>{group.shipCount}</span>
+                </GroupHeader>
+                <CardGrid>
+                  {group.ships.map((ship, shipIndex) => (
+                    <ShipCard
+                      key={`${groupIndex}-${shipIndex}`}
+                      $color={group.color}
+                      data-testid="reference-ship"
+                      title={`${ship.name} Lv.${ship.level ?? '?'}`}
+                    >
+                      <TypeLabel>{ship.type ? t(ship.type) : t('Unknown type')}</TypeLabel>
+                      <Name>{ship.name}</Name>
+                      <CardMeta>Lv.{ship.level ?? '?'}</CardMeta>
+                    </ShipCard>
+                  ))}
+                </CardGrid>
+              </Group>
+            ))
         )}
       </div>
     </Wrapper>

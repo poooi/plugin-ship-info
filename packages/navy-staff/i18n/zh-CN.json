@@ -181,7 +181,7 @@
   "Area labels": "海域标签",
   "Map labels": "地图标签",
   "Sortie tag names": "出击标签名称",
-  "areaLabelsHelp": "仅更改已采集的海域标签，不更改舰队名称。",
+  "areaLabelsHelp": "显示已采集海域的原文或译文。缺少译文时回退为原文。",
   "Text file": "文本文件",
   "Image": "图片",
   "Show image preview": "显示图片预览",
@@ -192,5 +192,9 @@
   "Show share text": "显示分享文本",
   "Hide share text": "隐藏分享文本",
   "Hide image preview": "隐藏图片预览",
-  "imageCaptureFailed": "无法保存图片"
+  "imageCaptureFailed": "无法保存图片",
+  "Show original": "显示原文",
+  "Show translation": "显示译文",
+  "helpContentList": "勾选舰娘，选择目标或“移除分配”，然后点击“应用到所选”。",
+  "PNG image": "PNG 图片"
 }

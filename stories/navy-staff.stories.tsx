@@ -95,7 +95,7 @@ export const BothPluginsIndependent: Story = {
   ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    await expect(await canvas.findByRole('combobox', { name: 'View' })).toBeTruthy()
+    await expect(await canvas.findByRole('button', { name: 'Area View' })).toBeTruthy()
     // 'Alpha' appears in both roots; scope to the Ship Info table.
     const shipInfoRoot = document.querySelector(
       '#poi-plugin-ship-info',
@@ -449,7 +449,7 @@ export const DisposeStopsAccountSupervisor: Story = {
 
 const openDenseGrid = async () => {
   const container = document.querySelector('#poi-plugin-navy-staff') as HTMLElement
-  await userEvent.selectOptions(await within(container).findByRole('combobox', { name: 'View' }), 'grid')
+  await userEvent.click(await within(container).findByRole('button', { name: 'Grid Palette' }))
   await within(container).findByRole('heading', { level: 2, name: 'DD' })
   return container
 }
@@ -553,6 +553,40 @@ const denseLongAreaNames = [
   'Extra Operation: Ironbottom Sound Revisited',
   'E7', 'E8', 'E9', 'E10',
 ]
+
+const stickyFiltersStory = (width: number, theme: 'dark' | 'light'): Story => ({
+  name: `Scrolled grid/list filters cover the scrollport edge (${width}px, ${theme})`,
+  parameters: denseParams({ width, height: 700 }, { theme }),
+  play: async () => {
+    const container = await openDenseGrid()
+    const body = container.querySelector('.navy-staff-scrollable') as HTMLElement
+    const nav = within(container).getByRole('navigation')
+    for (const button of within(nav).getAllByRole('button')) {
+      expect(parseFloat(getComputedStyle(button).paddingLeft)).toBeGreaterThanOrEqual(20)
+      expect(parseFloat(getComputedStyle(button).paddingRight)).toBeGreaterThanOrEqual(20)
+    }
+    expect(nav.scrollWidth).toBeLessThanOrEqual(container.clientWidth)
+    for (const mode of ['grid', 'list']) {
+      body.scrollTop = 0
+      await userEvent.click(within(container).getByRole('button', { name: mode === 'grid' ? 'Grid Palette' : 'Ship List' }))
+      const input = within(container).getByPlaceholderText('Search')
+      const bar = input.parentElement!.parentElement!
+      body.scrollTop = 400
+      await waitFor(() => {
+        expect(body.scrollTop).toBeGreaterThan(0)
+        expect(getComputedStyle(bar).position).toBe('sticky')
+        const bounds = bar.getBoundingClientRect()
+        const edge = body.getBoundingClientRect().top
+        expect(Math.abs(bounds.top - edge)).toBeLessThanOrEqual(1)
+        // The former padding gap must be covered by the toolbar, not a card.
+        expect(bar.contains(document.elementFromPoint(bounds.left + 3, edge + 2))).toBe(true)
+      })
+    }
+  },
+})
+
+export const StickyFiltersWide = stickyFiltersStory(1200, 'dark')
+export const StickyFiltersNarrow = stickyFiltersStory(480, 'light')
 
 export const DensePlanLongNames: Story = {
   name: 'Long workspace and area names wrap without overflowing the cards',

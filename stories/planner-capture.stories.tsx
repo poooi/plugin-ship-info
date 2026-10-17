@@ -1,12 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
-import { remote } from 'electron'
 import { expect, fireEvent, screen, userEvent, waitFor, within } from 'storybook/test'
 
 import { host } from '../preview/adapters/logs'
 import { densePlannerState, plannerScenarioState } from '../preview/planner-fixtures'
 import { reactClass as NavyStaff } from '../packages/navy-staff/src/views'
 
-// Real renderer and PNG pixel checks; only the OS download boundary is mocked.
+// Real renderer and PNG pixel checks; only the OS dialog/filesystem boundary is mocked.
 const meta = { title: 'NavyStaff/Capture', component: NavyStaff } satisfies Meta<typeof NavyStaff>
 export default meta
 type Story = StoryObj<typeof meta>
@@ -20,12 +19,26 @@ const openShare = async () => {
 }
 
 const saveImage = async (scope: HTMLElement) => {
-  const count = host.log.downloads.length
+  const count = host.log.writtenFiles.length
+  const path = '/capture/reference.png'
+  host.saveDialog = { canceled: false, filePath: path }
   await userEvent.click(within(scope).getByRole('button', { name: 'Save to image' }))
-  await waitFor(() => expect(host.log.downloads.length).toBe(count + 1), { timeout: 15000 })
+  await waitFor(() => expect(host.log.writtenFiles.length).toBe(count + 1), { timeout: 15000 })
+  const data = host.log.writtenFiles[count].data as Uint8Array<ArrayBuffer>
+  expect([...data.slice(0, 8)]).toEqual([137, 80, 78, 71, 13, 10, 26, 10])
+  const options = host.log.saveDialogCalls.at(-1)!.options as { defaultPath: string }
+  expect(options.defaultPath).toMatch(/\.png$/)
+  expect(options.defaultPath).not.toBe('download.png')
+  const view = within(scope).getByTestId('reference-view')
+  expect(options.defaultPath).toContain(view.getAttribute('aria-label')!)
+  const selectedView = within(scope).getByRole('button', { pressed: true })
+  expect(options.defaultPath).toContain(selectedView.getAttribute('aria-label')!)
   const image = new Image()
-  image.src = host.log.downloads[count]
-  await image.decode()
+  const url = URL.createObjectURL(new Blob([data], { type: 'image/png' }))
+  try {
+    image.src = url
+    await image.decode()
+  } finally { URL.revokeObjectURL(url) }
   expect(image.naturalWidth).toBeGreaterThan(0)
   return image
 }
@@ -44,9 +57,18 @@ const captureStory = (mode: 'area' | 'list' | 'grid', isMain: boolean): Story =>
   },
   play: async () => {
     const preview = await openShare()
-    await userEvent.selectOptions(within(preview).getByRole('combobox', { name: 'View' }), mode)
+    await userEvent.click(within(preview).getByRole('button', { name: { area: 'Area View', list: 'Ship List', grid: 'Ship Grid' }[mode] }))
     const target = within(preview).getByTestId('reference-capture')
     expect(within(target).getAllByTestId('reference-ship')).toHaveLength(300)
+    expect(target.textContent).not.toMatch(/#\d+/u)
+    if (mode === 'grid') {
+      const groups = within(target).getAllByTestId('reference-area')
+      expect(groups).toHaveLength(10)
+      groups.forEach((group, index) => {
+        expect(within(group).getByText(`E${index + 1}`)).toBeTruthy()
+        expect(within(group).getAllByTestId('reference-ship')).toHaveLength(30)
+      })
+    }
     expect(within(target).queryByRole('button')).toBeNull()
     const sharedContent = target.textContent
     // A pixel marker below the viewport proves modern CSS and full capture.
@@ -80,7 +102,7 @@ const captureStory = (mode: 'area' | 'list' | 'grid', isMain: boolean): Story =>
     fireEvent.change(screen.getByPlaceholderText('Paste a share code or open a text file'), { target: { value: text } })
     await userEvent.click(screen.getByRole('button', { name: 'Open' }))
     const reference = await screen.findByTestId('reference-result')
-    await userEvent.selectOptions(within(reference).getByRole('combobox', { name: 'View' }), mode)
+    await userEvent.click(within(reference).getByRole('button', { name: { area: 'Area View', list: 'Ship List', grid: 'Ship Grid' }[mode] }))
     expect(within(reference).getByTestId('reference-capture').textContent).toBe(sharedContent)
     await saveImage(reference)
   },
@@ -95,23 +117,40 @@ export const ImageFailureCanRetry: Story = {
   parameters: { shipInfo: { plugin: 'navy-staff', state: plannerScenarioState({ current: [[1], []] }) } },
   play: async () => {
     const preview = await openShare()
-    const original = remote.getCurrentWebContents
-    const contents = original()
-    const originalDownload = contents.downloadURL
-    contents.downloadURL = () => { throw new Error('download failed') }
-    remote.getCurrentWebContents = () => contents
+    host.saveDialog = { canceled: false, filePath: '/capture/reference.png' }
+    const count = host.log.writtenFiles.length
+    host.failFileWrites = true
     try {
       await userEvent.click(within(preview).getByRole('button', { name: 'Save to image' }))
       const error = await within(preview).findByTestId('image-error')
       expect(error.textContent).toContain('Could not save the image')
-      expect(host.log.downloads).toHaveLength(0)
+      expect(host.log.writtenFiles).toHaveLength(count)
       expect(within(preview).getByRole('button', { name: 'Save to image' })).not.toBeDisabled()
     } finally {
-      contents.downloadURL = originalDownload
-      remote.getCurrentWebContents = original
+      host.failFileWrites = false
     }
     await saveImage(preview)
     expect(within(preview).queryByTestId('image-error')).toBeNull()
+  },
+}
+
+export const ImageSaveCanCancel: Story = {
+  name: 'Cancel image save without an error or file write, then save successfully',
+  parameters: { shipInfo: { plugin: 'navy-staff', state: plannerScenarioState({ current: [[1], []] }) } },
+  play: async () => {
+    const preview = await openShare()
+    host.saveDialog = { canceled: true }
+    const count = host.log.writtenFiles.length
+    const calls = host.log.saveDialogCalls.length
+    const save = within(preview).getByRole('button', { name: 'Save to image' })
+    await userEvent.click(save)
+    await waitFor(() => {
+      expect(host.log.saveDialogCalls).toHaveLength(calls + 1)
+      expect(save).not.toBeDisabled()
+    })
+    expect(within(preview).queryByTestId('image-error')).toBeNull()
+    expect(host.log.writtenFiles).toHaveLength(count)
+    await saveImage(preview)
   },
 }
 
@@ -131,7 +170,7 @@ export const HistoricalImageIgnoresEditorFilters: Story = {
     },
   },
   play: async () => {
-    await userEvent.selectOptions(await screen.findByRole('combobox', { name: 'View' }), 'list')
+    await userEvent.click(await screen.findByRole('button', { name: 'Ship List' }))
     await userEvent.selectOptions(screen.getByLabelText('Assignment'), 'unassigned')
     await userEvent.click(screen.getByRole('button', { name: 'History' }))
     await userEvent.click(screen.getByRole('button', { name: 'Share this state' }))

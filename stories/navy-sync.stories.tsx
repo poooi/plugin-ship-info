@@ -32,7 +32,7 @@ const params = (options: ScenarioOptions) => ({
 })
 
 const openPlanner = async () => {
-  await expect(await screen.findByRole('combobox', { name: 'View' })).toBeTruthy()
+  await expect(await screen.findByRole('button', { name: 'Area View' })).toBeTruthy()
   return document.querySelector('#poi-plugin-navy-staff') as HTMLElement
 }
 
