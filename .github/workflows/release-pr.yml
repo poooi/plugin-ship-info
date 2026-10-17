@@ -1,0 +1,64 @@
+name: Release PR
+
+on:
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Release PR validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+      - name: Detect Release PR
+        id: detect
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          # A Release PR changes release-plan.json relative to its base. Use a
+          # three-dot diff so a feature branch started before a Release PR
+          # merged is not mistaken for deleting the now-historical plan.
+          is_release=false
+          case "$HEAD_REF" in
+            release/*) is_release=true ;;
+          esac
+          if [ -n "$(git diff --name-only "$BASE_SHA...$HEAD_SHA" -- release-plan.json)" ]; then
+            is_release=true
+          fi
+          echo "is_release=$is_release" >> "$GITHUB_OUTPUT"
+      - name: Not a Release PR
+        if: steps.detect.outputs.is_release != 'true'
+        run: echo "Not a Release PR; no release plan to validate."
+      - name: Extract validation scripts from the base commit
+        if: steps.detect.outputs.is_release == 'true'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/release-scripts"
+          git archive "$BASE_SHA" scripts/release | tar -x -C "$RUNNER_TEMP/release-scripts"
+      - name: Validate generated release plan
+        if: steps.detect.outputs.is_release == 'true'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: >
+          node "$RUNNER_TEMP/release-scripts/scripts/release/validate-release-pr.mjs"
+          --repo "$GITHUB_WORKSPACE"
+          --base "$BASE_SHA"
+          --head "$HEAD_SHA"

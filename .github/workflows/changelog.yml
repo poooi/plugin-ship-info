@@ -1,0 +1,51 @@
+name: Changelog
+
+on:
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: changelog-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Changelog intents
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+      - name: Select the enforcement script
+        id: scripts
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          # Prefer the script committed on the base branch so a pull request
+          # cannot weaken its own enforcement. The fallback only applies while
+          # the release scripts are themselves being introduced.
+          if git cat-file -e "$BASE_SHA:scripts/release/validate-changelog.mjs" 2>/dev/null; then
+            mkdir -p "$RUNNER_TEMP/release-scripts"
+            git archive "$BASE_SHA" scripts/release | tar -x -C "$RUNNER_TEMP/release-scripts"
+            echo "script=$RUNNER_TEMP/release-scripts/scripts/release/validate-changelog.mjs" >> "$GITHUB_OUTPUT"
+          else
+            echo "script=$GITHUB_WORKSPACE/scripts/release/validate-changelog.mjs" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Check new change intents
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: >
+          node "${{ steps.scripts.outputs.script }}"
+          --repo "$GITHUB_WORKSPACE"
+          --base "$BASE_SHA"
+          --head "$HEAD_SHA"
+          --branch "$HEAD_REF"

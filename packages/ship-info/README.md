@@ -24,6 +24,13 @@ from npm**, enter `poi-plugin-ship-info` and click **Install**.
 poi provides React, Redux, Blueprint and the other host UI libraries at runtime;
 this package bundles the rest of its implementation.
 
+## Releases
+
+Release notes are generated in [CHANGELOG.md](CHANGELOG.md) from `.changeset`
+intents by the repository release workflow. Ship Info releases independently
+from Navy Staff; see the repository
+[release guide](https://github.com/poooi/plugin-ship-info/blob/master/docs/releases.md).
+
 ## Development
 
 The plugin is developed inside the repository's pnpm workspace. See the
