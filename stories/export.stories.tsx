@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import React from 'react'
-import { expect, spyOn, userEvent, waitFor, within } from 'storybook/test'
+import { expect, userEvent, waitFor, within } from 'storybook/test'
 
 import { host } from '../preview/adapters/logs'
 import { tableState } from '../preview/table-fixtures'
@@ -217,30 +217,31 @@ export const SaveDialogSuccess: Story = {
 export const SaveDialogFailure: Story = {
   name: 'Save failure logs the write error without claiming success',
   parameters: {
+    // Intentional error path: the in-memory writer rejects this exact export.
+    // Declaring it here replaces the old nested console.error spy, so the strict
+    // console contract owns capture and restoration.
+    expectedConsole: [
+      {
+        method: 'error',
+        message: "Error: EACCES: permission denied, open '/tmp/ships.csv'",
+        count: 1,
+      },
+    ],
     shipInfo: {
       fileWriteError: true,
       saveDialog: { canceled: false, filePath: '/tmp/ships.csv' },
     },
   },
   play: async ({ canvasElement }) => {
-    const errorSpy = spyOn(console, 'error')
-    try {
-      await openPopover(canvasElement, 'Export')
-      await waitForRows(canvasElement, 8)
+    await openPopover(canvasElement, 'Export')
+    await waitForRows(canvasElement, 8)
 
-      await userEvent.click(exportButton('Export to file'))
+    await userEvent.click(exportButton('Export to file'))
 
-      await waitFor(async () => {
-        await expect(host.log.writeErrors.length).toBe(1)
-      })
-      await expect(host.log.writtenFiles.length).toBe(0)
-
-      await expect(errorSpy.mock.calls.length).toBe(1)
-      const logged = errorSpy.mock.calls[0][0] as Error
-      await expect(logged.message).toContain('EACCES')
-      await expect(logged.message).toContain('/tmp/ships.csv')
-    } finally {
-      errorSpy.mockRestore()
-    }
+    await waitFor(async () => {
+      await expect(host.log.writeErrors.length).toBe(1)
+    })
+    // A rejected write must not be recorded as a successful file write.
+    await expect(host.log.writtenFiles.length).toBe(0)
   },
 }

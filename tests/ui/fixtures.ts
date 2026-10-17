@@ -63,7 +63,7 @@ export const tableState = (over: Record<string, any> = {}) => ({
   fleets: [[], [], [], []],
   info: { equips: {}, server: { ip: '1.2.3.4' }, ships: tableShips },
   repairs: [] as number[],
-  [PLUGIN_KEY]: { planner: { archive: {}, current: [] }, ready: true },
+  [PLUGIN_KEY]: { ready: true },
   ...over,
 })
 

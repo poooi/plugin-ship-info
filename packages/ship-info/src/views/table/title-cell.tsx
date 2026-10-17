@@ -17,10 +17,14 @@ export const noop = (): void => {
   /* do nothing */
 }
 
-const TitleCellContainer = styled.div<Partial<ITitleCellProps>>`
-  text-align: ${props => props.centerAlign && 'center'};
-  cursor: ${props => props.sortable && 'pointer'};
-  color: ${props => props.sorting && props.theme.BLUE5};
+const TitleCellContainer = styled.div<{
+  $centerAlign: boolean
+  $sortable: boolean
+  $sorting: boolean
+}>`
+  text-align: ${props => props.$centerAlign && 'center'};
+  cursor: ${props => props.$sortable && 'pointer'};
+  color: ${props => props.$sorting && props.theme.BLUE5};
   line-height: 35px;
 `
 
@@ -30,6 +34,7 @@ export const TitleCell = ({
   onClick,
   sorting,
   up,
+  centerAlign,
   ...props
 }: ITitleCellProps) => {
   const { t } = useTranslation(['poi-plugin-ship-info'])
@@ -46,8 +51,9 @@ export const TitleCell = ({
           onClick?.()
         }
       }}
-      sorting={sorting}
-      sortable={sortable}
+      $centerAlign={centerAlign}
+      $sortable={sortable}
+      $sorting={sorting}
     >
       {t(title)}
       {sorting && <FA name={up ? 'sort-up' : 'sort-down'} />}

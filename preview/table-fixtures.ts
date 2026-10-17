@@ -219,7 +219,7 @@ const baseState = () => ({
   fleets: tableFleets.map((fleet) => [...fleet]),
   info: { equips: tableEquips, server: { ip: '1.2.3.4' }, ships: tableShips },
   repairs: [...tableRepairs],
-  [PLUGIN_KEY]: { planner: { archive: {}, current: [] }, ready: true },
+  [PLUGIN_KEY]: { ready: true },
 })
 
 export const tableState = (over: Record<string, any> = {}) => ({

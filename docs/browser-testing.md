@@ -58,9 +58,9 @@ segment, which Storybook then tries to index as a story module (EISDIR).
 ## How it is wired
 
 - Plugin source lives in `packages/ship-info/src/` and the private shared
-  package in `packages/shared/src/`. The root `tests/`, `stories/` and
-  `preview/` layers import them through those package paths; there is no
-  compatibility barrel at the old locations.
+  package (`@poi-plugins/shared`) in `packages/shared/src/`. The root `tests/`,
+  `stories/` and `preview/` layers import them through those package paths; there
+  is no compatibility barrel at the old locations.
 - Storybook config lives in `.storybook/` (`main.ts`, `preview.tsx`,
   `ambient.d.ts`).
 - `preview/` is the browser integration layer:
@@ -70,13 +70,21 @@ segment, which Storybook then tries to index as a story module (EISDIR).
     dialog/capture logs, in-memory `fs-extra`, `path`, `url`, host selectors,
     real Blueprint overlays, and font/avatar/icon stand-ins. Kana conversion and
     Navy Staff's `modern-screenshot` renderer run from their real packages.
+  - `preview/adapters/host-selectors.ts` re-exports the pure host stand-ins from
+    `tests/ui/host.tsx`. Its selector factories are built with `createSelector`
+    so the same state yields the same array/tuple references; returning fresh
+    ones on each call would trip reselect's input-stability warnings in the real
+    consumers.
   - `preview/scenario.tsx` builds one environment per story. It registers the
     real reducer(s) selected by `shipInfo.plugin` (`ship-info`, `navy-staff` or
     `both`) under their plugin keys, points `views/create-store` at the live
     store, and (when a story opts in via `shipInfo.lifecycle`) starts the real
     persistence lifecycle for each selected plugin against that store.
   - `preview/decorators.tsx` wraps each story in the shared providers from
-    `tests/ui/environment.tsx` and a fixed-size, direction-aware surface.
+    `tests/ui/environment.tsx` and a fixed-size, direction-aware surface. It
+    applies the resolved locale in a committed effect rather than during render,
+    so switching the toolbar locale cannot update a mounted subscriber (for
+    example the Columns control) while another component is still rendering.
   - `preview/planner-fixtures.ts` holds the tagged planner roster and the
     capture-control re-exports used by the planner/shell stories.
 - Stories live in `stories/` and are discovered by both Storybook and the
@@ -92,6 +100,46 @@ scenario gets a fresh environment and reset host call logs — see
 `ResetRemountsFreshRoot`. Mounting the UI no longer loads or saves by itself, so
 only integrated root stories opt into `shipInfo.lifecycle`; component-only
 stories stay persistence-free.
+
+## Console contract
+
+Every Chromium story must be silent on `console.warn` and `console.error`. The
+browser project loads `tests/browser-console.setup.ts`, which replaces both
+methods in `beforeEach` (before the story renders) and validates the captured
+calls in `afterEach`, restoring the originals in a `finally` even when
+validation fails. Captured output is never printed: expected output stays out of
+CI, and an unexpected call is reported in the failure message with its full
+text.
+
+A story that intentionally logs declares the exact calls it expects:
+
+```ts
+parameters: {
+  expectedConsole: [
+    {
+      method: 'error', // 'warn' | 'error'
+      message: 'PersistedDataError: persisted data is not an object',
+      count: 1, // default 1
+      args: 1, // console.error calls with exactly this many arguments; default 1
+    },
+  ],
+}
+```
+
+Rules:
+
+- `message` is the logged identity with stack frames normalized away, so a
+  logged `Error` matches its `Error: <message>` first line. The error name is
+  part of the identity and extra non-frame lines are kept, so a different name
+  or an unexpected suffix does not match.
+- `count` is exact; a declared call must occur that many times and an undeclared
+  call fails the story. There are no ignore patterns or global suppression.
+- Only two stories currently declare output, both for intentional error paths:
+  `MalformedStoredValueSurfacesLoadError` and `SaveDialogFailure`. Each still
+  asserts the user-visible failure (no write, disabled saving), not just the log.
+
+The jsdom suite is unaffected; the contract is browser-only. Unit tests for the
+helper live in `tests/browser-console.test.ts`.
 
 ## Scenario parameters
 
@@ -274,7 +322,7 @@ themes, portraits, long names, and per-page scroll restoration.
 | `PluginShell/MountsWithPersistedState` | The real root mounts the table and sidebar (no Deck Planner button) and the lifecycle loads the seeded file, leaving the legacy planner field untouched. |
 | `PluginShell/UpgradesStoredFileAndSaves` | An unversioned Ship Info file upgrades to v1, preserves opaque legacy planner data, and a subsequent store update saves in v1. |
 | `PluginShell/SavesWithoutPlannerOpen` | A plugin state change is written to the plugin file while persistence is lifecycle-owned, not UI-owned. |
-| `PluginShell/CorruptFileSurfacesLoadError` | A corrupt persisted file surfaces a load error and a toast, saving stays disabled, and the source file is left untouched. |
+| `PluginShell/MalformedStoredValueSurfacesLoadError` | A malformed persisted value (wrong shape, not malformed JSON text) surfaces a load error and a toast; saving stays disabled and the source file is left untouched. |
 | `PluginShell/SidebarPanelsOpenAndClose` | Columns, Filter and Export open and close. |
 | `PluginShell/PlannerMovedNotice` | The original Deck Planner entry opens and closes a migration notice with plugin-list installation instructions and the full package name for manual installation, without planner controls or state changes. |
 | `PluginShell/PlannerMovedNoticeLocalized` | The notice uses the Chinese name 作战参谋 and the localized poi installation labels. |
@@ -300,7 +348,7 @@ themes, portraits, long names, and per-page scroll restoration.
 - Each plugin's persistence lifecycle (read on `pluginDidLoad`, subscribe to the
   store, serialized `FileWriter`) is started only for integrated stories that opt
   in via `shipInfo.lifecycle`; component-only stories do not run it. Loads and
-  saves go through the in-memory `fs-extra` adapter, so a corrupt file, a
+  saves go through the in-memory `fs-extra` adapter, so an invalid stored value, a
   migration, or a state-change-triggered write is exercised for real (see the
   `PluginShell` and `NavyStaff/Integrated` stories) without touching the user's
   disk. Ship Info and Navy Staff use separate files, plugin keys and one writer

@@ -173,9 +173,20 @@ export const SavesWithoutPlannerOpen: Story = {
   },
 }
 
-export const CorruptFileSurfacesLoadError: Story = {
-  name: 'A corrupt persisted file surfaces an error and disables saving',
+// The in-memory readJson boundary returns the stored value as-is, so this seeds
+// a value of the wrong shape (a raw string) rather than malformed JSON text: it
+// exercises structure validation, not a JSON.parse failure.
+export const MalformedStoredValueSurfacesLoadError: Story = {
+  name: 'A malformed persisted value surfaces a load error and disables saving',
   parameters: {
+    // Intentional error path: the loaded value fails structure validation once.
+    expectedConsole: [
+      {
+        method: 'error',
+        message: 'PersistedDataError: persisted data is not an object',
+        count: 1,
+      },
+    ],
     shipInfo: {
       state: plannerScenarioState(),
       files: { [PLUGIN_DATA_PATH]: '{ not valid json' },

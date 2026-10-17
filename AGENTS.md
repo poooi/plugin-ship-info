@@ -50,3 +50,4 @@ git diff --check
 - Run type checks, builds, and relevant behavior checks for runtime changes. For documentation changes, check content, links, and whitespace.
 - `pnpm run check` runs `tsc --noEmit`. `pnpm test` runs the Vitest suite in `tests/` (`vp test run`). `pnpm run lint` and `pnpm run fmt` are the optional Vite+ lint/format tools; formatting is not a required gate.
 - Preserve the build's host dependency conventions. Verify packaged entry points, translations, and inline UI assets when changing packaging.
+- Chromium stories must be silent on `console.warn`/`console.error`. Declare intentional logs in `parameters.expectedConsole` with the exact `method`/`message`/`count`/`args`; never suppress console globally or add ignore patterns. The browser setup (`tests/browser-console.setup.ts`) enforces this; see `docs/browser-testing.md`.

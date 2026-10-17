@@ -27,6 +27,9 @@ export default defineConfig({
         ],
         test: {
           name: 'storybook',
+          // Strict console contract: capture console.warn/error before each
+          // story renders and validate it afterwards (see tests/browser-console.*).
+          setupFiles: [path.join(dirname, 'tests/browser-console.setup.ts')],
           // Vitest 5 uses `test.api` for the browser orchestration server.
           // Its default port (63315) sits in a Windows-reserved range, so pin
           // a free IPv4 loopback port instead.

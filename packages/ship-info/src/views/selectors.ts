@@ -1,5 +1,5 @@
 import { APIShip } from 'kcsapi/api_port/port/response'
-import { get, keyBy, map, mapValues, memoize } from 'lodash'
+import { get, keyBy, map, mapValues, memoize, size } from 'lodash'
 import { createSelector } from 'reselect'
 import i18next from 'views/env-parts/i18next'
 import { z } from 'zod'
@@ -92,6 +92,56 @@ export const shipTypesFilterSelector = createSelector(
     const rawValue = get(config, 'plugin.ShipInfo.shipTypes', 0)
     const result = shipTypesSchema.safeParse(rawValue)
     return result.success ? result.data : 0
+  },
+)
+
+// Derived view values for the filter sidebar. They are module-level selectors so
+// the same inputs return the same object (no fresh object per render), while
+// still recomputing from the narrow inputs they actually read: the master ship
+// types or the tag source, the filter config and the current language.
+export const shipTypeFilterViewSelector = createSelector(
+  [constSelector, shipTypesFilterSelector],
+  (constState, shipTypesValue) => {
+    const $shipTypes = constState?.$shipTypes ?? {}
+    const defaultChecked: boolean[] = new Array(size($shipTypes)).fill(true)
+    const shipChecked = intToBoolArray(shipTypesValue)
+    const checked =
+      defaultChecked.length === shipChecked.length
+        ? shipChecked
+        : defaultChecked
+    const checkedAll = checked.reduce((a, b) => a && b, true)
+    return { $shipTypes, checked, checkedAll }
+  },
+)
+
+// The current language is passed as an extra selector argument (rather than read
+// as a module selector) so the caller's render re-runs the memoized selector with
+// the new language even when the Redux state identity is unchanged.
+export const sallyAreaFilterViewSelector = createSelector(
+  [
+    fcdSelector,
+    configSelector,
+    (_state: IState, language: string) => language,
+    sallyAreaFilterSelector,
+  ],
+  (fcdState, config, language, sallyAreaChecked) => {
+    const shiptag = fcdState?.shiptag ?? {}
+    const isFleetName = get(config, 'plugin.ShipInfo.displayFleetName', false)
+    const names: string[] = isFleetName
+      ? get(shiptag, ['fleetname', language], [])
+      : shiptag.mapname ?? []
+    const defaultChecked: boolean[] = new Array(names.length + 1).fill(true)
+    const checked =
+      names.length + 1 === sallyAreaChecked.length
+        ? sallyAreaChecked
+        : defaultChecked
+    const checkedAll = checked.reduce((a, b) => a && b, true)
+    return {
+      checked,
+      checkedAll,
+      color: shiptag.color ?? [],
+      mapname: names,
+    }
   },
 )
 
