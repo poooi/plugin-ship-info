@@ -36,7 +36,7 @@
     "priority": 51
   },
   "devDependencies": {
-    "@poi-plugins/ship-info-shared": "workspace:*"
+    "@poi-plugins/shared": "workspace:*"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org"

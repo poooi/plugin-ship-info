@@ -97,14 +97,6 @@ export const withShipRecord = (
   ships: { ...content.ships, [String(record.ownedId)]: record },
 })
 
-export const assignedShipIds = (content: NavyWorkspaceContent): number[] => {
-  const ids: number[] = []
-  for (const area of content.areas) {
-    for (const id of content.assignments[area.id] ?? []) ids.push(id)
-  }
-  return ids
-}
-
 /** Stable serialization used to detect an unchanged restore target. */
 export const contentFingerprint = (content: NavyWorkspaceContent): string =>
   JSON.stringify(content)

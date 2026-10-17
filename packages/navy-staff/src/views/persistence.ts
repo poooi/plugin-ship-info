@@ -10,7 +10,7 @@ import {
   type PersistedMigration,
   type PersistenceActions,
   type PersistenceOptions as EngineOptions,
-} from '@poi-plugins/ship-info-shared/persistence'
+} from '@poi-plugins/shared/persistence'
 import {
   ACCOUNT_DIR,
   isAccountFileName,

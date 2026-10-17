@@ -1,7 +1,7 @@
 import path from 'path'
 import { readdir } from 'fs-extra'
 
-import { isEnoent } from '@poi-plugins/ship-info-shared/persistence'
+import { isEnoent } from '@poi-plugins/shared/persistence'
 
 import { PLUGIN_KEY } from './plugin-identity'
 

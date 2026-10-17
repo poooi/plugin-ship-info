@@ -9,7 +9,7 @@ Two plugins release independently:
 - `poi-plugin-ship-info` in `packages/ship-info`
 - `poi-plugin-navy-staff` in `packages/navy-staff`
 
-`@poi-plugins/ship-info-shared` and the root workspace are private. They are
+`@poi-plugins/shared` and the root workspace are private. They are
 excluded with `versioning.ignore` and are never versioned or published. Shared
 code is bundled into the plugin that uses it.
 

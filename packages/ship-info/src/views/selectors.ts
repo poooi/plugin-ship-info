@@ -21,7 +21,7 @@ import {
 } from 'views/utils/selectors'
 
 import { APISlotItem } from 'kcsapi/api_get_member/require_info/response'
-import { shipFleetIdMapSelector } from '@poi-plugins/ship-info-shared/fleet'
+import { shipFleetIdMapSelector } from '@poi-plugins/shared/fleet'
 import { intToBoolArray } from './utils'
 
 // Zod schemas for filter validation

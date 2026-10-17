@@ -6,7 +6,6 @@
   "files": [
     "index.js",
     "index.js.map",
-    "assets",
     "i18n",
     "CHANGELOG.md"
   ],
@@ -45,7 +44,7 @@
     }
   },
   "devDependencies": {
-    "@poi-plugins/ship-info-shared": "workspace:*"
+    "@poi-plugins/shared": "workspace:*"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org"

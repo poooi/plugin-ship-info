@@ -4,7 +4,7 @@ import React, { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
 
-import { shipSuperTypeMap } from '@poi-plugins/ship-info-shared/ship-types'
+import { shipSuperTypeMap } from '@poi-plugins/shared/ship-types'
 import type { WorkspaceAreaView, WorkspaceShipRow } from '../workspace/selectors'
 import { ActualSortieTag } from './actual-sortie-tag'
 import { FleetBadge } from './fleet-badge'

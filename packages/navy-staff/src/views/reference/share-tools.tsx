@@ -94,6 +94,16 @@ export interface ShareToolsProps {
   className?: string
 }
 
+// One generated result: the encoded text, the decoded snapshot it produced, and
+// the source label captured at generation time. They change together, and the id
+// remounts the image preview so a new result never reuses the previous snapshot.
+interface GeneratedShareResult {
+  text: string
+  reference: DecodedReference
+  label: string
+  id: number
+}
+
 const defaultSaveText = async (
   fileName: string,
   text: string,
@@ -118,10 +128,7 @@ export const ShareTools = ({
   className,
 }: ShareToolsProps) => {
   const { t } = useTranslation('poi-plugin-navy-staff')
-  const [shareText, setShareText] = useState('')
-  // Decoded once from the generated text so text and image share one snapshot.
-  const [snapshot, setSnapshot] = useState<DecodedReference | null>(null)
-  const [resultLabel, setResultLabel] = useState('')
+  const [result, setResult] = useState<GeneratedShareResult | null>(null)
   const [errorKey, setErrorKey] = useState<ReferenceErrorMessageKey | null>(null)
   const [copyPending, setCopyPending] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -129,7 +136,6 @@ export const ShareTools = ({
   // True while the embedded ReferenceView is capturing: block replacing the
   // frozen snapshot so a late result cannot attach to different content.
   const [imageBusy, setImageBusy] = useState(false)
-  const [resultId, setResultId] = useState(0)
 
   const handleGenerate = () => {
     if (copyPending || imageBusy) return
@@ -138,23 +144,27 @@ export const ShareTools = ({
     try {
       const text = encodeReference(onCapture())
       // Decode the final text so normalizations are reflected identically in the
-      // text and the image preview.
-      setSnapshot(decodeReference(text))
-      setShareText(text)
-      setResultLabel(sourceLabel)
-      setResultId((value) => value + 1)
+      // text and the image preview. Decode inside the try (not in the state
+      // updater) so a decode failure shows the error instead of escaping.
+      const reference = decodeReference(text)
+      setResult((previous) => ({
+        id: (previous?.id ?? 0) + 1,
+        label: sourceLabel,
+        reference,
+        text,
+      }))
     } catch {
       setErrorKey('exportFailed')
     }
   }
 
   const handleCopy = async () => {
-    if (!shareText) return
+    if (!result) return
     setErrorKey(null)
     setCopied(false)
     setCopyPending(true)
     try {
-      await remote.clipboard.writeText(shareText)
+      await remote.clipboard.writeText(result.text)
       setCopied(true)
     } catch {
       setErrorKey('shareTextCopyFailed')
@@ -164,10 +174,10 @@ export const ShareTools = ({
   }
 
   const handleSave = async () => {
-    if (!shareText) return
+    if (!result) return
     setErrorKey(null)
     try {
-      await defaultSaveText(shareFileName(new Date()), shareText, t('Text file'))
+      await defaultSaveText(shareFileName(new Date()), result.text, t('Text file'))
     } catch {
       setErrorKey('shareTextSaveFailed')
     }
@@ -193,12 +203,12 @@ export const ShareTools = ({
           />
         </Toolbar>
 
-        {shareText ? (
+        {result ? (
           <ResultBlock>
             <TextArea
               fill
               readOnly
-              value={shareText}
+              value={result.text}
               aria-label={t('Share text')}
               data-testid="share-text"
             />
@@ -216,8 +226,8 @@ export const ShareTools = ({
                 </Callout>
               )}
             </Toolbar>
-            {resultLabel !== sourceLabel && (
-              <Muted>{t('Share text source', { label: resultLabel })}</Muted>
+            {result.label !== sourceLabel && (
+              <Muted>{t('Share text source', { label: result.label })}</Muted>
             )}
           </ResultBlock>
         ) : (
@@ -239,13 +249,13 @@ export const ShareTools = ({
           <Button
             text={t(imageRevealed ? 'Hide image preview' : 'Show image preview')}
             aria-expanded={imageRevealed}
-            disabled={imageBusy || !snapshot}
+            disabled={imageBusy || !result}
             onClick={() => setImageRevealed((value) => !value)}
           />
         </ImageHeader>
-        {imageRevealed && snapshot ? (
+        {imageRevealed && result ? (
           <div data-testid="share-image-preview">
-            <ReferenceView key={resultId} reference={snapshot} onCaptureBusyChange={setImageBusy} />
+            <ReferenceView key={result.id} reference={result.reference} onCaptureBusyChange={setImageBusy} />
           </div>
         ) : null}
       </SectionCard>

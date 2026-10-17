@@ -35,7 +35,7 @@ You can also write the file by hand with a new, descriptive filename.
   just to satisfy an ASCII check.
 - Name only publishable plugin packages: `poi-plugin-ship-info` and
   `poi-plugin-navy-staff`. The root workspace and
-  `@poi-plugins/ship-info-shared` are private, are excluded from versioning, and
+  `@poi-plugins/shared` are private, are excluded from versioning, and
   must not be named in an intent.
 - Changes under `packages/shared/` or build/dependency configuration affect both
   plugins. Add coverage for both packages, either in one intent or in two new

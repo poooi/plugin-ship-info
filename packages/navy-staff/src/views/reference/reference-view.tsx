@@ -19,7 +19,7 @@ import { createSelector } from 'reselect'
 import styled, { ThemeContext } from 'styled-components'
 import { constSelector } from 'views/utils/selectors'
 
-import { shipTypeLabelKeys } from '@poi-plugins/ship-info-shared/ship-types'
+import { shipTypeLabelKeys } from '@poi-plugins/shared/ship-types'
 import { captureRect, imageFileName } from '../planner/capture'
 import { readingToRomaji } from '../search'
 import { ViewToggle } from '../view-toggle'

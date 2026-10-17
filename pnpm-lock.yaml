@@ -128,14 +128,14 @@ importers:
   packages/navy-staff:
     resolution: {directory: packages/navy-staff, type: workspace}
     devDependencies:
-      '@poi-plugins/ship-info-shared':
+      '@poi-plugins/shared':
         specifier: workspace:*
         version: link:../shared
 
   packages/ship-info:
     resolution: {directory: packages/ship-info, type: workspace}
     devDependencies:
-      '@poi-plugins/ship-info-shared':
+      '@poi-plugins/shared':
         specifier: workspace:*
         version: link:../shared
 

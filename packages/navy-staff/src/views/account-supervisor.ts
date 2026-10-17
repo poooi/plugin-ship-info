@@ -4,7 +4,7 @@ import type {
   Persistence,
   PersistenceStore,
   PersistenceWriter,
-} from '@poi-plugins/ship-info-shared/persistence'
+} from '@poi-plugins/shared/persistence'
 import { accountFilePath, normalizeMemberId } from './account'
 import { ACTIONS } from './plugin-identity'
 import { createPersistence, type NavyPersistenceOptions } from './persistence'

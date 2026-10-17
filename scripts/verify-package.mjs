@@ -212,7 +212,7 @@ const verifyPackage = (pkg) => {
   }
 
   check(
-    !entry.includes('@poi-plugins/ship-info-shared'),
+    !entry.includes('@poi-plugins/shared'),
     `${pkg.name}: entry references the private shared package`,
   )
   // A dependency specifier must not use the workspace: protocol after bundling.
