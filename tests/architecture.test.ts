@@ -66,7 +66,7 @@ describe('architecture boundaries', () => {
           }
           if (spec.startsWith('@poi-plugins/')) {
             expect(spec, `${file} imports ${spec}`).toMatch(
-              /^@poi-plugins\/ship-info-shared\//,
+              /^@poi-plugins\/shared\//,
             )
             continue
           }

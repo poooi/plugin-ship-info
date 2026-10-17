@@ -7,7 +7,7 @@ import styled from 'styled-components'
 import { getShipImgPath } from 'views/utils/ship-img'
 import type { IState } from 'views/utils/selectors'
 
-import { controlSurface } from '@poi-plugins/ship-info-shared/ui/styles'
+import { controlSurface } from '@poi-plugins/shared/ui/styles'
 import type { WorkspaceShipRow } from '../workspace/selectors'
 import { ActualSortieTag } from './actual-sortie-tag'
 import { FleetBadge } from './fleet-badge'

@@ -2,7 +2,7 @@ import React from 'react'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
 
-import { FleetIcon } from '@poi-plugins/ship-info-shared/ui/fleet-icon'
+import { FleetIcon } from '@poi-plugins/shared/ui/fleet-icon'
 
 const Badge = styled.span`
   display: inline-flex;

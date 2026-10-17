@@ -14,7 +14,7 @@ export default defineConfig({
     deps: {
       // Keep the private shared source package bundled even though it is a
       // dependency, so the published plugin has no runtime workspace reference.
-      alwaysBundle: ['@poi-plugins/ship-info-shared'],
+      alwaysBundle: ['@poi-plugins/shared'],
       neverBundle: [
         // Bundling Blueprint freezes its `bpN-` class namespace at build time,
         // which then disagrees with the stylesheet poi loads. poi prepends its own

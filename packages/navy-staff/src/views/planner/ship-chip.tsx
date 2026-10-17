@@ -9,7 +9,7 @@ import styled from 'styled-components'
 import { Popover } from 'views/components/etc/overlay'
 import type { IState } from 'views/utils/selectors'
 
-import { shipTypeLabel } from '@poi-plugins/ship-info-shared/ship-types'
+import { shipTypeLabel } from '@poi-plugins/shared/ship-types'
 import { assignShip, removeShipFromArea } from '../workspace/actions'
 import type { WorkspaceShipRow } from '../workspace/selectors'
 import { ActualSortieTag } from './actual-sortie-tag'

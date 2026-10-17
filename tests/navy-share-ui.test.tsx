@@ -24,9 +24,21 @@ vi.mock('electron', () => ({
 vi.mock('fs-extra', () => ({ outputFile: mocks.outputFile }))
 vi.mock('modern-screenshot', () => ({ domToPng: mocks.domToPng }))
 vi.mock('views/utils/selectors', () => ({ constSelector: () => ({}) }))
+// Wrap the codec so a test can force one encode to produce undecodable text
+// while every other call still uses the real implementation.
+vi.mock('../packages/navy-staff/src/views/reference/codec', async (importOriginal) => {
+  const actual = await importOriginal<
+    typeof import('../packages/navy-staff/src/views/reference/codec')
+  >()
+  return {
+    ...actual,
+    decodeReference: vi.fn(actual.decodeReference),
+    encodeReference: vi.fn(actual.encodeReference),
+  }
+})
 
 import { createNavyOnlyI18n } from '../preview/i18n'
-import { decodeReference } from '../packages/navy-staff/src/views/reference/codec'
+import { decodeReference, encodeReference } from '../packages/navy-staff/src/views/reference/codec'
 import type { DecodedReference } from '../packages/navy-staff/src/views/reference/types'
 import { ShareTools } from '../packages/navy-staff/src/views/reference/share-tools'
 
@@ -160,6 +172,23 @@ describe('Share tools (zh-CN)', () => {
       filters: Array<{ extensions: string[]; name: string }>
     }
     expect(options.filters[0].name).toBe('文本文件')
+  })
+
+  it('keeps the previous result and reports failure when regeneration cannot decode', () => {
+    renderShare()
+    fireEvent.click(button('Start sharing'))
+    const firstText = (screen.getByTestId('share-text') as HTMLTextAreaElement).value
+    fireEvent.click(button('Show image preview'))
+
+    // The next generation produces text that cannot be decoded back, so the
+    // decode failure must be caught and shown instead of escaping render.
+    vi.mocked(encodeReference).mockImplementationOnce(() => 'not a reference')
+    fireEvent.click(button('Start sharing'))
+
+    expect(screen.getByTestId('share-error').textContent).toBe('无法生成分享文本。')
+    // The earlier frozen text and image are retained.
+    expect((screen.getByTestId('share-text') as HTMLTextAreaElement).value).toBe(firstText)
+    expect(within(screen.getByTestId('share-image-preview')).getByText('友军参考')).toBeTruthy()
   })
 
   it('blocks regeneration while an image capture is pending and isolates its late failure', async () => {

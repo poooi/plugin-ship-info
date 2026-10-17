@@ -11,7 +11,7 @@ import { useAtomValue } from 'jotai'
 import { allShipRowsMapSelector } from '../../selectors'
 import { filteredShipIdsAtom } from '../../table'
 import { IShipRawData } from '../../types'
-import { Checkbox, CheckboxLabel } from '@poi-plugins/ship-info-shared/ui/checkbox'
+import { Checkbox, CheckboxLabel } from '@poi-plugins/shared/ui/checkbox'
 import { Container } from '../components/layout'
 import { buildCsv } from './build-csv'
 

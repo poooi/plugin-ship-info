@@ -50,17 +50,18 @@ const HiddenFileInput = styled.input`
 
 export interface ReferenceToolsProps {
   className?: string
-  /** Notifies the parent when a reference is opened or closed (read-only). */
-  onOpenChange?: (reference: DecodedReference | null) => void
 }
 
-export const ReferenceTools = ({
-  className,
-  onOpenChange,
-}: ReferenceToolsProps) => {
+// One opened result: the decoded reference and the exact code it came from.
+// They always change together, so they are a single piece of state.
+interface OpenedReference {
+  reference: DecodedReference
+  code: string
+}
+
+export const ReferenceTools = ({ className }: ReferenceToolsProps) => {
   const { t } = useTranslation('poi-plugin-navy-staff')
-  const [reference, setReference] = useState<DecodedReference | null>(null)
-  const [code, setCode] = useState('')
+  const [opened, setOpened] = useState<OpenedReference | null>(null)
   const [errorKey, setErrorKey] = useState<ReferenceErrorMessageKey | null>(null)
   const [importing, setImporting] = useState(false)
   const [draft, setDraft] = useState('')
@@ -74,13 +75,11 @@ export const ReferenceTools = ({
   const readGuard = useRef(createRequestGuard())
 
   const openReference = (next: DecodedReference, text: string) => {
-    setReference(next)
-    setCode(text)
+    setOpened({ code: text, reference: next })
     setShowCode(false)
     setDraft('')
     setImporting(false)
     setErrorKey(null)
-    onOpenChange?.(next)
   }
 
   const handleDecode = (text: string) => {
@@ -156,12 +155,10 @@ export const ReferenceTools = ({
     setDraft('')
     setImporting(false)
     setShowCode(false)
-    setReference(null)
-    setCode('')
-    onOpenChange?.(null)
+    setOpened(null)
   }
 
-  const showForm = !reference || importing
+  const showForm = !opened || importing
 
   return (
     <div className={className} data-testid="reference-tools">
@@ -191,7 +188,7 @@ export const ReferenceTools = ({
             <Button disabled={captureBusy} onClick={() => fileInput.current?.click()}>
               {t('Open file')}
             </Button>
-            {reference && <Button onClick={cancelForm}>{t('Cancel')}</Button>}
+            {opened && <Button onClick={cancelForm}>{t('Cancel')}</Button>}
           </Row>
           {errorKey && (
             <Callout intent={Intent.DANGER} data-testid="reference-error">
@@ -213,11 +210,11 @@ export const ReferenceTools = ({
         </FormCard>
       )}
 
-      {reference && (
+      {opened && (
         <div data-testid="reference-result">
           <ReferenceView
-            key={code}
-            reference={reference}
+            key={opened.code}
+            reference={opened.reference}
             onCaptureBusyChange={handleCaptureBusyChange}
             onClose={handleClose}
             onReopen={() => {
@@ -225,7 +222,7 @@ export const ReferenceTools = ({
               setImporting(true)
             }}
           />
-          {code && (
+          {opened.code && (
             <Disclosure>
               <Button
                 small
@@ -237,7 +234,7 @@ export const ReferenceTools = ({
                 <TextArea
                   fill
                   readOnly
-                  value={code}
+                  value={opened.code}
                   aria-label={t('Share text')}
                   data-testid="reference-share-text"
                 />

@@ -68,7 +68,7 @@ const makeFixture = ({ navyVersion = '1.2.0', tooling = true } = {}) => {
       'versioning:',
       '  ignore:',
       '    - fixture-root',
-      "    - '@poi-plugins/ship-info-shared'",
+      "    - '@poi-plugins/shared'",
       '  changelog:',
       '    storage: repository',
       '',
@@ -79,7 +79,7 @@ const makeFixture = ({ navyVersion = '1.2.0', tooling = true } = {}) => {
     'packages/ship-info/package.json',
     JSON.stringify({
       devDependencies: {
-        '@poi-plugins/ship-info-shared': 'workspace:*',
+        '@poi-plugins/shared': 'workspace:*',
       },
       name: 'poi-plugin-ship-info',
       private: true,
@@ -91,7 +91,7 @@ const makeFixture = ({ navyVersion = '1.2.0', tooling = true } = {}) => {
     'packages/navy-staff/package.json',
     JSON.stringify({
       devDependencies: {
-        '@poi-plugins/ship-info-shared': 'workspace:*',
+        '@poi-plugins/shared': 'workspace:*',
       },
       name: 'poi-plugin-navy-staff',
       private: true,
@@ -102,7 +102,7 @@ const makeFixture = ({ navyVersion = '1.2.0', tooling = true } = {}) => {
     root,
     'packages/shared/package.json',
     JSON.stringify({
-      name: '@poi-plugins/ship-info-shared',
+      name: '@poi-plugins/shared',
       private: true,
       version: '0.0.0',
     }),

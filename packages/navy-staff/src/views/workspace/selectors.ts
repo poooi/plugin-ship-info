@@ -7,7 +7,7 @@ import { createSelector } from 'reselect'
 
 import { extensionSelectorFactory, IState } from 'views/utils/selectors'
 
-import { shipFleetIdMapSelector } from '@poi-plugins/ship-info-shared/fleet'
+import { shipFleetIdMapSelector } from '@poi-plugins/shared/fleet'
 import { normalizeMemberId } from '../account'
 import { PLUGIN_KEY } from '../plugin-identity'
 import { shipMenuDataSelector, type IPlannerShipData } from '../planner/selectors'
