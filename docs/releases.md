@@ -191,10 +191,18 @@ release therefore **requires** a GitHub App and fails early when it is missing:
    read is granted automatically.
 2. Install it on this repository.
 3. Generate a private key.
-4. Add repository secrets `RELEASE_APP_ID` and `RELEASE_APP_PRIVATE_KEY`.
+4. Open **Settings -> Secrets and variables -> Actions** in the repository:
+   - Under **Variables**, add `RELEASE_APP_ID` with the App's **App ID** (not
+     its Client ID or Installation ID). This is a public identifier.
+   - Under **Secrets**, add `RELEASE_APP_PRIVATE_KEY` with the entire generated
+     `.pem` file, including the BEGIN/END lines and line breaks.
+
+If `RELEASE_APP_ID` was previously configured as a secret, copy its App ID from
+the App settings into the repository variable; the workflow now reads `vars`,
+not `secrets`, for this value. The private key remains a secret.
 
 Prepare release uses an installation token to push the branch and open the PR,
-which triggers CI normally. There is no fallback: without these secrets the
+which triggers CI normally. There is no fallback: without this configuration the
 workflow fails with the setup instructions.
 
 ### npm trusted publishing
