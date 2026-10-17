@@ -90,8 +90,23 @@ and `code -> main`.
 - `beta` publishes `X.Y.Z-beta.N` prereleases. The first beta is `-beta.0`;
   each later beta intent on the same target advances the native counter
   (`-beta.1`, …). pnpm's lane math owns the counter.
+- pnpm records consumption per package in `.changeset/ledger.yaml`. A beta lane
+  intentionally **retains** the original intent files after consuming them, so
+  a file may still exist while being fully accounted for. Retention is not a new
+  pending change: pending status is decided per package by the ledger, never by
+  a file's presence or a lane name.
 - Moving a beta package back to `main` releases its accumulated stable target on
-  the next run **without a new intent**, with the cumulative changelog.
+  the next run **without a new intent**, reusing the retained intents, with the
+  cumulative changelog. pnpm deletes a retained file only once every package it
+  names **that requests a version bump** is fully consumed; `none` entries do
+  not block removal.
+- Concrete lifecycle: `1.0.0` stable → `1.0.1-beta.0` (intent A retained) →
+  `1.0.1-beta.1` (intent B retained) → `1.0.1` on `main` whose changelog section
+  carries both A and B, after which the retained files are removed once pnpm's
+  full-consumption conditions hold.
+- Do not hand-delete retained intents or add fabricated deletions to a Release
+  PR. Release PR validation reruns pnpm from the recorded base and checks the
+  generated diff; retained files alone are not a validation failure.
 - Only the selected plugins move; `code -> main` for an unchanged plugin is not
   implied, and a skipped package's lane is left untouched.
 - Beta prereleases publish under the npm `beta` dist-tag and never touch
