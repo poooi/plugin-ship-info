@@ -97,6 +97,30 @@ export const onUndo = () => ({ type: NAVY_ACTIONS.undo })
 
 export const onRedo = () => ({ type: NAVY_ACTIONS.redo })
 
+/**
+ * Applies many ship assignments/removals as one revision. `target` is the local
+ * area ID to assign into, or null to remove the listed ships from wherever they
+ * are. `records` carries display records for newly placed live ships. The
+ * reducer skips no-op changes and appends nothing when the content is unchanged.
+ */
+export const onBatchAssign = ({
+  target,
+  shipIds,
+  records,
+  now,
+}: {
+  target: string | null
+  shipIds: number[]
+  records: NavyShipRecord[]
+  now: string
+}) => ({
+  type: NAVY_ACTIONS.batchAssign,
+  target,
+  shipIds,
+  records,
+  now,
+})
+
 export const onRestore = ({ id, now }: { id: string; now: string }) => ({
   type: NAVY_ACTIONS.restore,
   id,

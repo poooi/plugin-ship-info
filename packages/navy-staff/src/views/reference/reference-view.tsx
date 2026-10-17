@@ -194,7 +194,7 @@ export const ReferenceView = ({ reference, onClose }: ReferenceViewProps) => {
           {t('Capture time')}: {reference.captureTime}
         </span>
         <span>
-          {t('Export time')}: {reference.exportTime}
+          {t('Generated at')}: {reference.exportTime}
         </span>
         <span>
           {t('Locale')}: {reference.locale}

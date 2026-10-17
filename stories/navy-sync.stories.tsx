@@ -56,7 +56,7 @@ const areaLabel = (
 ): string | undefined => content(environment).areas.find((a) => a.id === id)?.label
 
 const openSyncFlow = async (button: string) => {
-  await userEvent.click(await screen.findByRole('tab', { name: 'Synchronize' }))
+  await userEvent.click(await screen.findByRole('button', { name: 'Update from game' }))
   await userEvent.click(await screen.findByRole('button', { name: button }))
   await userEvent.click(
     await screen.findByRole('checkbox', {
@@ -241,7 +241,7 @@ export const PreparedSyncCannotAcceptDuringHistoryPreview: Story = {
     await openPlanner()
     await openSyncFlow('Update area information')
 
-    fireEvent.click(await screen.findByRole('tab', { name: 'History' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'History' }))
     fireEvent.change(screen.getByLabelText('History'), {
       target: { value: 'rev-1' },
     })
@@ -374,7 +374,7 @@ export const PreparedSyncSurvivesPlanDetour: Story = {
     await openPlanner()
     const environment = getEnvironment()
 
-    await userEvent.click(await screen.findByRole('tab', { name: 'Synchronize' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Update from game' }))
     await userEvent.click(
       await screen.findByRole('button', { name: 'Update area information' }),
     )
@@ -396,9 +396,9 @@ export const PreparedSyncSurvivesPlanDetour: Story = {
     await userEvent.click(screen.getByRole('button', { name: 'Preview changes' }))
     await expect(await screen.findByTestId('sync-preview')).toBeTruthy()
 
-    // Detour to Plan and back to Synchronize.
-    await userEvent.click(screen.getByRole('tab', { name: 'Plan' }))
-    await userEvent.click(screen.getByRole('tab', { name: 'Synchronize' }))
+    // Return to the editor and reopen the contextual update task.
+    await userEvent.click(screen.getByRole('button', { name: 'Return to current plan' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Update from game' }))
 
     // The chosen mapping and the prepared preview survived.
     await expect(screen.getByTestId('sync-preview')).toBeTruthy()

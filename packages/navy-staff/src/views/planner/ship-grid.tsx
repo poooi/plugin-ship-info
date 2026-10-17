@@ -17,11 +17,12 @@ import { resolveAreaLabel } from './types'
 
 // Container-driven grid: tracks fill the available width rather than the
 // browser viewport, so a narrow plugin panel gets readable cards instead of a
-// fixed column count. `min(160px, 100%)` keeps a very narrow panel from
-// overflowing horizontally.
+// fixed column count. `min(156px, 100%)` keeps a very narrow panel from
+// overflowing horizontally while giving ~4 usable columns at 720px and 2 at
+// 480px.
 const Grid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(160px, 100%), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(156px, 100%), 1fr));
   gap: 8px;
 `
 
@@ -36,6 +37,8 @@ const GroupHeading = styled.h2`
 interface IProps {
   display: DisplayContent
   fill: string | null
+  /** True once a destination or the explicit remove choice is selected. */
+  fillChosen: boolean
   readOnly: boolean
 }
 
@@ -50,7 +53,7 @@ const groupLabel = (
 // Grid rows come from the passed display content, so a history preview shows
 // captured ships only while editing can include eligible live-only ships.
 export const ShipGrid = forwardRef(
-  ({ display, fill, readOnly }: IProps, ref: Ref<HTMLDivElement>) => {
+  ({ display, fill, fillChosen, readOnly }: IProps, ref: Ref<HTMLDivElement>) => {
     const dispatch = useDispatch<ThunkDispatch<IState, unknown, Action>>()
     const { t } = useTranslation(['poi-plugin-navy-staff'])
     const displayFleetName = useSelector((state: IState) =>
@@ -97,7 +100,7 @@ export const ShipGrid = forwardRef(
                     areaLabel={areaLabelFor(row)}
                     color={row.assignedColor ?? '#000'}
                     onClick={
-                      readOnly
+                      readOnly || !fillChosen
                         ? undefined
                         : () => dispatch(assignShip(row.ownedId, fill))
                     }

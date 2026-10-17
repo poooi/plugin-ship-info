@@ -11,14 +11,18 @@ import { controlSurface } from '@poi-plugins/ship-info-shared/ui/styles'
 import type { WorkspaceShipRow } from '../workspace/selectors'
 
 // A single card in the ship grid. The card sizes itself from the grid track
-// (container-driven, see ship-grid.tsx), not from the browser viewport, so a
-// narrow poi panel never gets columns too cramped to read.
+// (container-driven, see ship-grid.tsx), not from the browser viewport.
 //
 // Assignment is shown as a 4px colour edge plus a subtle tint on a neutral poi
 // surface, so the plan survives both themes without a saturated colour wash.
-// Portraits keep the artwork on the left and read over a neutral dark scrim;
-// without portraits the text uses the theme's foreground colour.
-const CARD_HEIGHT = 54
+//
+// Two compositions:
+//  - text-only: left-aligned name + level on the first row, a visible assigned
+//    area (or Unassigned) on a subdued second row;
+//  - portrait: the artwork stays on the left; a compact, right-aligned text
+//    block carries name/level/assignment over a small dark backing that never
+//    covers the whole portrait.
+const CARD_HEIGHT = 58
 const EDGE = 4
 
 const ShipAvatar = styled.img.attrs<{ left: number }>(({ left }) => ({
@@ -43,13 +47,14 @@ const Tint = styled.div<{ $color: string }>`
 const Scrim = styled.div`
   position: absolute;
   inset: 0;
-  background: linear-gradient(to right, transparent 26%, rgba(0, 0, 0, 0.72) 78%);
+  background: linear-gradient(to right, transparent 30%, rgba(0, 0, 0, 0.55) 72%);
   z-index: 2;
 `
 
 // A read-only card is not a control: it must not be a tab stop or expose a
 // button role. Editable cards keep button semantics and keyboard activation;
-// read-only cards are a labelled group (no list parent is required).
+// read-only cards are a labelled group (no list parent required). The hover
+// affordance appears on editable cards only.
 const ShipGridCell = styled.div.attrs<{ $interactive: boolean }>((props) => ({
   role: props.$interactive ? 'button' : 'group',
   tabIndex: props.$interactive ? 0 : undefined,
@@ -68,24 +73,30 @@ const ShipGridCell = styled.div.attrs<{ $interactive: boolean }>((props) => ({
         ? props.theme.DARK_GRAY3
         : props.theme.LIGHT_GRAY3,
     )};
-  text-align: right;
 
   &:focus-visible {
     outline: 2px solid ${(props) => props.theme.COBALT3};
     outline-offset: -2px;
   }
+
+  ${(props) =>
+    props.$interactive &&
+    `
+      transition: box-shadow 120ms ease, background-color 120ms ease;
+      &:hover {
+        box-shadow: inset 0 0 0 1px ${props.theme.COBALT3};
+      }
+    `}
 `
 
-// Portrait mode gives the text a compact dark backing so a bright portrait
-// never washes out long names; text-only mode keeps theme-coloured text on the
-// neutral card surface with no backing.
 const Text = styled.div<{ $portrait: boolean }>`
   position: absolute;
+  inset: 0;
   z-index: 10;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
-  gap: 1px;
+  justify-content: center;
+  gap: 2px;
   pointer-events: none;
   color: ${(props) =>
     props.$portrait
@@ -97,25 +108,38 @@ const Text = styled.div<{ $portrait: boolean }>`
   ${(props) =>
     props.$portrait
       ? `
+        left: auto;
         right: 0;
         top: 50%;
+        bottom: auto;
+        width: auto;
+        max-width: 74%;
         transform: translateY(-50%);
-        max-width: 100%;
-        padding: 2px 6px;
-        background: rgba(0, 0, 0, 0.6);
+        align-items: flex-end;
+        text-align: right;
+        padding: 3px 7px;
+        background: rgba(0, 0, 0, 0.55);
         border-radius: 4px 0 0 4px;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
       `
       : `
-        inset: 0;
-        justify-content: center;
-        padding: 0 8px 0 4px;
+        align-items: stretch;
+        text-align: left;
+        padding: 4px 8px 4px 7px;
       `}
 `
 
-const ShipName = styled.div`
+const NameRow = styled.div`
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
   width: 100%;
-  max-width: 100%;
+`
+
+const ShipName = styled.span`
+  flex: 1 1 auto;
+  min-width: 0;
   font-weight: 600;
   font-size: 14px;
   line-height: 1.15;
@@ -125,24 +149,25 @@ const ShipName = styled.div`
   user-select: none;
 `
 
-const ShipLevel = styled.div`
+const ShipLevel = styled.span`
+  flex: none;
   font-size: 12px;
-  line-height: 1;
-  opacity: 0.85;
+  line-height: 1.15;
+  opacity: 0.8;
   font-variant-numeric: tabular-nums;
   user-select: none;
 `
 
-const VisuallyHidden = styled.span`
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
+const AreaLabel = styled.span<{ $portrait: boolean }>`
+  display: block;
+  max-width: 100%;
+  font-size: 12px;
+  line-height: 1.15;
+  opacity: ${(props) => (props.$portrait ? 0.92 : 0.72)};
   white-space: nowrap;
-  border: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  user-select: none;
 `
 
 interface IProps {
@@ -206,9 +231,13 @@ const ShipItemBase = ({
       <Tint $color={color} />
       {portrait && <Scrim />}
       <Text $portrait={portrait}>
-        <ShipName>{name}</ShipName>
-        <ShipLevel>Lv.{row.level ?? '?'}</ShipLevel>
-        <VisuallyHidden id={descriptionId}>{assignment}</VisuallyHidden>
+        <NameRow>
+          <ShipName>{name}</ShipName>
+          <ShipLevel>Lv.{row.level ?? '?'}</ShipLevel>
+        </NameRow>
+        <AreaLabel $portrait={portrait} id={descriptionId}>
+          {assignment}
+        </AreaLabel>
       </Text>
     </ShipGridCell>
   )

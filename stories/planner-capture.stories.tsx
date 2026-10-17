@@ -34,13 +34,16 @@ const openPlanner = async () => {
 const openGrid = async () => {
   const container = await openPlanner()
   await userEvent.click(
-    within(container).getByRole('tab', { name: 'Ship Grid' }),
+    within(container).getByRole('tab', { name: 'Grid Palette' }),
   )
   await within(container).findByRole('heading', { level: 2, name: 'DD' })
   return container
 }
 
+const openShare = () => userEvent.click(screen.getByRole('tab', { name: 'Share' }))
+
 const capture = async () => {
+  await openShare()
   await userEvent.click(screen.getByRole('button', { name: 'Save to image' }))
   await waitFor(async () => {
     await expect(getCaptureRequests().length).toBe(1)
@@ -62,11 +65,13 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 export const MainWindowHidesCapture: Story = {
-  name: 'Main window does not offer image capture',
+  name: 'Main window explains why image capture requires a detached window',
   parameters: params(true),
   play: async () => {
     await openPlanner()
-    await expect(screen.queryByRole('button', { name: 'Save to image' })).toBeNull()
+    await openShare()
+    await expect(screen.getByRole('button', { name: 'Save to image' })).toBeDisabled()
+    await expect(screen.getByText('Image capture is only available in the detached window.')).toBeTruthy()
   },
 }
 
@@ -75,6 +80,7 @@ export const DetachedWindowShowsCapture: Story = {
   parameters: params(false),
   play: async () => {
     await openPlanner()
+    await openShare()
     await expect(
       await screen.findByRole('button', { name: 'Save to image' }),
     ).toBeTruthy()
@@ -136,6 +142,7 @@ export const CaptureRejectionLogsAndDoesNotDownload: Story = {
     const errorSpy = spyOn(console, 'error').mockImplementation(() => undefined)
     try {
       await openPlanner()
+      await openShare()
       await userEvent.click(screen.getByRole('button', { name: 'Save to image' }))
 
       // The catch path in captureRect logs the renderer failure.
@@ -149,5 +156,35 @@ export const CaptureRejectionLogsAndDoesNotDownload: Story = {
     } finally {
       errorSpy.mockRestore()
     }
+  },
+}
+
+
+export const HistoricalImageIgnoresEditorFilters: Story = {
+  name: 'Historical images use captured ships and the inspected view, not editor filters',
+  parameters: (() => {
+    const parameters = params(false, { current: [[1], []], mapname: ['E1', 'E2'] })
+    const state = parameters.shipInfo.state as any
+    state['poi-plugin-navy-staff'].navy.workspaces[0].revisions[0].content.ships['1'] = {
+      ownedId: 1, masterId: 1, name: 'Alpha', level: 5, typeId: 2, typeLabel: 'DD',
+      observedAt: '2026-01-01T00:00:00.000Z',
+    }
+    return parameters
+  })(),
+  play: async () => {
+    await openGrid()
+    await userEvent.selectOptions(screen.getByLabelText('Assignment'), 'unassigned')
+    expect(screen.queryByRole('button', { name: 'Alpha Lv.50' })).toBeNull()
+    // Leave the editor in List while choosing Grid in the historical task.
+    await userEvent.click(screen.getByRole('tab', { name: 'Ship List' }))
+    await userEvent.click(screen.getByRole('button', { name: 'History' }))
+    await userEvent.click(screen.getByRole('tab', { name: 'Grid Palette' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Share this state' }))
+    const request = await capture()
+    expect(request.element.textContent).toContain('Alpha')
+    expect(request.element.textContent).toContain('Lv.5')
+    expect(request.element.textContent).not.toContain('Beta')
+    expect(request.element.querySelector('[data-testid="ship-list"]')).toBeNull()
+    expect(request.element.querySelectorAll('[role="group"]')).toHaveLength(1)
   },
 }

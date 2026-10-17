@@ -1,31 +1,32 @@
-// Reference tools: export the current plan as a reference, show/copy/save the
-// share text, and import a reference by pasting text or opening a text file.
-// Imported references live only in React state: this component never dispatches
-// Redux actions, never writes persistence, and never creates an editable
-// workspace.
+// Reference tools: open a shared reference by pasting text or choosing a file,
+// then show it read-only. This component never generates share text, dispatches
+// Redux actions, writes persistence, or creates an editable workspace. Its state
+// is independent of the Share page.
 //
 // The native codec is imported through ./codec.ts; the browser preview maps that
 // one module to preview/adapters/reference-codec.ts (see preview/aliases.ts).
-// Clipboard and file access use the existing poi host boundaries, which the
-// preview also mocks and records.
 
 import { Button, ButtonGroup, Callout, Card, Intent, TextArea } from '@blueprintjs/core'
-import { clipboard, remote } from 'electron'
-import { outputFile } from 'fs-extra'
 import React, { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
 
-import { decodeReference, encodeReference } from './codec.ts'
+import { decodeReference } from './codec.ts'
 import type { DecodedReference } from './types.ts'
 import {
   createRequestGuard,
   errorMessageKey,
   inputWithinLimit,
-  shareFileName,
   type ReferenceErrorMessageKey,
 } from './helpers.ts'
 import { ReferenceView } from './reference-view.tsx'
+
+const Panel = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  margin-top: 0.5em;
+`
 
 const Toolbar = styled.div`
   display: flex;
@@ -50,13 +51,6 @@ const Description = styled.p`
   font-size: 0.9em;
 `
 
-const ImportPanel = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 0.5em;
-  margin-top: 0.5em;
-`
-
 // The file input is triggered by its own button, so it stays out of the tab
 // order and off screen instead of appearing as a second redundant control.
 const HiddenFileInput = styled.input`
@@ -64,68 +58,30 @@ const HiddenFileInput = styled.input`
 `
 
 export interface ReferenceToolsProps {
-  /** Captures the current plan/workspace as a reference when export is clicked. */
-  onExportCapture: () => DecodedReference
-  /** Disables the export control when there is no exportable plan. */
-  exportDisabled?: boolean
-  /** Heading for the export section (defaults to Export reference). */
-  exportTitle?: string
-  /** One-line description of what the export will produce. */
-  exportDescription?: string
+  className?: string
   /** Notifies the parent when a reference is opened or closed (read-only). */
   onOpenChange?: (reference: DecodedReference | null) => void
-  className?: string
-}
-
-const defaultSaveText = async (
-  fileName: string,
-  text: string,
-): Promise<void> => {
-  const { dialog } = remote
-  const result = await dialog.showSaveDialog(remote.getCurrentWindow(), {
-    defaultPath: fileName,
-    filters: [{ extensions: ['txt'], name: 'Text file' }],
-    title: fileName,
-  })
-  if (!result.canceled && result.filePath) {
-    await outputFile(result.filePath, text)
-  }
 }
 
 export const ReferenceTools = ({
-  onExportCapture,
-  exportDisabled = false,
-  exportTitle,
-  exportDescription,
-  onOpenChange,
   className,
+  onOpenChange,
 }: ReferenceToolsProps) => {
   const { t } = useTranslation('poi-plugin-navy-staff')
   const [reference, setReference] = useState<DecodedReference | null>(null)
-  const [shareText, setShareText] = useState('')
+  const [code, setCode] = useState('')
   const [errorKey, setErrorKey] = useState<ReferenceErrorMessageKey | null>(null)
   const [importing, setImporting] = useState(false)
   const [draft, setDraft] = useState('')
   const fileInput = useRef<HTMLInputElement>(null)
-  // Guards one-shot file reads: closing, exporting, or a newer import makes any
-  // in-flight read stale so a late resolution cannot reopen or overwrite state.
+  // Guards one-shot file reads: closing or a newer open makes an in-flight read
+  // stale so a late resolution cannot reopen or overwrite state.
   const readGuard = useRef(createRequestGuard())
 
-  const openReference = (next: DecodedReference) => {
+  const openReference = (next: DecodedReference, text: string) => {
     setReference(next)
+    setCode(text)
     onOpenChange?.(next)
-  }
-
-  const handleExport = () => {
-    readGuard.current.invalidate()
-    setErrorKey(null)
-    try {
-      const next = onExportCapture()
-      setShareText(encodeReference(next))
-      openReference(next)
-    } catch {
-      setErrorKey('exportFailed')
-    }
   }
 
   const handleDecode = (text: string) => {
@@ -133,10 +89,9 @@ export const ReferenceTools = ({
     setErrorKey(null)
     try {
       const decoded = decodeReference(text)
-      setShareText(text)
       setDraft('')
       setImporting(false)
-      openReference(decoded)
+      openReference(decoded, text)
     } catch (error) {
       setErrorKey(errorMessageKey(error))
     }
@@ -160,63 +115,34 @@ export const ReferenceTools = ({
     }
   }
 
-  const handleCopy = () => {
-    if (!shareText) return
-    try {
-      clipboard.writeText(shareText)
-    } catch {
-      setErrorKey('shareTextCopyFailed')
-    }
-  }
-
-  const handleSave = async () => {
-    if (!shareText) return
-    setErrorKey(null)
-    try {
-      await defaultSaveText(shareFileName(new Date()), shareText)
-    } catch {
-      setErrorKey('shareTextSaveFailed')
-    }
-  }
-
   const handleClose = () => {
     readGuard.current.invalidate()
     setErrorKey(null)
     setDraft('')
     setImporting(false)
     setReference(null)
-    setShareText('')
+    setCode('')
     onOpenChange?.(null)
   }
 
   return (
     <div className={className} data-testid="reference-tools">
       <SectionCard>
-        <SectionTitle>{exportTitle ?? t('Export reference')}</SectionTitle>
-        {exportDescription && <Description>{exportDescription}</Description>}
-        <Toolbar>
-          <Button icon="export" disabled={exportDisabled} onClick={handleExport}>
-            {t('Export reference')}
-          </Button>
-        </Toolbar>
-      </SectionCard>
-
-      <SectionCard>
-        <SectionTitle>{t('Import reference')}</SectionTitle>
-        <Description>{t('importDescription')}</Description>
+        <SectionTitle>{t('Open reference')}</SectionTitle>
+        <Description>{t('OpenReferenceDescription')}</Description>
         <Toolbar>
           <Button
             icon="import"
             active={importing}
             onClick={() => setImporting((value) => !value)}
           >
-            {t('Import reference')}
+            {t('Open reference')}
           </Button>
         </Toolbar>
 
         {importing && (
           <Callout>
-            <ImportPanel>
+            <Panel>
               <TextArea
                 fill
                 value={draft}
@@ -248,7 +174,7 @@ export const ReferenceTools = ({
                   void handleFile(file)
                 }}
               />
-            </ImportPanel>
+            </Panel>
           </Callout>
         )}
       </SectionCard>
@@ -259,38 +185,17 @@ export const ReferenceTools = ({
         </Callout>
       )}
 
-      {/* Produced or imported output is its own result section, labeled by the
-          opened reference's title so it is never mistaken for the current
-          workspace. */}
-      {(shareText || reference) && (
+      {reference && (
         <SectionCard data-testid="reference-result">
-          <SectionTitle>{reference?.title ?? t('Share text')}</SectionTitle>
-          <Description>{t('Reference is read-only')}</Description>
-          <Toolbar>
-            {shareText && (
-              <>
-                <Button icon="clipboard" onClick={handleCopy}>
-                  {t('Copy share text')}
-                </Button>
-                <Button icon="floppy-disk" onClick={() => void handleSave()}>
-                  {t('Save share text')}
-                </Button>
-              </>
-            )}
-          </Toolbar>
-
-          {shareText && (
+          <ReferenceView reference={reference} onClose={handleClose} />
+          {code && (
             <TextArea
               fill
               readOnly
-              value={shareText}
+              value={code}
               aria-label={t('Share text')}
               data-testid="reference-share-text"
             />
-          )}
-
-          {reference && (
-            <ReferenceView reference={reference} onClose={handleClose} />
           )}
         </SectionCard>
       )}

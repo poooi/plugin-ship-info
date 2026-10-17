@@ -47,18 +47,18 @@ const waitForOverlayFocus = () =>
   })
 
 const openPlanner = async () => {
-  await expect(await screen.findByRole('tab', { name: 'Area View' })).toBeTruthy()
+  await expect(await screen.findByRole('tab', { name: 'Plan' })).toBeTruthy()
   return document.querySelector('#poi-plugin-navy-staff') as HTMLElement
 }
 
-// Primary page navigation: Plan is the default page, History is a separate tab.
+// History is a contextual task inside the default Plan page.
 // `fireEvent` is used so these also work while a modal rename/delete dialog is
 // open (the backdrop would intercept pointer input).
 const openHistoryTab = async () => {
-  fireEvent.click(await screen.findByRole('tab', { name: 'History' }))
+  fireEvent.click(await screen.findByRole('button', { name: 'History' }))
 }
 
-// Opens the History page and selects a revision (opens a read-only preview).
+// Opens the History task and selects a revision (opens a read-only preview).
 const selectHistoryRevision = async (value: string) => {
   await openHistoryTab()
   fireEvent.change(screen.getByLabelText('History'), { target: { value } })
@@ -112,7 +112,7 @@ export const ShowsTabsWithoutDialog: Story = {
     const view = await openPlanner()
     await expect(screen.queryByRole('dialog')).toBeNull()
     await expect(within(view).getByRole('tab', { name: 'Area View' })).toBeTruthy()
-    await expect(within(view).getByRole('tab', { name: 'Ship Grid' })).toBeTruthy()
+    await expect(within(view).getByRole('tab', { name: 'Grid Palette' })).toBeTruthy()
   },
 }
 
@@ -573,7 +573,7 @@ export const PreviewClosesWhenSwitchingWorkspace: Story = {
     // Open a preview of the older revision of workspace A.
     await selectHistoryRevision('rev-1')
     await expect(
-      screen.getByText('Viewing an earlier revision (read-only)'),
+      screen.getByText('History is read-only. Return to the current plan to edit.'),
     ).toBeTruthy()
 
     // Switch to B and back to A.
@@ -588,7 +588,7 @@ export const PreviewClosesWhenSwitchingWorkspace: Story = {
 
     // The preview is gone, not resurrected.
     await expect(
-      screen.queryByText('Viewing an earlier revision (read-only)'),
+      screen.queryByText('History is read-only. Return to the current plan to edit.'),
     ).toBeNull()
   },
 }
@@ -607,7 +607,7 @@ export const RenameEditorClosedWhenEnteringPreview: Story = {
     await selectHistoryRevision('rev-1')
     await waitFor(async () => {
       await expect(
-        screen.getByText('Viewing an earlier revision (read-only)'),
+        screen.getByText('History is read-only. Return to the current plan to edit.'),
       ).toBeTruthy()
     })
 
@@ -662,7 +662,7 @@ export const PreviewShowsSavedLevelNotLive: Story = {
     await selectHistoryRevision('rev-1')
     await waitFor(async () => {
       await expect(
-        screen.getByText('Viewing an earlier revision (read-only)'),
+        screen.getByText('History is read-only. Return to the current plan to edit.'),
       ).toBeTruthy()
     })
     await expect(within(areaCard('E1')).getByText(/Lv\.5/)).toBeTruthy()
@@ -679,7 +679,7 @@ export const PreviewIsReadOnlyInBothViews: Story = {
     await selectHistoryRevision('rev-1')
     await waitFor(async () => {
       await expect(
-        screen.getByText('Viewing an earlier revision (read-only)'),
+        screen.getByText('History is read-only. Return to the current plan to edit.'),
       ).toBeTruthy()
     })
 
@@ -692,7 +692,7 @@ export const PreviewIsReadOnlyInBothViews: Story = {
     ).toBeNull()
 
     // Grid view: no palette control and no interactive cards.
-    await userEvent.click(screen.getByRole('tab', { name: 'Ship Grid' }))
+    await userEvent.click(screen.getByRole('tab', { name: 'Grid Palette' }))
     await expect(screen.queryByLabelText('Assign to')).toBeNull()
     await expect(screen.queryByRole('button', { name: /Lv\./ })).toBeNull()
 
@@ -725,7 +725,7 @@ export const HistoryCurrentRevisionUsesCapturedContent: Story = {
     await expect(within(areaCard('E1')).queryByText(/Lv\.150/)).toBeNull()
 
     // Grid shows captured ships only: ship 3 present, live-only Alpha absent.
-    await userEvent.click(screen.getByRole('tab', { name: 'Ship Grid' }))
+    await userEvent.click(screen.getByRole('tab', { name: 'Grid Palette' }))
     await expect(screen.getByRole('group', { name: 'Gamma Lv.5' })).toBeTruthy()
     await expect(screen.queryByRole('group', { name: /Alpha/ })).toBeNull()
   },
@@ -740,7 +740,7 @@ export const RestoreThenUndo: Story = {
 
     await selectHistoryRevision('rev-1')
     await userEvent.click(
-      screen.getByRole('button', { name: 'Restore this revision' }),
+      screen.getByRole('button', { name: 'Restore this state' }),
     )
 
     await waitFor(async () => {
@@ -750,7 +750,7 @@ export const RestoreThenUndo: Story = {
     })
     // Restoring leaves preview, so Undo operates on the restored revision.
     await expect(
-      screen.queryByText('Viewing an earlier revision (read-only)'),
+      screen.queryByText('History is read-only. Return to the current plan to edit.'),
     ).toBeNull()
     await userEvent.click(screen.getByRole('button', { name: 'Undo' }))
     await waitFor(async () => {

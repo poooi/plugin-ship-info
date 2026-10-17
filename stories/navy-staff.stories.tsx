@@ -49,7 +49,7 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 const playOnMainView = async () => {
-  await expect(await screen.findByRole('tab', { name: 'Area View' })).toBeTruthy()
+  await expect(await screen.findByRole('tab', { name: 'Plan' })).toBeTruthy()
   return document.querySelector('#poi-plugin-navy-staff') as HTMLElement
 }
 
@@ -329,22 +329,23 @@ export const HistoryPreviewWritesNothing: Story = {
     const before = fileText()
 
     // History selection lives on the History page.
-    await userEvent.click(await screen.findByRole('tab', { name: 'History' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'History' }))
 
     await userEvent.selectOptions(
       screen.getByLabelText('History') as HTMLSelectElement,
       'rev-1',
     )
     await expect(
-      screen.getByText('Viewing an earlier revision (read-only)'),
+      screen.getByText('History is read-only. Return to the current plan to edit.'),
     ).toBeTruthy()
 
     await userEvent.selectOptions(
       screen.getByLabelText('History') as HTMLSelectElement,
       'rev-2',
     )
+    await userEvent.click(screen.getByRole('button', { name: 'Return to current plan' }))
     await expect(
-      screen.queryByText('Viewing an earlier revision (read-only)'),
+      screen.queryByText('History is read-only. Return to the current plan to edit.'),
     ).toBeNull()
 
     expect(fileText()).toBe(before)
@@ -448,7 +449,7 @@ export const DisposeStopsAccountSupervisor: Story = {
 const openDenseGrid = async () => {
   const container = document.querySelector('#poi-plugin-navy-staff') as HTMLElement
   await userEvent.click(
-    await within(container).findByRole('tab', { name: 'Ship Grid' }),
+    await within(container).findByRole('tab', { name: 'Grid Palette' }),
   )
   await within(container).findByRole('heading', { level: 2, name: 'DD' })
   return container
@@ -583,7 +584,7 @@ export const DensePlanScrollRestored: Story = {
 
     // A page visited for the first time opens at the top.
     await userEvent.click(
-      within(container).getByRole('tab', { name: 'Share & reference' }),
+      within(container).getByRole('tab', { name: 'Share' }),
     )
     await waitFor(async () => {
       await expect(body.scrollTop).toBe(0)

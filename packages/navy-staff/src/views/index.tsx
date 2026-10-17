@@ -17,7 +17,6 @@ import {
 import { get } from 'lodash'
 import { rgba } from 'polished'
 import React, {
-  RefObject,
   useCallback,
   useContext,
   useEffect,
@@ -34,27 +33,26 @@ import { Dialog, Popover } from 'views/components/etc/overlay'
 import { WindowEnv } from 'views/components/etc/window-env'
 import { extensionSelectorFactory, IState } from 'views/utils/selectors'
 
+import { shipSuperTypeMap } from '@poi-plugins/ship-info-shared/ship-types'
 import { poiSurface } from '@poi-plugins/ship-info-shared/ui/styles'
-import { HistorySelector, UndoRedo } from './history'
-import { captureRect } from './planner/capture'
+import { formatRevisionTime, HistorySelector, opLabel, UndoRedo } from './history'
 import { Area } from './planner/area'
 import { ShipGrid } from './planner/ship-grid'
+import { REMOVE_TARGET, ShipList } from './planner/ship-list'
 import { resolveAreaLabel } from './planner/types'
 import { DISPLAY_FLEET_NAME_CONFIG, PLUGIN_KEY } from './plugin-identity'
-import { ReferenceTools } from './reference'
+import { ReferenceTools, ShareTools } from './reference'
 import { captureReference } from './reference/capture'
 import { SyncBar, syncSourceSelector } from './sync'
 import {
+  applyShipBatch,
   createWorkspace,
   duplicateWorkspace,
   onDeleteWorkspace,
   onRenameWorkspace,
+  onRestore,
   onSelectWorkspace,
 } from './workspace/actions'
-import {
-  PreviewContext,
-  type PreviewTarget,
-} from './workspace/preview'
 import {
   capturedDisplayContent,
   editingDisplayContentSelector,
@@ -65,6 +63,7 @@ import {
   selectedWorkspaceSelector,
   workspacesSelector,
   type DisplayContent,
+  type WorkspaceShipRow,
 } from './workspace/selectors'
 
 export { reducer } from './redux'
@@ -92,13 +91,14 @@ const Wrapper = styled.div`
   overflow: hidden;
 `
 
-const Header = styled.div`
+const PlanHeader = styled.div`
   display: flex;
   align-items: center;
   gap: 0.5em;
-  padding: 0.5em 1em;
+  padding: 0.5em 0;
   flex-wrap: wrap;
   border-bottom: 1px solid rgba(128, 128, 128, 0.3);
+  margin-bottom: 0.5em;
 `
 
 const HeaderSpacer = styled.div`
@@ -106,15 +106,18 @@ const HeaderSpacer = styled.div`
   min-width: 0;
 `
 
+// Keep Undo/Redo together so a narrow header never splits them across lines.
+const UndoGroup = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex: none;
+`
+
 const FieldLabel = styled.span`
   font-size: 0.85em;
   opacity: 0.8;
   flex: none;
-`
-
-const PreviewNote = styled.span`
-  font-size: 0.85em;
-  opacity: 0.9;
 `
 
 const Body = styled.div`
@@ -131,10 +134,6 @@ const Toolbar = styled.div`
   margin-bottom: 0.5em;
 `
 
-const ToolbarSpacer = styled.div`
-  flex: 1 1 0;
-`
-
 const HelpContent = styled.div`
   max-width: 280px;
   padding: 8px 10px;
@@ -148,7 +147,7 @@ const AreaList = styled.div`
   gap: 14px;
 `
 
-const Palette = styled.div<{ color: string }>`
+const Palette = styled.div`
   position: sticky;
   top: 0;
   z-index: 20;
@@ -162,14 +161,6 @@ const Palette = styled.div<{ color: string }>`
     )}
   padding: 6px 1em;
   margin-bottom: 0.75em;
-  border-left: 8px solid ${(props) => props.color || '#000'};
-
-  :hover {
-    background-color: var(
-      --poi-background-color-opaque,
-      ${(props) => (props.theme.variant === 'dark' ? '#000' : '#fff')}
-    );
-  }
 `
 
 const SetupHint = styled.div`
@@ -213,8 +204,6 @@ const WorkspaceManager = ({
   const deleteTargetName = deleteTargetWorkspace
     ? deleteTargetWorkspace.revisions[deleteTargetWorkspace.cursor].content.name
     : ''
-  // Controls that mutate or navigate the loaded data are unavailable until the
-  // slice is ready and error-free.
   const inactive = disabled || readOnly
 
   const closeDialogs = useCallback(() => {
@@ -281,12 +270,7 @@ const WorkspaceManager = ({
         position={Position.BOTTOM_LEFT}
         content={
           <Menu>
-            <MenuItem
-              disabled={!selected || inactive}
-              icon="edit"
-              onClick={openRename}
-              text={t('Rename')}
-            />
+            <MenuItem disabled={!selected || inactive} icon="edit" onClick={openRename} text={t('Rename')} />
             <MenuItem
               disabled={!selected || inactive}
               icon="duplicate"
@@ -303,18 +287,10 @@ const WorkspaceManager = ({
           </Menu>
         }
       >
-        <Button
-          aria-label={t('Workspace actions')}
-          disabled={!selected || disabled}
-          icon="more"
-        />
+        <Button aria-label={t('Workspace actions')} disabled={!selected || disabled} icon="more" />
       </Popover>
 
-      <Dialog
-        isOpen={renameOpen && !inactive}
-        title={t('Rename workspace')}
-        onClose={closeDialogs}
-      >
+      <Dialog isOpen={renameOpen && !inactive} title={t('Rename workspace')} onClose={closeDialogs}>
         <div className={Classes.DIALOG_BODY}>
           <InputGroup
             autoFocus
@@ -329,11 +305,7 @@ const WorkspaceManager = ({
             }}
           />
           <div style={{ marginTop: '0.75em', display: 'flex', gap: '0.5em' }}>
-            <Button
-              intent={Intent.PRIMARY}
-              disabled={nameDraft.trim().length === 0}
-              onClick={confirmRename}
-            >
+            <Button intent={Intent.PRIMARY} disabled={nameDraft.trim().length === 0} onClick={confirmRename}>
               {t('Confirm')}
             </Button>
             <Button onClick={closeDialogs}>{t('Cancel')}</Button>
@@ -347,11 +319,7 @@ const WorkspaceManager = ({
         onClose={closeDialogs}
       >
         <div className={Classes.DIALOG_BODY}>
-          <p>
-            {t('Delete "{{name}}" permanently?', {
-              name: deleteTargetName ?? '',
-            })}
-          </p>
+          <p>{t('Delete "{{name}}" permanently?', { name: deleteTargetName ?? '' })}</p>
           <div style={{ marginTop: '0.75em', display: 'flex', gap: '0.5em' }}>
             <Button
               intent={Intent.DANGER}
@@ -371,76 +339,81 @@ const WorkspaceManager = ({
   )
 }
 
-const PlanToolbar = ({
-  captureSection,
-}: {
-  captureSection: RefObject<HTMLDivElement>
-}) => {
-  const displayFleetName = useSelector((state: IState) =>
-    get(state.config, DISPLAY_FLEET_NAME_CONFIG, false),
-  )
-  const { t } = useTranslation('poi-plugin-navy-staff')
-  const { window: displayWindow } = useContext(WindowEnv)
+export type PlanView = 'area' | 'list' | 'grid'
+type PlanTask = null | 'history' | 'update'
 
-  const handleChangeDisplayFleetName = useCallback(() => {
-    window.config.set(DISPLAY_FLEET_NAME_CONFIG, !displayFleetName)
-  }, [displayFleetName])
+const noop = () => undefined
 
-  const capture = useCallback(() => {
-    if (captureSection.current) captureRect(captureSection.current)
-  }, [captureSection])
-
-  return (
-    <Toolbar>
-      <Switch
-        checked={displayFleetName}
-        label={t('Show fleet name')}
-        onChange={handleChangeDisplayFleetName}
-      />
-      {!displayWindow.isMain && (
-        <Button intent={Intent.PRIMARY} minimal onClick={capture}>
-          {t('Save to image')}
-        </Button>
-      )}
-      <ToolbarSpacer />
-      <Popover
-        position={Position.BOTTOM_RIGHT}
-        content={
-          <HelpContent
-            role="tooltip"
-            aria-label={t('Help')}
-            data-testid="plan-help"
-          >
-            {t('helpContent')}
-          </HelpContent>
-        }
-      >
-        <Button icon="help" minimal aria-label={t('Help')} />
-      </Popover>
-    </Toolbar>
-  )
+// Filters the editable grid rows by the shared search/type/status controls.
+const filterRows = (
+  rows: WorkspaceShipRow[],
+  query: string,
+  typeFilter: string,
+  statusFilter: string,
+  translatedName: (name: string) => string,
+): WorkspaceShipRow[] => {
+  const q = query.trim().toLowerCase()
+  return rows.filter((row) => {
+    if (q) {
+      const name = row.name ?? ''
+      if (!name.toLowerCase().includes(q) && !translatedName(name).toLowerCase().includes(q) && !String(row.level ?? '').includes(q) && !String(row.ownedId).includes(q)) {
+        return false
+      }
+    }
+    if (typeFilter !== 'all' && String(row.superTypeIndex) !== typeFilter) return false
+    const assigned = row.assignedColor !== null
+    if (statusFilter === 'assigned' && !assigned) return false
+    if (statusFilter === 'unassigned' && assigned) return false
+    return true
+  })
 }
 
-const PlannerViews = ({
+// Plan views: Area View, Ship List (batch selection), and the Grid Palette.
+// The list and palette share search/type/status filters. The list owns the
+// target select; the grid shows its own palette target. Selection never edits;
+// only Apply on the list commits (one revision).
+const PlanViews = ({
   canSynchronize,
-  captureSection,
   display,
-  fill,
-  onFillChange,
+  onBatch,
+  onClearSelection,
   onOpenSynchronize,
-  readOnly,
-  view,
+  onSelectAll,
+  onToggleSelection,
   onViewChange,
+  previewOnly = false,
+  query,
+  readOnly,
+  selection,
+  statusFilter,
+  target,
+  typeFilter,
+  view,
+  onQueryChange,
+  onStatusFilterChange,
+  onTargetChange,
+  onTypeFilterChange,
 }: {
-  canSynchronize?: boolean
-  captureSection: RefObject<HTMLDivElement>
+  canSynchronize: boolean
   display: DisplayContent
-  fill: string | null
-  onFillChange: (fill: string | null) => void
-  onOpenSynchronize?: () => void
+  onBatch: (target: string | null, shipIds: number[]) => void
+  onClearSelection: () => void
+  onOpenSynchronize: () => void
+  onSelectAll: (ids: number[]) => void
+  onToggleSelection: (shipId: number) => void
+  onViewChange: (view: PlanView) => void
+  previewOnly?: boolean
+  query: string
   readOnly: boolean
-  view: string
-  onViewChange: (view: string) => void
+  selection: Set<number>
+  statusFilter: string
+  target: string
+  typeFilter: string
+  view: PlanView
+  onQueryChange: (value: string) => void
+  onStatusFilterChange: (value: string) => void
+  onTargetChange: (value: string) => void
+  onTypeFilterChange: (value: string) => void
 }) => {
   const displayFleetName = useSelector((state: IState) =>
     get(state.config, DISPLAY_FLEET_NAME_CONFIG, false),
@@ -448,236 +421,285 @@ const PlannerViews = ({
   const liveAvailable = useSelector(liveRosterAvailableSelector)
   const { t } = useTranslation('poi-plugin-navy-staff')
 
+  const filteredRows = useMemo(
+    () => filterRows(display.gridShips, query, typeFilter, statusFilter, (name) => t(name, { ns: 'resources' })),
+    [display.gridShips, query, typeFilter, statusFilter, t],
+  )
+  const filteredDisplay: DisplayContent = { ...display, gridShips: filteredRows }
+
   const areaChoices = display.areas.map((area) => ({
     color: area.color,
     id: area.id,
     label: resolveAreaLabel(area, displayFleetName),
   }))
 
-  // Never submit a stale palette target: a fill that no longer names an area in
-  // the current display is treated as None.
-  const effectiveFill = display.areas.some((area) => area.id === fill) ? fill : null
-  const fillArea = display.areas.find((area) => area.id === effectiveFill)
+  // A stale destination (e.g. its area was undone away) is treated as "choose
+  // destination" everywhere: the select value, Apply enablement, grid behaviour,
+  // and the dispatched batch target all use this validated value.
+  const targetValid =
+    target === '' ||
+    target === REMOVE_TARGET ||
+    display.areas.some((area) => area.id === target)
+  const effectiveTarget = targetValid ? target : ''
+  const gridFill =
+    effectiveTarget === '' || effectiveTarget === REMOVE_TARGET ? null : effectiveTarget
+  const gridChosen = effectiveTarget !== ''
+  const batchTarget = effectiveTarget === REMOVE_TARGET ? null : effectiveTarget
+
+  const typeChoices = shipSuperTypeMap.map((group, index) => ({ index, name: group.name }))
+
+  const filters = (
+    <>
+      <InputGroup
+        leftIcon="search"
+        placeholder={t('Search')}
+        value={query}
+        onChange={(event) => onQueryChange(event.currentTarget.value)}
+      />
+      <HTMLSelect aria-label={t('Type')} value={typeFilter} onChange={(event) => onTypeFilterChange(event.currentTarget.value)}>
+        <option value="all">{t('All')}</option>
+        {typeChoices.map((choice) => (
+          <option key={choice.index} value={String(choice.index)}>
+            {t(choice.name)}
+          </option>
+        ))}
+      </HTMLSelect>
+      <HTMLSelect
+        aria-label={t('Assignment')}
+        value={statusFilter}
+        onChange={(event) => onStatusFilterChange(event.currentTarget.value)}
+      >
+        <option value="all">{t('All')}</option>
+        <option value="unassigned">{t('Unassigned')}</option>
+        <option value="assigned">{t('Assigned')}</option>
+      </HTMLSelect>
+    </>
+  )
+
+  const targetSelect = (
+    <HTMLSelect
+      aria-label={t('Assign to')}
+      value={effectiveTarget}
+      onChange={(event) => onTargetChange(event.currentTarget.value)}
+    >
+      <option value="">{t('Choose destination')}</option>
+      <option value={REMOVE_TARGET}>{t('Remove assignment')}</option>
+      {display.areas.map((area) => (
+        <option key={area.id} value={area.id}>
+          {resolveAreaLabel(area, displayFleetName)}
+        </option>
+      ))}
+    </HTMLSelect>
+  )
+
+  if (display.areas.length === 0 && !previewOnly) {
+    return (
+      <Callout>
+        <div>{t('No areas captured')}</div>
+        <Muted>{t('Synchronize to capture the current event areas into this plan.')}</Muted>
+        {!readOnly && (
+          <SetupHint>
+            <Button icon="refresh" disabled={!canSynchronize} onClick={onOpenSynchronize}>
+              {t('Go to Synchronize')}
+            </Button>
+            {!canSynchronize && (
+              <Muted>{t('Area data is not available yet. Load the game map data first.')}</Muted>
+            )}
+          </SetupHint>
+        )}
+      </Callout>
+    )
+  }
 
   return (
     <div>
-      <Tabs
-        id="navy-staff-view"
-        selectedTabId={view}
-        onChange={(tab: string) => onViewChange(tab)}
-      >
-        <Tab id="area" title={t('Area View')} />
-        <Tab id="grid" title={t('Ship Grid')} />
-      </Tabs>
+      {!previewOnly && (
+        <>
+          <Toolbar>
+            <Switch
+              checked={displayFleetName}
+              label={t('Show fleet name')}
+              onChange={() => window.config.set(DISPLAY_FLEET_NAME_CONFIG, !displayFleetName)}
+            />
+            <HeaderSpacer />
+            <Popover
+              position={Position.BOTTOM_RIGHT}
+              content={
+                <HelpContent role="tooltip" aria-label={t('Help')} data-testid="plan-help">
+                  {t('helpContent')}
+                </HelpContent>
+              }
+            >
+              <Button icon="help" minimal aria-label={t('Help')} />
+            </Popover>
+          </Toolbar>
+          <Tabs id="navy-staff-view" selectedTabId={view} onChange={(tab: string) => onViewChange(tab as PlanView)}>
+            <Tab id="area" title={t('Area View')} />
+            <Tab id="list" title={t('Ship List')} />
+            <Tab id="grid" title={t('Grid Palette')} />
+          </Tabs>
+        </>
+      )}
 
       {display.areas.length === 0 ? (
-        <Callout>
-          <div>{t('No areas captured')}</div>
-          <Muted>
-            {t('Synchronize to capture the current event areas into this plan.')}
-          </Muted>
-          {onOpenSynchronize && (
-            <SetupHint>
-              <Button
-                icon="refresh"
-                disabled={canSynchronize === false}
-                onClick={onOpenSynchronize}
-              >
-                {t('Go to Synchronize')}
-              </Button>
-              {canSynchronize === false && (
-                <Muted>
-                  {t('Area data is not available yet. Load the game map data first.')}
-                </Muted>
-              )}
-            </SetupHint>
-          )}
-        </Callout>
+        <Callout>{t('No areas captured')}</Callout>
       ) : view === 'area' ? (
-        <div ref={captureSection}>
-          <AreaList>
-            {display.areas.map((area) => (
-              <Area
-                key={area.id}
-                area={area}
-                others={areaChoices.filter((choice) => choice.id !== area.id)}
-                displayFleetName={displayFleetName}
-                readOnly={readOnly}
-                canAdd={liveAvailable}
-              />
-            ))}
-          </AreaList>
-        </div>
+        <AreaList>
+          {display.areas.map((area) => (
+            <Area
+              key={area.id}
+              area={area}
+              others={areaChoices.filter((choice) => choice.id !== area.id)}
+              displayFleetName={displayFleetName}
+              readOnly={readOnly}
+              canAdd={liveAvailable}
+            />
+          ))}
+        </AreaList>
+      ) : view === 'list' ? (
+        <>
+          {!previewOnly && !readOnly && <Palette>{filters}</Palette>}
+          <ShipList
+            ships={filteredRows}
+            areas={display.areas}
+            displayFleetName={displayFleetName}
+            readOnly={readOnly}
+            target={effectiveTarget}
+            onTargetChange={onTargetChange}
+            selected={selection}
+            onToggle={onToggleSelection}
+            onSelectAll={() => onSelectAll(filteredRows.map((row) => row.ownedId))}
+            onClear={onClearSelection}
+            onApply={() => onBatch(batchTarget, [...selection])}
+          />
+        </>
       ) : (
-        <div>
-          {!readOnly && (
-            <Palette color={fillArea?.color ?? '#000'}>
-              <FieldLabel>{t('Assign to')}</FieldLabel>
-              <HTMLSelect
-                aria-label={t('Assign to')}
-                style={{ flex: '1 1 10em', maxWidth: '18em', minWidth: '7em' }}
-                value={effectiveFill ?? ''}
-                onChange={(event) => {
-                  const value = event.currentTarget.value
-                  onFillChange(value === '' ? null : value)
-                }}
-              >
-                <option value="">{t('None')}</option>
-                {display.areas.map((area) => (
-                  <option key={area.id} value={area.id}>
-                    {resolveAreaLabel(area, displayFleetName)}
-                  </option>
-                ))}
-              </HTMLSelect>
+        <>
+          {!previewOnly && !readOnly && (
+            <Palette>
+              {filters}
+              {!readOnly && targetSelect}
             </Palette>
           )}
           <ShipGrid
-            display={display}
-            fill={effectiveFill}
+            display={filteredDisplay}
+            fill={gridFill}
+            fillChosen={gridChosen}
             readOnly={readOnly}
-            ref={captureSection as RefObject<any>}
           />
-        </div>
+        </>
       )}
     </div>
   )
 }
 
-const PlanTab = ({
+const HistoryTask = ({
   display,
-  fill,
-  onFillChange,
-  onOpenSynchronize,
-  readOnly,
-  view,
-  onViewChange,
+  revisionId,
+  cursorRevisionId,
+  onRevisionChange,
+  onRestoreState,
+  onShareState,
+  onReturn,
 }: {
   display: DisplayContent
-  fill: string | null
-  onFillChange: (fill: string | null) => void
-  onOpenSynchronize: () => void
-  readOnly: boolean
-  view: string
-  onViewChange: (view: string) => void
-}) => {
-  const captureSection = useRef<HTMLDivElement>(null)
-  const canSynchronize = useSelector(syncSourceSelector) !== null
-
-  return (
-    <div>
-      <PlanToolbar captureSection={captureSection} />
-      <PlannerViews
-        canSynchronize={canSynchronize}
-        captureSection={captureSection}
-        display={display}
-        fill={fill}
-        onFillChange={onFillChange}
-        onOpenSynchronize={onOpenSynchronize}
-        readOnly={readOnly}
-        view={view}
-        onViewChange={onViewChange}
-      />
-    </div>
-  )
-}
-
-const HistoryTab = ({ display }: { display: DisplayContent }) => {
-  const [view, setView] = useState('area')
-  const [fill, setFill] = useState<string | null>(null)
-  const captureSection = useRef<HTMLDivElement>(null)
-
-  return (
-    <div>
-      <Toolbar>
-        <HistorySelector />
-      </Toolbar>
-      <PlannerViews
-        captureSection={captureSection}
-        display={display}
-        fill={fill}
-        onFillChange={setFill}
-        readOnly
-        view={view}
-        onViewChange={setView}
-      />
-    </div>
-  )
-}
-
-const ShareTab = ({
-  displayName,
-  exportDisabled,
-  onExportCapture,
-  previewing,
-}: {
-  displayName: string
-  exportDisabled: boolean
-  onExportCapture: () => ReturnType<typeof captureReference>
-  previewing: boolean
+  revisionId: string
+  cursorRevisionId: string
+  onRevisionChange: (id: string) => void
+  onRestoreState: () => void
+  onShareState: (view: PlanView) => void
+  onReturn: () => void
 }) => {
   const { t } = useTranslation('poi-plugin-navy-staff')
-  const exportTitle = previewing
-    ? t('Export previewed revision')
-    : t('Export current workspace')
-  const exportDescription = previewing
-    ? t('Exports the previewed revision of "{{name}}". The plan stays read-only.', {
-        name: displayName,
-      })
-    : t('Exports "{{name}}" as it is now.', { name: displayName })
+  const [view, setView] = useState<PlanView>('area')
+  const canRestore = Boolean(revisionId) && revisionId !== cursorRevisionId
   return (
-    <ReferenceTools
-      exportDescription={exportDescription}
-      exportDisabled={exportDisabled}
-      exportTitle={exportTitle}
-      onExportCapture={onExportCapture}
-    />
+    <div data-testid="history-task">
+      <Toolbar>
+        <HistorySelector value={revisionId} onChange={onRevisionChange} />
+        <HeaderSpacer />
+        <Button text={t('Return to current plan')} onClick={onReturn} />
+        <Button text={t('Restore this state')} disabled={!canRestore} onClick={onRestoreState} />
+        <Button text={t('Share this state')} onClick={() => onShareState(view)} />
+      </Toolbar>
+      <Callout intent={Intent.NONE}>{t('HistoryReadonlyNotice')}</Callout>
+      <PlanViews
+        canSynchronize={false}
+        display={display}
+        onBatch={noop}
+        onClearSelection={noop}
+        onOpenSynchronize={noop}
+        onSelectAll={noop}
+        onToggleSelection={noop}
+        onViewChange={setView}
+        query=""
+        readOnly
+        selection={new Set()}
+        statusFilter="all"
+        target=""
+        typeFilter="all"
+        view={view}
+        onQueryChange={noop}
+        onStatusFilterChange={noop}
+        onTargetChange={noop}
+        onTypeFilterChange={noop}
+      />
+    </div>
   )
 }
 
 const NavyStaffContent = () => {
   const [activeTab, setActiveTab] = useState('plan')
-  // Plan view/fill live here so switching pages never resets the chosen grid
-  // view or palette target (the plan page unmounts while another page is shown).
-  const [planView, setPlanView] = useState('area')
-  const [planFill, setPlanFill] = useState<string | null>(null)
-  const [preview, setPreview] = useState<PreviewTarget | null>(null)
+  const [planTask, setPlanTask] = useState<PlanTask>(null)
+  const [historyRevId, setHistoryRevId] = useState<string | null>(null)
+  const [shareSource, setShareSource] = useState<{ workspaceId: string; revisionId: string; view: PlanView } | null>(null)
+  const [selection, setSelection] = useState<Set<number>>(() => new Set())
+
+  // Plan view + shared list/grid filter state lives here so a History/Update
+  // detour never loses it.
+  const [planView, setPlanView] = useState<PlanView>('area')
+  const [query, setQuery] = useState('')
+  const [typeFilter, setTypeFilter] = useState('all')
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [planTarget, setPlanTarget] = useState('')
+
   const { t } = useTranslation('poi-plugin-navy-staff')
+  const dispatch = useDispatch<ThunkDispatch<IState, unknown, Action>>()
+  const { window: displayWindow } = useContext(WindowEnv)
   const slice = useSelector(extensionSelectorFactory(PLUGIN_KEY)) as
     | { error?: string | null; ready?: boolean }
     | undefined
   const workspace = useSelector(selectedWorkspaceSelector)
-  const workspaces = useSelector(workspacesSelector)
   const selectedWorkspaceId = useSelector(selectedWorkspaceIdSelector)
   const loadedAccountId = useSelector(loadedAccountIdSelector)
   const editingDisplay = useSelector(editingDisplayContentSelector)
+  const rawRosterShips = useSelector(rawRosterShipsSelector)
+  const displayFleetName = useSelector((state: IState) =>
+    get(state.config, DISPLAY_FLEET_NAME_CONFIG, false),
+  )
+  const canSynchronize = useSelector(syncSourceSelector) !== null
 
-  const previewRevision = useMemo(() => {
-    if (!preview || !workspace || preview.workspaceId !== workspace.id) return undefined
-    return workspace.revisions.find((revision) => revision.id === preview.revisionId)
-  }, [preview, workspace])
+  const workspaceName = workspace?.revisions[workspace.cursor].content.name ?? ''
+  const cursorRevisionId = workspace?.revisions[workspace.cursor]?.id ?? ''
 
-  // An account switch closes any preview, even if a revision id happened to
-  // coincide across accounts.
-  useEffect(() => {
-    setPreview(null)
-  }, [loadedAccountId])
+  const clearSelection = () => setSelection(new Set())
+  const toggleSelection = (shipId: number) => {
+    setSelection((prev) => {
+      const next = new Set(prev)
+      if (next.has(shipId)) next.delete(shipId)
+      else next.add(shipId)
+      return next
+    })
+  }
+  const selectAll = (ids: number[]) => setSelection(new Set(ids))
 
-  // The palette target belongs to one workspace/account; a switch clears it so a
-  // stale area id can never be submitted for a different display.
-  useEffect(() => {
-    setPlanFill(null)
-  }, [selectedWorkspaceId, loadedAccountId])
-
-  // Each page keeps its own transient scroll position; a newly opened page
-  // starts at the top and returning to a page restores where it was. Never
-  // persisted, and reset on an account/workspace switch.
+  // Per-page scroll positions. A newly opened page starts at the top; returning
+  // to a page restores where it was. Never persisted.
   const bodyRef = useRef<HTMLDivElement>(null)
   const scrollPositions = useRef<Record<string, number>>({})
   const handleTabChange = useCallback(
     (next: string) => {
-      if (bodyRef.current) {
-        scrollPositions.current[activeTab] = bodyRef.current.scrollTop
-      }
+      if (bodyRef.current) scrollPositions.current[activeTab] = bodyRef.current.scrollTop
       setActiveTab(next)
     },
     [activeTab],
@@ -687,67 +709,112 @@ const NavyStaffContent = () => {
     if (!body) return
     body.scrollTop = scrollPositions.current[activeTab] ?? 0
   }, [activeTab])
+
+  // Selection is transient: drop it when the account/workspace changes, when a
+  // different revision becomes the editable cursor (undo/redo/restore), or when
+  // leaving the Plan page.
   useEffect(() => {
+    setSelection(new Set())
+    setPlanTask(null)
+    setHistoryRevId(null)
+    setShareSource(null)
+    setPlanTarget('')
     scrollPositions.current = {}
-    if (bodyRef.current) bodyRef.current.scrollTop = 0
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedWorkspaceId, loadedAccountId])
 
-  // A preview is closed when the workspace switches or its target disappears
-  // (an edit after undo truncates the redo tail). The selected id is a
-  // dependency so a preview never reappears when returning to a workspace.
   useEffect(() => {
-    if (!preview) return
-    if (preview.workspaceId !== selectedWorkspaceId) {
-      setPreview(null)
-      return
-    }
-    const target = workspaces.find((w) => w.id === preview.workspaceId)
-    if (!target || !target.revisions.some((r) => r.id === preview.revisionId)) {
-      setPreview(null)
-    }
-  }, [preview, workspaces, selectedWorkspaceId])
+    clearSelection()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cursorRevisionId])
 
-  const previewing = Boolean(previewRevision)
-  const display = previewRevision
-    ? capturedDisplayContent(previewRevision.content)
+  useEffect(() => {
+    if (activeTab !== 'plan') clearSelection()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab])
+
+  const handleBatch = (target: string | null, shipIds: number[]) => {
+    dispatch(applyShipBatch({ target, shipIds }))
+    clearSelection()
+  }
+
+  // Share source: the current editable plan, or an explicit historical revision
+  // chosen from History. It never changes the editable cursor.
+  const shareSourceRevision = useMemo(() => {
+    if (!shareSource || !workspace || shareSource.workspaceId !== workspace.id) return undefined
+    return workspace.revisions.find((revision) => revision.id === shareSource.revisionId)
+  }, [shareSource, workspace])
+  const shareSourceMissing = Boolean(shareSource && !shareSourceRevision)
+
+  const shareDisplay = shareSourceRevision
+    ? capturedDisplayContent(shareSourceRevision.content)
     : editingDisplay
+  const shareSourceLabel = shareSourceMissing
+    ? t('Share source unavailable', { name: workspaceName })
+    : shareSourceRevision
+      ? t('Share history source', {
+          name: workspaceName,
+          label: `${opLabel(shareSourceRevision.op, t)} · ${formatRevisionTime(shareSourceRevision.time)}`,
+        })
+      : t('Share current plan source', { name: workspaceName })
 
-  // History always renders a captured snapshot: the previewed revision when one
-  // is open, otherwise the current cursor revision. It never overlays the live
-  // roster (levels, fleet badges, live-only ships), unlike editing in Plan.
-  const historyRevision = previewRevision ?? workspace?.revisions[workspace.cursor]
-  const historyDisplay = historyRevision
-    ? capturedDisplayContent(historyRevision.content)
-    : editingDisplay
-
-  const contextValue = useMemo(
-    () => ({ setTarget: setPreview, target: preview }),
-    [preview],
-  )
-
-  // Reference tools stay mounted regardless of planning readiness: import and
-  // viewing work with no account, workspace, or master data loaded (unknown
-  // masters render `???`). Export needs a ready selected workspace.
-  const rawRosterShips = useSelector(rawRosterShipsSelector)
-  const displayFleetName = useSelector((state: IState) =>
-    get(state.config, DISPLAY_FLEET_NAME_CONFIG, false),
-  )
-  const captureReferenceForExport = useCallback(
+  const captureShareReference = useCallback(
     () =>
-      captureReference(display, {
+      captureReference(shareDisplay, {
         captureTime:
-          previewRevision?.time ??
+          shareSourceRevision?.time ??
           workspace?.revisions[workspace.cursor]?.time ??
           new Date().toISOString(),
         displayFleetName,
         exportTime: new Date().toISOString(),
         locale: window.language,
-        // Current export overlays raw owned values (gated to a matching loaded
-        // account); a historical preview keeps the captured values.
-        rawShips: previewRevision ? undefined : rawRosterShips,
-        title: display.name,
+        rawShips: shareSourceRevision ? undefined : rawRosterShips,
+        title: shareDisplay.name,
       }),
-    [display, displayFleetName, previewRevision, rawRosterShips, workspace],
+    [shareDisplay, displayFleetName, shareSourceRevision, rawRosterShips, workspace],
+  )
+
+  // History task previews the chosen revision (or the cursor) read-only.
+  const historyRevisionId = historyRevId ?? cursorRevisionId
+  const historyRevision = workspace?.revisions.find((revision) => revision.id === historyRevisionId)
+  const historyDisplay = historyRevision
+    ? capturedDisplayContent(historyRevision.content)
+    : editingDisplay
+
+  const shareImageRef = useRef<HTMLDivElement>(null)
+  // A historical screenshot uses the presentation chosen in History and the
+  // full captured membership: the editor's search/type/status filters describe
+  // today's live roster and must not hide historical ships. Current screenshots
+  // keep the editor filters and presentation.
+  const historicalShare = Boolean(shareSourceRevision)
+  const shareImageView = historicalShare ? shareSource?.view ?? 'area' : planView
+  const shareImageQuery = historicalShare ? '' : query
+  const shareImageTypeFilter = historicalShare ? 'all' : typeFilter
+  const shareImageStatusFilter = historicalShare ? 'all' : statusFilter
+
+  const shareImagePreview = (
+    <PlanViews
+      canSynchronize={false}
+      display={shareDisplay}
+      onBatch={noop}
+      onClearSelection={noop}
+      onOpenSynchronize={noop}
+      onSelectAll={noop}
+      onToggleSelection={noop}
+      onViewChange={noop}
+      previewOnly
+      query={shareImageQuery}
+      readOnly
+      selection={new Set()}
+      statusFilter={shareImageStatusFilter}
+      target={planTarget}
+      typeFilter={shareImageTypeFilter}
+      view={shareImageView}
+      onQueryChange={noop}
+      onStatusFilterChange={noop}
+      onTargetChange={noop}
+      onTypeFilterChange={noop}
+    />
   )
 
   const gated = (content: React.ReactNode) =>
@@ -759,73 +826,137 @@ const NavyStaffContent = () => {
       <Callout>{t('loading')}</Callout>
     )
 
-  // Workspace mutation and undo/redo are unavailable until the slice is ready
-  // and error-free; the manager itself is always visible in the header.
   const gateDisabled = !slice?.ready || Boolean(slice?.error)
+
+  const clearOnFilter = (setter: (value: string) => void) => (value: string) => {
+    setter(value)
+    clearSelection()
+  }
 
   return (
     <Wrapper id="poi-plugin-navy-staff">
       <NavGlobalStyle />
-      <PreviewContext.Provider value={contextValue}>
-        <Header>
-          <WorkspaceManager
-            accountId={loadedAccountId}
-            disabled={gateDisabled}
-            readOnly={previewing}
-          />
-          <HeaderSpacer />
-          <UndoRedo disabled={gateDisabled} />
-          {previewing && (
+      <Tabs id="navy-staff-pages" selectedTabId={activeTab} onChange={handleTabChange}>
+        <Tab id="plan" title={t('Plan')} />
+        <Tab id="reference" title={t('Reference')} />
+        <Tab id="share" title={t('Share')} />
+      </Tabs>
+      <Body ref={bodyRef} className="navy-staff-scrollable">
+        <div style={{ display: activeTab === 'plan' ? undefined : 'none' }}>
+          {gated(
             <>
-              <PreviewNote>
-                {t('Viewing an earlier revision (read-only)')}
-              </PreviewNote>
-              <Button onClick={() => setPreview(null)}>{t('Exit preview')}</Button>
+              <PlanHeader>
+                <WorkspaceManager
+                  accountId={loadedAccountId}
+                  disabled={gateDisabled}
+                  readOnly={planTask === 'history'}
+                />
+                <HeaderSpacer />
+                <UndoGroup>
+                  <UndoRedo disabled={gateDisabled || planTask === 'history'} />
+                </UndoGroup>
+                <Button
+                  text={t('History')}
+                  disabled={gateDisabled || !workspace}
+                  onClick={() => {
+                    clearSelection()
+                    setHistoryRevId(null)
+                    setPlanTask('history')
+                  }}
+                />
+                <Button
+                  text={t('Update from game')}
+                  disabled={gateDisabled || !workspace}
+                  onClick={() => {
+                    clearSelection()
+                    setPlanTask('update')
+                  }}
+                />
+              </PlanHeader>
+              {planTask === 'history' ? (
+                <HistoryTask
+                  display={historyDisplay}
+                  revisionId={historyRevId ?? ''}
+                  cursorRevisionId={cursorRevisionId}
+                  onRevisionChange={(id) => setHistoryRevId(id)}
+                  onRestoreState={() => {
+                    if (!workspace || !historyRevId) return
+                    dispatch(onRestore({ id: historyRevId, now: new Date().toISOString() }))
+                    setPlanTask(null)
+                    setHistoryRevId(null)
+                  }}
+                  onShareState={(view) => {
+                    if (!workspace) return
+                    setShareSource({ revisionId: historyRevisionId, view, workspaceId: workspace.id })
+                    setPlanTask(null)
+                    setHistoryRevId(null)
+                    setActiveTab('share')
+                  }}
+                  onReturn={() => {
+                    setPlanTask(null)
+                    setHistoryRevId(null)
+                  }}
+                />
+              ) : planTask === 'update' ? (
+                <Toolbar>
+                  <Button text={t('Return to current plan')} onClick={() => setPlanTask(null)} />
+                </Toolbar>
+              ) : (
+                <PlanViews
+                  canSynchronize={canSynchronize}
+                  display={editingDisplay}
+                  onBatch={handleBatch}
+                  onClearSelection={clearSelection}
+                  onOpenSynchronize={() => {
+                    clearSelection()
+                    setPlanTask('update')
+                  }}
+                  onSelectAll={selectAll}
+                  onToggleSelection={toggleSelection}
+                  onViewChange={(next) => {
+                    setPlanView(next)
+                    clearSelection()
+                  }}
+                  query={query}
+                  readOnly={false}
+                  selection={selection}
+                  statusFilter={statusFilter}
+                  target={planTarget}
+                  typeFilter={typeFilter}
+                  view={planView}
+                  onQueryChange={clearOnFilter(setQuery)}
+                  onStatusFilterChange={clearOnFilter(setStatusFilter)}
+                  onTargetChange={setPlanTarget}
+                  onTypeFilterChange={clearOnFilter(setTypeFilter)}
+                />
+              )}
+              {/* Update review stays mounted while hidden so a corrected mapping
+                  / prepared batch survives a Plan detour. A History inspection
+                  passes historyPreview to discard it, as before. */}
+              <div style={{ display: planTask === 'update' ? undefined : 'none' }}>
+                {gated(<SyncBar historyPreview={planTask === 'history'} />)}
+              </div>
             </>
           )}
-        </Header>
-        <Tabs
-          id="navy-staff-pages"
-          selectedTabId={activeTab}
-          onChange={handleTabChange}
-        >
-          <Tab id="plan" title={t('Plan')} />
-          <Tab id="history" title={t('History')} />
-          <Tab id="sync" title={t('Synchronize')} />
-          <Tab id="share" title={t('Share & reference')} />
-        </Tabs>
-        <Body ref={bodyRef} className="navy-staff-scrollable">
-          {activeTab === 'plan' &&
-            gated(
-              <PlanTab
-                display={display}
-                fill={planFill}
-                onFillChange={setPlanFill}
-                onOpenSynchronize={() => handleTabChange('sync')}
-                onViewChange={setPlanView}
-                readOnly={previewing}
-                view={planView}
-              />,
-            )}
-          {activeTab === 'history' && gated(<HistoryTab display={historyDisplay} />)}
-          {/* Synchronize stays mounted while hidden so a corrected mapping or
-              prepared preview survives a detour to Plan; its own reset key
-              still discards it on account/workspace/source/preview changes. */}
-          <div style={{ display: activeTab === 'sync' ? undefined : 'none' }}>
-            {gated(<SyncBar historyPreview={previewing} />)}
-          </div>
-          {/* Share & reference stays mounted while hidden so an imported
-              reference and the import draft survive page changes. */}
-          <div style={{ display: activeTab === 'share' ? undefined : 'none' }}>
-            <ShareTab
-              displayName={display.name}
-              exportDisabled={!(slice?.ready && !slice?.error && workspace)}
-              onExportCapture={captureReferenceForExport}
-              previewing={previewing}
-            />
-          </div>
-        </Body>
-      </PreviewContext.Provider>
+        </div>
+
+        {/* Reference and Share stay mounted while hidden so an opened reference
+            and a generated share text survive page changes independently. */}
+        <div style={{ display: activeTab === 'reference' ? undefined : 'none' }}>
+          <ReferenceTools />
+        </div>
+        <div style={{ display: activeTab === 'share' ? undefined : 'none' }}>
+          <ShareTools
+            disabled={!(slice?.ready && !slice?.error && workspace) || shareSourceMissing}
+            detached={!displayWindow.isMain}
+            imagePreview={activeTab === 'share' ? shareImagePreview : null}
+            imageRef={shareImageRef}
+            onCapture={captureShareReference}
+            onUseCurrent={shareSource ? () => setShareSource(null) : undefined}
+            sourceLabel={shareSourceLabel}
+          />
+        </div>
+      </Body>
     </Wrapper>
   )
 }

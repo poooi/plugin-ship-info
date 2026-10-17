@@ -50,6 +50,11 @@ export {
 } from './reference-tools.tsx'
 
 export {
+  ShareTools,
+  type ShareToolsProps,
+} from './share-tools.tsx'
+
+export {
   ReferenceView,
   type ReferenceViewProps,
 } from './reference-view.tsx'

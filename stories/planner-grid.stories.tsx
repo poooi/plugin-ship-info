@@ -24,14 +24,14 @@ const edgeColorOf = (element: HTMLElement): string =>
   getComputedStyle(element).borderLeftColor
 
 const openGrid = async () => {
-  const view = await screen.findByRole('tab', { name: 'Ship Grid' })
+  const view = await screen.findByRole('tab', { name: 'Grid Palette' })
   const container = view.closest('#poi-plugin-navy-staff') as HTMLElement
-  await userEvent.click(within(container).getByRole('tab', { name: 'Ship Grid' }))
+  await userEvent.click(within(container).getByRole('tab', { name: 'Grid Palette' }))
   await within(container).findByRole('heading', { level: 2, name: 'DD' })
   return container
 }
 
-// The palette is a single Blueprint select; '' is the "None" (unassign) option.
+// The palette uses a separate explicit removal option; the empty choice is inert.
 const assignTo = () => screen.getByLabelText('Assign to') as HTMLSelectElement
 
 const cell = (label: string) =>
@@ -105,7 +105,7 @@ export const PaletteAssignMoveAndErase: Story = {
       await expect(content.assignments['area-2']).toContain(1)
     })
 
-    await userEvent.selectOptions(assignTo(), '')
+    await userEvent.selectOptions(assignTo(), screen.getByRole('option', { name: 'Remove assignment' }))
     await userEvent.click(cell('Alpha Lv.50'))
     await waitFor(async () => {
       await expect(assignedShipIds(environment)).not.toContain(1)
@@ -247,12 +247,12 @@ export const DestinationAndViewSurviveShareDetour: Story = {
     await userEvent.selectOptions(assignTo(), 'area-1')
 
     // Detour to Share & reference and back.
-    await userEvent.click(screen.getByRole('tab', { name: 'Share & reference' }))
+    await userEvent.click(screen.getByRole('tab', { name: 'Share' }))
     await userEvent.click(screen.getByRole('tab', { name: 'Plan' }))
 
     // Grid view and destination are preserved across the detour.
     await expect(
-      screen.getByRole('tab', { name: 'Ship Grid', selected: true }),
+      screen.getByRole('tab', { name: 'Grid Palette', selected: true }),
     ).toBeTruthy()
     await expect(assignTo().value).toBe('area-1')
 
@@ -278,5 +278,129 @@ export const DestinationAndViewSurviveShareDetour: Story = {
         Object.values(ws1.revisions[ws1.cursor].content.assignments).flat(),
       ).not.toContain(2)
     })
+  },
+}
+
+
+export const ListBatchAssignmentAndUndo: Story = {
+  name: 'List selection edits nothing; applying multiple ships is one undoable revision',
+  parameters: params({ current: [[], []], mapname: ['E1', 'E2'] }),
+  play: async () => {
+    await userEvent.click(await screen.findByRole('tab', { name: 'Ship List' }))
+    const list = within(screen.getAllByTestId('ship-list').find(element => element.checkVisibility())!)
+    const workspace = () => {
+      const navy = getEnvironment().store.getState()['poi-plugin-navy-staff'].navy
+      return navy.workspaces.find((item: any) => item.id === navy.selectedWorkspaceId)!
+    }
+    const initialCount = workspace().revisions.length
+    await userEvent.click(list.getByRole('checkbox', { name: /^Alpha / }))
+    await userEvent.click(list.getByRole('checkbox', { name: /^Beta / }))
+    expect(assignedShipIds(getEnvironment())).toEqual([])
+    expect(workspace().revisions.length).toBe(initialCount)
+    expect(list.getByRole('button', { name: 'Apply to selected' })).toBeDisabled()
+
+    await userEvent.selectOptions(list.getByLabelText('Assign to'), 'area-1')
+    await userEvent.click(list.getByRole('button', { name: 'Apply to selected' }))
+    await waitFor(() => expect(assignedShipIds(getEnvironment())).toEqual([1, 2]))
+    expect(workspace().revisions.length).toBe(initialCount + 1)
+    expect(list.getAllByRole('checkbox').every(input => !(input as HTMLInputElement).checked)).toBe(true)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Undo' }))
+    await waitFor(() => expect(assignedShipIds(getEnvironment())).toEqual([]))
+    await userEvent.click(screen.getByRole('button', { name: 'Redo' }))
+    await waitFor(() => expect(assignedShipIds(getEnvironment())).toEqual([1, 2]))
+
+    // Reapplying the current group produces no history entry.
+    await userEvent.click(list.getByRole('checkbox', { name: /^Alpha / }))
+    await userEvent.click(list.getByRole('button', { name: 'Apply to selected' }))
+    expect(workspace().revisions.length).toBe(initialCount + 1)
+
+    await userEvent.click(list.getByRole('checkbox', { name: /^Alpha / }))
+    await userEvent.click(list.getByRole('checkbox', { name: /^Beta / }))
+    await userEvent.selectOptions(list.getByLabelText('Assign to'), list.getByRole('option', { name: 'Remove assignment' }))
+    await userEvent.click(list.getByRole('button', { name: 'Apply to selected' }))
+    await waitFor(() => expect(assignedShipIds(getEnvironment())).toEqual([]))
+    await userEvent.click(screen.getByRole('button', { name: 'Undo' }))
+    await waitFor(() => expect(assignedShipIds(getEnvironment())).toEqual([1, 2]))
+  },
+}
+
+export const PaletteDefaultDoesNotRemove: Story = {
+  name: 'The default palette choice is inert for assigned ships',
+  parameters: params({ current: [[1], []], mapname: ['E1', 'E2'] }),
+  play: async () => {
+    await openGrid()
+    const before = getEnvironment().store.getState()['poi-plugin-navy-staff'].navy
+    expect(assignTo().value).toBe('')
+    await userEvent.click(cell('Alpha Lv.50'))
+    expect(getEnvironment().store.getState()['poi-plugin-navy-staff'].navy).toBe(before)
+    expect(assignedShipIds(getEnvironment())).toEqual([1])
+  },
+}
+
+
+export const FilteredListSelectionStaysExplicit: Story = {
+  name: 'List select-all respects filters; hidden selections clear when filters or page change',
+  parameters: params({ current: [[1], []], mapname: ['E1', 'E2'] }),
+  play: async () => {
+    await userEvent.click(await screen.findByRole('tab', { name: 'Ship List' }))
+    const list = within(screen.getAllByTestId('ship-list').find(element => element.checkVisibility())!)
+    const apply = () => list.getByRole('button', { name: 'Apply to selected' })
+    await userEvent.selectOptions(screen.getByLabelText('Assignment'), 'unassigned')
+    const search = screen.getByPlaceholderText('Search')
+    fireEvent.change(search, { target: { value: 'beta' } })
+    expect(list.getAllByRole('checkbox')).toHaveLength(1)
+    await userEvent.click(list.getByRole('button', { name: 'Select all matching' }))
+    await userEvent.selectOptions(list.getByLabelText('Assign to'), 'area-2')
+    expect(apply()).not.toBeDisabled()
+    await userEvent.click(apply())
+    await waitFor(() => expect(assignedShipIds(getEnvironment())).toEqual([1, 2]))
+    expect(list.queryAllByRole('checkbox')).toHaveLength(0)
+    await userEvent.click(screen.getByRole('button', { name: 'Undo' }))
+    expect(apply()).toBeDisabled()
+
+    await userEvent.click(list.getByRole('checkbox', { name: /^Beta / }))
+    fireEvent.change(search, { target: { value: '' } })
+    expect(apply()).toBeDisabled()
+    await userEvent.click(list.getByRole('button', { name: 'Select all matching' }))
+    expect(list.getAllByRole('checkbox').every(input => (input as HTMLInputElement).checked)).toBe(true)
+    await userEvent.click(screen.getByRole('tab', { name: 'Reference' }))
+    await userEvent.click(screen.getByRole('tab', { name: 'Plan' }))
+    expect(apply()).toBeDisabled()
+    expect((screen.getByLabelText('Assignment') as HTMLSelectElement).value).toBe('unassigned')
+
+    // The list and palette show the same filtered roster but different actions.
+    await userEvent.click(screen.getByRole('tab', { name: 'Grid Palette' }))
+    expect(screen.queryByRole('button', { name: 'Alpha Lv.50' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Beta Lv.20' })).toBeTruthy()
+  },
+}
+
+
+export const RemovedDestinationBecomesUnselected: Story = {
+  name: 'Undoing an added area clears its effective destination in both assignment views',
+  parameters: params(withNavy((() => {
+    const navy = mkNavyData({ current: [[1], []] })
+    const workspace = navy.workspaces[0]
+    const original = workspace.revisions[0]
+    workspace.revisions = [
+      { ...original, content: { ...original.content, areas: original.content.areas.slice(0, 1), assignments: { 'area-1': [1] } } },
+      { ...original, id: 'rev-added-area', op: { kind: 'update-areas', addedAreaIds: ['area-2'], updatedAreaIds: [] } },
+    ]
+    workspace.cursor = 1
+    return navy
+  })())),
+  play: async () => {
+    await openGrid()
+    await userEvent.selectOptions(assignTo(), 'area-2')
+    await userEvent.click(screen.getByRole('button', { name: 'Undo' }))
+    await waitFor(() => expect(assignTo().value).toBe(''))
+    const before = getEnvironment().store.getState()['poi-plugin-navy-staff'].navy
+    await userEvent.click(cell('Alpha Lv.50'))
+    expect(getEnvironment().store.getState()['poi-plugin-navy-staff'].navy).toBe(before)
+    await userEvent.click(screen.getByRole('tab', { name: 'Ship List' }))
+    const list = within(screen.getAllByTestId('ship-list').find(element => element.checkVisibility())!)
+    await userEvent.click(list.getByRole('checkbox', { name: /^Alpha / }))
+    expect(list.getByRole('button', { name: 'Apply to selected' })).toBeDisabled()
   },
 }
