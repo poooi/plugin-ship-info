@@ -136,8 +136,15 @@ Merging a Release PR triggers **Publish release**. The job only runs when:
   executed with publish credentials).
 
 It revalidates the merged result from scripts extracted from the base commit,
-installs dependencies, runs the type check and tests, packs only the selected
-packages, verifies those tarballs, and then publishes them.
+installs dependencies, runs the type check, unit tests, and the Chromium browser
+suite (install Playwright Chromium, build Storybook, then `pnpm run test:browser`)
+on the exact checked-out merge commit. Only then does it pack the selected
+packages, verify those tarballs, and publish them.
+
+The Chromium browser suite is a publish gate: it runs before packing, so a
+failed browser run stops the job before anything is packed or published. Failed
+runs upload `publish-browser-failure-artifacts` (see
+`docs/browser-testing.md`).
 
 Publication is idempotent and fail-closed:
 
