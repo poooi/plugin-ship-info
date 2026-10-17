@@ -9,7 +9,7 @@ import {
   type PersistedMigration,
   type PersistenceActions,
   type PersistenceOptions as EngineOptions,
-} from '@poi-plugins/ship-info-shared/persistence'
+} from '@poi-plugins/shared/persistence'
 import { ACTIONS, DATA_PATH, PLUGIN_KEY } from './plugin-identity'
 
 // Ordered file-format migrations; version 0 is an absent `version` field and the

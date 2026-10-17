@@ -52,7 +52,7 @@ describe('change intent parsing', () => {
     const cases: Array<[string, RegExp]> = [
       ['---\npoi-plugin-ship-info: huge\n---\nFix.\n', /invalid bump/],
       ['---\nunknown-package: patch\n---\nFix.\n', /unknown or non-publishable/],
-      ['---\n@poi-plugins/ship-info-shared: patch\n---\nFix.\n', /unknown/],
+      ['---\n@poi-plugins/shared: patch\n---\nFix.\n', /unknown/],
       [
         '---\npoi-plugin-ship-info: patch\npoi-plugin-ship-info: minor\n---\nFix.\n',
         /duplicate/,

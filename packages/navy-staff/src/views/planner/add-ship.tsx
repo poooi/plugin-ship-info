@@ -15,7 +15,7 @@ import { useSelector } from 'react-redux'
 import styled from 'styled-components'
 import { Popover } from 'views/components/etc/overlay'
 
-import { IShipSuperType, shipSuperTypeMap } from '@poi-plugins/ship-info-shared/ship-types'
+import { IShipSuperType, shipSuperTypeMap } from '@poi-plugins/shared/ship-types'
 import { buildSearch } from '../search'
 import { assignedShipIdsSelector, livePickerRowsSelector } from '../workspace/selectors'
 

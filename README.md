@@ -16,7 +16,7 @@ This is a pnpm workspace for poi plugins:
   planner, with its own state, saved file and translations. The npm package name
   currently holds a `1.2.0` placeholder; the repository baseline is normalized
   to that version so the first planner release bumps above it.
-- `packages/shared/` — private, source-only `@poi-plugins/ship-info-shared`
+- `packages/shared/` — private, source-only `@poi-plugins/shared`
   modules bundled into the plugins that use them; never published.
 - `tests/`, `stories/`, `preview/`, `shims/`, `.storybook/` and the shared
   configs live at the repository root.
@@ -102,7 +102,7 @@ pnpm run verify:package  # checks both packed artifacts
 `pnpm run pack` runs each plugin's `prepack` build and writes the tarballs to
 `.cache/packages/`. `pnpm run verify:package` inspects both tarballs and checks
 their manifests (name/version against the source package), compiled entries,
-i18n JSON, assets, bundled shared code (no runtime workspace or private-package
+i18n JSON, bundled shared code (no runtime workspace or private-package
 references), host external conventions, and runs a controlled load/register/
 lifecycle smoke against an isolated temp APPDATA. These checks verify the
 produced artifacts and their host boundaries; they are not a live poi

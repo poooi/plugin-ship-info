@@ -1,11 +1,11 @@
 import { store } from 'views/create-store'
 import i18next from 'views/env-parts/i18next'
 
-import FileWriter from '@poi-plugins/ship-info-shared/file-writer'
+import FileWriter from '@poi-plugins/shared/file-writer'
 import {
   PersistedDataError,
   type PersistenceWriter,
-} from '@poi-plugins/ship-info-shared/persistence'
+} from '@poi-plugins/shared/persistence'
 import { createPersistence } from './persistence'
 
 // Plugin-owned initialization and persistence. poi registers the reducer before

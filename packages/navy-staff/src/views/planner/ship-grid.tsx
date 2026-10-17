@@ -8,7 +8,7 @@ import type { ThunkDispatch } from 'redux-thunk'
 import styled from 'styled-components'
 import type { IState } from 'views/utils/selectors'
 
-import { shipSuperTypeMap } from '@poi-plugins/ship-info-shared/ship-types'
+import { shipSuperTypeMap } from '@poi-plugins/shared/ship-types'
 import { assignShip } from '../workspace/actions'
 import type { DisplayContent, WorkspaceShipRow } from '../workspace/selectors'
 import { DISPLAY_FLEET_NAME_CONFIG } from '../plugin-identity'

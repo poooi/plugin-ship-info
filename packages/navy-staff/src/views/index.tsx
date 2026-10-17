@@ -29,8 +29,8 @@ import styled, { createGlobalStyle } from 'styled-components'
 import { Dialog, Popover } from 'views/components/etc/overlay'
 import { extensionSelectorFactory, IState } from 'views/utils/selectors'
 
-import { shipSuperTypeMap } from '@poi-plugins/ship-info-shared/ship-types'
-import { poiSurface } from '@poi-plugins/ship-info-shared/ui/styles'
+import { shipSuperTypeMap } from '@poi-plugins/shared/ship-types'
+import { poiSurface } from '@poi-plugins/shared/ui/styles'
 import { formatRevisionTime, HistorySelector, opLabel, UndoRedo } from './history'
 import { Area } from './planner/area'
 import { ShipGrid } from './planner/ship-grid'
@@ -657,7 +657,7 @@ const HistoryTask = ({
   cursorRevisionId: string
   onRevisionChange: (id: string) => void
   onRestoreState: () => void
-  onShareState: (view: PlanView) => void
+  onShareState: () => void
   onReturn: () => void
 }) => {
   const { t } = useTranslation('poi-plugin-navy-staff')
@@ -670,7 +670,7 @@ const HistoryTask = ({
         <HeaderSpacer />
         <Button text={t('Return to current plan')} onClick={onReturn} />
         <Button text={t('Restore this state')} disabled={!canRestore} onClick={onRestoreState} />
-        <Button text={t('Share this state')} onClick={() => onShareState(view)} />
+        <Button text={t('Share this state')} onClick={onShareState} />
       </Toolbar>
       <Callout intent={Intent.NONE}>{t('HistoryReadonlyNotice')}</Callout>
       <PlanViews
@@ -702,7 +702,7 @@ const NavyStaffContent = () => {
   const [activeTab, setActiveTab] = useState('plan')
   const [planTask, setPlanTask] = useState<PlanTask>(null)
   const [historyRevId, setHistoryRevId] = useState<string | null>(null)
-  const [shareSource, setShareSource] = useState<{ workspaceId: string; revisionId: string; view: PlanView } | null>(null)
+  const [shareSource, setShareSource] = useState<{ workspaceId: string; revisionId: string } | null>(null)
   const [selection, setSelection] = useState<Set<number>>(() => new Set())
 
   // Plan view + shared list/grid filter state lives here so a History/Update
@@ -918,9 +918,9 @@ const NavyStaffContent = () => {
                     setPlanTask(null)
                     setHistoryRevId(null)
                   }}
-                  onShareState={(view) => {
+                  onShareState={() => {
                     if (!workspace) return
-                    setShareSource({ revisionId: historyRevisionId, view, workspaceId: workspace.id })
+                    setShareSource({ revisionId: historyRevisionId, workspaceId: workspace.id })
                     setPlanTask(null)
                     setHistoryRevId(null)
                     setActiveTab('share')

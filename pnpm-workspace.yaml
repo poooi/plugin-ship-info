@@ -4,7 +4,7 @@ packages:
 versioning:
   ignore:
     - poi-plugins-workspace
-    - '@poi-plugins/ship-info-shared'
+    - '@poi-plugins/shared'
   changelog:
     storage: repository
 

@@ -13,7 +13,7 @@ import { createSelector } from 'reselect'
 import { APIShip } from 'kcsapi/api_port/port/response'
 import { APIMstShip } from 'kcsapi/api_start2/getData/response'
 
-import { shipTypeLabelKeys } from '@poi-plugins/ship-info-shared/ship-types'
+import { shipTypeLabelKeys } from '@poi-plugins/shared/ship-types'
 import type { IState } from 'views/utils/selectors'
 
 import { contentAtCursor } from '../workspace/operations'

@@ -11,7 +11,7 @@ import {
   IState,
 } from 'views/utils/selectors'
 
-import { shipSuperTypeMap } from '@poi-plugins/ship-info-shared/ship-types'
+import { shipSuperTypeMap } from '@poi-plugins/shared/ship-types'
 
 interface IDictionary<T> {
   [index: string]: T

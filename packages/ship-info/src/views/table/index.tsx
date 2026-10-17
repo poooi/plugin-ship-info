@@ -26,7 +26,7 @@ import {
   columnVisibilitySelector,
   columnPinningSelector,
 } from '../selectors'
-import { poiSurface } from '@poi-plugins/ship-info-shared/ui/styles'
+import { poiSurface } from '@poi-plugins/shared/ui/styles'
 import { columns as dataColumns, TableRow } from './columns-config'
 import { shipInfoTableFeatures, ShipInfoTableFeatures } from './table-features'
 import { TitleCell } from './title-cell'

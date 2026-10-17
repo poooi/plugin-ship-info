@@ -5,7 +5,7 @@ import type { Action } from 'redux'
 import type { ThunkAction } from 'redux-thunk'
 
 import type { IState } from 'views/utils/selectors'
-import { shipTypeLabelKeys } from '@poi-plugins/ship-info-shared/ship-types'
+import { shipTypeLabelKeys } from '@poi-plugins/shared/ship-types'
 
 import { shipMenuDataSelector } from '../planner/selectors'
 import { freshWorkspaceAreas } from './capture'
