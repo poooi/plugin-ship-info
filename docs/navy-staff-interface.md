@@ -194,8 +194,11 @@ the initial page.
 
 Browser checks cover navigation, retained reference state, assignment behavior,
 and overflow. Localization regression checks also load keys using poi's
-`escapeI18nKey` processing; new message keys avoid trailing punctuation, which
-poi removes while reading translation resources. Screenshots need human visual review in addition to passing those
-checks. Storybook substitutes poi services and artwork; it does not establish
+`escapeI18nKey` processing; new message keys use punctuation-free identifiers because
+poi removes trailing periods, period-plus-whitespace sequences, and colon separators
+while reading translation resources. Regression tests render actual-tag badges and
+empty-plan hints with normalized resources and no fallback language. Screenshots
+need human visual review in addition to passing those checks. Storybook substitutes
+poi services and artwork; it does not establish
 that the real Electron host has rendered the build correctly. See
 [browser-testing.md](browser-testing.md) for those boundaries.

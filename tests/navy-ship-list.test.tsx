@@ -46,11 +46,12 @@ const renderList = (
   ships: WorkspaceShipRow[],
   shiptag?: unknown,
   displayFleetName = false,
+  translation = i18n,
 ) =>
   render(
     <Provider store={legacy_createStore(() => ({ fcd: { shiptag } }))}>
       <ThemeProvider theme={theme}>
-        <I18nextProvider i18n={i18n}>
+        <I18nextProvider i18n={translation}>
           <ShipList
             areas={[] as WorkspaceAreaView[]}
             displayFleetName={displayFleetName}
@@ -67,6 +68,22 @@ const renderList = (
 afterEach(cleanup)
 
 describe('ShipList ordering and assigned tint', () => {
+  it.each([
+    ['en-US', 'Actual: E1', 'Actual sortie tag: E1'],
+    ['ja-JP', '札：E1', '現在の出撃札：E1'],
+    ['ko-KR', '실제: E1', '현재 출격 태그: E1'],
+    ['zh-CN', '实际：E1', '当前出击标签：E1'],
+    ['zh-TW', '實際：E1', '目前出擊標籤：E1'],
+  ] as const)('renders the actual tag in %s after host key normalization', (language, text, label) => {
+    const translation = createNavyOnlyI18n(language)
+    expect(translation.exists('actualTag')).toBe(true)
+    expect(translation.exists('actualTagLabel')).toBe(true)
+    renderList([row({ actualTag: 1, name: 'A', ownedId: 1 })], { mapname: ['E1'] }, false, translation)
+    const badge = screen.getByRole('img', { name: label })
+    expect(badge.textContent).toBe(text)
+    expect(badge.title).toBe(label)
+  })
+
   it('sorts level descending, null last, then owned id descending', () => {
     expect(sortShipRows(rows).map((entry) => entry.ownedId)).toEqual([3, 4, 1, 2])
   })

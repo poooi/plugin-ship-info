@@ -527,14 +527,14 @@ const PlanViews = ({
     return (
       <Callout>
         <div>{t('No areas captured')}</div>
-        <Muted>{t('Synchronize to capture the current event areas into this plan.')}</Muted>
+        <Muted>{t('planSetupSyncHint')}</Muted>
         {!readOnly && (
           <SetupHint>
             <Button icon="refresh" disabled={!canSynchronize} onClick={onOpenSynchronize}>
               {t('Go to Synchronize')}
             </Button>
             {!canSynchronize && (
-              <Muted>{t('Area data is not available yet. Load the game map data first.')}</Muted>
+              <Muted>{t('planSetupNoAreaData')}</Muted>
             )}
           </SetupHint>
         )}

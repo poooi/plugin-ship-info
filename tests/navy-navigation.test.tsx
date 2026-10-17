@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import React from 'react'
+import { I18nextProvider } from 'react-i18next'
 import { thunk } from 'redux-thunk'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
@@ -23,8 +24,9 @@ vi.mock('modern-screenshot', () => ({
 import { reactClass as NavyStaff } from '../packages/navy-staff/src/views'
 import { PLUGIN_KEY } from '../packages/navy-staff/src/views/plugin-identity'
 import { reducer as navyReducer } from '../packages/navy-staff/src/views/redux'
-import { plannerState } from './ui/fixtures'
+import { mkNavyData, plannerState } from './ui/fixtures'
 import { createHarness } from './ui/harness'
+import { createNavyOnlyI18n, LANGUAGES } from '../preview/i18n'
 
 afterEach(() => {
   cleanup()
@@ -32,6 +34,23 @@ afterEach(() => {
 })
 
 describe('Navy Staff navigation and controls', () => {
+  it.each(LANGUAGES)('renders both empty-plan hints with host-normalized %s resources', (language) => {
+    const i18n = createNavyOnlyI18n(language)
+    const state = plannerState({
+      [PLUGIN_KEY]: { account: '123', error: null, navy: mkNavyData({ areas: [] }), ready: true },
+      fcd: { shiptag: { mapname: [], color: [] } },
+    })
+    const harness = createHarness(state, { language })
+    harness.render(<I18nextProvider i18n={i18n}><NavyStaff /></I18nextProvider>)
+
+    // Resource existence prevents a missing-key fallback from passing even in English.
+    for (const key of ['planSetupSyncHint', 'planSetupNoAreaData']) {
+      expect(i18n.exists(key)).toBe(true)
+      expect(screen.getByText(i18n.t(key))).toBeTruthy()
+    }
+    expect((screen.getByRole('button', { name: i18n.t('Go to Synchronize') }) as HTMLButtonElement).disabled).toBe(true)
+  })
+
   it('uses a compact button group with aria-pressed page state, not tabs', () => {
     const harness = createHarness(plannerState())
     harness.render(<NavyStaff />)

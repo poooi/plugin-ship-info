@@ -100,7 +100,7 @@ export const ActualSortieTag = ({
   const resolved = resolveSortieTagLabel(shiptag, actualTag, translated)
   const label = resolved ?? t('Tag {{number}}', { number: actualTag })
   const color = resolveSortieTagColor(shiptag, actualTag)
-  const accessible = t('Actual sortie tag: {{label}}', { label })
+  const accessible = t('actualTagLabel', { label })
   return (
     <Badge
       className={className}
@@ -113,7 +113,7 @@ export const ActualSortieTag = ({
       <TagIcon $color={color} aria-hidden>
         <Icon icon="tag" size={12} />
       </TagIcon>
-      <TagText>{t('Actual: {{label}}', { label })}</TagText>
+      <TagText>{t('actualTag', { label })}</TagText>
     </Badge>
   )
 }

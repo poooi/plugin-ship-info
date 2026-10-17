@@ -73,7 +73,7 @@ describe('Reference tools opening and guards (zh-CN)', () => {
     expect(screen.getByTestId('reference-view')).toBeTruthy()
     expect(screen.queryByPlaceholderText('粘贴分享代码或打开文本文件')).toBeNull()
 
-    fireEvent.click(button('打开其他参考'))
+    fireEvent.click(button(i18n.t('Open another reference')))
     expect(pasteBox()).toBeTruthy()
     fireEvent.click(button('取消'))
 
@@ -85,7 +85,7 @@ describe('Reference tools opening and guards (zh-CN)', () => {
     renderTools()
     openReference('参考A')
 
-    fireEvent.click(button('打开其他参考'))
+    fireEvent.click(button(i18n.t('Open another reference')))
     fireEvent.change(pasteBox(), { target: { value: 'not a reference' } })
     fireEvent.click(button('打开'))
 
@@ -107,7 +107,7 @@ describe('Reference tools opening and guards (zh-CN)', () => {
   it('drops a slower pending file read when a newer oversized file supersedes it', async () => {
     renderTools()
     openReference('参考A')
-    fireEvent.click(button('打开其他参考'))
+    fireEvent.click(button(i18n.t('Open another reference')))
 
     const input = screen.getByTestId('reference-file-input')
     let resolveFirst: ((text: string) => void) | undefined
@@ -174,7 +174,7 @@ describe('Reference tools opening and guards (zh-CN)', () => {
   it('keeps the draft and current reference when the clipboard read fails', async () => {
     renderTools()
     openReference('参考A')
-    fireEvent.click(button('打开其他参考'))
+    fireEvent.click(button(i18n.t('Open another reference')))
 
     fireEvent.change(pasteBox(), { target: { value: 'typed draft' } })
     mocks.readText.mockRejectedValueOnce(new Error('denied'))
@@ -209,7 +209,7 @@ describe('Reference tools opening and guards (zh-CN)', () => {
     )
     renderTools()
     openReference('参考A')
-    fireEvent.click(button('打开其他参考'))
+    fireEvent.click(button(i18n.t('Open another reference')))
 
     fireEvent.click(button('粘贴'))
     fireEvent.change(pasteBox(), { target: { value: 'typed' } })

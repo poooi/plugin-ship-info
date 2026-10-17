@@ -239,11 +239,12 @@ The planner surface now lives in `poi-plugin-navy-staff` with its own main view,
 so the old `Sidebar/Planner/*` stories render `NavyStaff/*` directly (no sidebar
 button or modal) with `shipInfo.plugin: 'navy-staff'`.
 
-The interface has four primary pages (Plan, History, Synchronize, Share &
-reference). Area View and Ship Grid are the two presentations inside Plan.
+The interface has three primary pages: Plan, Reference, and Share. History and
+Update from game (synchronization) are tasks inside Plan. Area View, Ship List,
+and Grid Palette are the three presentations of the plan.
 Workspace rename/duplicate/delete sit in a workspace-actions menu with
 rename/delete dialogs; the palette is a single "Assign to" select. The reference
-stories navigate to the Share & reference page first. Dense visual scenarios
+stories open the Reference page; sharing stories open Share. Dense visual scenarios
 (`NavyStaff/Integrated/DensePlan*`) render a 300-owned-ship / ten-area fixture
 and assert density, no horizontal overflow, last-group reachability, both
 themes, portraits, long names, and per-page scroll restoration.
