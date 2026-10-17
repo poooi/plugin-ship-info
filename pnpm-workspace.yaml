@@ -7,6 +7,8 @@ versioning:
     - '@poi-plugins/shared'
   changelog:
     storage: repository
+  lanes:
+    poi-plugin-ship-info: beta
 
 allowBuilds:
   esbuild: true
