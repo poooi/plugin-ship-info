@@ -9,13 +9,13 @@ import {
   createReleasePlan,
   expandSelection,
   LEDGER_FILE,
+  parseChannel,
   PLUGINS,
   PLAN_FILE,
-  pnpmVersionSelection,
+  pnpmLaneVersionSelection,
   readManifest,
   readSelectedVersions,
   RELEASE_BRANCH_PREFIX,
-  resolveChangedSelection,
   runGit,
   tryGit,
   workingTreeChanges,
@@ -31,6 +31,7 @@ const hasFlag = (name) => args.includes(name)
 
 const repo = path.resolve(option('--repo', process.cwd()))
 const selection = option('--selection')
+const channel = option('--channel', 'main')
 const baseBranch = option('--base-branch', 'master')
 const allowAnyBranch = hasFlag('--allow-any-branch')
 const noPush = hasFlag('--no-push')
@@ -76,25 +77,27 @@ try {
     }
   }
 
+  const releaseChannel = parseChannel(channel)
   console.log(
-    `Preparing ${ids.map((id) => `${PLUGINS[id].name}@${baseVersions[PLUGINS[id].name]}`).join(', ')}`,
+    `Preparing ${ids
+      .map((id) => `${PLUGINS[id].name}@${baseVersions[PLUGINS[id].name]}`)
+      .join(', ')} on the ${releaseChannel} channel`,
   )
-  const output = pnpmVersionSelection(repo, ids)
+  const { changedIds, output } = pnpmLaneVersionSelection({
+    baseVersions,
+    channel: releaseChannel,
+    ids,
+    repo,
+  })
   if (output) console.log(output)
 
-  const changes = workingTreeChanges(repo)
-  if (changes.length === 0) {
-    fail('no pending change intents applied for this selection')
-  }
-
-  const changedIds = resolveChangedSelection(repo, ids, baseVersions)
-  const skippedIds = ids.filter((id) => !changedIds.includes(id))
   if (changedIds.length === 0) {
     fail(
       'no selected package has a pending change intent; nothing to release. ' +
         'Record an intent or choose a different selection.',
     )
   }
+  const skippedIds = ids.filter((id) => !changedIds.includes(id))
   if (skippedIds.length > 0) {
     console.log(
       `Skipping ${skippedIds
@@ -103,7 +106,13 @@ try {
     )
   }
 
+  const changes = workingTreeChanges(repo)
+  if (changes.length === 0) {
+    fail('no pending change intents applied for this selection')
+  }
+
   const allowed = new Set()
+  allowed.add('pnpm-workspace.yaml')
   for (const id of changedIds) {
     const dir = PLUGINS[id].dir
     allowed.add(`${dir}/package.json`)
@@ -132,6 +141,7 @@ try {
     baseCommit,
     baseVersions,
     changes,
+    channel: releaseChannel,
     repo,
     selection: changedIds,
   })

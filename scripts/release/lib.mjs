@@ -71,6 +71,32 @@ export function releaseTag(name, version) {
   return `${name}@${version}`
 }
 
+// Native pnpm release lanes. `main` is the default stable lane; `beta` produces
+// X.Y.Z-beta.N prereleases. Membership lives in pnpm-workspace.yaml
+// (`versioning.lanes`) and is edited only through `pnpm lane`.
+export const RELEASE_CHANNELS = Object.freeze(['main', 'beta'])
+
+export function parseChannel(value) {
+  if (value !== 'main' && value !== 'beta') {
+    throw new Error(
+      `unknown release channel ${JSON.stringify(value)} (expected "main" or "beta")`,
+    )
+  }
+  return value
+}
+
+const laneNameFor = (channel) => (channel === 'beta' ? 'beta' : 'main')
+
+// Moves one package between native lanes. `pnpm lane main` removes the lane
+// entry (graduation); `pnpm lane beta` records it.
+export function applyLane(repo, channel, id) {
+  if (!PLUGIN_IDS.includes(id)) throw new Error(`unknown plugin: ${id}`)
+  return runPnpm(
+    ['lane', laneNameFor(channel), '--filter', PLUGINS[id].name],
+    repo,
+  )
+}
+
 export function parseVersion(value) {
   const match = /^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?$/.exec(
     String(value),
@@ -90,10 +116,31 @@ export function compareVersions(left, right) {
   for (const key of ['major', 'minor', 'patch']) {
     if (a[key] !== b[key]) return a[key] < b[key] ? -1 : 1
   }
-  if (a.prerelease === b.prerelease) return 0
-  if (a.prerelease === null) return 1
-  if (b.prerelease === null) return -1
-  return a.prerelease < b.prerelease ? -1 : 1
+  return comparePrerelease(a.prerelease, b.prerelease)
+}
+
+// Semver prerelease ordering: a stable version sorts after any prerelease, and
+// numeric identifiers compare numerically so beta.9 < beta.10.
+function comparePrerelease(left, right) {
+  if (left === right) return 0
+  if (left === null) return 1
+  if (right === null) return -1
+  const a = left.split('.')
+  const b = right.split('.')
+  for (let index = 0; index < Math.max(a.length, b.length); index += 1) {
+    const x = a[index]
+    const y = b[index]
+    if (x === undefined) return -1
+    if (y === undefined) return 1
+    if (x === y) continue
+    const xn = /^\d+$/.test(x)
+    const yn = /^\d+$/.test(y)
+    if (xn && yn) return Number(x) < Number(y) ? -1 : 1
+    if (xn) return -1
+    if (yn) return 1
+    return x < y ? -1 : 1
+  }
+  return 0
 }
 
 export function isDocumentationOrTest(file) {
@@ -404,6 +451,41 @@ export function pnpmVersionSelection(repo, selection) {
   return runPnpm([...filters, 'version', '-r'], repo)
 }
 
+// Native lane + version in one step, narrowed to the packages that actually
+// version. Runs the requested channel lane for every requested package, lets
+// native `pnpm version -r` bump the ones with pending intents, then restores
+// the original pnpm-workspace.yaml bytes and re-applies the lane only for the
+// changed packages. Skipped packages keep their exact original lane membership
+// and the validator can recompute the same narrowed set.
+export function pnpmLaneVersionSelection({ baseVersions, channel, ids, repo }) {
+  const workspaceFile = path.join(repo, 'pnpm-workspace.yaml')
+  const originalWorkspace = fs.readFileSync(workspaceFile)
+  const output = []
+  try {
+    for (const id of ids) {
+      const laneOutput = applyLane(repo, channel, id)
+      if (laneOutput) output.push(laneOutput)
+    }
+    const versionOutput = runPnpm(
+      [
+        ...ids.flatMap((id) => ['--filter', PLUGINS[id].name]),
+        'version',
+        '-r',
+        '--no-git-checks',
+      ],
+      repo,
+    )
+    if (versionOutput) output.push(versionOutput)
+  } catch (error) {
+    fs.writeFileSync(workspaceFile, originalWorkspace)
+    throw error
+  }
+  const changedIds = resolveChangedSelection(repo, ids, baseVersions)
+  fs.writeFileSync(workspaceFile, originalWorkspace)
+  for (const id of changedIds) applyLane(repo, channel, id)
+  return { changedIds, output: output.join('\n') }
+}
+
 export function readSelectedVersions(repo, selection) {
   return Object.fromEntries(
     expandSelection(selection).map((id) => [
@@ -450,6 +532,15 @@ export function publishTagFor(version, latest) {
   return compareVersions(version, latest) < 0 ? 'previous' : 'latest'
 }
 
+// Dist-tag for a release channel. Beta only ever publishes under `beta` (or
+// `previous` when it is older than the current beta pointer), so it can never
+// touch or roll back `latest`; main keeps the latest/previous safeguards.
+export function publishDistTag({ channel, taggedVersion, version }) {
+  const pointer = publishTagFor(version, taggedVersion)
+  if (channel !== 'beta') return pointer
+  return pointer === 'previous' ? 'previous' : 'beta'
+}
+
 export function commitReleasePlan({ branch, message, plan, repo }) {
   if (!branch) throw new Error('release branch name is required')
   if (tryGit(repo, ['rev-parse', '--verify', `refs/heads/${branch}`]) !== null) {
@@ -475,6 +566,7 @@ export function createReleasePlan({
   baseCommit,
   baseVersions,
   changes,
+  channel = 'main',
   repo,
   selection,
 }) {
@@ -500,9 +592,10 @@ export function createReleasePlan({
         ids.map((id) => [PLUGINS[id].name, baseVersions[PLUGINS[id].name]]),
       ),
     },
+    channel: parseChannel(channel),
     files: sorted.map(({ path: file, status }) => ({ path: file, status })),
     releases,
-    schemaVersion: 1,
+    schemaVersion: 2,
     selection: ids,
   }
 }
@@ -527,12 +620,13 @@ export function validatePlanShape(plan) {
   assertObject(plan, 'release plan')
   assertExactKeys(
     plan,
-    ['base', 'files', 'releases', 'schemaVersion', 'selection'],
+    ['base', 'channel', 'files', 'releases', 'schemaVersion', 'selection'],
     'release plan',
   )
-  if (plan.schemaVersion !== 1) {
+  if (plan.schemaVersion !== 2) {
     throw new Error(`unsupported release plan schema: ${plan.schemaVersion}`)
   }
+  const channel = parseChannel(plan.channel)
 
   const selection = expandSelection(plan.selection)
   if (
@@ -591,6 +685,20 @@ export function validatePlanShape(plan) {
     }
     if (release.tag !== releaseTag(release.name, release.to)) {
       throw new Error(`${release.name}: invalid release tag ${release.tag}`)
+    }
+    const prerelease = parseVersion(release.to).prerelease
+    if (channel === 'beta') {
+      if (prerelease === null || !/^beta\.(0|[1-9]\d*)$/.test(prerelease)) {
+        throw new Error(
+          `${release.name}: channel beta requires a beta prerelease version ` +
+            `(got ${release.to})`,
+        )
+      }
+    } else if (prerelease !== null) {
+      throw new Error(
+        `${release.name}: channel main requires a stable version ` +
+          `(got ${release.to})`,
+      )
     }
   }
 
@@ -744,7 +852,14 @@ export function validateReleasePr({ base, head, repo, target = null }) {
   const worktree = path.join(tempRoot, 'tree')
   try {
     runGit(repo, ['worktree', 'add', '--detach', worktree, base])
-    pnpmVersionSelection(worktree, plan.selection)
+    // Recompute with the exact generation helper so the narrowed lane set and
+    // versioned files must match the plan byte-for-byte.
+    pnpmLaneVersionSelection({
+      baseVersions: plan.base.packages,
+      channel: plan.channel,
+      ids: [...plan.selection],
+      repo: worktree,
+    })
     const expectedChanges = workingTreeChanges(worktree)
     assertSameChanges(expectedChanges, plan.files, 'pnpm release plan')
     assertSameChanges(generatedHeadChanges, expectedChanges, 'Release PR diff')
@@ -937,8 +1052,9 @@ export async function registryVersionMetadata(options) {
 
 export async function registryLatestVersion(options) {
   const body = await fetchPackument(options)
-  const latest = body?.['dist-tags']?.latest
-  return typeof latest === 'string' ? latest : null
+  const tag = options.tag ?? 'latest'
+  const value = body?.['dist-tags']?.[tag]
+  return typeof value === 'string' ? value : null
 }
 
 export function assertTarballMatchesRegistry(tarball, metadata) {

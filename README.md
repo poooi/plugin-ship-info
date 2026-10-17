@@ -53,9 +53,12 @@ The plugins release independently through pnpm's native versioning, not the
 Changesets CLI. Record a change intent with `pnpm change`, run the **Prepare
 release** workflow, merge the generated Release PR after validation, and let
 **Publish release** publish only the selected verified tarballs. Ordinary pull
-request merges never bump or publish. See [docs/releases.md](docs/releases.md)
-for the workflow, changelog rules, external trusted-publishing setup, and the
-Navy Staff baseline.
+request merges never bump or publish. Prepare release also offers a per-selection
+`beta` channel built on pnpm's native lanes (`code -> beta -> main` or
+`code -> main`); betas publish under the npm `beta` dist-tag and never become
+latest. See [docs/releases.md](docs/releases.md) for the workflow, channel
+behavior, changelog rules, external trusted-publishing setup, and the Navy Staff
+baseline.
 
 ## Development
 

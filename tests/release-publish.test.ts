@@ -5,7 +5,9 @@ import path from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
+  compareVersions,
   ensureReleaseTag,
+  publishDistTag,
   publishSelected,
   publishTagFor,
   registryLatestVersion,
@@ -384,6 +386,38 @@ describe('dist-tag safety and tarball digests', () => {
     expect(publishTagFor('9.0.1', '9.0.0')).toBe('latest')
     expect(publishTagFor('8.1.2', '9.0.0')).toBe('previous')
     expect(publishTagFor('1.0.0', null)).toBe('latest')
+  })
+
+  it('never rolls the beta pointer backwards and never touches latest', () => {
+    expect(
+      publishDistTag({ channel: 'beta', taggedVersion: null, version: '1.0.0-beta.0' }),
+    ).toBe('beta')
+    expect(
+      publishDistTag({
+        channel: 'beta',
+        taggedVersion: '1.0.0-beta.1',
+        version: '1.0.0-beta.0',
+      }),
+    ).toBe('previous')
+    expect(
+      publishDistTag({
+        channel: 'beta',
+        taggedVersion: '1.0.0-beta.9',
+        version: '1.0.0-beta.10',
+      }),
+    ).toBe('beta')
+    expect(
+      publishDistTag({ channel: 'main', taggedVersion: '1.0.0', version: '1.0.1' }),
+    ).toBe('latest')
+    expect(
+      publishDistTag({ channel: 'main', taggedVersion: '2.0.0', version: '1.0.0' }),
+    ).toBe('previous')
+  })
+
+  it('orders numeric prerelease counters', () => {
+    expect(compareVersions('1.0.0-beta.9', '1.0.0-beta.10')).toBe(-1)
+    expect(compareVersions('1.0.0-beta.10', '1.0.0-beta.9')).toBe(1)
+    expect(compareVersions('1.0.0-beta.1', '1.0.0')).toBe(-1)
   })
 
   it('computes stable sha512 and sha1 digests', () => {

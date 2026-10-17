@@ -12,6 +12,14 @@ on:
           - navy-staff
           - both
         default: ship-info
+      channel:
+        description: Release channel (main is stable; beta publishes prereleases)
+        required: true
+        type: choice
+        options:
+          - main
+          - beta
+        default: main
 
 permissions:
   contents: read
@@ -55,4 +63,5 @@ jobs:
         run: >
           node scripts/release/prepare.mjs
           --selection "${{ inputs.selection }}"
+          --channel "${{ inputs.channel }}"
           --base-branch "${{ github.event.repository.default_branch }}"
