@@ -16,7 +16,18 @@ import type { WorkspaceShipRow } from '../workspace/selectors'
 import type { AreaChoice } from './types'
 
 const Chip = styled(Tag)`
-  margin: 0.5ex 1ex;
+  margin: 0;
+  max-width: 100%;
+`
+
+// The inner text ellipsizes; the full label stays available as a tooltip.
+const ChipContent = styled.span`
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
 `
 
 interface IProps {
@@ -40,10 +51,13 @@ export const ShipChip = ({ row, others, planAreaId, readOnly }: IProps) => {
   const name = row.live
     ? t(row.name ?? '', { ns: 'resources' })
     : row.name ?? `#${row.ownedId}`
+  const label = `${typeLabel}${typeLabel ? ' | ' : ''}${name} Lv.${row.level ?? '?'}`
 
   return (
     <Chip
+      large
       minimal
+      title={label}
       interactive={!readOnly}
       onRemove={readOnly ? undefined : () => dispatch(removeShipFromArea(planAreaId, row.ownedId))}
       onContextMenu={
@@ -74,11 +88,11 @@ export const ShipChip = ({ row, others, planAreaId, readOnly }: IProps) => {
           </Menu>
         }
       >
-        <span>
+        <ChipContent>
           {typeLabel}
           {typeLabel ? ' | ' : ''}
           {name} <span>Lv.{row.level ?? '?'}</span>
-        </span>
+        </ChipContent>
       </Popover>
       <span>{row.fleetId > -1 && <FleetIcon fleetId={row.fleetId} />}</span>
     </Chip>

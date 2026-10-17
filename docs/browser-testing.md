@@ -5,7 +5,7 @@ The plugin has two independent UI test layers:
 | Layer | Runner | State | Scenarios |
 | --- | --- | --- | --- |
 | Node/jsdom | `pnpm test` (`vp test run`) | jsdom via `tests/setup.ts` | Persistence, selectors, reducers, CSV, and UI integration |
-| Browser | `pnpm run test:browser` (`vitest run --config vitest.browser.config.ts`) | Real Chromium via Playwright | 101 story scenarios across 13 files |
+| Browser | `pnpm run test:browser` (`vitest run --config vitest.browser.config.ts`) | Real Chromium via Playwright | Every story across 15 story files |
 
 The browser project is deliberately a separate Vitest config. It does **not**
 inherit `tests/setup.ts` or the jsdom geometry stubs in `tests/ui/mocks.tsx`,
@@ -229,6 +229,22 @@ the export names.
 The planner surface now lives in `poi-plugin-navy-staff` with its own main view,
 so the old `Sidebar/Planner/*` stories render `NavyStaff/*` directly (no sidebar
 button or modal) with `shipInfo.plugin: 'navy-staff'`.
+
+The interface has four primary pages (Plan, History, Synchronize, Share &
+reference). Area View and Ship Grid are the two presentations inside Plan.
+Workspace rename/duplicate/delete sit in a workspace-actions menu with
+rename/delete dialogs; the palette is a single "Assign to" select. The reference
+stories navigate to the Share & reference page first. Dense visual scenarios
+(`NavyStaff/Integrated/DensePlan*`) render a 300-owned-ship / ten-area fixture
+and assert density, no horizontal overflow, last-group reachability, both
+themes, portraits, long names, and per-page scroll restoration.
+
+| Story export | Asserts |
+| --- | --- |
+| `NavyStaff/Integrated/DensePlanWide` / `DensePlanMedium` / `DensePlanNarrow` | 300 cards render at 1200/720/480px with no horizontal overflow and the last group reachable. |
+| `NavyStaff/Integrated/DensePlanLight` / `DensePlanPortraits` / `DensePlanLongNames` | Light theme, portrait mode (artwork kept, contrast backed), and long workspace/area names. |
+| `NavyStaff/Integrated/DensePlanScrollRestored` | Each page keeps its own scroll position; a first-visited page opens at the top. |
+| `NavyStaff/Area/PreviewIsReadOnlyInBothViews` | A preview exposes no assignment controls and clicking/right-clicking a read-only card leaves assignments unchanged. |
 
 | Story export | Asserts |
 | --- | --- |

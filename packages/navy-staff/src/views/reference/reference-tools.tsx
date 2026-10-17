@@ -9,7 +9,7 @@
 // Clipboard and file access use the existing poi host boundaries, which the
 // preview also mocks and records.
 
-import { Button, ButtonGroup, Callout, Intent, TextArea } from '@blueprintjs/core'
+import { Button, ButtonGroup, Callout, Card, Intent, TextArea } from '@blueprintjs/core'
 import { clipboard, remote } from 'electron'
 import { outputFile } from 'fs-extra'
 import React, { useRef, useState } from 'react'
@@ -34,6 +34,22 @@ const Toolbar = styled.div`
   flex-wrap: wrap;
 `
 
+const SectionCard = styled(Card)`
+  &:not(:first-of-type) {
+    margin-top: 1em;
+  }
+`
+
+const SectionTitle = styled.h4`
+  margin: 0 0 0.25em;
+`
+
+const Description = styled.p`
+  margin: 0 0 0.75em;
+  opacity: 0.8;
+  font-size: 0.9em;
+`
+
 const ImportPanel = styled.div`
   display: flex;
   flex-direction: column;
@@ -52,6 +68,10 @@ export interface ReferenceToolsProps {
   onExportCapture: () => DecodedReference
   /** Disables the export control when there is no exportable plan. */
   exportDisabled?: boolean
+  /** Heading for the export section (defaults to Export reference). */
+  exportTitle?: string
+  /** One-line description of what the export will produce. */
+  exportDescription?: string
   /** Notifies the parent when a reference is opened or closed (read-only). */
   onOpenChange?: (reference: DecodedReference | null) => void
   className?: string
@@ -75,6 +95,8 @@ const defaultSaveText = async (
 export const ReferenceTools = ({
   onExportCapture,
   exportDisabled = false,
+  exportTitle,
+  exportDescription,
   onOpenChange,
   className,
 }: ReferenceToolsProps) => {
@@ -169,76 +191,67 @@ export const ReferenceTools = ({
 
   return (
     <div className={className} data-testid="reference-tools">
-      <Toolbar>
-        <Button icon="export" disabled={exportDisabled} onClick={handleExport}>
-          {t('Export reference')}
-        </Button>
-        <Button icon="clipboard" disabled={!shareText} onClick={handleCopy}>
-          {t('Copy share text')}
-        </Button>
-        <Button
-          icon="floppy-disk"
-          disabled={!shareText}
-          onClick={() => void handleSave()}
-        >
-          {t('Save share text')}
-        </Button>
-        <Button
-          icon="import"
-          active={importing}
-          onClick={() => setImporting((value) => !value)}
-        >
-          {t('Import reference')}
-        </Button>
-      </Toolbar>
+      <SectionCard>
+        <SectionTitle>{exportTitle ?? t('Export reference')}</SectionTitle>
+        {exportDescription && <Description>{exportDescription}</Description>}
+        <Toolbar>
+          <Button icon="export" disabled={exportDisabled} onClick={handleExport}>
+            {t('Export reference')}
+          </Button>
+        </Toolbar>
+      </SectionCard>
 
-      {shareText && (
-        <TextArea
-          fill
-          readOnly
-          value={shareText}
-          aria-label={t('Share text')}
-          data-testid="reference-share-text"
-        />
-      )}
+      <SectionCard>
+        <SectionTitle>{t('Import reference')}</SectionTitle>
+        <Description>{t('importDescription')}</Description>
+        <Toolbar>
+          <Button
+            icon="import"
+            active={importing}
+            onClick={() => setImporting((value) => !value)}
+          >
+            {t('Import reference')}
+          </Button>
+        </Toolbar>
 
-      {importing && (
-        <Callout>
-          <ImportPanel>
-            <TextArea
-              fill
-              value={draft}
-              onChange={(event) => setDraft(event.currentTarget.value)}
-              placeholder={t('Paste a share code or open a text file')}
-              aria-label={t('Paste a share code or open a text file')}
-            />
-            <ButtonGroup>
-              <Button
-                intent={Intent.PRIMARY}
-                disabled={draft.trim().length === 0}
-                onClick={() => handleDecode(draft)}
-              >
-                {t('Open')}
-              </Button>
-              <Button onClick={() => fileInput.current?.click()}>
-                {t('Open file')}
-              </Button>
-            </ButtonGroup>
-            <HiddenFileInput
-              ref={fileInput}
-              type="file"
-              accept=".txt,text/plain"
-              aria-label={t('Open file')}
-              data-testid="reference-file-input"
-              onChange={(event) => {
-                const file = event.currentTarget.files?.[0]
-                event.currentTarget.value = ''
-                void handleFile(file)
-              }}
-            />
-          </ImportPanel>
-        </Callout>
-      )}
+        {importing && (
+          <Callout>
+            <ImportPanel>
+              <TextArea
+                fill
+                value={draft}
+                onChange={(event) => setDraft(event.currentTarget.value)}
+                placeholder={t('Paste a share code or open a text file')}
+                aria-label={t('Paste a share code or open a text file')}
+              />
+              <ButtonGroup>
+                <Button
+                  intent={Intent.PRIMARY}
+                  disabled={draft.trim().length === 0}
+                  onClick={() => handleDecode(draft)}
+                >
+                  {t('Open')}
+                </Button>
+                <Button onClick={() => fileInput.current?.click()}>
+                  {t('Open file')}
+                </Button>
+              </ButtonGroup>
+              <HiddenFileInput
+                ref={fileInput}
+                type="file"
+                accept=".txt,text/plain"
+                aria-label={t('Open file')}
+                data-testid="reference-file-input"
+                onChange={(event) => {
+                  const file = event.currentTarget.files?.[0]
+                  event.currentTarget.value = ''
+                  void handleFile(file)
+                }}
+              />
+            </ImportPanel>
+          </Callout>
+        )}
+      </SectionCard>
 
       {errorKey && (
         <Callout intent={Intent.DANGER} data-testid="reference-error">
@@ -246,7 +259,41 @@ export const ReferenceTools = ({
         </Callout>
       )}
 
-      {reference && <ReferenceView reference={reference} onClose={handleClose} />}
+      {/* Produced or imported output is its own result section, labeled by the
+          opened reference's title so it is never mistaken for the current
+          workspace. */}
+      {(shareText || reference) && (
+        <SectionCard data-testid="reference-result">
+          <SectionTitle>{reference?.title ?? t('Share text')}</SectionTitle>
+          <Description>{t('Reference is read-only')}</Description>
+          <Toolbar>
+            {shareText && (
+              <>
+                <Button icon="clipboard" onClick={handleCopy}>
+                  {t('Copy share text')}
+                </Button>
+                <Button icon="floppy-disk" onClick={() => void handleSave()}>
+                  {t('Save share text')}
+                </Button>
+              </>
+            )}
+          </Toolbar>
+
+          {shareText && (
+            <TextArea
+              fill
+              readOnly
+              value={shareText}
+              aria-label={t('Share text')}
+              data-testid="reference-share-text"
+            />
+          )}
+
+          {reference && (
+            <ReferenceView reference={reference} onClose={handleClose} />
+          )}
+        </SectionCard>
+      )}
     </div>
   )
 }

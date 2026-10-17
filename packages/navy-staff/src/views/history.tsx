@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next'
 import { useDispatch, useSelector } from 'react-redux'
 import type { Action } from 'redux'
 import type { ThunkDispatch } from 'redux-thunk'
-import styled from 'styled-components'
 import type { IState } from 'views/utils/selectors'
 
 import { onRedo, onRestore, onUndo } from './workspace/creators'
@@ -17,19 +16,6 @@ import {
   selectedWorkspaceSelector,
 } from './workspace/selectors'
 import type { NavyOperation } from './workspace/types'
-
-const Bar = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.5em;
-  padding: 0.5em 1em 0;
-  flex-wrap: wrap;
-`
-
-const PreviewNote = styled.span`
-  font-size: 0.85em;
-  opacity: 0.85;
-`
 
 const opLabel = (op: NavyOperation, t: (key: string, options?: any) => string): string => {
   switch (op.kind) {
@@ -70,15 +56,42 @@ const formatTime = (time: string): string => {
   }
 }
 
-// Linear history controls. Undo/redo move the durable cursor; selecting another
-// revision opens a transient read-only preview; restore appends one revision.
-export const HistoryBar = () => {
+// Undo/redo stay in the persistent header so they are reachable from any page.
+// Undo/redo move the durable cursor; a historical preview disables them because
+// the visible state is not the editable cursor.
+export const UndoRedo = ({ disabled = false }: { disabled?: boolean }) => {
+  const dispatch = useDispatch<ThunkDispatch<IState, unknown, Action>>()
+  const canUndo = useSelector(canUndoSelector)
+  const canRedo = useSelector(canRedoSelector)
+  const { target: preview } = usePreview()
+  const { t } = useTranslation('poi-plugin-navy-staff')
+
+  return (
+    <>
+      <Button
+        aria-label={t('Undo')}
+        disabled={disabled || !canUndo || Boolean(preview)}
+        icon="undo"
+        onClick={() => dispatch(onUndo())}
+      />
+      <Button
+        aria-label={t('Redo')}
+        disabled={disabled || !canRedo || Boolean(preview)}
+        icon="redo"
+        onClick={() => dispatch(onRedo())}
+      />
+    </>
+  )
+}
+
+// Full history selection lives in the History page, next to the previewed
+// layout, so comparing revisions is a single click. Selecting another revision
+// opens a transient read-only preview; restore appends one revision.
+export const HistorySelector = () => {
   const dispatch = useDispatch<ThunkDispatch<IState, unknown, Action>>()
   const workspace = useSelector(selectedWorkspaceSelector)
   const revisions = useSelector(revisionsSelector)
   const cursor = useSelector(cursorSelector)
-  const canUndo = useSelector(canUndoSelector)
-  const canRedo = useSelector(canRedoSelector)
   const { target: preview, setTarget } = usePreview()
   const { t } = useTranslation('poi-plugin-navy-staff')
 
@@ -100,19 +113,7 @@ export const HistoryBar = () => {
   }
 
   return (
-    <Bar>
-      <Button
-        aria-label={t('Undo')}
-        disabled={!canUndo || previewing}
-        icon="undo"
-        onClick={() => dispatch(onUndo())}
-      />
-      <Button
-        aria-label={t('Redo')}
-        disabled={!canRedo || previewing}
-        icon="redo"
-        onClick={() => dispatch(onRedo())}
-      />
+    <>
       <HTMLSelect
         aria-label={t('History')}
         value={previewing ? preview!.revisionId : currentRevisionId}
@@ -125,27 +126,23 @@ export const HistoryBar = () => {
         ))}
       </HTMLSelect>
       {previewing && (
-        <>
-          <PreviewNote>{t('Viewing an earlier revision (read-only)')}</PreviewNote>
-          <Button
-            intent={Intent.WARNING}
-            onClick={() => {
-              dispatch(
-                onRestore({
-                  id: preview!.revisionId,
-                  now: new Date().toISOString(),
-                }),
-              )
-              // Restore appends a new current revision, so leave preview and let
-              // Undo operate on the restored revision immediately.
-              setTarget(null)
-            }}
-          >
-            {t('Restore this revision')}
-          </Button>
-          <Button onClick={() => setTarget(null)}>{t('Exit preview')}</Button>
-        </>
+        <Button
+          intent={Intent.WARNING}
+          onClick={() => {
+            dispatch(
+              onRestore({
+                id: preview!.revisionId,
+                now: new Date().toISOString(),
+              }),
+            )
+            // Restore appends a new current revision, so leave preview and let
+            // Undo operate on the restored revision immediately.
+            setTarget(null)
+          }}
+        >
+          {t('Restore this revision')}
+        </Button>
       )}
-    </Bar>
+    </>
   )
 }

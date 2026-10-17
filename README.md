@@ -29,6 +29,9 @@ Navy Staff account file exists yet: the first created account consumes it, later
 runs do not re-import, and Ship Info keeps saving its own file with its legacy
 `planner` field untouched.
 
+For the planning, history, synchronization, and sharing workflows, see the
+[Navy Staff interface guide](docs/navy-staff-interface.md).
+
 ## Installation in poi
 
 Open **Settings → Plugins** in poi, find **Ship Girls Info** or **Navy Staff**

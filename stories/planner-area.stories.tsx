@@ -51,6 +51,32 @@ const openPlanner = async () => {
   return document.querySelector('#poi-plugin-navy-staff') as HTMLElement
 }
 
+// Primary page navigation: Plan is the default page, History is a separate tab.
+// `fireEvent` is used so these also work while a modal rename/delete dialog is
+// open (the backdrop would intercept pointer input).
+const openHistoryTab = async () => {
+  fireEvent.click(await screen.findByRole('tab', { name: 'History' }))
+}
+
+// Opens the History page and selects a revision (opens a read-only preview).
+const selectHistoryRevision = async (value: string) => {
+  await openHistoryTab()
+  fireEvent.change(screen.getByLabelText('History'), { target: { value } })
+}
+
+// Switches the selected workspace even when a modal dialog covers the page.
+const switchWorkspace = (id: string) => {
+  fireEvent.change(screen.getByLabelText('Workspace'), { target: { value: id } })
+}
+
+// Workspace rename/duplicate/delete live in a Blueprint actions menu.
+const clickWorkspaceAction = async (name: string) => {
+  await userEvent.click(
+    await screen.findByRole('button', { name: 'Workspace actions' }),
+  )
+  await userEvent.click(await screen.findByRole('menuitem', { name }))
+}
+
 const areaCard = (name: string) =>
   screen
     .getByRole('heading', { level: 5, name: new RegExp(name) })
@@ -266,7 +292,7 @@ export const RenameWorkspace: Story = {
   parameters: params(),
   play: async () => {
     await openPlanner()
-    await userEvent.click(screen.getByRole('button', { name: 'Rename' }))
+    await clickWorkspaceAction('Rename')
     const input = screen.getByLabelText('Workspace name') as HTMLInputElement
     await userEvent.clear(input)
     await userEvent.type(input, 'Renamed')
@@ -287,7 +313,7 @@ export const DuplicateAndDeleteWorkspace: Story = {
     const environment = getEnvironment()
     const before = plannerSlice(environment).workspaces.length
 
-    await userEvent.click(screen.getByRole('button', { name: 'Duplicate' }))
+    await clickWorkspaceAction('Duplicate')
     await waitFor(async () => {
       await expect(plannerSlice(environment).workspaces.length).toBe(before + 1)
     })
@@ -296,8 +322,10 @@ export const DuplicateAndDeleteWorkspace: Story = {
     const duplicate = navy.workspaces.find((w) => w.id === navy.selectedWorkspaceId)
     await expect(duplicate.cursor).toBe(0)
 
-    await userEvent.click(screen.getByRole('button', { name: 'Delete' }))
-    await userEvent.click(screen.getByRole('button', { name: 'Delete permanently' }))
+    await clickWorkspaceAction('Delete')
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Delete permanently' }),
+    )
     await waitFor(async () => {
       await expect(plannerSlice(environment).workspaces.length).toBe(before)
     })
@@ -403,24 +431,23 @@ export const DeleteConfirmationInvalidatedOnSwitch: Story = {
     const environment = getEnvironment()
 
     // Open the delete confirmation for the selected workspace A.
-    await userEvent.click(screen.getByRole('button', { name: 'Delete' }))
+    await clickWorkspaceAction('Delete')
     await expect(
       screen.getByRole('button', { name: 'Delete permanently' }),
     ).toBeTruthy()
 
     // Switch to workspace B while the confirmation is open.
-    await userEvent.selectOptions(
-      screen.getByLabelText('Workspace') as HTMLSelectElement,
-      'ws-2',
-    )
+    switchWorkspace('ws-2')
     await waitFor(async () => {
       await expect(plannerSlice(environment).selectedWorkspaceId).toBe('ws-2')
     })
 
     // The pending confirmation is gone: B cannot be deleted by the stale action.
-    await expect(
-      screen.queryByRole('button', { name: 'Delete permanently' }),
-    ).toBeNull()
+    await waitFor(async () => {
+      await expect(
+        screen.queryByRole('button', { name: 'Delete permanently' }),
+      ).toBeNull()
+    })
     await expect(plannerSlice(environment).workspaces.map((w) => w.id)).toEqual([
       'ws-1',
       'ws-2',
@@ -436,20 +463,19 @@ export const RenameConfirmationInvalidatedOnSwitch: Story = {
     const environment = getEnvironment()
 
     // Open the rename editor for workspace A and type a new name.
-    await userEvent.click(screen.getByRole('button', { name: 'Rename' }))
+    await clickWorkspaceAction('Rename')
     const input = screen.getByLabelText('Workspace name') as HTMLInputElement
     await userEvent.clear(input)
     await userEvent.type(input, 'RenamedA')
 
     // Switch to B while the editor is open; it must close without renaming A.
-    await userEvent.selectOptions(
-      screen.getByLabelText('Workspace') as HTMLSelectElement,
-      'ws-2',
-    )
+    switchWorkspace('ws-2')
     await waitFor(async () => {
       await expect(plannerSlice(environment).selectedWorkspaceId).toBe('ws-2')
     })
-    await expect(screen.queryByLabelText('Workspace name')).toBeNull()
+    await waitFor(async () => {
+      await expect(screen.queryByLabelText('Workspace name')).toBeNull()
+    })
 
     const navy = plannerSlice(environment)
     const nameOf = (id: string) => {
@@ -468,7 +494,7 @@ export const DuplicateIsIndependentOfSource: Story = {
     await openPlanner()
     const environment = getEnvironment()
 
-    await userEvent.click(screen.getByRole('button', { name: 'Duplicate' }))
+    await clickWorkspaceAction('Duplicate')
     await waitFor(async () => {
       await expect(plannerSlice(environment).workspaces.length).toBe(2)
     })
@@ -545,10 +571,7 @@ export const PreviewClosesWhenSwitchingWorkspace: Story = {
     const select = screen.getByLabelText('Workspace') as HTMLSelectElement
 
     // Open a preview of the older revision of workspace A.
-    await userEvent.selectOptions(
-      screen.getByLabelText('History') as HTMLSelectElement,
-      'rev-1',
-    )
+    await selectHistoryRevision('rev-1')
     await expect(
       screen.getByText('Viewing an earlier revision (read-only)'),
     ).toBeTruthy()
@@ -577,14 +600,11 @@ export const RenameEditorClosedWhenEnteringPreview: Story = {
     await openPlanner()
 
     // Open the rename editor.
-    await userEvent.click(screen.getByRole('button', { name: 'Rename' }))
+    await clickWorkspaceAction('Rename')
     await expect(screen.getByLabelText('Workspace name')).toBeTruthy()
 
     // Enter a preview by selecting the older revision.
-    await userEvent.selectOptions(
-      screen.getByLabelText('History') as HTMLSelectElement,
-      'rev-1',
-    )
+    await selectHistoryRevision('rev-1')
     await waitFor(async () => {
       await expect(
         screen.getByText('Viewing an earlier revision (read-only)'),
@@ -592,7 +612,9 @@ export const RenameEditorClosedWhenEnteringPreview: Story = {
     })
 
     // The pending rename editor is closed and cannot be confirmed.
-    await expect(screen.queryByLabelText('Workspace name')).toBeNull()
+    await waitFor(async () => {
+      await expect(screen.queryByLabelText('Workspace name')).toBeNull()
+    })
     await expect(screen.queryByRole('button', { name: 'Confirm' })).toBeNull()
   },
 }
@@ -637,10 +659,7 @@ export const PreviewShowsSavedLevelNotLive: Story = {
     await expect(within(areaCard('E1')).getByText(/Lv\.150/)).toBeTruthy()
 
     // Previewing the older revision shows the captured level (Lv.5).
-    await userEvent.selectOptions(
-      screen.getByLabelText('History') as HTMLSelectElement,
-      'rev-1',
-    )
+    await selectHistoryRevision('rev-1')
     await waitFor(async () => {
       await expect(
         screen.getByText('Viewing an earlier revision (read-only)'),
@@ -656,12 +675,8 @@ export const PreviewIsReadOnlyInBothViews: Story = {
   parameters: params(withNavy(historyNavy())),
   play: async () => {
     await openPlanner()
-    const environment = getEnvironment()
 
-    await userEvent.selectOptions(
-      screen.getByLabelText('History') as HTMLSelectElement,
-      'rev-1',
-    )
+    await selectHistoryRevision('rev-1')
     await waitFor(async () => {
       await expect(
         screen.getByText('Viewing an earlier revision (read-only)'),
@@ -676,12 +691,43 @@ export const PreviewIsReadOnlyInBothViews: Story = {
       screen.queryByRole('button', { name: 'Remove tag' }),
     ).toBeNull()
 
-    // Grid view: no palette and clicking a cell changes nothing.
+    // Grid view: no palette control and no interactive cards.
     await userEvent.click(screen.getByRole('tab', { name: 'Ship Grid' }))
-    await expect(screen.queryByRole('button', { name: 'None' })).toBeNull()
+    await expect(screen.queryByLabelText('Assign to')).toBeNull()
+    await expect(screen.queryByRole('button', { name: /Lv\./ })).toBeNull()
+
+    // Read-only cards are labelled groups (no list parent), not tab stops.
+    const cards = screen.getAllByRole('group', { name: /Lv\./ })
+    await expect(cards.length).toBeGreaterThan(0)
+    cards[0].focus()
+    await expect(document.activeElement).not.toBe(cards[0])
+
+    // Clicking or right-clicking a read-only card mutates nothing durable.
+    const environment = getEnvironment()
     const before = [...assignedShipIds(environment)].sort()
-    await userEvent.click(screen.getByRole('button', { name: /Lv\./ }))
+    await userEvent.click(cards[0])
+    fireEvent.contextMenu(cards[0])
     await expect([...assignedShipIds(environment)].sort()).toEqual(before)
+  },
+}
+
+export const HistoryCurrentRevisionUsesCapturedContent: Story = {
+  name: 'History at the current cursor shows captured levels/ships without live-only ships',
+  parameters: params(withNavy(savedVsLiveNavy())),
+  play: async () => {
+    await openPlanner()
+    // Plan overlays the live level (Gamma Lv.150).
+    await expect(within(areaCard('E1')).getByText(/Lv\.150/)).toBeTruthy()
+
+    // History at the current cursor (no preview): captured snapshot only.
+    await openHistoryTab()
+    await expect(within(areaCard('E1')).getByText(/Lv\.5/)).toBeTruthy()
+    await expect(within(areaCard('E1')).queryByText(/Lv\.150/)).toBeNull()
+
+    // Grid shows captured ships only: ship 3 present, live-only Alpha absent.
+    await userEvent.click(screen.getByRole('tab', { name: 'Ship Grid' }))
+    await expect(screen.getByRole('group', { name: 'Gamma Lv.5' })).toBeTruthy()
+    await expect(screen.queryByRole('group', { name: /Alpha/ })).toBeNull()
   },
 }
 
@@ -692,10 +738,7 @@ export const RestoreThenUndo: Story = {
     await openPlanner()
     const environment = getEnvironment()
 
-    await userEvent.selectOptions(
-      screen.getByLabelText('History') as HTMLSelectElement,
-      'rev-1',
-    )
+    await selectHistoryRevision('rev-1')
     await userEvent.click(
       screen.getByRole('button', { name: 'Restore this revision' }),
     )

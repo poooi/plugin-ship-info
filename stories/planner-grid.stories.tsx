@@ -19,14 +19,9 @@ const withNavy = (navy: unknown, account = '123'): PlannerScenarioOptions => ({
   extra: { 'poi-plugin-navy-staff': { account, error: null, navy, ready: true } },
 })
 
-// Reads the gradient a grid cell paints, which carries the assignment color.
-const gradientOf = (element: HTMLElement): string => {
-  for (const node of Array.from(element.querySelectorAll('div'))) {
-    const image = getComputedStyle(node).backgroundImage
-    if (image && image.includes('linear-gradient')) return image
-  }
-  return ''
-}
+// Reads the 4px assignment edge a grid card paints, which carries the colour.
+const edgeColorOf = (element: HTMLElement): string =>
+  getComputedStyle(element).borderLeftColor
 
 const openGrid = async () => {
   const view = await screen.findByRole('tab', { name: 'Ship Grid' })
@@ -36,8 +31,8 @@ const openGrid = async () => {
   return container
 }
 
-const palette = (name: string) =>
-  screen.getByRole('button', { name }) as HTMLElement
+// The palette is a single Blueprint select; '' is the "None" (unassign) option.
+const assignTo = () => screen.getByLabelText('Assign to') as HTMLSelectElement
 
 const cell = (label: string) =>
   screen.getByRole('button', { name: label }) as HTMLElement
@@ -93,13 +88,13 @@ export const PaletteAssignMoveAndErase: Story = {
     const environment = getEnvironment()
     await openGrid()
 
-    await userEvent.click(palette('E1'))
+    await userEvent.selectOptions(assignTo(), 'area-1')
     await userEvent.click(cell('Alpha Lv.50'))
     await waitFor(async () => {
       await expect(assignedShipIds(environment)).toContain(1)
     })
 
-    await userEvent.click(palette('E2'))
+    await userEvent.selectOptions(assignTo(), 'area-2')
     await userEvent.click(cell('Alpha Lv.50'))
     await waitFor(async () => {
       await expect(assignedShipIds(environment)).toContain(1)
@@ -110,7 +105,7 @@ export const PaletteAssignMoveAndErase: Story = {
       await expect(content.assignments['area-2']).toContain(1)
     })
 
-    await userEvent.click(palette('None'))
+    await userEvent.selectOptions(assignTo(), '')
     await userEvent.click(cell('Alpha Lv.50'))
     await waitFor(async () => {
       await expect(assignedShipIds(environment)).not.toContain(1)
@@ -147,7 +142,7 @@ export const LiveTagsDoNotBlockGrid: Story = {
     await expect(assignedShipIds(environment)).toEqual([])
 
     // And they remain assignable manually.
-    await userEvent.click(palette('E1'))
+    await userEvent.selectOptions(assignTo(), 'area-1')
     await userEvent.click(cell('Delta Lv.100'))
     await waitFor(async () => {
       await expect(assignedShipIds(environment)).toContain(4)
@@ -162,7 +157,7 @@ export const KeyboardAssignsCell: Story = {
     const environment = getEnvironment()
     await openGrid()
 
-    await userEvent.click(palette('E1'))
+    await userEvent.selectOptions(assignTo(), 'area-1')
     cell('Alpha Lv.50').focus()
     await userEvent.keyboard('{Enter}')
 
@@ -180,19 +175,19 @@ export const PaletteSelectionDoesNotRecolorUneditedShips: Story = {
     await openGrid()
 
     // Assign Alpha to E1 (red).
-    await userEvent.click(palette('E1'))
+    await userEvent.selectOptions(assignTo(), 'area-1')
     await userEvent.click(cell('Alpha Lv.50'))
     await waitFor(async () => {
       await expect(assignedShipIds(environment)).toContain(1)
     })
 
     // Move the palette target to E2 (green) without clicking any cell.
-    await userEvent.click(palette('E2'))
+    await userEvent.selectOptions(assignTo(), 'area-2')
 
     // Alpha keeps its real E1 (red) assignment; Beta is unassigned (black), not
     // E2 (green).
-    await expect(gradientOf(cell('Alpha Lv.50'))).toContain('255, 0, 0')
-    await expect(gradientOf(cell('Beta Lv.20'))).not.toContain('0, 255, 0')
+    await expect(edgeColorOf(cell('Alpha Lv.50'))).toContain('255, 0, 0')
+    await expect(edgeColorOf(cell('Beta Lv.20'))).not.toContain('0, 255, 0')
   },
 }
 
@@ -225,5 +220,63 @@ export const UnknownMasterRowHasNoArtwork: Story = {
     await expect(cell('#99 Lv.?').querySelector('img')).toBeNull()
     // Positive control: a live row with a known master does render artwork.
     await expect(cell('Alpha Lv.50').querySelector('img')).toBeTruthy()
+  },
+}
+
+// Two workspaces so the destination-clearing behavior can be checked.
+const twoWorkspaceState = () => {
+  const state = plannerScenarioState({ current: [[1], []], mapname: ['E1', 'E2'] })
+  const navy = state['poi-plugin-navy-staff'].navy
+  const second = JSON.parse(JSON.stringify(navy.workspaces[0]))
+  second.id = 'ws-2'
+  second.revisions[0].id = 'rev-2'
+  second.revisions[0].content.name = 'Second'
+  second.revisions[0].content.assignments = { 'area-1': [], 'area-2': [] }
+  navy.workspaces = [navy.workspaces[0], second]
+  return state
+}
+
+export const DestinationAndViewSurviveShareDetour: Story = {
+  name: 'Grid view and destination survive a Share detour; a workspace switch clears the destination',
+  parameters: {
+    shipInfo: { plugin: 'navy-staff' as const, state: twoWorkspaceState() },
+  },
+  play: async () => {
+    const environment = getEnvironment()
+    await openGrid()
+    await userEvent.selectOptions(assignTo(), 'area-1')
+
+    // Detour to Share & reference and back.
+    await userEvent.click(screen.getByRole('tab', { name: 'Share & reference' }))
+    await userEvent.click(screen.getByRole('tab', { name: 'Plan' }))
+
+    // Grid view and destination are preserved across the detour.
+    await expect(
+      screen.getByRole('tab', { name: 'Ship Grid', selected: true }),
+    ).toBeTruthy()
+    await expect(assignTo().value).toBe('area-1')
+
+    // Switching workspace clears the now-invalid destination.
+    await userEvent.selectOptions(
+      screen.getByLabelText('Workspace'),
+      'ws-2',
+    )
+    await waitFor(async () => {
+      await expect(assignTo().value).toBe('')
+    })
+
+    // The next click targets a valid area in the new workspace.
+    await userEvent.selectOptions(assignTo(), 'area-2')
+    await userEvent.click(cell('Beta Lv.20'))
+    await waitFor(async () => {
+      const navy = environment.store.getState()['poi-plugin-navy-staff'].navy
+      const ws2 = navy.workspaces.find((w: any) => w.id === 'ws-2')
+      const content = ws2.revisions[ws2.cursor].content
+      await expect(content.assignments['area-2']).toContain(2)
+      const ws1 = navy.workspaces.find((w: any) => w.id === 'ws-1')
+      await expect(
+        Object.values(ws1.revisions[ws1.cursor].content.assignments).flat(),
+      ).not.toContain(2)
+    })
   },
 }

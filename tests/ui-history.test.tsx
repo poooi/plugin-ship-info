@@ -58,6 +58,8 @@ describe('history preview persistence isolation', () => {
     harness.render(<NavyStaff />)
     dispatchSpy.mockClear()
 
+    // History selection lives on the History page.
+    fireEvent.click(screen.getByRole('tab', { name: 'History' }))
     const history = screen.getByLabelText('History') as HTMLSelectElement
 
     // Open the older revision: a transient preview, no Redux action.
@@ -80,13 +82,15 @@ describe('history preview persistence isolation', () => {
     const harness = createHarness(twoRevisionState())
     harness.render(<NavyStaff />)
 
+    fireEvent.click(screen.getByRole('tab', { name: 'History' }))
     fireEvent.change(screen.getByLabelText('History') as HTMLSelectElement, {
       target: { value: 'rev-1' },
     })
     fireEvent.click(screen.getByRole('tab', { name: 'Ship Grid' }))
 
-    // Captured ship 3 is present; the live-only Alpha (id 1) is not.
-    expect(screen.getByRole('button', { name: '#3 Lv.?' })).toBeTruthy()
+    // Captured ship 3 is present; the live-only Alpha (id 1) is not. A
+    // read-only card is a labelled group, not a button.
+    expect(screen.getByLabelText('#3 Lv.?')).toBeTruthy()
     expect(screen.queryByRole('button', { name: /Alpha/ })).toBeNull()
   })
 })

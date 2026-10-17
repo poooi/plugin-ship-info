@@ -10,6 +10,8 @@ import { host } from '../preview/adapters/logs'
 import { mkNavyData } from '../tests/ui/fixtures'
 import {
   assignedShipIds,
+  denseLongNameMasters,
+  densePlannerState,
   navyAccountFile,
   persistedNavyFile,
   persistedPluginFile,
@@ -20,8 +22,10 @@ import { disposeScenario, getEnvironment } from '../preview/scenario'
 import { reactClass as NavyStaff } from '../packages/navy-staff/src/views'
 import { reactClass as ShipInfo } from '../packages/ship-info/src/views'
 
+// Responsive shell: fills the scenario surface the decorator sizes, instead of
+// pinning a fixed 1200px panel, so narrow/medium/wide stories are meaningful.
 const Shell: React.FC = () => (
-  <div style={{ display: 'flex', height: 680, width: 1200 }}>
+  <div style={{ display: 'flex', height: '100%', width: '100%' }}>
     <NavyStaff />
   </div>
 )
@@ -324,6 +328,9 @@ export const HistoryPreviewWritesNothing: Story = {
     const fileText = () => JSON.stringify(host.log.files[file])
     const before = fileText()
 
+    // History selection lives on the History page.
+    await userEvent.click(await screen.findByRole('tab', { name: 'History' }))
+
     await userEvent.selectOptions(
       screen.getByLabelText('History') as HTMLSelectElement,
       'rev-1',
@@ -428,5 +435,164 @@ export const DisposeStopsAccountSupervisor: Story = {
 
     expect(host.log.files[navyAccountFile('202')]).toBeUndefined()
     expect(host.log.writtenFiles.length).toBe(writesBefore)
+  },
+}
+
+// ---------------------------------------------------------------------------
+// Dense visual scenarios: 300 owned ships across ten unevenly assigned areas.
+// These inspect real card density, wrapping and overflow at narrow/medium/wide
+// widths and in both themes. `lifecycle:false` because the fixture already
+// carries real saved assignments and captured ship records.
+// ---------------------------------------------------------------------------
+
+const openDenseGrid = async () => {
+  const container = document.querySelector('#poi-plugin-navy-staff') as HTMLElement
+  await userEvent.click(
+    await within(container).findByRole('tab', { name: 'Ship Grid' }),
+  )
+  await within(container).findByRole('heading', { level: 2, name: 'DD' })
+  return container
+}
+
+// Every card is rendered (no virtualization) and the last group is reachable;
+// the scroll container never overflows horizontally.
+const assertDenseGrid = async (container: HTMLElement) => {
+  const cells = await within(container).findAllByRole('button', { name: /Lv\./ })
+  await expect(cells.length).toBe(300)
+  await expect(
+    within(container).getByRole('heading', { level: 2, name: 'Auxiliary' }),
+  ).toBeTruthy()
+  // Cards must stay readable at every width: no-overflow alone would also pass
+  // for the former ~84px cards.
+  const firstRect = cells[0].getBoundingClientRect()
+  await expect(firstRect.width).toBeGreaterThanOrEqual(155)
+  await expect(firstRect.height).toBeGreaterThanOrEqual(52)
+  const scroll = container.querySelector('.navy-staff-scrollable') as HTMLElement
+  await expect(scroll.scrollWidth).toBeLessThanOrEqual(scroll.clientWidth + 1)
+  const lastCard = cells[cells.length - 1]
+  lastCard.scrollIntoView({ block: 'end' })
+  const lastRect = lastCard.getBoundingClientRect()
+  const scrollRect = scroll.getBoundingClientRect()
+  await expect(lastRect.top).toBeGreaterThanOrEqual(scrollRect.top)
+  await expect(lastRect.bottom).toBeLessThanOrEqual(scrollRect.bottom + 1)
+  scroll.scrollTop = 0
+}
+
+const denseParams = (
+  dimensions: { width: number; height: number },
+  overrides: Record<string, any> = {},
+) => ({
+  shipInfo: {
+    dimensions,
+    lifecycle: false,
+    plugin: 'navy-staff' as const,
+    state: densePlannerState(),
+    ...overrides,
+  },
+})
+
+export const DensePlanWide: Story = {
+  name: '300 ships at 1200px: full grid, last group present, no horizontal overflow',
+  parameters: denseParams({ width: 1200, height: 900 }),
+  play: async () => {
+    await assertDenseGrid(await openDenseGrid())
+  },
+}
+
+export const DensePlanMedium: Story = {
+  name: '300 ships at 720px: cards reflow without horizontal overflow',
+  parameters: denseParams({ width: 720, height: 900 }),
+  play: async () => {
+    await assertDenseGrid(await openDenseGrid())
+  },
+}
+
+export const DensePlanNarrow: Story = {
+  name: '300 ships at 480px: single/narrow columns, no horizontal overflow',
+  parameters: denseParams({ width: 480, height: 900 }),
+  play: async () => {
+    await assertDenseGrid(await openDenseGrid())
+  },
+}
+
+export const DensePlanLight: Story = {
+  name: '300 ships in the light theme render readable text without portraits',
+  parameters: denseParams({ width: 1200, height: 900 }, { theme: 'light' }),
+  play: async () => {
+    await assertDenseGrid(await openDenseGrid())
+  },
+}
+
+export const DensePlanPortraits: Story = {
+  name: '300 ships with portraits keep the artwork and the assignment edge',
+  parameters: denseParams(
+    { width: 1200, height: 900 },
+    {
+      state: densePlannerState({
+        config: {
+          plugin: { ShipInfo: {} },
+          poi: { appearance: { avatar: true } },
+        },
+      }),
+    },
+  ),
+  play: async () => {
+    const container = await openDenseGrid()
+    await assertDenseGrid(container)
+    const firstCard = within(container).getAllByRole('button', { name: /Lv\./ })[0]
+    await expect(firstCard.querySelector('img')).toBeTruthy()
+  },
+}
+
+const denseLongAreaNames = [
+  'Prologue: Deep-Sea Engagement Zone Alpha',
+  'Chapter 1: Night Battle at the Narrow Strait',
+  'Chapter 2: Combined Fleet Air Defense',
+  'Chapter 3: Southern Transport Escort',
+  'Chapter 4: Submarine Patrol Line',
+  'Extra Operation: Ironbottom Sound Revisited',
+  'E7', 'E8', 'E9', 'E10',
+]
+
+export const DensePlanLongNames: Story = {
+  name: 'Long workspace and area names wrap without overflowing the cards',
+  parameters: denseParams(
+    { width: 1200, height: 900 },
+    {
+      state: densePlannerState(
+        { mapname: denseLongAreaNames, mstShips: denseLongNameMasters },
+        'Event Plan: Final Combined Fleet Sortie (Long Workspace Name)',
+      ),
+    },
+  ),
+  play: async () => {
+    await assertDenseGrid(await openDenseGrid())
+  },
+}
+
+export const DensePlanScrollRestored: Story = {
+  name: 'Each page keeps its own scroll position with 300 ships',
+  parameters: denseParams({ width: 1200, height: 900 }),
+  play: async () => {
+    const container = await openDenseGrid()
+    const body = container.querySelector('.navy-staff-scrollable') as HTMLElement
+
+    // Scroll the grid deep into the roster.
+    body.scrollTop = 600
+    await expect(body.scrollTop).toBeGreaterThan(0)
+
+    // A page visited for the first time opens at the top.
+    await userEvent.click(
+      within(container).getByRole('tab', { name: 'Share & reference' }),
+    )
+    await waitFor(async () => {
+      await expect(body.scrollTop).toBe(0)
+    })
+
+    // Returning to Plan restores its previous position.
+    await userEvent.click(within(container).getByRole('tab', { name: 'Plan' }))
+    await waitFor(async () => {
+      await expect(body.scrollTop).toBeGreaterThan(0)
+    })
   },
 }

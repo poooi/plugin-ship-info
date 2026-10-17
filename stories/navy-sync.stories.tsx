@@ -3,7 +3,7 @@
 // state, not a fake append callback.
 
 import type { Meta, StoryObj } from '@storybook/react-vite'
-import { expect, screen, userEvent, waitFor, within } from 'storybook/test'
+import { expect, fireEvent, screen, userEvent, waitFor, within } from 'storybook/test'
 
 import { host } from '../preview/adapters/logs'
 import {
@@ -15,6 +15,7 @@ import {
 } from '../preview/planner-fixtures'
 import { getEnvironment } from '../preview/scenario'
 import { reactClass as NavyStaff } from '../packages/navy-staff/src/views'
+import { onAddShip } from '../packages/navy-staff/src/views/workspace/creators'
 import type {
   NavyWorkspace,
   NavyWorkspaceContent,
@@ -55,6 +56,7 @@ const areaLabel = (
 ): string | undefined => content(environment).areas.find((a) => a.id === id)?.label
 
 const openSyncFlow = async (button: string) => {
+  await userEvent.click(await screen.findByRole('tab', { name: 'Synchronize' }))
   await userEvent.click(await screen.findByRole('button', { name: button }))
   await userEvent.click(
     await screen.findByRole('checkbox', {
@@ -239,10 +241,10 @@ export const PreparedSyncCannotAcceptDuringHistoryPreview: Story = {
     await openPlanner()
     await openSyncFlow('Update area information')
 
-    await userEvent.selectOptions(
-      screen.getByLabelText('History') as HTMLSelectElement,
-      'rev-1',
-    )
+    fireEvent.click(await screen.findByRole('tab', { name: 'History' }))
+    fireEvent.change(screen.getByLabelText('History'), {
+      target: { value: 'rev-1' },
+    })
     await waitFor(() => {
       expect(screen.getByText(/history preview is open/i)).toBeTruthy()
     })
@@ -362,5 +364,68 @@ export const StaleRosterAfterPrepareRejects: Story = {
       expect(screen.getByTestId('sync-stale')).toBeTruthy()
     })
     expect(revisions(environment).length).toBe(before)
+  },
+}
+
+export const PreparedSyncSurvivesPlanDetour: Story = {
+  name: 'A prepared sync keeps its mapping across a Plan detour and stays freshness-checked',
+  parameters: params(areaChangeState()),
+  play: async () => {
+    await openPlanner()
+    const environment = getEnvironment()
+
+    await userEvent.click(await screen.findByRole('tab', { name: 'Synchronize' }))
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Update area information' }),
+    )
+    // Remap slot 1 to a new area, then slot 0 onto the existing area-2 so the
+    // mapping stays a valid one-to-one choice.
+    await userEvent.selectOptions(
+      screen.getByLabelText('Slot mapping: E2-new'),
+      '',
+    )
+    await userEvent.selectOptions(
+      screen.getByLabelText('Slot mapping: E1-new'),
+      'area-2',
+    )
+    await userEvent.click(
+      await screen.findByRole('checkbox', {
+        name: 'I confirm this source is the intended event',
+      }),
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Preview changes' }))
+    await expect(await screen.findByTestId('sync-preview')).toBeTruthy()
+
+    // Detour to Plan and back to Synchronize.
+    await userEvent.click(screen.getByRole('tab', { name: 'Plan' }))
+    await userEvent.click(screen.getByRole('tab', { name: 'Synchronize' }))
+
+    // The chosen mapping and the prepared preview survived.
+    await expect(screen.getByTestId('sync-preview')).toBeTruthy()
+    await expect(
+      (screen.getByLabelText('Slot mapping: E1-new') as HTMLSelectElement).value,
+    ).toBe('area-2')
+
+    // Freshness still applies after the detour: a new revision makes Accept stale.
+    environment.store.dispatch(
+      onAddShip({
+        areaId: 'area-2',
+        now: new Date().toISOString(),
+        record: {
+          level: 1,
+          masterId: 1,
+          name: 'X',
+          observedAt: new Date().toISOString(),
+          ownedId: 99,
+          typeId: 2,
+          typeLabel: 'DD',
+        },
+        shipId: 99,
+      }),
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Accept' }))
+    await waitFor(() => {
+      expect(screen.getByTestId('sync-stale')).toBeTruthy()
+    })
   },
 }
