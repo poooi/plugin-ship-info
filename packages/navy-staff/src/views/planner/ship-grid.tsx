@@ -1,62 +1,16 @@
 import fp from 'lodash/fp'
-import React, { forwardRef, Ref, RefObject, useCallback } from 'react'
+import React, { forwardRef, Ref } from 'react'
 import { useTranslation } from 'react-i18next'
-import { connect, DispatchProp } from 'react-redux'
+import { useDispatch } from 'react-redux'
+import type { Action } from 'redux'
+import type { ThunkDispatch } from 'redux-thunk'
 import styled from 'styled-components'
+import type { IState } from 'views/utils/selectors'
 
-import { Action } from 'redux'
-import { ThunkAction, ThunkDispatch } from 'redux-thunk'
-import { IState } from 'views/utils/selectors'
 import { shipSuperTypeMap } from '@poi-plugins/ship-info-shared/ship-types'
-import { onAddShip, onDisplaceShip, onRemoveShip } from './redux'
-import {
-  deckPlannerShipMapSelector,
-  IPlannerShipData,
-  shipMenuDataSelector,
-} from './selectors'
+import { assignShip } from '../workspace/actions'
+import type { DisplayContent, WorkspaceShipRow } from '../workspace/selectors'
 import { ShipItem } from './ship-item'
-
-const getDPAction = (
-  shipId: number,
-  fill: number,
-): ThunkAction<void, any, void, Action<any>> => (
-  dispatch: ThunkDispatch<any, void, Action<any>>,
-  getState: () => any,
-) => {
-  const planMap = deckPlannerShipMapSelector(getState())
-
-  if (fill === planMap[shipId] || (fill === -1 && !(shipId in planMap))) {
-    return
-  }
-
-  if (fill === -1) {
-    dispatch(
-      onRemoveShip({
-        areaIndex: planMap[shipId],
-        shipId,
-      }),
-    )
-    return
-  }
-
-  if (!(shipId in planMap)) {
-    dispatch(
-      onAddShip({
-        areaIndex: fill,
-        shipId,
-      }),
-    )
-    return
-  }
-
-  dispatch(
-    onDisplaceShip({
-      fromAreaIndex: planMap[shipId],
-      shipId,
-      toAreaIndex: fill,
-    }),
-  )
-}
 
 const Grid = styled.div`
   display: flex;
@@ -64,65 +18,72 @@ const Grid = styled.div`
   flex-wrap: wrap;
 `
 
-interface IProps extends DispatchProp {
-  fill: number
-  ships: IPlannerShipData[]
-  dispatch: ThunkDispatch<any, void, Action<any>>
+interface IProps {
+  display: DisplayContent
+  fill: string | null
+  readOnly: boolean
 }
 
-export const ShipGrid = connect(
-  (state: IState) => ({
-    ships: shipMenuDataSelector(state),
-  }),
-  null,
-  null,
-  { forwardRef: true },
-)(
-  forwardRef(({ ships, dispatch, fill }: IProps, ref: Ref<HTMLDivElement>) => {
-    const handleClick = useCallback(
-      (shipId: number) => {
-        dispatch(getDPAction(shipId, fill))
-      },
-      [dispatch, fill],
-    )
+const groupLabel = (
+  superTypeIndex: number,
+  t: (key: string) => string,
+): string => {
+  const group = shipSuperTypeMap[superTypeIndex]
+  return group ? t(group.name) : t('Unknown type')
+}
 
-    const handleContextmenu = useCallback(
-      (shipId: number) => {
-        dispatch(getDPAction(shipId, -1))
-      },
-      [dispatch],
-    )
-
+// Grid rows come from the passed display content, so a history preview shows
+// captured ships only while editing can include eligible live-only ships.
+export const ShipGrid = forwardRef(
+  ({ display, fill, readOnly }: IProps, ref: Ref<HTMLDivElement>) => {
+    const dispatch = useDispatch<ThunkDispatch<IState, unknown, Action>>()
     const { t } = useTranslation(['poi-plugin-navy-staff'])
+
+    const rows = display.gridShips
+    const grouped = new Map<number, WorkspaceShipRow[]>()
+    for (const row of rows) {
+      const list = grouped.get(row.superTypeIndex) ?? []
+      list.push(row)
+      grouped.set(row.superTypeIndex, list)
+    }
+    // Render every known super-type group (even empty ones) plus an explicit
+    // unknown group, so saved ships with a missing type never disappear.
+    const keys = shipSuperTypeMap.map((_group, index) => index)
+    if (grouped.has(-1)) keys.push(-1)
 
     return (
       <div ref={ref}>
-        {shipSuperTypeMap.map(stype => (
-          <div key={stype.name}>
-            <h2>{t(stype.name)}</h2>
+        {keys.map((key) => (
+          <div key={key}>
+            <h2>{groupLabel(key, (name) => t(name))}</h2>
             <Grid>
               {fp.flow(
-                fp.filter((ship: IPlannerShipData) =>
-                  stype.id.includes(ship.typeId),
-                ),
                 fp.sortBy([
-                  (ship: IPlannerShipData) => -ship.lv,
-                  ship => -ship.id,
+                  (row: WorkspaceShipRow) => -(row.level ?? 0),
+                  (row: WorkspaceShipRow) => -row.ownedId,
                 ]),
-                fp.map(ship => (
+                fp.map((row: WorkspaceShipRow) => (
                   <ShipItem
-                    ship={ship}
-                    key={ship.id}
-                    // tslint:disable jsx-no-lambda
-                    onClick={() => handleClick(ship.id)}
-                    onContextmenu={() => handleContextmenu(ship.id)}
+                    key={row.ownedId}
+                    row={row}
+                    color={row.assignedColor ?? '#000'}
+                    onClick={
+                      readOnly
+                        ? undefined
+                        : () => dispatch(assignShip(row.ownedId, fill))
+                    }
+                    onContextmenu={
+                      readOnly
+                        ? undefined
+                        : () => dispatch(assignShip(row.ownedId, null))
+                    }
                   />
                 )),
-              )(ships)}
+              )(grouped.get(key) ?? [])}
             </Grid>
           </div>
         ))}
       </div>
     )
-  }),
+  },
 )

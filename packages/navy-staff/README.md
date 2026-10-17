@@ -15,19 +15,44 @@ Localized display names:
 The package name remains `poi-plugin-navy-staff`.
 
 Plans which ship girls to send to each sortie area, with an area view and a ship
-grid view, add/move/remove (including tag synchronization with the host), and
-an image export in detached windows.
+grid view, manual add/move/remove, and an image export in detached windows. Live
+sortie tags are never applied automatically. Separate actions preview and apply
+updates to area information and actual sortie tags as undoable revisions.
 
 The main view shows the planner tabs directly. It owns its own plugin state and
-saved file (`poi-plugin-navy-staff.json`) and imports an existing sortie plan
-from Ship Info's legacy data the first time it runs.
+saved files (`poi-plugin-navy-staff/<member ID>.json`), one per teitoku. The first
+account file imports an existing sortie plan from Ship Info's legacy data; once
+an account file exists, later accounts start empty. The Ship Info source stays
+untouched. No unscoped Navy Staff file is imported because Navy Staff has not
+been released.
 
-Saved files use format `version: 1`. Existing files without a version are
-upgraded on load; older supported formats migrate in order before editing is
-enabled. Ship Info imports accept its unversioned and v1 formats and leave the
-source untouched. Only a missing Navy file triggers an import; if both files
-are missing, Navy Staff creates an empty v1 plan. Unsupported newer formats
-are left untouched and reported as load errors.
+Each workspace keeps a linear operation history. Undo and redo move the editable
+cursor, a new edit discards the redo tail, and selecting an earlier revision
+opens a read-only preview (captured records only). Restoring a previewed revision
+appends one new undoable revision. History previews are transient and never
+write to the saved file.
+
+Saved files use format `version: 2`, with independent workspaces and captured
+area labels and colors. Existing unversioned and v1 plans migrate on load,
+preserving their assignments and opaque archive. Ship Info imports accept its
+unversioned and v1 formats and leave the source untouched. Only a missing Navy
+file triggers an import; if both files are missing, Navy Staff creates an empty
+workspace collection. Unsupported newer formats are left untouched and reported
+as load errors.
+
+Create, rename, duplicate, switch, and delete workspaces from the planner.
+Captured areas and saved ships remain visible when the host event or roster
+changes. Workspaces belong to their account file without a separate binding
+step. Live ship details are shown only while the loaded file matches the host
+account and its roster is available.
+
+Export the current plan or a historical revision as compressed share text, then
+copy it or save it to a text file. Paste or open a reference inside the plugin
+to view it read-only without changing any workspace. References contain master
+IDs and levels, captured area labels and colors, and timestamps. Names and types
+come from poi's current master data; missing masters display `???` while keeping
+the ID and level. Only the exact current reference version is accepted.
+Website viewing and QR generation are not included.
 
 ## Install
 

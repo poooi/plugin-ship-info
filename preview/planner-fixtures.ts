@@ -1,8 +1,10 @@
 import './bootstrap'
 
+import path from 'path'
+
 import { mkMstShip, mkShip } from '../tests/fixtures'
-import { tableState } from '../tests/ui/fixtures'
-import { DATA_PATH as NAVY_DATA_PATH } from '../packages/navy-staff/src/views/plugin-identity'
+import { mkNavyArea, mkNavyData, tableState } from '../tests/ui/fixtures'
+import { ACCOUNT_DIR } from '../packages/navy-staff/src/views/account'
 import { DATA_PATH as SHIP_INFO_DATA_PATH } from '../packages/ship-info/src/views/plugin-identity'
 
 // Planner / Navy Staff and integrated-shell browser fixtures. Built on the
@@ -15,7 +17,10 @@ export const NAVY_PLUGIN_KEY = 'poi-plugin-navy-staff'
 
 /** Absolute paths the plugin persistence lifecycles read/write. */
 export const PLUGIN_DATA_PATH = SHIP_INFO_DATA_PATH
-export const NAVY_PLUGIN_DATA_PATH = NAVY_DATA_PATH
+/** Account directory and a helper for a specific account file. */
+export const NAVY_ACCOUNT_DIR = ACCOUNT_DIR
+export const navyAccountFile = (memberId: string) =>
+  path.join(ACCOUNT_DIR, `${memberId}.json`)
 
 const mst = (over: Record<string, any>) =>
   mkMstShip({ api_taik: [30, 30], ...over })
@@ -95,10 +100,9 @@ export interface PlannerScenarioOptions {
 }
 
 /**
- * Full host state for planner/shell stories. `current` defaults to one empty
- * area per map name; pass tagged `ships` to make the planner's tag authority
- * observable. Both plugin slices are seeded with `ready: true` so component
- * stories can render without running a lifecycle.
+ * Full host state for planner/shell stories. `current` seeds per-area owned IDs
+ * positionally into a v2 workspace. Both plugin slices are seeded with
+ * `ready: true` so component stories can render without running a lifecycle.
  */
 export const plannerScenarioState = (
   options: PlannerScenarioOptions = {},
@@ -114,6 +118,14 @@ export const plannerScenarioState = (
   } = options
 
   const base = tableState()
+  const areas = mapname.map((label, index) =>
+    mkNavyArea({
+      color: color[index] ?? '#ff0000',
+      id: `area-${index + 1}`,
+      label,
+      tagSlot: index,
+    }),
+  )
   const state: Record<string, any> = {
     ...base,
     config: config ?? base.config,
@@ -128,6 +140,7 @@ export const plannerScenarioState = (
     },
     info: {
       ...base.info,
+      basic: { api_member_id: '123' },
       ships,
     },
     [SHIP_INFO_PLUGIN_KEY]: {
@@ -137,23 +150,35 @@ export const plannerScenarioState = (
       ui: {},
     },
     [NAVY_PLUGIN_KEY]: {
+      account: '123',
       error: null,
-      planner: {
-        archive: {},
+      navy: mkNavyData({
+        areas,
         current: current ?? mapname.map(() => []),
-      },
+      }),
       ready: true,
     },
   }
   return { ...state, ...extra }
 }
 
-/** The Navy Staff planner slice, for asserting planner state. */
+/** The Navy Staff v2 durable root, for asserting workspace state. */
 export const plannerSlice = (environment: {
   store: { getState: () => any }
-}) => environment.store.getState()[NAVY_PLUGIN_KEY].planner as {
-  archive: object
-  current: number[][]
+}) => environment.store.getState()[NAVY_PLUGIN_KEY].navy as {
+  selectedWorkspaceId: string
+  workspaces: any[]
+  legacyArchive: Record<string, unknown>
+}
+
+/** All owned ship IDs across the selected workspace's areas. */
+export const assignedShipIds = (environment: {
+  store: { getState: () => any }
+}): number[] => {
+  const navy = plannerSlice(environment)
+  const workspace = navy.workspaces.find((w) => w.id === navy.selectedWorkspaceId)
+  const content = workspace.revisions[workspace.cursor].content
+  return Object.values(content.assignments).flat() as number[]
 }
 
 /** Seed the Ship Info file (legacy planner source) for migration stories. */
@@ -169,15 +194,9 @@ export const persistedPluginFile = (planner: {
   },
 })
 
-/** Seed the Navy Staff file (authoritative when present). */
-export const persistedNavyFile = (planner: {
-  archive?: object
-  current: number[][]
-}) => ({
-  [NAVY_PLUGIN_DATA_PATH]: {
-    planner: { archive: {}, ...planner },
-    ready: true,
-  },
+/** Seed an account-scoped Navy file (authoritative when present). */
+export const persistedNavyFile = (navy: object, memberId = '123') => ({
+  [navyAccountFile(memberId)]: { ...navy, version: 2 },
 })
 
 // Re-export the capture adapter surface so capture stories reset and inspect a

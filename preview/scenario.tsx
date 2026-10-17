@@ -3,7 +3,11 @@ import './bootstrap'
 import { thunk } from 'redux-thunk'
 
 import type { Persistence } from '../packages/shared/src/persistence'
-import { createPersistence as createNavyPersistence } from '../packages/navy-staff/src/views/persistence'
+import FileWriter from '../packages/shared/src/file-writer'
+import {
+  createAccountSupervisor,
+  type AccountSupervisor,
+} from '../packages/navy-staff/src/views/account-supervisor'
 import { reducer as navyReducer } from '../packages/navy-staff/src/views/redux'
 import { createPersistence as createShipInfoPersistence } from '../packages/ship-info/src/views/persistence'
 import { reducer as shipInfoReducer } from '../packages/ship-info/src/views/redux'
@@ -70,6 +74,7 @@ export interface ScenarioInput {
 
 let current: Environment | undefined
 let currentPersistences: Persistence[] = []
+let currentSupervisors: AccountSupervisor[] = []
 
 export const getEnvironment = (): Environment => {
   if (!current) throw new Error('No ship-info browser scenario is active')
@@ -95,6 +100,10 @@ export const createScenarioEnvironment = ({
     persistence.stop()
   }
   currentPersistences = []
+  for (const supervisor of currentSupervisors) {
+    supervisor.stop()
+  }
+  currentSupervisors = []
   resetHostState()
   setInitialFiles(parameters.files)
   setSaveDialogResult(parameters.saveDialog)
@@ -134,13 +143,15 @@ export const createScenarioEnvironment = ({
       currentPersistences.push(persistence)
     }
     if (includeNavy) {
-      const persistence = createNavyPersistence({
+      const supervisor = createAccountSupervisor({
         isMain: environment.windowObj.isMain,
         onError: toastError('poi-plugin-navy-staff'),
         onWriteError: toastWriteError('poi-plugin-navy-staff'),
+        store: environment.store,
+        writer: new FileWriter(),
       })
-      persistence.start(environment.store)
-      currentPersistences.push(persistence)
+      supervisor.start()
+      currentSupervisors.push(supervisor)
     }
   }
 
@@ -157,4 +168,8 @@ export const disposeScenario = (environment?: Environment): void => {
     persistence.stop()
   }
   currentPersistences = []
+  for (const supervisor of currentSupervisors) {
+    supervisor.stop()
+  }
+  currentSupervisors = []
 }

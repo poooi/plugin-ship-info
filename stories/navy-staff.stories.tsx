@@ -7,13 +7,16 @@ import { WindowEnv } from 'views/components/etc/window-env'
 
 import { createNavyOnlyI18n } from '../preview/i18n'
 import { host } from '../preview/adapters/logs'
+import { mkNavyData } from '../tests/ui/fixtures'
 import {
-  NAVY_PLUGIN_DATA_PATH,
+  assignedShipIds,
+  navyAccountFile,
+  persistedNavyFile,
   persistedPluginFile,
   plannerScenarioState,
   plannerSlice,
 } from '../preview/planner-fixtures'
-import { getEnvironment } from '../preview/scenario'
+import { disposeScenario, getEnvironment } from '../preview/scenario'
 import { reactClass as NavyStaff } from '../packages/navy-staff/src/views'
 import { reactClass as ShipInfo } from '../packages/ship-info/src/views'
 
@@ -108,10 +111,7 @@ export const BothPluginsIndependent: Story = {
     await userEvent.click(within(popover).getByText('Epsilon'))
 
     await waitFor(() => {
-      expect(
-        getEnvironment().store.getState()['poi-plugin-navy-staff'].planner
-          .current.flat(),
-      ).toContain(5)
+      expect(assignedShipIds(getEnvironment())).toContain(5)
     })
     // The Ship Info slice is untouched by the Navy edit.
     expect(getEnvironment().store.getState()['poi-plugin-ship-info']).toBe(
@@ -163,11 +163,7 @@ export const MigratedPlanSmallerMap: Story = {
   play: async () => {
     const view = await playOnMainView()
     await waitFor(async () => {
-      await expect(plannerSlice(getEnvironment()).current).toEqual([
-        [1],
-        [2],
-        [3],
-      ])
+      await expect(assignedShipIds(getEnvironment())).toEqual([1, 2, 3])
     })
     await expect(
       within(view).queryByRole('heading', { level: 5, name: /E2/ }),
@@ -193,7 +189,7 @@ export const MigratedPlanUnloadedRoster: Story = {
       Object.keys(getEnvironment().store.getState().info.ships).length,
     ).toBe(0)
     await waitFor(async () => {
-      await expect(plannerSlice(getEnvironment()).current).toEqual([[1], [2]])
+      await expect(assignedShipIds(getEnvironment())).toEqual([1, 2])
     })
   },
 }
@@ -238,16 +234,16 @@ export const DetachedDisplayOptionUsesGlobalConfig: Story = {
   },
 }
 
-export const UpgradesStoredFileAndSaves: Story = {
-  name: 'A v0 Navy file is upgraded to v1 and later saves keep v1',
+export const AccountFileIsAuthoritative: Story = {
+  name: 'An existing account file is used and never falls back to Ship Info',
   parameters: {
     shipInfo: {
       dimensions: { width: 1400, height: 760 },
       files: {
-        [NAVY_PLUGIN_DATA_PATH]: {
-          planner: { archive: {}, current: [[1]] },
-          ready: true,
-        },
+        // Ship Info legacy carries a different plan (ship 7).
+        ...persistedPluginFile({ current: [[7]] }),
+        // The account file (ship 1) is authoritative when present.
+        ...persistedNavyFile(mkNavyData({ current: [[1], []] }), '123'),
       },
       lifecycle: true,
       plugin: 'navy-staff',
@@ -258,34 +254,179 @@ export const UpgradesStoredFileAndSaves: Story = {
     const view = await playOnMainView()
     const environment = getEnvironment()
     await waitFor(() => {
-      expect(environment.store.getState()['poi-plugin-navy-staff'].ready).toBe(
-        true,
-      )
+      expect(environment.store.getState()['poi-plugin-navy-staff'].ready).toBe(true)
     })
 
-    // The v0 file was upgraded in place, preserving the plan.
-    await waitFor(() => {
-      expect((host.log.files[NAVY_PLUGIN_DATA_PATH] as any)?.version).toBe(1)
-    })
-    expect(
-      (host.log.files[NAVY_PLUGIN_DATA_PATH] as any)?.planner?.current,
-    ).toEqual([[1]])
+    const file = navyAccountFile('123')
+    // The account plan is loaded, not the legacy Ship Info plan.
+    expect(assignedShipIds(environment)).toContain(1)
+    expect(assignedShipIds(environment)).not.toContain(7)
 
-    await userEvent.click(
-      await within(view).findByRole('button', { name: 'Add ship' }),
-    )
+    // Two captured areas each expose an Add ship button; use the first area's.
+    const addShipButtons = await within(view).findAllByRole('button', {
+      name: 'Add ship',
+    })
+    await userEvent.click(addShipButtons[0])
     const popover = document.querySelector(
       `.${Classes.POPOVER_CONTENT}`,
     ) as HTMLElement
     await userEvent.click(await within(popover).findByText('Epsilon'))
 
     await waitFor(() => {
-      expect(
-        (host.log.files[NAVY_PLUGIN_DATA_PATH] as any)?.planner?.current?.flat(),
-      ).toContain(5)
+      const saved = host.log.files[file] as any
+      const ids = saved.workspaces.flatMap((workspace: any) =>
+        Object.values(
+          workspace.revisions[workspace.cursor].content.assignments,
+        ).flat(),
+      )
+      expect(ids).toContain(5)
     })
+    await expect((host.log.files[file] as any)?.version).toBe(2)
+  },
+}
+
+const previewFileNavy = () => {
+  const navy = mkNavyData({ current: [[1], []] })
+  const workspace = navy.workspaces[0]
+  const base = workspace.revisions[0]
+  workspace.revisions = [
+    base,
+    {
+      content: { ...base.content, name: 'Renamed' },
+      id: 'rev-2',
+      op: { kind: 'rename', name: 'Renamed' },
+      time: '2026-01-02T00:00:00.000Z',
+    },
+  ]
+  workspace.cursor = 1
+  return { ...navy, version: 2 }
+}
+
+export const HistoryPreviewWritesNothing: Story = {
+  name: 'Opening and closing a history preview writes no file',
+  parameters: {
+    shipInfo: {
+      dimensions: { width: 1400, height: 760 },
+      files: persistedNavyFile(previewFileNavy(), '123'),
+      lifecycle: true,
+      plugin: 'navy-staff',
+      state: plannerScenarioState(),
+    },
+  },
+  play: async () => {
+    await playOnMainView()
+    const environment = getEnvironment()
+    await waitFor(() => {
+      expect(environment.store.getState()['poi-plugin-navy-staff'].ready).toBe(true)
+    })
+
+    const file = navyAccountFile('123')
+    const fileText = () => JSON.stringify(host.log.files[file])
+    const before = fileText()
+
+    await userEvent.selectOptions(
+      screen.getByLabelText('History') as HTMLSelectElement,
+      'rev-1',
+    )
     await expect(
-      (host.log.files[NAVY_PLUGIN_DATA_PATH] as any)?.version,
-    ).toBe(1)
+      screen.getByText('Viewing an earlier revision (read-only)'),
+    ).toBeTruthy()
+
+    await userEvent.selectOptions(
+      screen.getByLabelText('History') as HTMLSelectElement,
+      'rev-2',
+    )
+    await expect(
+      screen.queryByText('Viewing an earlier revision (read-only)'),
+    ).toBeNull()
+
+    expect(fileText()).toBe(before)
+  },
+}
+
+const accountNavy = (ids: number[]) => ({
+  ...mkNavyData({ current: [ids, []] }),
+  version: 2,
+})
+
+export const AccountSwitchLoadsPerAccountFile: Story = {
+  name: 'Switching account loads that account file and shows no binding control',
+  parameters: {
+    shipInfo: {
+      dimensions: { width: 1400, height: 760 },
+      files: {
+        ...persistedNavyFile(accountNavy([1]), '101'),
+        ...persistedNavyFile(accountNavy([2]), '202'),
+      },
+      lifecycle: true,
+      plugin: 'navy-staff',
+      state: plannerScenarioState({
+        extra: { info: { basic: { api_member_id: '101' } } },
+        mapname: ['E1'],
+      }),
+    },
+  },
+  play: async () => {
+    await playOnMainView()
+    const environment = getEnvironment()
+    const navyState = () => environment.store.getState()['poi-plugin-navy-staff']
+    await waitFor(() => {
+      expect(navyState().ready).toBe(true)
+    })
+
+    // Account 101's plan is loaded.
+    expect(assignedShipIds(environment)).toContain(1)
+
+    // Switch the host account to 202; the supervisor switches account files.
+    environment.store.dispatch({
+      type: 'TEST/REPLACE',
+      state: { info: { basic: { api_member_id: '202' } } },
+    })
+    await waitFor(() => {
+      expect(assignedShipIds(environment)).toContain(2)
+    })
+    expect(assignedShipIds(environment)).not.toContain(1)
+
+    // No per-workspace account binding control exists.
+    expect(screen.queryByText('Live roster linked')).toBeNull()
+    expect(screen.queryByText(/Saved data \(/)).toBeNull()
+  },
+}
+
+export const DisposeStopsAccountSupervisor: Story = {
+  name: 'Disposing the scenario stops account switching from writing new files',
+  parameters: {
+    shipInfo: {
+      dimensions: { width: 1400, height: 760 },
+      files: persistedNavyFile(mkNavyData({ current: [[1], []] }), '101'),
+      lifecycle: true,
+      plugin: 'navy-staff',
+      state: plannerScenarioState({
+        extra: { info: { basic: { api_member_id: '101' } } },
+        mapname: ['E1'],
+      }),
+    },
+  },
+  play: async () => {
+    await playOnMainView()
+    const environment = getEnvironment()
+    const navyState = () => environment.store.getState()['poi-plugin-navy-staff']
+    await waitFor(() => {
+      expect(navyState().ready).toBe(true)
+    })
+
+    // Stop the scenario's supervisor while retaining the old store.
+    disposeScenario(environment)
+    const writesBefore = host.log.writtenFiles.length
+
+    // An account change on the retained store must not create a new account file.
+    environment.store.dispatch({
+      type: 'TEST/REPLACE',
+      state: { info: { basic: { api_member_id: '202' } } },
+    })
+    await new Promise((resolve) => setTimeout(resolve, 30))
+
+    expect(host.log.files[navyAccountFile('202')]).toBeUndefined()
+    expect(host.log.writtenFiles.length).toBe(writesBefore)
   },
 }

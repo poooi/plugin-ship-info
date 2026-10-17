@@ -15,6 +15,8 @@ The proposed first release preserves existing functionality. Ship Info retains f
 
 Multiple plans, cross-event archives, automatic fleet composition, and new planning rules are outside the first split.
 
+The follow-up [Navy Staff workspaces design](navy-staff-workspaces-design.md) proposes multiple plans, history, captured area information, and read-only reference sharing. Those enhancements are not part of the completed split described here.
+
 ## 2. Ownership after extraction
 
 Ship Info source paths below are relative to `packages/ship-info/src/` unless another package is named. The shared workspace contains the modules previously extracted at root `shared/`.

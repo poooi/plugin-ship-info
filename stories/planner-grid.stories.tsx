@@ -1,17 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
-import {
-  expect,
-  fireEvent,
-  screen,
-  userEvent,
-  waitFor,
-  within,
-} from 'storybook/test'
+import { expect, fireEvent, screen, userEvent, waitFor, within } from 'storybook/test'
 
+import { mkNavyData } from '../tests/ui/fixtures'
 import type { PlannerScenarioOptions } from '../preview/planner-fixtures'
 import {
+  assignedShipIds,
   plannerScenarioState,
-  plannerSlice,
   plannerTaggedShips,
 } from '../preview/planner-fixtures'
 import { getEnvironment } from '../preview/scenario'
@@ -20,6 +14,19 @@ import { reactClass as NavyStaff } from '../packages/navy-staff/src/views'
 const params = (options?: PlannerScenarioOptions) => ({
   shipInfo: { plugin: 'navy-staff' as const, state: plannerScenarioState(options) },
 })
+
+const withNavy = (navy: unknown, account = '123'): PlannerScenarioOptions => ({
+  extra: { 'poi-plugin-navy-staff': { account, error: null, navy, ready: true } },
+})
+
+// Reads the gradient a grid cell paints, which carries the assignment color.
+const gradientOf = (element: HTMLElement): string => {
+  for (const node of Array.from(element.querySelectorAll('div'))) {
+    const image = getComputedStyle(node).backgroundImage
+    if (image && image.includes('linear-gradient')) return image
+  }
+  return ''
+}
 
 const openGrid = async () => {
   const view = await screen.findByRole('tab', { name: 'Ship Grid' })
@@ -35,10 +42,8 @@ const palette = (name: string) =>
 const cell = (label: string) =>
   screen.getByRole('button', { name: label }) as HTMLElement
 
-// Hand-written expectation of how the fixture roster (plannerMstShips) maps to
-// the grid's super types, in rendered -lv/-id order. Deliberately independent
-// of the production shipSuperTypeMap so mis-grouping can't agree with itself.
-// Groups with no matching ship are listed empty.
+// Hand-written expectation of how the fixture roster maps to the grid's super
+// types, in rendered -lv/-id order, independent of the production map.
 const expectedGroups: Array<[string, string[]]> = [
   ['BB', ['Zeta Lv.80']],
   ['CV', ['Eta Lv.90']],
@@ -50,8 +55,6 @@ const expectedGroups: Array<[string, string[]]> = [
   ['Auxiliary', []],
 ]
 
-// Ship cells rendered under one super-type heading, scoped to that heading's
-// parent group so a ship in the wrong group can never satisfy the assertion.
 const groupCellLabels = (dialog: HTMLElement, name: string) => {
   const heading = within(dialog).getByRole('heading', { level: 2, name })
   return within(heading.parentElement as HTMLElement)
@@ -72,25 +75,14 @@ export const GroupsShipsBySuperType: Story = {
   parameters: params(),
   play: async () => {
     const dialog = await openGrid()
-
-    // Each heading's parent group owns exactly its ships, in rendered order.
     const rendered: Array<string | null> = []
     for (const [name, labels] of expectedGroups) {
       const actual = groupCellLabels(dialog, name)
       await expect(actual, `${name} group cells`).toEqual([...labels])
       rendered.push(...actual)
     }
-
-    // Every expected ship appears exactly once across the whole grid.
     const roster = expectedGroups.flatMap(([, labels]) => labels)
-    const counts = new Map<string | null, number>()
-    for (const label of rendered) {
-      counts.set(label, (counts.get(label) ?? 0) + 1)
-    }
     await expect(rendered).toHaveLength(roster.length)
-    for (const label of roster) {
-      await expect(counts.get(label), `${label} appears exactly once`).toBe(1)
-    }
   },
 }
 
@@ -101,29 +93,27 @@ export const PaletteAssignMoveAndErase: Story = {
     const environment = getEnvironment()
     await openGrid()
 
-    // Assign Alpha to E1.
     await userEvent.click(palette('E1'))
     await userEvent.click(cell('Alpha Lv.50'))
     await waitFor(async () => {
-      await expect(plannerSlice(environment).current[0]).toContain(1)
+      await expect(assignedShipIds(environment)).toContain(1)
     })
 
-    // Move it to E2 by changing the palette then clicking again.
     await userEvent.click(palette('E2'))
     await userEvent.click(cell('Alpha Lv.50'))
     await waitFor(async () => {
-      const { current } = plannerSlice(environment)
-      await expect(current[0]).not.toContain(1)
-      await expect(current[1]).toContain(1)
+      await expect(assignedShipIds(environment)).toContain(1)
+      const navy = getEnvironment().store.getState()['poi-plugin-navy-staff'].navy
+      const workspace = navy.workspaces.find((w: any) => w.id === navy.selectedWorkspaceId)
+      const content = workspace.revisions[workspace.cursor].content
+      await expect(content.assignments['area-1']).not.toContain(1)
+      await expect(content.assignments['area-2']).toContain(1)
     })
 
-    // Erase with the None palette option.
     await userEvent.click(palette('None'))
     await userEvent.click(cell('Alpha Lv.50'))
     await waitFor(async () => {
-      const { current } = plannerSlice(environment)
-      await expect(current[0]).not.toContain(1)
-      await expect(current[1]).not.toContain(1)
+      await expect(assignedShipIds(environment)).not.toContain(1)
     })
   },
 }
@@ -137,13 +127,13 @@ export const ContextMenuRemovesCell: Story = {
 
     fireEvent.contextMenu(cell('Alpha Lv.50'))
     await waitFor(async () => {
-      await expect(plannerSlice(environment).current[0]).toEqual([])
+      await expect(assignedShipIds(environment)).not.toContain(1)
     })
   },
 }
 
-export const TaggedShipIsProtected: Story = {
-  name: 'Tagged ships cannot be assigned or erased from the grid',
+export const LiveTagsDoNotBlockGrid: Story = {
+  name: 'Live sortie tags do not auto-assign or block grid cells',
   parameters: params({
     current: [[], []],
     mapname: ['E1', 'E2'],
@@ -153,27 +143,15 @@ export const TaggedShipIsProtected: Story = {
     const environment = getEnvironment()
     await openGrid()
 
-    // Delta is host-tagged to E1 and Eta to E2; the planner reflects that.
-    await waitFor(async () => {
-      const { current } = plannerSlice(environment)
-      await expect(current[0]).toContain(4)
-      await expect(current[1]).toContain(7)
-    })
+    // Tagged ships are not auto-assigned by rendering.
+    await expect(assignedShipIds(environment)).toEqual([])
 
-    // Pointer, context menu and keyboard must all leave tagged ships alone.
-    await userEvent.click(palette('E2'))
+    // And they remain assignable manually.
+    await userEvent.click(palette('E1'))
     await userEvent.click(cell('Delta Lv.100'))
-    fireEvent.contextMenu(cell('Eta Lv.90'))
-
-    const delta = cell('Delta Lv.100')
-    delta.focus()
-    await userEvent.keyboard('{Enter}')
-    const eta = cell('Eta Lv.90')
-    eta.focus()
-    await userEvent.keyboard(' ')
-
-    await expect(plannerSlice(environment).current[0]).toContain(4)
-    await expect(plannerSlice(environment).current[1]).toContain(7)
+    await waitFor(async () => {
+      await expect(assignedShipIds(environment)).toContain(4)
+    })
   },
 }
 
@@ -189,7 +167,63 @@ export const KeyboardAssignsCell: Story = {
     await userEvent.keyboard('{Enter}')
 
     await waitFor(async () => {
-      await expect(plannerSlice(environment).current[0]).toContain(1)
+      await expect(assignedShipIds(environment)).toContain(1)
     })
+  },
+}
+
+export const PaletteSelectionDoesNotRecolorUneditedShips: Story = {
+  name: 'Changing the palette target never recolors unedited ships',
+  parameters: params({ current: [[], []], mapname: ['E1', 'E2'] }),
+  play: async () => {
+    const environment = getEnvironment()
+    await openGrid()
+
+    // Assign Alpha to E1 (red).
+    await userEvent.click(palette('E1'))
+    await userEvent.click(cell('Alpha Lv.50'))
+    await waitFor(async () => {
+      await expect(assignedShipIds(environment)).toContain(1)
+    })
+
+    // Move the palette target to E2 (green) without clicking any cell.
+    await userEvent.click(palette('E2'))
+
+    // Alpha keeps its real E1 (red) assignment; Beta is unassigned (black), not
+    // E2 (green).
+    await expect(gradientOf(cell('Alpha Lv.50'))).toContain('255, 0, 0')
+    await expect(gradientOf(cell('Beta Lv.20'))).not.toContain('0, 255, 0')
+  },
+}
+
+export const UnknownMasterRowHasNoArtwork: Story = {
+  name: 'A saved ship with an unknown master never borrows owned-ID artwork',
+  parameters: params({
+    ...withNavy(
+      (() => {
+        const navy = mkNavyData({ current: [[99], []] })
+        navy.workspaces[0].revisions[0].content.ships = {
+          '99': {
+            level: null,
+            masterId: null,
+            name: null,
+            observedAt: '2026-01-01T00:00:00.000Z',
+            ownedId: 99,
+            typeId: null,
+            typeLabel: null,
+          },
+        }
+        return navy
+      })(),
+    ),
+    config: { plugin: { ShipInfo: {} }, poi: { appearance: { avatar: true } } },
+  }),
+  play: async () => {
+    await openGrid()
+
+    // Unknown master: no artwork element at all (not owned-ID artwork).
+    await expect(cell('#99 Lv.?').querySelector('img')).toBeNull()
+    // Positive control: a live row with a known master does render artwork.
+    await expect(cell('Alpha Lv.50').querySelector('img')).toBeTruthy()
   },
 }

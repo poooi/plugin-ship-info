@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Navy share viewer</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: system-ui, sans-serif; margin: 1.5rem; line-height: 1.45; }
+  h1 { font-size: 1.25rem; }
+  .meta { display: grid; grid-template-columns: max-content 1fr; gap: 2px 12px; margin: 1rem 0; }
+  .meta dt { font-weight: 600; }
+  .group { border: 1px solid #bbb; border-radius: 6px; padding: .6rem .8rem; margin: .8rem 0; }
+  .group h2 { font-size: 1rem; margin: 0 0 .4rem; display: flex; align-items: center; gap: .5rem; }
+  .swatch { display: inline-block; width: 1rem; height: 1rem; border: 1px solid #555; border-radius: 3px; }
+  table { border-collapse: collapse; }
+  td, th { border: 1px solid #ccc; padding: 2px 8px; font-size: 13px; text-align: left; }
+  .error { color: #b00; white-space: pre-wrap; }
+  .note { color: #555; font-size: 13px; }
+  code { word-break: break-all; }
+</style>
+</head>
+<body>
+<h1>Navy share viewer (read-only)</h1>
+<p class="note">Parses <code>location.hash</code> as <code>#ns1:{g|b}:BASE64URL</code>. gzip uses the native <code>DecompressionStream</code>; Brotli dynamically imports <code>/brotli/index.js</code>. No catalog is required for this PoC.</p>
+<div id="status">Waiting for a fragment…</div>
+<div id="content"></div>
+
+<script type="module">
+const statusEl = document.getElementById('status')
+const contentEl = document.getElementById('content')
+
+function setError(message) {
+  statusEl.innerHTML = ''
+  const p = document.createElement('p')
+  p.className = 'error'
+  p.textContent = message
+  statusEl.appendChild(p)
+}
+
+function b64urlToBytes(input) {
+  let s = input.replace(/-/g, '+').replace(/_/g, '/')
+  while (s.length % 4 !== 0) s += '='
+  const binary = atob(s)
+  const out = new Uint8Array(binary.length)
+  for (let i = 0; i < binary.length; i += 1) out[i] = binary.charCodeAt(i)
+  return out
+}
+
+async function gunzip(bytes) {
+  if (typeof DecompressionStream !== 'function') {
+    throw new Error('DecompressionStream is unavailable in this browser')
+  }
+  const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))
+  return new Uint8Array(await new Response(stream).arrayBuffer())
+}
+
+async function unbrotli(bytes) {
+  const mod = await import('/brotli/index.js')
+  const brotli = await mod.default
+  if (!brotli || typeof brotli.decompress !== 'function') {
+    throw new Error('Brotli decoder did not expose decompress()')
+  }
+  return brotli.decompress(bytes)
+}
+
+function render(model) {
+  contentEl.innerHTML = ''
+  const dl = document.createElement('dl')
+  dl.className = 'meta'
+  const addMeta = (label, value) => {
+    const dt = document.createElement('dt'); dt.textContent = label
+    const dd = document.createElement('dd'); dd.textContent = value
+    dl.append(dt, dd)
+  }
+  addMeta('Schema version', String(model.v))
+  addMeta('Title', String(model.t))
+  addMeta('Captured at', String(model.c))
+  addMeta('Exported at', String(model.e))
+  addMeta('Locale', String(model.l))
+  contentEl.appendChild(dl)
+
+  for (const [label, color, entries] of model.g) {
+    const section = document.createElement('section')
+    section.className = 'group'
+    const h2 = document.createElement('h2')
+    const swatch = document.createElement('span')
+    swatch.className = 'swatch'
+    swatch.style.background = color
+    const name = document.createElement('span')
+    name.textContent = label
+    h2.append(swatch, name)
+    section.appendChild(h2)
+
+    const table = document.createElement('table')
+    const thead = document.createElement('thead')
+    const headRow = document.createElement('tr')
+    for (const label of ['#', 'masterId', 'level']) {
+      const th = document.createElement('th')
+      th.textContent = label
+      headRow.appendChild(th)
+    }
+    thead.appendChild(headRow)
+    table.appendChild(thead)
+    const tbody = document.createElement('tbody')
+    entries.forEach((entry, index) => {
+      const [masterId, level] = entry
+      const tr = document.createElement('tr')
+      for (const value of [index + 1, masterId, level]) {
+        const td = document.createElement('td')
+        td.textContent = String(value)
+        tr.appendChild(td)
+      }
+      tbody.appendChild(tr)
+    })
+    table.appendChild(tbody)
+    section.appendChild(table)
+    contentEl.appendChild(section)
+  }
+}
+
+const SUPPORTED_SCHEMA_VERSION = 1
+let revision = 0
+
+async function main() {
+  const current = ++revision
+  const hash = location.hash
+  const isStale = () => current !== revision || location.hash !== hash
+  const raw = hash.replace(/^#/, '')
+
+  // Clear any previous plan as soon as decoding for the new hash begins.
+  contentEl.innerHTML = ''
+  statusEl.textContent = ''
+
+  if (!raw) {
+    statusEl.textContent = 'No fragment. Append #ns1:g:<base64url> or #ns1:b:<base64url> to this page URL.'
+    return
+  }
+  const first = raw.indexOf(':')
+  const second = first >= 0 ? raw.indexOf(':', first + 1) : -1
+  if (first < 0 || second < 0) {
+    setError('Invalid fragment; expected ns1:{g|b}:BASE64URL')
+    return
+  }
+  const tag = raw.slice(0, first)
+  const codec = raw.slice(first + 1, second)
+  const payload = raw.slice(second + 1)
+  if (tag !== 'ns1') {
+    setError(`Unsupported version tag: ${tag}`)
+    return
+  }
+  try {
+    statusEl.textContent = `Decoding ${codec === 'b' ? 'Brotli' : 'gzip'} payload (${payload.length} chars)…`
+    const bytes = b64urlToBytes(payload)
+    const plain = codec === 'b' ? await unbrotli(bytes) : codec === 'g' ? await gunzip(bytes) : null
+    if (isStale()) return
+    if (!plain) throw new Error(`Unsupported codec: ${codec}`)
+    const model = JSON.parse(new TextDecoder().decode(plain))
+    if (isStale()) return
+    if (model.v !== SUPPORTED_SCHEMA_VERSION) {
+      setError(`Unsupported schema version: ${model.v} (expected ${SUPPORTED_SCHEMA_VERSION})`)
+      return
+    }
+    render(model)
+    statusEl.textContent = 'Decoded.'
+  } catch (error) {
+    if (isStale()) return
+    setError(String(error && error.message ? error.message : error))
+  }
+}
+
+window.addEventListener('hashchange', main)
+main()
+</script>
+</body>
+</html>

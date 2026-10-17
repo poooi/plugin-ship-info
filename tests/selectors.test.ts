@@ -28,15 +28,15 @@ vi.mock('electron', () => ({ remote: {} }))
 vi.mock('redux-observers', () => ({ observer: () => ({}) }))
 
 import { mkDb, mkMstShip, mkShip } from './fixtures'
+import { mkNavyData } from './ui/fixtures'
 import { shipFleetIdMapSelector, shipFleetIdSelectorFactory } from '../packages/shared/src/fleet'
 import { PLUGIN_KEY } from '../packages/navy-staff/src/views/plugin-identity'
+import { shipMenuDataSelector } from '../packages/navy-staff/src/views/planner/selectors'
 import {
-  deckPlannerAllShipIdsSelector,
-  deckPlannerAreaSelectorFactory,
-  deckPlannerCurrentSelector,
-  deckPlannerShipMapSelector,
-  shipMenuDataSelector,
-} from '../packages/navy-staff/src/views/planner/selectors'
+  areaViewsSelector,
+  assignedShipIdsSelector,
+  gridRowsSelector,
+} from '../packages/navy-staff/src/views/workspace/selectors'
 import {
   columnOrderSelector,
   columnPinningSelector,
@@ -63,6 +63,7 @@ const mkState = (): any => ({
   fcd: { shipavatar: { marginMagics: {} }, shiptag: { mapname: ['E1', 'E2'] } },
   fleets: [[1, 2], [], [], []],
   info: {
+    basic: { api_member_id: '123' },
     equips: {},
     ships: {
       1: mkShip({
@@ -101,7 +102,9 @@ const mkState = (): any => ({
   },
   repairs: [] as number[],
   [PLUGIN_KEY]: {
-    planner: { archive: {}, current: [[1, 2], [3]] },
+    account: '123',
+    error: null,
+    navy: mkNavyData({ current: [[1, 2], [3]] }),
     ready: true,
   },
 })
@@ -111,15 +114,23 @@ const withShipInfo = (state: any, shipInfo: any) => ({
   config: { plugin: { ShipInfo: shipInfo } },
 })
 
-describe('planner selectors', () => {
-  it('reads current, per-area and flat ship ids', () => {
+describe('workspace selectors', () => {
+  it('derives area views and grid rows from captured content', () => {
     const state = mkState()
-    expect(deckPlannerCurrentSelector(state)).toEqual([[1, 2], [3]])
-    expect(deckPlannerAreaSelectorFactory(0)(state)).toEqual([1, 2])
-    expect(deckPlannerAreaSelectorFactory(1)(state)).toEqual([3])
-    expect(deckPlannerAreaSelectorFactory(9)(state)).toEqual([])
-    expect(deckPlannerAllShipIdsSelector(state)).toEqual([1, 2, 3])
-    expect(deckPlannerShipMapSelector(state)).toEqual({ 1: 0, 2: 0, 3: 1 })
+    const areas = areaViewsSelector(state)
+    expect(areas.map((area) => area.id)).toEqual(['area-1', 'area-2'])
+    expect(areas[0].ships.map((row) => row.ownedId)).toEqual([1, 2])
+    expect(areas[1].ships.map((row) => row.ownedId)).toEqual([3])
+    expect(assignedShipIdsSelector(state)).toEqual(new Set([1, 2, 3]))
+    // Grid includes assigned saved ships plus eligible live-only roster ships.
+    expect(gridRowsSelector(state).map((row) => row.ownedId).sort()).toEqual([1, 2, 3])
+  })
+
+  it('overlays live names when the loaded account matches the host', () => {
+    const state = mkState()
+    const row = areaViewsSelector(state)[0].ships[0]
+    expect(row.live).toBe(true)
+    expect(row.name).toBe('Alpha')
   })
 })
 

@@ -5,7 +5,6 @@ import {
   Intent,
   Tab,
   Tabs,
-  Tag,
 } from '@blueprintjs/core'
 import cls from 'classnames'
 import Fuse from 'fuse.js'
@@ -18,10 +17,7 @@ import styled from 'styled-components'
 import { Popover } from 'views/components/etc/overlay'
 
 import { IShipSuperType, shipSuperTypeMap } from '@poi-plugins/ship-info-shared/ship-types'
-import {
-  deckPlannerAllShipIdsSelector,
-  shipMenuDataSelector,
-} from './selectors'
+import { assignedShipIdsSelector, livePickerRowsSelector } from '../workspace/selectors'
 
 const searchOptions = [
   {
@@ -33,9 +29,6 @@ const searchOptions = [
     .value() as Array<{ name: string; value: number }>),
 ]
 
-// `Classes` resolves to poi's Blueprint (see the externals in tsdown.config),
-// so interpolating it keeps the selector on whichever `bpN-` namespace poi
-// actually loaded instead of hardcoding one.
 const Wrapper = styled.div`
   ${`.${Classes.TAB_PANEL}`} {
     margin-top: 0;
@@ -50,12 +43,6 @@ const ShipList = styled.ul`
   width: 20em;
 `
 
-// These are plain list items rather than a Blueprint menu, so they carry their
-// own surface. `--bp-surface-background-color-default-*` is what poi's vibrant
-// theme overrides with translucent variants, so it covers both the normal and
-// the vibrant background; the fallback is Blueprint's classic menu item
-// overlay, which reads correctly on light and dark alike on poi versions
-// predating the variable.
 const ShipItem = styled.li`
   display: flex;
   padding: 0.5em 1em;
@@ -89,15 +76,15 @@ export interface AddShipProps {
   onSelect: (id: number) => void
 }
 
+// The picker lists eligible live-roster ships only. It is empty (and the button
+// hidden by the caller) when the live roster is unavailable, so another
+// account's roster can never be assigned.
 const Menu = ({ onSelect }: AddShipProps) => {
   const { t } = useTranslation('poi-plugin-navy-staff')
-  const ships = useSelector(shipMenuDataSelector)
-  const allSelectedId = useSelector(deckPlannerAllShipIdsSelector)
+  const ships = useSelector(livePickerRowsSelector)
+  const assigned = useSelector(assignedShipIdsSelector)
   const [query, setQuery] = useState('')
 
-  // Rebuild the index whenever the ship collection changes, not only when a
-  // ship is added or removed: a same-count host update (rename, remodel, level
-  // change) also has to be searchable immediately.
   const fuse = useMemo(
     () =>
       new Fuse(ships, {
@@ -109,14 +96,6 @@ const Menu = ({ onSelect }: AddShipProps) => {
 
   const handleQueryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(e.currentTarget.value)
-  }
-
-  const handleClear = () => {
-    setQuery('')
-  }
-
-  const handleSelect = (id: number) => () => {
-    onSelect(id)
   }
 
   const filtered = _.map(fuse.search(query), (result) => result.item.id)
@@ -131,7 +110,7 @@ const Menu = ({ onSelect }: AddShipProps) => {
           <Button
             aria-label={t('Clear')}
             minimal
-            onClick={handleClear}
+            onClick={() => setQuery('')}
             intent={Intent.WARNING}
           >
             <FA name="times" />
@@ -150,8 +129,7 @@ const Menu = ({ onSelect }: AddShipProps) => {
                 {_(ships)
                   .filter((ship) => type === -1 || type === ship.superTypeIndex)
                   .filter((ship) => !query || (filtered || []).includes(ship.id))
-                  .filter((ship) => !ship.area)
-                  .filter((ship) => !allSelectedId.includes(ship.id))
+                  .filter((ship) => !assigned.has(ship.id))
                   .sortBy([
                     (ship) => (filtered || []).indexOf(ship.id),
                     (ship) => -ship.lv,
@@ -162,7 +140,7 @@ const Menu = ({ onSelect }: AddShipProps) => {
                       key={ship.id}
                       role="button"
                       tabIndex={0}
-                      onClick={handleSelect(ship.id)}
+                      onClick={() => onSelect(ship.id)}
                       onKeyDown={(event) => {
                         if (event.key === 'Enter' || event.key === ' ') {
                           event.preventDefault()
@@ -177,9 +155,6 @@ const Menu = ({ onSelect }: AddShipProps) => {
                       <ShipName>
                         {t(ship.name || '', { ns: 'resources' })}
                       </ShipName>
-                      {ship.area! > 0 && (
-                        <Tag intent={Intent.PRIMARY}>{ship.area}</Tag>
-                      )}
                     </ShipItem>
                   ))
                   .value()}
