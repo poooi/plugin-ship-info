@@ -7,7 +7,8 @@
     "index.js",
     "index.js.map",
     "assets",
-    "i18n"
+    "i18n",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "build": "vp pack",

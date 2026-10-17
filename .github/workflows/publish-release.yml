@@ -1,0 +1,83 @@
+name: Publish release
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [master]
+
+permissions:
+  contents: write
+  id-token: write
+  pull-requests: read
+
+concurrency:
+  group: publish-release-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish release
+    if: >
+      github.event.pull_request.merged == true &&
+      startsWith(github.event.pull_request.head.ref, 'release/') &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          fetch-depth: 0
+      - name: Fetch Release PR head
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          git fetch --no-tags origin \
+            "+refs/pull/$PR_NUMBER/head:refs/remotes/pull/head"
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - name: Extract trusted release scripts from the base commit
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/release-scripts"
+          git archive "$BASE_SHA" scripts/release | tar -x -C "$RUNNER_TEMP/release-scripts"
+      - name: Validate the merged release
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          TARGET_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+        run: >
+          node "$RUNNER_TEMP/release-scripts/scripts/release/validate-release-pr.mjs"
+          --repo "$GITHUB_WORKSPACE"
+          --base "$BASE_SHA"
+          --head "$HEAD_SHA"
+          --target "$TARGET_SHA"
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Check
+        run: pnpm run check
+      - name: Test
+        run: pnpm test
+      - name: Pack selected release artifacts
+        run: >
+          node "$RUNNER_TEMP/release-scripts/scripts/release/pack-release.mjs"
+          --repo "$GITHUB_WORKSPACE"
+          --plan release-plan.json
+          --out .cache/release-artifacts
+      - name: Verify selected packed artifacts
+        run: >
+          node scripts/verify-package.mjs
+          --dir .cache/release-artifacts
+          --plan release-plan.json
+      - name: Publish selected packages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          node "$RUNNER_TEMP/release-scripts/scripts/release/publish-release.mjs"
+          --repo "$GITHUB_WORKSPACE"
+          --plan release-plan.json
+          --artifacts .cache/release-artifacts
+          --target "${{ github.event.pull_request.merge_commit_sha }}"

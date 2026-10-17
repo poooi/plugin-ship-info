@@ -13,9 +13,9 @@ This is a pnpm workspace for poi plugins:
 - `packages/ship-info/` — the published `poi-plugin-ship-info` plugin: the ship
   information table (filtering, columns, CSV export).
 - `packages/navy-staff/` — the `poi-plugin-navy-staff` plugin: the sortie/deck
-  planner, with its own state, saved file and translations. The npm name is
-  already reserved by an existing package; this split implementation has not
-  been released to npm.
+  planner, with its own state, saved file and translations. The npm package name
+  currently holds a `1.2.0` placeholder; the repository baseline is normalized
+  to that version so the first planner release bumps above it.
 - `packages/shared/` — private, source-only `@poi-plugins/ship-info-shared`
   modules bundled into the plugins that use them; never published.
 - `tests/`, `stories/`, `preview/`, `shims/`, `.storybook/` and the shared
@@ -40,6 +40,16 @@ The existing Navy Staff npm package is a placeholder for this work. Installing
 it does not install the planner implemented on this branch; that implementation
 requires a subsequent release coordinated with adding Navy Staff to poi's
 plugin list.
+
+## Releases
+
+The plugins release independently through pnpm's native versioning, not the
+Changesets CLI. Record a change intent with `pnpm change`, run the **Prepare
+release** workflow, merge the generated Release PR after validation, and let
+**Publish release** publish only the selected verified tarballs. Ordinary pull
+request merges never bump or publish. See [docs/releases.md](docs/releases.md)
+for the workflow, changelog rules, external trusted-publishing setup, and the
+Navy Staff baseline.
 
 ## Development
 

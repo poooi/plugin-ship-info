@@ -56,14 +56,21 @@ Website viewing and QR generation are not included.
 
 ## Install
 
-The npm package `poi-plugin-navy-staff` already exists as a placeholder. The
-planner implementation in this repository has not yet been released there.
+The npm package `poi-plugin-navy-staff` already exists as a `1.2.0`
+placeholder. The repository baseline is normalized to that version so the first
+planner release bumps above the placeholder instead of publishing the
+provisional repository version. The planner implementation in this repository
+has not yet been released there.
 
 Once the planner release is available and Navy Staff is added to poi's plugin
 list, open **Settings → Plugins**, find **Navy Staff** and click **Install**.
 For manual installation, use **Install directly from npm**, enter
 `poi-plugin-navy-staff` and click **Install**. Manual installation also requires
 the planner implementation to have been released.
+
+Release notes are generated in [CHANGELOG.md](CHANGELOG.md) from `.changeset`
+intents by the repository release workflow; see the repository
+[release guide](https://github.com/poooi/plugin-ship-info/blob/master/docs/releases.md).
 
 poi provides React, Redux, Blueprint and the other host UI libraries at runtime;
 this package bundles the rest of its implementation.

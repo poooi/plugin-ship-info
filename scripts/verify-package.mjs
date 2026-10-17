@@ -6,8 +6,11 @@
 // This is host-boundary/artifact verification, not a live poi installation.
 //
 //   node scripts/verify-package.mjs
+//   node scripts/verify-package.mjs --dir .cache/release-artifacts \
+//     --package poi-plugin-ship-info
 //
 // Verifies the newest matching tarball in .cache/packages for each plugin.
+// Release publishing passes a separate artifact directory and package list.
 
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
@@ -16,16 +19,50 @@ import path from 'node:path'
 import { createRequire, isBuiltin } from 'node:module'
 import vm from 'node:vm'
 
+const args = process.argv.slice(2)
+const option = (name, fallback = undefined) => {
+  const index = args.indexOf(name)
+  return index >= 0 ? args[index + 1] : fallback
+}
+const selectedNames = args.flatMap((arg, index) =>
+  arg === '--package' && args[index + 1] ? [args[index + 1]] : [],
+)
+const planOption = option('--plan')
+if (planOption) {
+  const plan = JSON.parse(fs.readFileSync(path.resolve(planOption), 'utf8'))
+  if (!Array.isArray(plan.releases)) {
+    console.error(`${planOption}: missing releases array`)
+    process.exit(1)
+  }
+  for (const release of plan.releases) {
+    if (typeof release.name === 'string') selectedNames.push(release.name)
+  }
+}
+
 const repo = process.cwd()
-const packageDir = path.join(repo, '.cache', 'packages')
+const packageDir = path.resolve(
+  repo,
+  option('--dir', path.join('.cache', 'packages')),
+)
 const repoRequire = createRequire(import.meta.url)
 const redux = repoRequire('redux')
 const { JSDOM } = repoRequire('jsdom')
 
-const PACKAGES = [
+const ALL_PACKAGES = [
   { dir: 'packages/ship-info', name: 'poi-plugin-ship-info' },
   { dir: 'packages/navy-staff', name: 'poi-plugin-navy-staff' },
 ]
+const PACKAGES =
+  selectedNames.length === 0
+    ? ALL_PACKAGES
+    : ALL_PACKAGES.filter((pkg) => selectedNames.includes(pkg.name))
+
+if (PACKAGES.length === 0) {
+  console.error(
+    `No known package selected by --package ${selectedNames.join(', ')}`,
+  )
+  process.exit(1)
+}
 
 const failures = []
 const check = (condition, message) => {
@@ -140,6 +177,12 @@ const verifyPackage = (pkg) => {
   check(
     fs.existsSync(path.join(pkgRoot, 'README.md')),
     `${pkg.name}: README.md missing`,
+  )
+  check(
+    fs.existsSync(path.join(pkgRoot, 'CHANGELOG.md')) &&
+      fs.readFileSync(path.join(pkgRoot, 'CHANGELOG.md'), 'utf8').trim().length >
+        0,
+    `${pkg.name}: CHANGELOG.md missing or empty`,
   )
 
   const entryPath = path.join(pkgRoot, manifest.main ?? 'index.js')
@@ -601,12 +644,17 @@ const runScenario = async (name, selected, seedLegacy) => {
 }
 
 const main = async () => {
-  const shipInfo = loadBuilt(PACKAGES[0])
-  const navyStaff = loadBuilt(PACKAGES[1])
+  const built = PACKAGES.map((pkg) => {
+    const plugin = loadBuilt(pkg)
+    return plugin
+  })
 
-  await runScenario('ship-info only', [shipInfo], false)
-  await runScenario('navy-staff only', [navyStaff], false)
-  await runScenario('both', [shipInfo, navyStaff], true)
+  for (const plugin of built) {
+    await runScenario(`${plugin.name} only`, [plugin], false)
+  }
+  if (built.length > 1) {
+    await runScenario('both', built, true)
+  }
 
   if (failures.length > 0) {
     console.error('Package verification FAILED')

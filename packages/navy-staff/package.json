@@ -1,12 +1,13 @@
 {
   "name": "poi-plugin-navy-staff",
-  "version": "0.1.0",
+  "version": "1.2.0",
   "description": "Plan sortie assignments for your ship girls",
   "main": "index.js",
   "files": [
     "index.js",
     "index.js.map",
-    "i18n"
+    "i18n",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "build": "vp pack",
