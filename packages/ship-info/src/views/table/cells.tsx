@@ -142,9 +142,9 @@ export const Hp = ({ shipData, ...props }: ICellProps) => {
   )
 }
 
-const KaryokuCell = styled(Cell)<{ max: boolean }>`
+const KaryokuCell = styled(Cell)<{ $max: boolean }>`
   background-color: ${(props) =>
-    props.max && rgba(props.theme.RED3, TRANSPARENCY)};
+    props.$max && rgba(props.theme.RED3, TRANSPARENCY)};
 `
 
 export const Karyoku = ({ shipData, ...props }: ICellProps) => {
@@ -156,7 +156,7 @@ export const Karyoku = ({ shipData, ...props }: ICellProps) => {
     karyokuNow >= karyokuMax ? 'MAX' : `+${karyokuMax - karyokuNow}`
 
   return (
-    <KaryokuCell {...props} max={karyokuNow >= karyokuMax}>
+    <KaryokuCell {...props} $max={karyokuNow >= karyokuMax}>
       <span>
         {`${karyoku}/`}
         <span style={{ fontSize: '80%' }}>{karyokuString}</span>
@@ -165,9 +165,9 @@ export const Karyoku = ({ shipData, ...props }: ICellProps) => {
   )
 }
 
-const RaisouCell = styled(Cell)<{ max: boolean }>`
+const RaisouCell = styled(Cell)<{ $max: boolean }>`
   background-color: ${(props) =>
-    props.max && rgba(props.theme.COBALT3, TRANSPARENCY)};
+    props.$max && rgba(props.theme.COBALT3, TRANSPARENCY)};
 `
 
 export const Raisou = ({ shipData, ...props }: ICellProps) => {
@@ -179,7 +179,7 @@ export const Raisou = ({ shipData, ...props }: ICellProps) => {
     raisouNow >= raisouMax ? 'MAX' : `+${raisouMax - raisouNow}`
 
   return (
-    <RaisouCell {...props} max={raisouNow >= raisouMax}>
+    <RaisouCell {...props} $max={raisouNow >= raisouMax}>
       <span>
         {`${raisou}/`}
         <span style={{ fontSize: '80%' }}>{raisouString}</span>
@@ -188,9 +188,9 @@ export const Raisou = ({ shipData, ...props }: ICellProps) => {
   )
 }
 
-const TaikuCell = styled(Cell)<{ max: boolean }>`
+const TaikuCell = styled(Cell)<{ $max: boolean }>`
   background-color: ${(props) =>
-    props.max && rgba(props.theme.ORANGE3, TRANSPARENCY)};
+    props.$max && rgba(props.theme.ORANGE3, TRANSPARENCY)};
 `
 
 export const Taiku = ({ shipData, ...props }: ICellProps) => {
@@ -201,7 +201,7 @@ export const Taiku = ({ shipData, ...props }: ICellProps) => {
   const taikuString = taikuNow >= taikuMax ? 'MAX' : `+${taikuMax - taikuNow}`
 
   return (
-    <TaikuCell {...props} max={taikuNow >= taikuMax}>
+    <TaikuCell {...props} $max={taikuNow >= taikuMax}>
       <span>
         {`${taiku}/`}
         <span style={{ fontSize: '80%' }}>{taikuString}</span>
@@ -210,9 +210,9 @@ export const Taiku = ({ shipData, ...props }: ICellProps) => {
   )
 }
 
-const SoukouCell = styled(Cell)<{ max: boolean }>`
+const SoukouCell = styled(Cell)<{ $max: boolean }>`
   background-color: ${(props) =>
-    props.max && rgba(props.theme.INDIGO3, TRANSPARENCY)};
+    props.$max && rgba(props.theme.INDIGO3, TRANSPARENCY)};
 `
 
 export const Soukou = ({ shipData, ...props }: ICellProps) => {
@@ -224,7 +224,7 @@ export const Soukou = ({ shipData, ...props }: ICellProps) => {
     soukouNow >= soukouMax ? 'MAX' : `+${soukouMax - soukouNow}`
 
   return (
-    <SoukouCell {...props} max={soukouNow >= soukouMax}>
+    <SoukouCell {...props} $max={soukouNow >= soukouMax}>
       <span>
         {`${soukou}/`}
         <span style={{ fontSize: '80%' }}>{soukouString}</span>
@@ -233,9 +233,9 @@ export const Soukou = ({ shipData, ...props }: ICellProps) => {
   )
 }
 
-const LuckyCell = styled(Cell)<{ max: boolean }>`
+const LuckyCell = styled(Cell)<{ $max: boolean }>`
   background-color: ${(props) =>
-    props.max && rgba(props.theme.LIME3, TRANSPARENCY)};
+    props.$max && rgba(props.theme.LIME3, TRANSPARENCY)};
 `
 
 export const Lucky = ({ shipData, ...props }: ICellProps) => {
@@ -246,7 +246,7 @@ export const Lucky = ({ shipData, ...props }: ICellProps) => {
   const luckyString = luckyNow >= luckyMax ? 'MAX' : `+${luckyMax - luckyNow}`
 
   return (
-    <LuckyCell {...props} max={luckyNow >= luckyMax}>
+    <LuckyCell {...props} $max={luckyNow >= luckyMax}>
       <span>
         {`${lucky}/`}
         <span style={{ fontSize: '80%' }}>{luckyString}</span>
@@ -355,9 +355,12 @@ export const Cells = {
   lock: Lock,
   lucky: Lucky,
   lv: Lv,
-  name: connect((state) => ({
-    enableAvatar: enableAvatarConfigSelector(state),
-  }))(Name),
+  name: connect(
+    (state) => ({
+      enableAvatar: enableAvatarConfigSelector(state),
+    }),
+    {},
+  )(Name),
   raisou: Raisou,
   repairtime: RepairTime,
   sakuteki: Sakuteki,

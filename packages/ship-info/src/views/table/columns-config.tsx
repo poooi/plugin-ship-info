@@ -1,9 +1,7 @@
 import React from 'react'
 import { createColumnHelper, ColumnDef } from '@tanstack/react-table'
-import { connect } from 'react-redux'
 import type { IShipRawData } from '../types'
 import * as CellComponents from './cells'
-import { enableAvatarConfigSelector } from './cells'
 import type { ShipInfoTableFeatures } from './table-features'
 
 export interface TableRow {
@@ -23,11 +21,6 @@ const katakanaToHiragana = (str: string) => {
 // Create column helper
 const columnHelper = createColumnHelper<ShipInfoTableFeatures, TableRow>()
 
-// Connected Name component
-const ConnectedName = connect((state) => ({
-  enableAvatar: enableAvatarConfigSelector(state),
-}))(CellComponents.Name)
-
 // Export column metadata for use in column configuration
 export const getColumnTitle = (columnId: string): string => {
   const column = columns.find((col) => col.id === columnId)
@@ -46,7 +39,7 @@ export const columns: ColumnDef<ShipInfoTableFeatures, TableRow, any>[] = [
   columnHelper.accessor((row) => row.shipData.$ship.api_name, {
     id: 'name',
     meta: { title: 'Name', width: 220, center: false, sortable: true },
-    cell: ({ row }) => <ConnectedName shipData={row.original.shipData} />,
+    cell: ({ row }) => <CellComponents.Cells.name shipData={row.original.shipData} />,
     sortFn: (rowA, rowB) => {
       const dataA = rowA.original.shipData
       const dataB = rowB.original.shipData

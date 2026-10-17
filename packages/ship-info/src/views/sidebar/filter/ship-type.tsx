@@ -1,13 +1,13 @@
 import { H5 } from '@blueprintjs/core'
-import { get, intersection, isEqual, map, size } from 'lodash'
+import { intersection, isEqual, map } from 'lodash'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
 import styled from 'styled-components'
 
 import { shipSuperTypeMap, shipTypeLabel } from '@poi-plugins/shared/ship-types'
-import { shipTypesFilterSelector } from '../../selectors'
-import { boolArrayToInt, intToBoolArray } from '../../utils'
+import { shipTypeFilterViewSelector } from '../../selectors'
+import { boolArrayToInt } from '../../utils'
 import { CustomCheckboxCard } from '../components/card-controls'
 
 const ShipTypeContainer = styled.div`
@@ -25,24 +25,9 @@ export const ShipTypeCheck: React.FC = () => {
   const { t } = useTranslation(['resources', 'poi-plugin-ship-info'])
   const { t: tPlugin } = useTranslation('poi-plugin-ship-info')
 
-  const shipTypesValue = useSelector(shipTypesFilterSelector)
-  const { $shipTypes, checked, checkedAll } = useSelector((state: any) => {
-    const allShipTypes = get(state, 'const.$shipTypes', {})
-    const defaultChecked: boolean[] = new Array(size(allShipTypes)).fill(true)
-
-    let shipChecked = intToBoolArray(shipTypesValue)
-    shipChecked =
-      defaultChecked.length === shipChecked.length
-        ? shipChecked
-        : defaultChecked
-    const allChecked = shipChecked.reduce((a, b) => a && b, true)
-
-    return {
-      $shipTypes: allShipTypes,
-      checked: shipChecked,
-      checkedAll: allChecked,
-    }
-  })
+  const { $shipTypes, checked, checkedAll } = useSelector(
+    shipTypeFilterViewSelector,
+  )
 
   const getTypeArray = (
     typeChecked: boolean[],
