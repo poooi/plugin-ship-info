@@ -57,27 +57,52 @@ intent requests a real bump for that package.
 ## 2. Prepare a Release PR
 
 Run **Actions -> Prepare release -> Run workflow** and choose `ship-info`,
-`navy-staff`, or `both`. The workflow:
+`navy-staff`, or `both`, plus a release channel (`main` stable, default; or
+`beta`). The workflow:
 
 1. Requires the default branch, a clean tree, and an up-to-date
    `origin/master`.
-2. Runs pnpm's native recursive version command for the selection only, for
-   example:
-   `pnpm --filter poi-plugin-ship-info version -r`
-3. Lets pnpm consume intents, write changelogs and `.changeset/ledger.yaml`,
-   and bump only the selected package. Intents that also name an unselected
-   package remain pending in `.changeset` for a later release.
-4. Narrows the plan to the packages that actually have pending intents. A
-   `both` selection where only one package has intents prepares only that
-   package; if none has intents, preparation fails before creating a PR.
-5. Writes `release-plan.json`, switches to a fresh
-   `release/<selection>-<base>-<run>` branch, commits the generated files, and
-   opens a Release PR.
+2. Applies native pnpm lanes for the chosen channel (`pnpm lane beta` or
+   `pnpm lane main`) to the selected packages, runs pnpm's native recursive
+   version command, then re-applies the lane only for the packages that actually
+   version. A skipped package keeps its original lane untouched.
+3. Lets pnpm own the lane membership, versions, changelogs, and
+   `.changeset/ledger.yaml`. Intents that also name an unselected package remain
+   pending in `.changeset` for a later release.
+4. Narrows the plan to the packages that actually have pending intents (or, on
+   `main`, accumulated beta targets). A `both` selection where only one package
+   changes prepares only that package; if none changes, preparation fails before
+   creating a PR.
+5. Writes `release-plan.json` (including the channel), switches to a fresh
+   `release/<selection>-<base>-<run>` branch, commits the generated files
+   (including `pnpm-workspace.yaml` lane membership), and opens a Release PR.
 
-`release-plan.json` records the base commit, selection, base and release
-versions, tags, and the exact generated files. It is the contract validated
-before merge and before publication. The plan stays on `master` after a
-release; it is historical until a Release PR changes it.
+`release-plan.json` records the base commit, channel, selection, base and
+release versions, tags, and the exact generated files. It is the contract
+validated before merge and before publication. The plan stays on `master` after
+a release; it is historical until a Release PR changes it.
+
+### Beta channel
+
+Prepare release supports two paths per plugin selection: `code -> beta -> main`
+and `code -> main`.
+
+- `beta` publishes `X.Y.Z-beta.N` prereleases. The first beta is `-beta.0`;
+  each later beta intent on the same target advances the native counter
+  (`-beta.1`, …). pnpm's lane math owns the counter.
+- Moving a beta package back to `main` releases its accumulated stable target on
+  the next run **without a new intent**, with the cumulative changelog.
+- Only the selected plugins move; `code -> main` for an unchanged plugin is not
+  implied, and a skipped package's lane is left untouched.
+- Beta prereleases publish under the npm `beta` dist-tag and never touch
+  `latest`; an older retried beta is published under `previous` and leaves the
+  `beta` pointer unchanged. Stable releases keep the `latest`/`previous`
+  safeguards.
+- Beta GitHub releases are flagged prerelease, so they can never become latest.
+  A stable promotion gets its own immutable version and tag.
+- To try a beta, select it with the npm `beta` dist-tag (for example
+  `poi-plugin-ship-info@beta`) in whatever installs poi plugins; the stable
+  install is unaffected until graduation.
 
 ### Stale Release PRs
 
@@ -124,6 +149,10 @@ Publication is idempotent and fail-closed:
 - Versions already present are not published again. The run continues to finish
   missing tags and GitHub releases, so re-running a failed Publish job can
   complete a partially published release.
+- A successful publish is accepted without an immediate registry reread, so
+  temporary registry staleness cannot fail an accepted upload. The
+  existing-version skip and the failed-upload recovery check still require the
+  verified tarball's integrity.
 - Only versions recorded in `release-plan.json` are published, and only from the
   verified tarballs in `.cache/release-artifacts`.
 - A retried release older than the registry's current `latest` is published

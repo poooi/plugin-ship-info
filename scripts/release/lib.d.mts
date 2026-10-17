@@ -31,6 +31,7 @@ export interface ReleasePlan {
     commit: string
     packages: Record<string, string>
   }
+  channel: string
   files: PlanFile[]
   releases: Release[]
   schemaVersion: number
@@ -59,6 +60,7 @@ export const CHANGESET_DIR: string
 export const LEDGER_FILE: string
 export const RELEASE_BRANCH_PREFIX: string
 export const BUMP_TYPES: string[]
+export const RELEASE_CHANNELS: readonly string[]
 export const PLUGINS: Record<PluginId, Plugin>
 export const PLUGIN_IDS: readonly PluginId[]
 export const PUBLISHED_NAMES: Set<string>
@@ -69,6 +71,14 @@ export function expandSelection(
   selection: string | readonly string[],
 ): PluginId[]
 export function releaseTag(name: string, version: string): string
+export function parseChannel(value: string): string
+export function applyLane(repo: string, channel: string, id: PluginId): string
+export function pnpmLaneVersionSelection(options: {
+  baseVersions: Record<string, string>
+  channel: string
+  ids: PluginId[]
+  repo: string
+}): { changedIds: PluginId[]; output: string }
 export function parseVersion(value: string): {
   major: number
   minor: number
@@ -144,6 +154,11 @@ export function tarballDigest(tarball: string): {
   shasum: string
 }
 export function publishTagFor(version: string, latest: string | null): string
+export function publishDistTag(options: {
+  channel: string
+  taggedVersion: string | null
+  version: string
+}): string
 export function commitReleasePlan(options: {
   branch: string
   message: string
@@ -155,6 +170,7 @@ export function createReleasePlan(options: {
   baseCommit: string
   baseVersions: Record<string, string>
   changes: Change[]
+  channel?: string
   repo: string
   selection: string | readonly string[]
 }): ReleasePlan
@@ -212,6 +228,7 @@ export function registryLatestVersion(options: {
   name: string
   registry?: string
   sleep?: (ms: number) => Promise<void>
+  tag?: string
   timeoutMs?: number
 }): Promise<string | null>
 export function assertTarballMatchesRegistry(

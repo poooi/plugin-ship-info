@@ -9,7 +9,7 @@ import {
   parseReleasePlan,
   PLAN_FILE,
   publishSelected,
-  publishTagFor,
+  publishDistTag,
   readManifest,
   registryLatestVersion,
   registryVersionMetadata,
@@ -59,6 +59,8 @@ const ghReleaseExists = (tag) =>
     stdio: ['ignore', 'pipe', 'pipe'],
   }).status === 0
 
+let beta = false
+
 const ensureRelease = (release, notes) => {
   if (ghReleaseExists(release.tag)) {
     console.log(`  GitHub release ${release.tag} already exists`)
@@ -69,7 +71,7 @@ const ensureRelease = (release, notes) => {
   try {
     fs.writeFileSync(notesFile, notes)
     try {
-      runGh([
+      const args = [
         'release',
         'create',
         release.tag,
@@ -77,7 +79,10 @@ const ensureRelease = (release, notes) => {
         `${release.name} ${release.to}`,
         '--notes-file',
         notesFile,
-      ])
+      ]
+      // A beta release is flagged prerelease and can never become "latest".
+      if (beta) args.push('--prerelease')
+      runGh(args)
     } catch (error) {
       if (!ghReleaseExists(release.tag)) throw error
     }
@@ -91,6 +96,7 @@ try {
   if (!target) fail('--target <release commit> is required')
   if (!fs.existsSync(planPath)) fail(`missing ${planPath}`)
   const plan = parseReleasePlan(fs.readFileSync(planPath, 'utf8'))
+  beta = plan.channel === 'beta'
 
   if (tryGit(repo, ['cat-file', '-e', `${target}^{commit}`]) === null) {
     fail(`release target ${target} does not exist`)
@@ -131,11 +137,21 @@ try {
       ensureReleaseTag({ release, repo, target: commit }),
     log: (message) => console.log(message),
     publish: async (release, tarball) => {
-      const latest = await registryLatestVersion({ name: release.name })
-      const tag = publishTagFor(release.to, latest)
-      if (tag !== 'latest') {
+      // Beta prereleases publish under the beta dist-tag and never touch latest;
+      // an older retried beta is published under "previous" and leaves the beta
+      // pointer unchanged. Stable releases keep latest/previous.
+      const taggedVersion = await registryLatestVersion({
+        name: release.name,
+        ...(beta ? { tag: 'beta' } : {}),
+      })
+      const tag = publishDistTag({
+        channel: beta ? 'beta' : 'main',
+        taggedVersion,
+        version: release.to,
+      })
+      if (!beta && tag !== 'latest') {
         console.log(
-          `  ${release.name}@${release.to} is older than latest ${latest}; ` +
+          `  ${release.name}@${release.to} is older than latest; ` +
             'publishing under the "previous" dist-tag',
         )
       }

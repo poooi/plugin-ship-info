@@ -174,6 +174,7 @@ describe('release plan shape', () => {
       commit: 'a'.repeat(40),
       packages: { [SHIP]: '8.1.1' },
     },
+    channel: 'main',
     files: [
       { path: 'packages/ship-info/CHANGELOG.md', status: 'A' },
       { path: 'packages/ship-info/package.json', status: 'M' },
@@ -188,7 +189,7 @@ describe('release plan shape', () => {
         to: '9.0.0',
       },
     ],
-    schemaVersion: 1,
+    schemaVersion: 2,
     selection: ['ship-info'],
     ...overrides,
   })
@@ -238,6 +239,44 @@ describe('release plan shape', () => {
         }),
       ),
     ).toThrow(/not sorted/)
+  })
+
+  it('requires a known channel and channel/version consistency', () => {
+    const betaRelease = {
+      dir: 'packages/ship-info',
+      from: '8.1.1',
+      id: 'ship-info',
+      name: SHIP,
+      tag: `${SHIP}@9.0.0-beta.1`,
+      to: '9.0.0-beta.1',
+    }
+    expect(() => validatePlanShape(plan({ channel: 'canary' }))).toThrow(
+      /unknown release channel/,
+    )
+    expect(() => validatePlanShape(plan({ channel: 'beta' }))).toThrow(
+      /channel beta requires/,
+    )
+    expect(() =>
+      validatePlanShape(plan({ channel: 'main', releases: [betaRelease] })),
+    ).toThrow(/channel main requires a stable/)
+    expect(() =>
+      validatePlanShape(
+        plan({
+          channel: 'beta',
+          releases: [
+            {
+              ...betaRelease,
+              tag: `${SHIP}@9.0.0-beta.foo`,
+              to: '9.0.0-beta.foo',
+            },
+          ],
+        }),
+      ),
+    ).toThrow(/channel beta requires/)
+    expect(
+      validatePlanShape(plan({ channel: 'beta', releases: [betaRelease] }))
+        .releases[0].to,
+    ).toBe('9.0.0-beta.1')
   })
 
   it('parses JSON and rejects a plan that lists itself', () => {
