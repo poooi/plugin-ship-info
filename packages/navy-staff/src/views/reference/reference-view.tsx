@@ -11,7 +11,7 @@ import {
   Intent,
   Tag,
 } from '@blueprintjs/core'
-import React, { useMemo, useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
 import { createSelector } from 'reselect'
@@ -123,7 +123,7 @@ export interface ReferenceViewProps {
 }
 
 export const ReferenceView = ({ reference, onClose }: ReferenceViewProps) => {
-  const { t } = useTranslation('poi-plugin-navy-staff')
+  const { t, i18n } = useTranslation('poi-plugin-navy-staff')
   const masters = useSelector(referenceMastersSelector)
   const [mode, setMode] = useState<ViewMode>('area')
   const [query, setQuery] = useState('')
@@ -132,9 +132,15 @@ export const ReferenceView = ({ reference, onClose }: ReferenceViewProps) => {
     () => projectReference(reference, masters),
     [reference, masters],
   )
+  // Resolve type labels for search only, so both the raw key (`DD`) and the
+  // visible localized label match; grouping keys stay the raw type key.
+  const resolveType = useCallback(
+    (type: string) => t(type),
+    [t, i18n.language],
+  )
   const filtered = useMemo(
-    () => filterProjectedReference(projected, query),
-    [projected, query],
+    () => filterProjectedReference(projected, query, resolveType),
+    [projected, query, resolveType],
   )
   const typeGroups = useMemo(() => groupShipsByType(filtered), [filtered])
 

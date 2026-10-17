@@ -58,12 +58,27 @@ export const shareFileName = (now: Date): string =>
 
 const normalizeQuery = (query: string): string => query.trim().toLowerCase()
 
-/** Case-insensitive match over catalog name, type, and master ID. */
-export const matchesQuery = (ship: ProjectedShip, query: string): boolean => {
+/** Resolves a raw type key (e.g. `DD`) to its visible, localized label. */
+export type TypeLabelResolver = (type: string) => string
+
+/**
+ * Case-insensitive match over catalog name, raw type key, resolved (localized)
+ * type label, and master ID. The optional resolver lets the visible localized
+ * label match without changing the stored key.
+ */
+export const matchesQuery = (
+  ship: ProjectedShip,
+  query: string,
+  resolveType?: TypeLabelResolver,
+): boolean => {
   const needle = normalizeQuery(query)
   if (needle.length === 0) return true
   if (ship.name.toLowerCase().includes(needle)) return true
-  if (ship.type !== null && ship.type.toLowerCase().includes(needle)) return true
+  if (ship.type !== null) {
+    if (ship.type.toLowerCase().includes(needle)) return true
+    const label = resolveType ? resolveType(ship.type) : ship.type
+    if (label.toLowerCase().includes(needle)) return true
+  }
   if (ship.masterId !== null && String(ship.masterId).includes(needle)) {
     return true
   }
@@ -77,6 +92,7 @@ export const matchesQuery = (ship: ProjectedShip, query: string): boolean => {
 export const filterProjectedReference = (
   projected: ProjectedReference,
   query: string,
+  resolveType?: TypeLabelResolver,
 ): ProjectedReference => {
   if (normalizeQuery(query).length === 0) return projected
 
@@ -84,7 +100,9 @@ export const filterProjectedReference = (
   let knownShipCount = 0
   const typeCounts = new Map<string | null, number>()
   const groups = projected.groups.map((group) => {
-    const ships = group.ships.filter((ship) => matchesQuery(ship, query))
+    const ships = group.ships.filter((ship) =>
+      matchesQuery(ship, query, resolveType),
+    )
     for (const ship of ships) {
       shipCount += 1
       if (ship.known) knownShipCount += 1

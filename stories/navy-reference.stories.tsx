@@ -397,3 +397,53 @@ export const LocalizedFailures: Story = {
      })
   },
 }
+
+// Language-agnostic export click: the reference toolbar's first button is
+// Export, and the button label is localized.
+const exportByPosition = async () => {
+  const tools = screen.getByTestId('reference-tools')
+  await userEvent.click(within(tools).getAllByRole('button')[0])
+}
+
+const localizedTypeSearchStory = (
+  language: 'zh-CN' | 'ja-JP' | 'ko-KR',
+  localizedType: string,
+): Story => ({
+  name: `Searching the visible localized type label matches rows (${language})`,
+  parameters: {
+    shipInfo: {
+      language,
+      lifecycle: false,
+      plugin: 'navy-staff',
+      state: plannerScenarioState({ current: [[1], []] }),
+    },
+  },
+  play: async () => {
+    await exportByPosition()
+    const view = await screen.findByTestId('reference-view')
+    // The visible type is the localized label, not the raw key.
+    await expect(within(view).getByText(localizedType)).toBeTruthy()
+
+    const search = within(view).getByRole('textbox')
+
+    // Searching the visible localized type matches the row.
+    fireEvent.change(search, { target: { value: localizedType } })
+    await expect(within(view).getByTestId('reference-ship')).toBeTruthy()
+
+    // The raw type key still matches too.
+    fireEvent.change(search, { target: { value: 'DD' } })
+    await expect(within(view).getByTestId('reference-ship')).toBeTruthy()
+
+    // A non-matching query hides every row.
+    fireEvent.change(search, { target: { value: 'zzz-no-match' } })
+    await expect(within(view).queryByTestId('reference-ship')).toBeNull()
+
+    // Master-ID search is retained.
+    fireEvent.change(search, { target: { value: '1' } })
+    await expect(within(view).getByTestId('reference-ship')).toBeTruthy()
+  },
+})
+
+export const SearchLocalizedTypeZhCN = localizedTypeSearchStory('zh-CN', '驱逐')
+export const SearchLocalizedTypeJaJP = localizedTypeSearchStory('ja-JP', '驅逐')
+export const SearchLocalizedTypeKoKR = localizedTypeSearchStory('ko-KR', '구축함')
