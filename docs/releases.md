@@ -124,6 +124,10 @@ Publication is idempotent and fail-closed:
 - Versions already present are not published again. The run continues to finish
   missing tags and GitHub releases, so re-running a failed Publish job can
   complete a partially published release.
+- A successful publish is accepted without an immediate registry reread, so
+  temporary registry staleness cannot fail an accepted upload. The
+  existing-version skip and the failed-upload recovery check still require the
+  verified tarball's integrity.
 - Only versions recorded in `release-plan.json` are published, and only from the
   verified tarballs in `.cache/release-artifacts`.
 - A retried release older than the registry's current `latest` is published

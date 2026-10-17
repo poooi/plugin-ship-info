@@ -1029,13 +1029,8 @@ export async function publishSelected({
         if (after.state !== 'present') throw error
         assertTarballMatchesRegistry(tarball, after)
       }
-      const after = await registryMetadata(release.name, release.to)
-      if (after.state !== 'present') {
-        throw new Error(
-          `${release.name}@${release.to} is still absent after publish`,
-        )
-      }
-      assertTarballMatchesRegistry(tarball, after)
+      // A successful publish command is authoritative: npm only reports success
+      // after it accepted the upload, so no immediate registry reread is needed.
       published = true
       log(`published ${release.name}@${release.to}`)
     } else {

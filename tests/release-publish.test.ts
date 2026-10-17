@@ -212,26 +212,68 @@ describe('publish retry and idempotency', () => {
     expect(ensureRelease).toHaveBeenCalledTimes(1)
   })
 
-  it('fails when a post-publish registry artifact does not match', async () => {
+  it('fails when a failed upload recovers to a mismatched artifact', async () => {
     const dir = artifacts([ship])
-    const publish = vi.fn()
+    const publish = vi.fn(async () => {
+      throw new Error('upload failed')
+    })
+    const ensureTag = vi.fn()
+    let calls = 0
+    const registryMetadata = vi.fn(
+      async (): Promise<RegistryVersionMetadata> => {
+        calls += 1
+        return calls === 1
+          ? absent()
+          : {
+              integrity: 'sha512-wrong',
+              shasum: null,
+              state: 'present',
+              tarball: null,
+            }
+      },
+    )
     await expect(
       publishSelected({
         artifactsDir: dir,
         changelogFor: () => 'Notes.\n',
         ensureRelease: vi.fn(),
-        ensureTag: vi.fn(),
+        ensureTag,
         publish,
-        registryMetadata: async () => ({
-          integrity: 'sha512-wrong',
-          shasum: null,
-          state: 'present',
-          tarball: null,
-        }),
+        registryMetadata,
         releases: [ship],
         target: 'e'.repeat(40),
       }),
     ).rejects.toThrow(/does not match verified tarball/)
+    expect(publish).toHaveBeenCalledTimes(1)
+    expect(ensureTag).not.toHaveBeenCalled()
+  })
+
+  it('trusts a successful publish without rereading the registry', async () => {
+    const dir = artifacts([ship])
+    const publish = vi.fn()
+    let calls = 0
+    const registryMetadata = vi.fn(async () => {
+      calls += 1
+      if (calls > 1) throw new Error('registry must not be reread after success')
+      return absent()
+    })
+    const ensureTag = vi.fn()
+    const ensureRelease = vi.fn()
+    const result = await publishSelected({
+      artifactsDir: dir,
+      changelogFor: () => 'Notes.\n',
+      ensureRelease,
+      ensureTag,
+      publish,
+      registryMetadata,
+      releases: [ship],
+      target: 'g'.repeat(40),
+    })
+    expect(result[0].published).toBe(true)
+    expect(registryMetadata).toHaveBeenCalledTimes(1)
+    expect(publish).toHaveBeenCalledTimes(1)
+    expect(ensureTag).toHaveBeenCalledTimes(1)
+    expect(ensureRelease).toHaveBeenCalledTimes(1)
   })
 
   it('fails before tagging when the registry still lacks the version', async () => {
