@@ -58,9 +58,9 @@ segment, which Storybook then tries to index as a story module (EISDIR).
 ## How it is wired
 
 - Plugin source lives in `packages/ship-info/src/` and the private shared
-  package in `packages/shared/src/`. The root `tests/`, `stories/` and
-  `preview/` layers import them through those package paths; there is no
-  compatibility barrel at the old locations.
+  package (`@poi-plugins/shared`) in `packages/shared/src/`. The root `tests/`,
+  `stories/` and `preview/` layers import them through those package paths; there
+  is no compatibility barrel at the old locations.
 - Storybook config lives in `.storybook/` (`main.ts`, `preview.tsx`,
   `ambient.d.ts`).
 - `preview/` is the browser integration layer:
@@ -70,13 +70,21 @@ segment, which Storybook then tries to index as a story module (EISDIR).
     dialog/capture logs, in-memory `fs-extra`, `path`, `url`, host selectors,
     real Blueprint overlays, and font/avatar/icon stand-ins. Kana conversion and
     Navy Staff's `modern-screenshot` renderer run from their real packages.
+  - `preview/adapters/host-selectors.ts` re-exports the pure host stand-ins from
+    `tests/ui/host.tsx`. Its selector factories are built with `createSelector`
+    so the same state yields the same array/tuple references; returning fresh
+    ones on each call would trip reselect's input-stability warnings in the real
+    consumers.
   - `preview/scenario.tsx` builds one environment per story. It registers the
     real reducer(s) selected by `shipInfo.plugin` (`ship-info`, `navy-staff` or
     `both`) under their plugin keys, points `views/create-store` at the live
     store, and (when a story opts in via `shipInfo.lifecycle`) starts the real
     persistence lifecycle for each selected plugin against that store.
   - `preview/decorators.tsx` wraps each story in the shared providers from
-    `tests/ui/environment.tsx` and a fixed-size, direction-aware surface.
+    `tests/ui/environment.tsx` and a fixed-size, direction-aware surface. It
+    applies the resolved locale in a committed effect rather than during render,
+    so switching the toolbar locale cannot update a mounted subscriber (for
+    example the Columns control) while another component is still rendering.
   - `preview/planner-fixtures.ts` holds the tagged planner roster and the
     capture-control re-exports used by the planner/shell stories.
 - Stories live in `stories/` and are discovered by both Storybook and the
@@ -274,7 +282,7 @@ themes, portraits, long names, and per-page scroll restoration.
 | `PluginShell/MountsWithPersistedState` | The real root mounts the table and sidebar (no Deck Planner button) and the lifecycle loads the seeded file, leaving the legacy planner field untouched. |
 | `PluginShell/UpgradesStoredFileAndSaves` | An unversioned Ship Info file upgrades to v1, preserves opaque legacy planner data, and a subsequent store update saves in v1. |
 | `PluginShell/SavesWithoutPlannerOpen` | A plugin state change is written to the plugin file while persistence is lifecycle-owned, not UI-owned. |
-| `PluginShell/CorruptFileSurfacesLoadError` | A corrupt persisted file surfaces a load error and a toast, saving stays disabled, and the source file is left untouched. |
+| `PluginShell/MalformedStoredValueSurfacesLoadError` | A malformed persisted value (wrong shape, not malformed JSON text) surfaces a load error and a toast; saving stays disabled and the source file is left untouched. |
 | `PluginShell/SidebarPanelsOpenAndClose` | Columns, Filter and Export open and close. |
 | `PluginShell/PlannerMovedNotice` | The original Deck Planner entry opens and closes a migration notice with plugin-list installation instructions and the full package name for manual installation, without planner controls or state changes. |
 | `PluginShell/PlannerMovedNoticeLocalized` | The notice uses the Chinese name 作战参谋 and the localized poi installation labels. |

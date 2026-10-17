@@ -10,7 +10,7 @@ import React, {
 import type { Decorator } from '@storybook/react-vite'
 
 import { getTheme, Providers } from '../tests/ui/environment'
-import { isLanguage, type Language } from './i18n'
+import { isLanguage, setLanguage, type Language } from './i18n'
 import {
   createScenarioEnvironment,
   disposeScenario,
@@ -60,6 +60,13 @@ export const withShipInfo: Decorator = (Story, context) => {
   // Dispose the lifecycle this surface owns when it unmounts. On a reset the
   // memo has already replaced `environment`, so the stale cleanup is a no-op.
   useEffect(() => () => disposeScenario(environment), [environment])
+
+  // Apply the resolved locale after commit. Calling i18n.changeLanguage during
+  // render notifies mounted subscribers (e.g. the Columns control) while another
+  // component is still rendering, so it belongs in the committed phase.
+  useEffect(() => {
+    setLanguage(language)
+  }, [language])
 
   // Blueprint portals attach to <body>, so the dark class has to live there to
   // theme portaled overlays too. It is removed again for light.

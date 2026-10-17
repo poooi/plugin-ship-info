@@ -25,7 +25,7 @@ import {
   setSaveDialogResult,
   type SaveDialogResult,
 } from './adapters/logs'
-import { i18n, setLanguage, type Language } from './i18n'
+import { i18n, type Language } from './i18n'
 
 // Typed scenario surface for stories. Direct state is used to simulate incoming
 // host updates; workflows use real user interactions and the real plugin
@@ -108,7 +108,6 @@ export const createScenarioEnvironment = ({
   setInitialFiles(parameters.files)
   setSaveDialogResult(parameters.saveDialog)
   setFileWriteFailure(parameters.fileWriteError)
-  setLanguage(language)
 
   const plugin = parameters.plugin ?? 'ship-info'
   const includeShipInfo = plugin === 'ship-info' || plugin === 'both'
