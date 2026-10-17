@@ -139,7 +139,7 @@ describe('ReferenceView modes and image capture', () => {
 
     expect(within(capture).queryByRole('group', { name: 'View' })).toBeNull()
     expect(within(capture).queryByLabelText('Search ships')).toBeNull()
-    expect(within(capture).queryByRole('button', { name: 'Save to image' })).toBeNull()
+    expect(within(capture).queryByRole('button', { name: 'Save as image' })).toBeNull()
     // Title, metadata, and roster are inside.
     expect(within(capture).getByText('Shared reference')).toBeTruthy()
     expect(within(capture).getByText(/Capture time/)).toBeTruthy()
@@ -148,7 +148,7 @@ describe('ReferenceView modes and image capture', () => {
 
   it('saves the full target to a suggested PNG file with actual bytes', async () => {
     renderView()
-    fireEvent.click(screen.getByRole('button', { name: 'Save to image' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Save as image' }))
 
     await waitFor(() => expect(mocks.showSaveDialog).toHaveBeenCalledTimes(1))
     const dialogOptions = mocks.showSaveDialog.mock.calls[0][1] as {
@@ -180,7 +180,7 @@ describe('ReferenceView modes and image capture', () => {
     mocks.showSaveDialog.mockResolvedValueOnce({ canceled: true, filePath: '' })
     renderView()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Save to image' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Save as image' }))
     await waitFor(() => expect(mocks.showSaveDialog).toHaveBeenCalledTimes(1))
     expect(mocks.domToPng).not.toHaveBeenCalled()
     expect(mocks.outputFile).not.toHaveBeenCalled()
@@ -191,13 +191,13 @@ describe('ReferenceView modes and image capture', () => {
     mocks.domToPng.mockRejectedValueOnce(new Error('render failed'))
     renderView()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Save to image' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Save as image' }))
     await waitFor(() =>
       expect(screen.getByTestId('image-error').textContent).toBe('Could not save the image'),
     )
 
     // Retry succeeds and clears the error.
-    fireEvent.click(screen.getByRole('button', { name: 'Save to image' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Save as image' }))
     await waitFor(() => expect(screen.queryByTestId('image-error')).toBeNull())
     await waitFor(() => expect(mocks.outputFile).toHaveBeenCalled())
   })
@@ -206,7 +206,7 @@ describe('ReferenceView modes and image capture', () => {
     mocks.outputFile.mockRejectedValueOnce(new Error('disk full'))
     renderView()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Save to image' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Save as image' }))
     await waitFor(() =>
       expect(screen.getByTestId('image-error').textContent).toBe('Could not save the image'),
     )
@@ -245,7 +245,7 @@ describe('ReferenceView modes and image capture', () => {
     // Reopen the form and stage a replacement, then capture while A is visible.
     fireEvent.click(screen.getByRole('button', { name: 'Open another reference' }))
     fireEvent.change(paste(), { target: { value: codeFor('B') } })
-    fireEvent.click(screen.getByRole('button', { name: 'Save to image' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Save as image' }))
 
     expect(
       (screen.getByRole('button', { name: 'Open' }) as HTMLButtonElement).disabled,
@@ -307,7 +307,7 @@ describe('ReferenceView modes and image capture', () => {
       expect(typeof resolveRead).toBe('function')
 
       // Starting the capture invalidates the in-flight read.
-      fireEvent.click(screen.getByRole('button', { name: 'Save to image' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Save as image' }))
       await act(async () => {
         resolveRead(codeFor('B'))
       })

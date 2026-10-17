@@ -588,7 +588,7 @@ const localizedTypeSearchStory = (
 })
 
 export const SearchLocalizedTypeZhCN = localizedTypeSearchStory('zh-CN', '驱逐')
-export const SearchLocalizedTypeJaJP = localizedTypeSearchStory('ja-JP', '驅逐')
+export const SearchLocalizedTypeJaJP = localizedTypeSearchStory('ja-JP', '駆逐')
 export const SearchLocalizedTypeKoKR = localizedTypeSearchStory('ko-KR', '구축함')
 
 export const KanaRomajiAndFuzzySearch: Story = {

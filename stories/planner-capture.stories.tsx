@@ -22,7 +22,7 @@ const saveImage = async (scope: HTMLElement) => {
   const count = host.log.writtenFiles.length
   const path = '/capture/reference.png'
   host.saveDialog = { canceled: false, filePath: path }
-  await userEvent.click(within(scope).getByRole('button', { name: 'Save to image' }))
+  await userEvent.click(within(scope).getByRole('button', { name: 'Save as image' }))
   await waitFor(() => expect(host.log.writtenFiles.length).toBe(count + 1), { timeout: 15000 })
   const data = host.log.writtenFiles[count].data as Uint8Array<ArrayBuffer>
   expect([...data.slice(0, 8)]).toEqual([137, 80, 78, 71, 13, 10, 26, 10])
@@ -121,11 +121,11 @@ export const ImageFailureCanRetry: Story = {
     const count = host.log.writtenFiles.length
     host.failFileWrites = true
     try {
-      await userEvent.click(within(preview).getByRole('button', { name: 'Save to image' }))
+      await userEvent.click(within(preview).getByRole('button', { name: 'Save as image' }))
       const error = await within(preview).findByTestId('image-error')
       expect(error.textContent).toContain('Could not save the image')
       expect(host.log.writtenFiles).toHaveLength(count)
-      expect(within(preview).getByRole('button', { name: 'Save to image' })).not.toBeDisabled()
+      expect(within(preview).getByRole('button', { name: 'Save as image' })).not.toBeDisabled()
     } finally {
       host.failFileWrites = false
     }
@@ -142,7 +142,7 @@ export const ImageSaveCanCancel: Story = {
     host.saveDialog = { canceled: true }
     const count = host.log.writtenFiles.length
     const calls = host.log.saveDialogCalls.length
-    const save = within(preview).getByRole('button', { name: 'Save to image' })
+    const save = within(preview).getByRole('button', { name: 'Save as image' })
     await userEvent.click(save)
     await waitFor(() => {
       expect(host.log.saveDialogCalls).toHaveLength(calls + 1)

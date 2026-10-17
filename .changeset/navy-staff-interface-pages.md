@@ -17,3 +17,5 @@ Add area-color markers to planning list rows, rename the sharing entry to Start 
 Keep list batch actions sticky with their filters. Show current fleet-number icons in every planning view without including them in history or sharing.
 
 Restore live actual sortie-tag badges in all three planning views, separate from planned assignments. Keep tagged ships identifiable when host tag metadata is unavailable, without changing saved plans or the sharing format.
+
+Improve wording across all five languages, correct ship-type names, distinguish list and grid views, and clarify plan synchronization, assignment removal, reference plans, and sharing a historical state.

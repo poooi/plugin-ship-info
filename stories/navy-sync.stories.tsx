@@ -144,7 +144,7 @@ export const TagSyncAddsMovesAndPreservesMissing: Story = {
     const environment = getEnvironment()
     const before = revisions(environment).length
 
-    await openSyncFlow('Apply actual sortie tags')
+    await openSyncFlow('Update plan from actual sortie tags')
     await accept()
 
     await waitFor(() => {
@@ -341,7 +341,7 @@ export const StaleRosterAfterPrepareRejects: Story = {
   play: async () => {
     await openPlanner()
     const environment = getEnvironment()
-    await openSyncFlow('Apply actual sortie tags')
+    await openSyncFlow('Update plan from actual sortie tags')
     const before = revisions(environment).length
 
     // Change a candidate ship's tag while the preview is open.
@@ -381,11 +381,11 @@ export const PreparedSyncSurvivesPlanDetour: Story = {
     // Remap slot 1 to a new area, then slot 0 onto the existing area-2 so the
     // mapping stays a valid one-to-one choice.
     await userEvent.selectOptions(
-      screen.getByLabelText('Slot mapping: E2-new'),
+      screen.getByLabelText('Area mapping: E2-new'),
       '',
     )
     await userEvent.selectOptions(
-      screen.getByLabelText('Slot mapping: E1-new'),
+      screen.getByLabelText('Area mapping: E1-new'),
       'area-2',
     )
     await userEvent.click(
@@ -403,7 +403,7 @@ export const PreparedSyncSurvivesPlanDetour: Story = {
     // The chosen mapping and the prepared preview survived.
     await expect(screen.getByTestId('sync-preview')).toBeTruthy()
     await expect(
-      (screen.getByLabelText('Slot mapping: E1-new') as HTMLSelectElement).value,
+      (screen.getByLabelText('Area mapping: E1-new') as HTMLSelectElement).value,
     ).toBe('area-2')
 
     // Freshness still applies after the detour: a new revision makes Accept stale.
