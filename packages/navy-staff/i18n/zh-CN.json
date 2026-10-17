@@ -191,5 +191,6 @@
   "Open another reference": "打开其他参考",
   "Show share text": "显示分享文本",
   "Hide share text": "隐藏分享文本",
-  "Hide image preview": "隐藏图片预览"
+  "Hide image preview": "隐藏图片预览",
+  "imageCaptureFailed": "无法保存图片"
 }

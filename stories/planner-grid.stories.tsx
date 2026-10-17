@@ -348,7 +348,8 @@ export const FilteredListSelectionStaysExplicit: Story = {
     const apply = () => list.getByRole('button', { name: 'Apply to selected' })
     await userEvent.selectOptions(screen.getByLabelText('Assignment'), 'unassigned')
     const search = screen.getByPlaceholderText('Search')
-    fireEvent.change(search, { target: { value: 'beta' } })
+    // Use an exact identifier: fuzzy name search also matches Eta/Zeta/Theta.
+    fireEvent.change(search, { target: { value: '#2' } })
     expect(list.getAllByRole('checkbox')).toHaveLength(1)
     await userEvent.click(list.getByRole('button', { name: 'Select all matching' }))
     await userEvent.selectOptions(list.getByLabelText('Assign to'), 'area-2')

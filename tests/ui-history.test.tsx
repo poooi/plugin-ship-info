@@ -15,8 +15,8 @@ vi.mock('wanakana', async () => (await import('./ui/boundaries')).wanakanaModule
 vi.mock('react-fontawesome', async () => (await import('./ui/boundaries')).fontawesomeModule)
 vi.mock('redux-observers', async () => (await import('./ui/boundaries')).reduxObserversModule)
 vi.mock('electron', async () => (await import('./ui/boundaries')).createElectronModule())
-vi.mock('../packages/navy-staff/src/lib/html2canvas', () => ({
-  default: async () => ({ toDataURL: () => 'data:image/png;base64,' }),
+vi.mock('modern-screenshot', () => ({
+  domToPng: async () => 'data:image/png;base64,',
 }))
 
 import { reactClass as NavyStaff } from '../packages/navy-staff/src/views'

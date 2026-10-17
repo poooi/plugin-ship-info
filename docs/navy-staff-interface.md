@@ -58,6 +58,11 @@ one undoable batch; unchanged ships do not create extra revisions. Clear the
 selection when filters or the editing context change so hidden rows cannot be
 included accidentally.
 
+Ship search in the list, grid, add-ship picker, and references accepts names,
+kana readings, romaji, and approximate spellings. Hiragana, katakana, halfwidth
+kana, and letter case are normalized. Readings come from poi's current master
+data and are never added to saved plans or share codes.
+
 Grid Palette keeps destination-first, individual assignment. Choose destination
 does not mutate the plan; Remove assignment is a separate action. List and grid
 use the real workspace display selectors, including saved assigned ships missing
@@ -85,14 +90,22 @@ Clipboard writes use poi's remote main-process clipboard and await completion;
 regeneration is disabled during copying so a late result cannot label newer text
 as copied. A failed copy leaves the generated text available for retry or saving.
 
-Image capture belongs to Share and uses an explicitly opened planning preview with the
-existing poi capture integration. It remains restricted to detached plugin
-windows, and the preview can be collapsed after use. The main window shows a
-short availability explanation without rendering a duplicate roster.
-Current-plan images use the editor's selected view and filters;
-historical images use the inspected presentation and captured ships, independently
-of those filters. This layout change does not add the mock's image renderer or
-new image-scope options.
+Image sharing uses the same read-only renderer as an opened text reference.
+Generate share text, then optionally reveal its image preview. Both use the
+same frozen decoded snapshot: assignments, master IDs, and levels do not change
+when the editable plan or selected source changes. Names and types still resolve
+from the current poi master data, with `???` for missing masters.
+
+Area View, Ship List, and Ship Grid are available in both the sharing preview
+and opened references; each can save its displayed content as PNG. The image
+includes the title, metadata, and roster, excluding controls. Editor filters
+do not affect it. The preview remains collapsible rather than adding a permanent
+second roster after text generation.
+
+Navy Staff uses `modern-screenshot` to render the complete element through
+Chromium's SVG/Canvas support, including modern CSS colors such as `oklch`.
+Image saving works in the main and detached windows. Capture failures appear
+beside the Save to image action and allow retry. poi still handles the download.
 
 ## Layout and density
 

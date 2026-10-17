@@ -191,5 +191,6 @@
   "Open another reference": "다른 참고 열기",
   "Show share text": "공유 텍스트 표시",
   "Hide share text": "공유 텍스트 숨기기",
-  "Hide image preview": "이미지 미리보기 숨기기"
+  "Hide image preview": "이미지 미리보기 숨기기",
+  "imageCaptureFailed": "이미지를 저장할 수 없습니다"
 }

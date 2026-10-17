@@ -25,6 +25,14 @@ In particular, this layout work does not introduce new image-scope modes,
 workspace naming rules, migrations, or synchronization rules. Record the actual
 implemented behavior in [the interface guide](navy-staff-interface.md).
 
+Subsequent user direction supersedes the image proposal below: images must use
+the same decoded snapshot and Area/List/Grid views as shared text, rather than
+the editor's current filters or unassigned roster. The approved implementation
+replaces the old renderer with `modern-screenshot`, supports saving all three
+read-only views in main and detached windows, and adds kana/romaji/fuzzy search.
+The interface guide records this current behavior; the inventory and alternatives
+below retain the original design discussion.
+
 ## Product purpose
 
 Navy Staff helps a player decide which owned ships to reserve for each sortie

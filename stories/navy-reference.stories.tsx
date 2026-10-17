@@ -12,6 +12,7 @@ import {
   navyAccountFile,
   persistedNavyFile,
   plannerOwnedShips,
+  plannerMstShips,
   plannerScenarioState,
 } from '../preview/planner-fixtures'
 import { getEnvironment } from '../preview/scenario'
@@ -453,7 +454,7 @@ export const EmptyGroupsAndGridArea: Story = {
     // Empty captured area stays visible with a zero count when not searching.
     await expect(within(view).getByText('E2')).toBeTruthy()
 
-    await userEvent.click(within(view).getByRole('button', { name: 'Ship Grid' }))
+    await userEvent.selectOptions(within(view).getByRole('combobox', { name: 'View' }), 'grid')
     // The grid keeps the assigning area label for the row.
     await expect(within(view).getAllByText('E1').length).toBeGreaterThan(0)
   },
@@ -545,6 +546,41 @@ const localizedTypeSearchStory = (
 export const SearchLocalizedTypeZhCN = localizedTypeSearchStory('zh-CN', '驱逐')
 export const SearchLocalizedTypeJaJP = localizedTypeSearchStory('ja-JP', '驅逐')
 export const SearchLocalizedTypeKoKR = localizedTypeSearchStory('ko-KR', '구축함')
+
+export const KanaRomajiAndFuzzySearch: Story = {
+  name: 'Plan and reference match kana variants, romaji and typos using real wanakana',
+  parameters: {
+    shipInfo: {
+      plugin: 'navy-staff',
+      state: plannerScenarioState({
+        current: [[1, 2], []],
+        mstShips: {
+          ...plannerMstShips,
+          1: { ...plannerMstShips[1], api_name: '金剛', api_yomi: 'こんごう' },
+        },
+      }),
+    },
+  },
+  play: async () => {
+    await userEvent.selectOptions(await screen.findByRole('combobox', { name: 'View' }), 'list')
+    const queries = ['金剛', 'こんごう', 'コンゴウ', 'ｺﾝｺﾞｳ', 'KONGOU', 'kongu']
+    const search = screen.getByPlaceholderText('Search')
+    for (const value of queries) {
+      fireEvent.change(search, { target: { value } })
+      const list = screen.getByTestId('ship-list')
+      expect(within(list).getByText('金剛')).toBeTruthy()
+      expect(within(list).queryByText('Beta')).toBeNull()
+    }
+    await openShare()
+    await importCode(await exportCurrent())
+    const view = await activeReferenceView()
+    for (const value of queries) {
+      fireEvent.change(within(view).getByRole('textbox'), { target: { value } })
+      expect(within(view).getAllByTestId('reference-ship')).toHaveLength(1)
+      expect(within(view).getByText('金剛')).toBeTruthy()
+    }
+  },
+}
 
 
 export const ReferenceIndependentFromSharing: Story = {

@@ -1,60 +1,80 @@
-// Read-only reference view. Renders a decoded reference as plain text: it never
-// loads images, calls the host/game, dispatches Redux actions, or mutates the
-// workspace. Colors come from the codec-validated `#RRGGBB` field; user strings
-// are rendered as React text children only.
+// Read-only reference view. Renders decoded share content in three read-only
+// modes (area/list/card grid) and can save the title, metadata, and roster as an
+// image. Controls and search sit outside the capture target. It never loads game
+// data, dispatches Redux actions, or mutates the workspace; saving uses the host
+// capture/download boundary only. Colors come from the codec-validated
+// `#RRGGBB` field; user strings are rendered as React text children only.
 
 import {
   Button,
-  ButtonGroup,
   Callout,
+  HTMLSelect,
   InputGroup,
+  Intent,
   Tag,
 } from '@blueprintjs/core'
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { useCallback, useContext, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
 import { createSelector } from 'reselect'
-import styled from 'styled-components'
+import styled, { ThemeContext } from 'styled-components'
 import { constSelector } from 'views/utils/selectors'
 
 import { shipTypeLabelKeys } from '@poi-plugins/ship-info-shared/ship-types'
+import { captureRect } from '../planner/capture'
+import { readingToRomaji } from '../search'
 import {
   projectReference,
   type MasterCatalog,
   type ReferenceMaster,
 } from './catalog.ts'
 import type { DecodedReference } from './types.ts'
-import { filterProjectedReference, groupShipsByType } from './helpers.ts'
+import { filterProjectedReference } from './helpers.ts'
 
-// Master names/types come only from the current poi Redux master data. Nothing is
-// bundled, fetched, or persisted; a missing master resolves to the `???` fallback
-// in `projectReference` without changing the stored reference.
+// Master names/types/readings come only from the current poi Redux master data.
+// Nothing is bundled, fetched, or persisted; a missing master resolves to the
+// `???` fallback in `projectReference` without changing the stored reference.
 const referenceMastersSelector = createSelector(
   [constSelector],
   ($const): MasterCatalog => {
     const masters = new Map<number, ReferenceMaster>()
-    const $ships = ($const as { $ships?: Record<string, { api_name?: unknown; api_stype?: unknown }> })
-      ?.$ships
+    const $ships = ($const as {
+      $ships?: Record<string, { api_name?: unknown; api_stype?: unknown; api_yomi?: unknown }>
+    })?.$ships
     if (!$ships) return masters
     for (const key of Object.keys($ships)) {
       const id = Number(key)
       const ship = $ships[key]
       if (!Number.isInteger(id) || !ship) continue
       const stype = typeof ship.api_stype === 'number' ? ship.api_stype : null
+      const yomi = typeof ship.api_yomi === 'string' ? ship.api_yomi : ''
       masters.set(id, {
         name: typeof ship.api_name === 'string' ? ship.api_name : '',
         type: stype !== null ? shipTypeLabelKeys[stype] ?? '' : '',
+        romaji: readingToRomaji(yomi),
+        yomi,
       })
     }
     return masters
   },
 )
 
-// This view is the main content of the Reference page, so it has no inherited
-// card divider or top offset.
 const Wrapper = styled.section``
 
-// Title/status on one row, with the close control kept at the right edge.
+// Controls + search stay outside the capture target.
+const Toolbar = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+`
+
+const SearchBox = styled.div`
+  flex: 1 1 12em;
+  min-width: 0;
+`
+
 const Header = styled.div`
   display: flex;
   align-items: center;
@@ -70,11 +90,6 @@ const Title = styled.strong`
   white-space: nowrap;
 `
 
-const HeaderSpacer = styled.div`
-  flex: 1 1 0;
-  min-width: 0;
-`
-
 const MetaBar = styled.div`
   display: flex;
   gap: 4px 16px;
@@ -82,20 +97,6 @@ const MetaBar = styled.div`
   font-size: 0.85em;
   opacity: 0.85;
   margin: 4px 0 12px;
-`
-
-// View + reopen actions and the search share one wrapping toolbar.
-const Toolbar = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 12px;
-`
-
-const SearchBox = styled.div`
-  flex: 1 1 12em;
-  min-width: 0;
 `
 
 const Group = styled.div`
@@ -133,6 +134,24 @@ const ShipRow = styled.div<{ $withArea: boolean }>`
   }
 `
 
+const CardGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(150px, 100%), 1fr));
+  gap: 8px;
+`
+
+const ShipCard = styled.div<{ $color: string }>`
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid rgba(128, 128, 128, 0.3);
+  border-left: 4px solid ${(props) => props.$color};
+  border-radius: 4px;
+  font-size: 0.9em;
+`
+
 const TypeLabel = styled.span`
   opacity: 0.85;
   white-space: nowrap;
@@ -143,6 +162,7 @@ const Name = styled.span`
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-weight: 600;
 `
 
 const MasterId = styled.span`
@@ -155,20 +175,60 @@ const Level = styled.span`
   white-space: nowrap;
 `
 
-type ViewMode = 'area' | 'grid'
+const CardMeta = styled.span`
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: 0.85;
+  font-size: 0.85em;
+`
+
+type ViewMode = 'area' | 'list' | 'grid'
 
 export interface ReferenceViewProps {
   reference: DecodedReference
   onClose?: () => void
   /** Reveals the open form again to replace the current reference. */
   onReopen?: () => void
+  /** Reports capture start/end so a host can block snapshot replacement. */
+  onCaptureBusyChange?: (busy: boolean) => void
 }
 
-export const ReferenceView = ({ reference, onClose, onReopen }: ReferenceViewProps) => {
+export const ReferenceView = ({
+  reference,
+  onClose,
+  onReopen,
+  onCaptureBusyChange,
+}: ReferenceViewProps) => {
   const { t, i18n } = useTranslation('poi-plugin-navy-staff')
+  const theme = useContext(ThemeContext) as
+    | { variant?: 'light' | 'dark' }
+    | undefined
   const masters = useSelector(referenceMastersSelector)
   const [mode, setMode] = useState<ViewMode>('area')
   const [query, setQuery] = useState('')
+  const captureRef = useRef<HTMLDivElement>(null)
+  const [capturePending, setCapturePending] = useState(false)
+  const [captureFailed, setCaptureFailed] = useState(false)
+
+  // Prefer the host theme variant; if a host theme omits it, fall back to the
+  // inherited computed background so the output stays opaque.
+  const opaqueBackground = (): string => {
+    if (theme?.variant === 'light') return '#ffffff'
+    if (theme?.variant === 'dark') return '#1c2127'
+    const isOpaque = (value: string): boolean =>
+      Boolean(value) && value !== 'transparent' && value !== 'rgba(0, 0, 0, 0)'
+    const inherited = captureRef.current
+      ? getComputedStyle(captureRef.current).backgroundColor
+      : ''
+    if (isOpaque(inherited)) return inherited
+    const bodyBackground =
+      typeof document !== 'undefined'
+        ? getComputedStyle(document.body).backgroundColor
+        : ''
+    return isOpaque(bodyBackground) ? bodyBackground : '#1c2127'
+  }
 
   const projected = useMemo(
     () => projectReference(reference, masters),
@@ -184,19 +244,31 @@ export const ReferenceView = ({ reference, onClose, onReopen }: ReferenceViewPro
     () => filterProjectedReference(projected, query, resolveType),
     [projected, query, resolveType],
   )
-  const typeGroups = useMemo(() => groupShipsByType(filtered), [filtered])
 
-  const renderShip = (
-    ship: (typeof filtered.groups)[number]['ships'][number],
+  // Flat occurrence list preserving group/ship order, used by list and grid.
+  const occurrences = useMemo(
+    () =>
+      filtered.groups.flatMap((group) =>
+        group.ships.map((ship) => ({
+          ...ship,
+          areaColor: group.color,
+          areaLabel: group.label,
+        })),
+      ),
+    [filtered],
+  )
+
+  const renderRow = (
+    ship: (typeof occurrences)[number],
     key: string,
-    area?: { color: string; label: string },
+    withArea: boolean,
   ) => (
-    <ShipRow key={key} $withArea={Boolean(area)} data-testid="reference-ship">
+    <ShipRow key={key} $withArea={withArea} data-testid="reference-ship">
       <TypeLabel>{ship.type ? t(ship.type) : t('Unknown type')}</TypeLabel>
       <Name title={ship.name}>{ship.name}</Name>
-      {area && (
-        <Tag minimal style={{ color: area.color }}>
-          {area.label}
+      {withArea && (
+        <Tag minimal style={{ color: ship.areaColor }}>
+          {ship.areaLabel}
         </Tag>
       )}
       <MasterId>{ship.masterId === null ? '—' : `#${ship.masterId}`}</MasterId>
@@ -204,49 +276,61 @@ export const ReferenceView = ({ reference, onClose, onReopen }: ReferenceViewPro
     </ShipRow>
   )
 
+  const handleCapture = async () => {
+    if (!captureRef.current || capturePending) return
+    setCapturePending(true)
+    setCaptureFailed(false)
+    onCaptureBusyChange?.(true)
+    try {
+      await captureRect(captureRef.current, {
+        backgroundColor: opaqueBackground(),
+      })
+    } catch {
+      setCaptureFailed(true)
+    } finally {
+      setCapturePending(false)
+      onCaptureBusyChange?.(false)
+    }
+  }
+
   const searching = query.trim().length > 0
 
   return (
     <Wrapper data-testid="reference-view" aria-label={reference.title}>
-      <Header>
-        <Title>{reference.title}</Title>
-        <Tag minimal>{t('Reference is read-only')}</Tag>
-        <HeaderSpacer />
-        {onClose && (
-          <Button icon="cross" minimal onClick={onClose} aria-label={t('Close reference')} />
-        )}
-      </Header>
-
-      <MetaBar>
-        <span>
-          {t('Capture time')}: {reference.captureTime}
-        </span>
-        <span>
-          {t('Generated at')}: {reference.exportTime}
-        </span>
-        <span>
-          {t('Locale')}: {reference.locale}
-        </span>
-        <span>
-          {t('Areas')}: {filtered.groupCount} · {t('Ships')}: {filtered.shipCount}
-        </span>
-      </MetaBar>
-
       <Toolbar>
-        <ButtonGroup>
-          <Button active={mode === 'area'} onClick={() => setMode('area')} small>
-            {t('Area View')}
-          </Button>
-          <Button active={mode === 'grid'} onClick={() => setMode('grid')} small>
-            {t('Ship Grid')}
-          </Button>
-        </ButtonGroup>
+        <HTMLSelect
+          aria-label={t('View')}
+          value={mode}
+          disabled={capturePending}
+          onChange={(event) => setMode(event.currentTarget.value as ViewMode)}
+        >
+          <option value="area">{t('Area View')}</option>
+          <option value="list">{t('Ship List')}</option>
+          <option value="grid">{t('Ship Grid')}</option>
+        </HTMLSelect>
         {onReopen && (
-          <Button small text={t('Open another reference')} onClick={onReopen} />
+          <Button
+            small
+            text={t('Open another reference')}
+            disabled={capturePending}
+            onClick={onReopen}
+          />
+        )}
+        <Button
+          small
+          text={t('Save to image')}
+          disabled={capturePending}
+          onClick={() => void handleCapture()}
+        />
+        {captureFailed && (
+          <Callout intent={Intent.DANGER} data-testid="image-error">
+            {t('imageCaptureFailed')}
+          </Callout>
         )}
         <SearchBox>
           <InputGroup
             fill
+            disabled={capturePending}
             leftIcon="search"
             value={query}
             onChange={(event) => setQuery(event.currentTarget.value)}
@@ -258,45 +342,85 @@ export const ReferenceView = ({ reference, onClose, onReopen }: ReferenceViewPro
             }
           />
         </SearchBox>
+        {onClose && (
+          <Button
+            icon="cross"
+            minimal
+            disabled={capturePending}
+            onClick={onClose}
+            aria-label={t('Close reference')}
+          />
+        )}
       </Toolbar>
 
-      {searching && filtered.shipCount === 0 ? (
-        <Callout>{t('No ships match')}</Callout>
-      ) : mode === 'area' ? (
-        filtered.groups
-          // Empty captured areas stay visible when not searching; a search hides
-          // groups with no matching ships.
-          .filter((group) => !searching || group.shipCount > 0)
-          .map((group, groupIndex) => (
-            <Group key={`${groupIndex}-${group.label}`} data-testid="reference-area">
-              <GroupHeader>
-                <Swatch $color={group.color} aria-hidden />
-                <Tag minimal style={{ color: group.color }}>
-                  {group.label}
-                </Tag>
-                <span>{group.shipCount}</span>
-              </GroupHeader>
-              {group.ships.map((ship, shipIndex) =>
-                renderShip(ship, `${groupIndex}-${shipIndex}`),
-              )}
-            </Group>
-          ))
-      ) : (
-        typeGroups.map((bucket, bucketIndex) => (
-          <Group key={`${bucketIndex}-${String(bucket.type)}`} data-testid="reference-area">
-            <GroupHeader>
-              <TypeLabel>{bucket.type ? t(bucket.type) : t('Unknown type')}</TypeLabel>
-              <span>{bucket.ships.length}</span>
-            </GroupHeader>
-            {bucket.ships.map((ship, shipIndex) =>
-              renderShip(ship, `${bucketIndex}-${shipIndex}`, {
-                color: ship.areaColor,
-                label: ship.areaLabel,
-              }),
-            )}
-          </Group>
-        ))
-      )}
+      <div ref={captureRef} data-testid="reference-capture">
+        <Header>
+          <Title>{reference.title}</Title>
+          <Tag minimal>{t('Reference is read-only')}</Tag>
+        </Header>
+
+        <MetaBar>
+          <span>
+            {t('Capture time')}: {reference.captureTime}
+          </span>
+          <span>
+            {t('Generated at')}: {reference.exportTime}
+          </span>
+          <span>
+            {t('Locale')}: {reference.locale}
+          </span>
+          <span>
+            {t('Areas')}: {filtered.groupCount} · {t('Ships')}: {filtered.shipCount}
+          </span>
+        </MetaBar>
+
+        {searching && filtered.shipCount === 0 ? (
+          <Callout>{t('No ships match')}</Callout>
+        ) : mode === 'area' ? (
+          filtered.groups
+            // Empty captured areas stay visible when not searching; a search hides
+            // groups with no matching ships.
+            .filter((group) => !searching || group.shipCount > 0)
+            .map((group, groupIndex) => (
+              <Group key={`${groupIndex}-${group.label}`} data-testid="reference-area">
+                <GroupHeader>
+                  <Swatch $color={group.color} aria-hidden />
+                  <Tag minimal style={{ color: group.color }}>
+                    {group.label}
+                  </Tag>
+                  <span>{group.shipCount}</span>
+                </GroupHeader>
+                {group.ships.map((ship, shipIndex) =>
+                  renderRow(
+                    { ...ship, areaColor: group.color, areaLabel: group.label },
+                    `${groupIndex}-${shipIndex}`,
+                    false,
+                  ),
+                )}
+              </Group>
+            ))
+        ) : mode === 'list' ? (
+          occurrences.map((ship, index) => renderRow(ship, `list-${index}`, true))
+        ) : (
+          <CardGrid>
+            {occurrences.map((ship, index) => (
+              <ShipCard
+                key={`grid-${index}`}
+                $color={ship.areaColor}
+                data-testid="reference-ship"
+                title={`${ship.name} Lv.${ship.level ?? '?'} · ${ship.areaLabel}`}
+              >
+                <TypeLabel>{ship.type ? t(ship.type) : t('Unknown type')}</TypeLabel>
+                <Name>{ship.name}</Name>
+                <CardMeta>
+                  Lv.{ship.level ?? '?'} · {ship.masterId === null ? '—' : `#${ship.masterId}`}
+                </CardMeta>
+                <CardMeta>{ship.areaLabel}</CardMeta>
+              </ShipCard>
+            ))}
+          </CardGrid>
+        )}
+      </div>
     </Wrapper>
   )
 }

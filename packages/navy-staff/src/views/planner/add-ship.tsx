@@ -7,7 +7,6 @@ import {
   Tabs,
 } from '@blueprintjs/core'
 import cls from 'classnames'
-import Fuse from 'fuse.js'
 import _, { map, padEnd } from 'lodash'
 import React, { useMemo, useState } from 'react'
 import FA from 'react-fontawesome'
@@ -17,6 +16,7 @@ import styled from 'styled-components'
 import { Popover } from 'views/components/etc/overlay'
 
 import { IShipSuperType, shipSuperTypeMap } from '@poi-plugins/ship-info-shared/ship-types'
+import { buildSearch } from '../search'
 import { assignedShipIdsSelector, livePickerRowsSelector } from '../workspace/selectors'
 
 const searchOptions = [
@@ -85,20 +85,33 @@ const Menu = ({ onSelect }: AddShipProps) => {
   const assigned = useSelector(assignedShipIdsSelector)
   const [query, setQuery] = useState('')
 
-  const fuse = useMemo(
+  // One normalized index per roster; shared with the Plan list/grid and Reference.
+  const search = useMemo(
     () =>
-      new Fuse(ships, {
-        keys: ['name', 'yomi', 'romaji'],
-        shouldSort: true,
-      }),
-    [ships],
+      buildSearch(
+        ships.map((ship) => ({
+          aliases: [t(ship.name, { ns: 'resources' })],
+          id: ship.id,
+          identifiers: [ship.id, ship.shipId],
+          level: ship.lv,
+          name: ship.name,
+          romaji: ship.romaji,
+          type: String(ship.typeId),
+          typeLabel: t(shipSuperTypeMap[ship.superTypeIndex]?.name ?? ''),
+          yomi: ship.yomi,
+        })),
+      ),
+    [ships, t],
   )
 
   const handleQueryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(e.currentTarget.value)
   }
 
-  const filtered = _.map(fuse.search(query), (result) => result.item.id)
+  const filtered = useMemo(
+    () => (query.trim() ? search(query).map((entry) => entry.id as number) : null),
+    [query, search],
+  )
 
   return (
     <Wrapper>

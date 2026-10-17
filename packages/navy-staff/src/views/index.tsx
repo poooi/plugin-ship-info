@@ -16,7 +16,6 @@ import { get } from 'lodash'
 import { rgba } from 'polished'
 import React, {
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -28,7 +27,6 @@ import type { Action } from 'redux'
 import type { ThunkDispatch } from 'redux-thunk'
 import styled, { createGlobalStyle } from 'styled-components'
 import { Dialog, Popover } from 'views/components/etc/overlay'
-import { WindowEnv } from 'views/components/etc/window-env'
 import { extensionSelectorFactory, IState } from 'views/utils/selectors'
 
 import { shipSuperTypeMap } from '@poi-plugins/ship-info-shared/ship-types'
@@ -41,6 +39,7 @@ import { resolveAreaLabel } from './planner/types'
 import { DISPLAY_FLEET_NAME_CONFIG, PLUGIN_KEY } from './plugin-identity'
 import { ReferenceTools, ShareTools } from './reference'
 import { captureReference } from './reference/capture'
+import { buildMasterReadings, buildSearch } from './search'
 import { SyncBar, syncSourceSelector } from './sync'
 import {
   applyShipBatch,
@@ -61,7 +60,6 @@ import {
   selectedWorkspaceSelector,
   workspacesSelector,
   type DisplayContent,
-  type WorkspaceShipRow,
 } from './workspace/selectors'
 
 export { reducer } from './redux'
@@ -350,30 +348,6 @@ type PlanTask = null | 'history' | 'update'
 
 const noop = () => undefined
 
-// Filters the editable grid rows by the shared search/type/status controls.
-const filterRows = (
-  rows: WorkspaceShipRow[],
-  query: string,
-  typeFilter: string,
-  statusFilter: string,
-  translatedName: (name: string) => string,
-): WorkspaceShipRow[] => {
-  const q = query.trim().toLowerCase()
-  return rows.filter((row) => {
-    if (q) {
-      const name = row.name ?? ''
-      if (!name.toLowerCase().includes(q) && !translatedName(name).toLowerCase().includes(q) && !String(row.level ?? '').includes(q) && !String(row.ownedId).includes(q)) {
-        return false
-      }
-    }
-    if (typeFilter !== 'all' && String(row.superTypeIndex) !== typeFilter) return false
-    const assigned = row.assignedColor !== null
-    if (statusFilter === 'assigned' && !assigned) return false
-    if (statusFilter === 'unassigned' && assigned) return false
-    return true
-  })
-}
-
 // Plan views: Area View, Ship List (batch selection), and the Grid Palette.
 // The list and palette share search/type/status filters. The list owns the
 // target select; the grid shows its own palette target. Selection never edits;
@@ -427,10 +401,52 @@ const PlanViews = ({
   const liveAvailable = useSelector(liveRosterAvailableSelector)
   const { t } = useTranslation('poi-plugin-navy-staff')
 
-  const filteredRows = useMemo(
-    () => filterRows(display.gridShips, query, typeFilter, statusFilter, (name) => t(name, { ns: 'resources' })),
-    [display.gridShips, query, typeFilter, statusFilter, t],
+  // Master readings come from the current host data only (never persisted), so
+  // historical rows search by their master ID reading as well.
+  const constShips = useSelector((state: IState) =>
+    get(state, ['const', '$ships']) as
+      | Record<string, { api_name?: unknown; api_yomi?: unknown }>
+      | undefined,
   )
+  const masterReadings = useMemo(
+    () => buildMasterReadings(constShips),
+    [constShips],
+  )
+  const search = useMemo(
+    () =>
+      buildSearch(
+        display.gridShips.map((row) => {
+          const reading =
+            row.masterId !== null ? masterReadings.get(row.masterId) : undefined
+          return {
+            aliases: [t(row.name ?? '', { ns: 'resources' })],
+            id: row.ownedId,
+            identifiers: [row.ownedId, row.masterId],
+            level: row.level,
+            name: row.name ?? '',
+            romaji: reading?.romaji,
+            type: row.record?.typeLabel ?? '',
+            typeLabel:
+              row.superTypeIndex >= 0
+                ? t(shipSuperTypeMap[row.superTypeIndex].name)
+                : t('Unknown type'),
+            yomi: reading?.yomi,
+          }
+        }),
+      ),
+    [display.gridShips, masterReadings, t],
+  )
+  const filteredRows = useMemo(() => {
+    const matched = new Set(search(query).map((entry) => entry.id as number))
+    return display.gridShips.filter((row) => {
+      if (!matched.has(row.ownedId)) return false
+      if (typeFilter !== 'all' && String(row.superTypeIndex) !== typeFilter) return false
+      const assigned = row.assignedColor !== null
+      if (statusFilter === 'assigned' && !assigned) return false
+      if (statusFilter === 'unassigned' && assigned) return false
+      return true
+    })
+  }, [display.gridShips, search, query, typeFilter, statusFilter])
   const filteredDisplay: DisplayContent = { ...display, gridShips: filteredRows }
 
   const areaChoices = display.areas.map((area) => ({
@@ -683,7 +699,6 @@ const NavyStaffContent = () => {
 
   const { t } = useTranslation('poi-plugin-navy-staff')
   const dispatch = useDispatch<ThunkDispatch<IState, unknown, Action>>()
-  const { window: displayWindow } = useContext(WindowEnv)
   const slice = useSelector(extensionSelectorFactory(PLUGIN_KEY)) as
     | { error?: string | null; ready?: boolean }
     | undefined
@@ -798,42 +813,6 @@ const NavyStaffContent = () => {
   const historyDisplay = historyRevision
     ? capturedDisplayContent(historyRevision.content)
     : editingDisplay
-
-  const shareImageRef = useRef<HTMLDivElement>(null)
-  // A historical screenshot uses the presentation chosen in History and the
-  // full captured membership: the editor's search/type/status filters describe
-  // today's live roster and must not hide historical ships. Current screenshots
-  // keep the editor filters and presentation.
-  const historicalShare = Boolean(shareSourceRevision)
-  const shareImageView = historicalShare ? shareSource?.view ?? 'area' : planView
-  const shareImageQuery = historicalShare ? '' : query
-  const shareImageTypeFilter = historicalShare ? 'all' : typeFilter
-  const shareImageStatusFilter = historicalShare ? 'all' : statusFilter
-
-  const shareImagePreview = (
-    <PlanViews
-      canSynchronize={false}
-      display={shareDisplay}
-      onBatch={noop}
-      onClearSelection={noop}
-      onOpenSynchronize={noop}
-      onSelectAll={noop}
-      onToggleSelection={noop}
-      onViewChange={noop}
-      previewOnly
-      query={shareImageQuery}
-      readOnly
-      selection={new Set()}
-      statusFilter={shareImageStatusFilter}
-      target={planTarget}
-      typeFilter={shareImageTypeFilter}
-      view={shareImageView}
-      onQueryChange={noop}
-      onStatusFilterChange={noop}
-      onTargetChange={noop}
-      onTypeFilterChange={noop}
-    />
-  )
 
   const gated = (content: React.ReactNode) =>
     slice?.error ? (
@@ -986,9 +965,6 @@ const NavyStaffContent = () => {
         <div style={{ display: activeTab === 'share' ? undefined : 'none' }}>
           <ShareTools
             disabled={!(slice?.ready && !slice?.error && workspace) || shareSourceMissing}
-            detached={!displayWindow.isMain}
-            imagePreview={activeTab === 'share' ? shareImagePreview : null}
-            imageRef={shareImageRef}
             onCapture={captureShareReference}
             onUseCurrent={shareSource ? () => setShareSource(null) : undefined}
             sourceLabel={shareSourceLabel}

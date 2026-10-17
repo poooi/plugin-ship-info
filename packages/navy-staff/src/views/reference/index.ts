@@ -65,7 +65,6 @@ export {
   filterProjectedReference,
   groupShipsByType,
   inputWithinLimit,
-  matchesQuery,
   shareFileName,
   type AreaShip,
   type ReferenceErrorMessageKey,

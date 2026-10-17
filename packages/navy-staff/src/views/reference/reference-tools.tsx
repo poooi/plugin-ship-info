@@ -64,6 +64,9 @@ export const ReferenceTools = ({
   const [importing, setImporting] = useState(false)
   const [draft, setDraft] = useState('')
   const [showCode, setShowCode] = useState(false)
+  // While an image capture is pending, block replacing the reference so a late
+  // result cannot attach to different content.
+  const [captureBusy, setCaptureBusy] = useState(false)
   const fileInput = useRef<HTMLInputElement>(null)
   // Guards one-shot file reads: cancelling, closing, or a newer open makes an
   // in-flight read stale so a late resolution cannot reopen or overwrite state.
@@ -80,6 +83,7 @@ export const ReferenceTools = ({
   }
 
   const handleDecode = (text: string) => {
+    if (captureBusy) return
     readGuard.current.invalidate()
     setErrorKey(null)
     try {
@@ -91,7 +95,7 @@ export const ReferenceTools = ({
   }
 
   const handleFile = async (file?: File) => {
-    if (!file) return
+    if (!file || captureBusy) return
     const token = readGuard.current.begin()
     // Bound before reading: never load an oversized file into memory.
     if (!inputWithinLimit(file.size)) {
@@ -106,6 +110,13 @@ export const ReferenceTools = ({
       if (!readGuard.current.isCurrent(token)) return
       setErrorKey('shareTextReadFailed')
     }
+  }
+
+  // Starting a capture invalidates any in-flight file read, so a delayed
+  // resolve cannot replace the snapshot while it is being rendered.
+  const handleCaptureBusyChange = (busy: boolean) => {
+    setCaptureBusy(busy)
+    if (busy) readGuard.current.invalidate()
   }
 
   const cancelForm = () => {
@@ -142,12 +153,14 @@ export const ReferenceTools = ({
           <Row>
             <Button
               intent={Intent.PRIMARY}
-              disabled={draft.trim().length === 0}
+              disabled={captureBusy || draft.trim().length === 0}
               onClick={() => handleDecode(draft)}
             >
               {t('Open')}
             </Button>
-            <Button onClick={() => fileInput.current?.click()}>{t('Open file')}</Button>
+            <Button disabled={captureBusy} onClick={() => fileInput.current?.click()}>
+              {t('Open file')}
+            </Button>
             {reference && <Button onClick={cancelForm}>{t('Cancel')}</Button>}
           </Row>
           {errorKey && (
@@ -173,7 +186,9 @@ export const ReferenceTools = ({
       {reference && (
         <div data-testid="reference-result">
           <ReferenceView
+            key={code}
             reference={reference}
+            onCaptureBusyChange={handleCaptureBusyChange}
             onClose={handleClose}
             onReopen={() => {
               setErrorKey(null)

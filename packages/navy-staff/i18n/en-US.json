@@ -191,5 +191,6 @@
   "Open another reference": "Open another reference",
   "Show share text": "Show share text",
   "Hide share text": "Hide share text",
-  "Hide image preview": "Hide image preview"
+  "Hide image preview": "Hide image preview",
+  "imageCaptureFailed": "Could not save the image"
 }

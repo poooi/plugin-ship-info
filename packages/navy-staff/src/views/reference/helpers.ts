@@ -1,11 +1,9 @@
 // Pure, framework-free helpers for the reference UI. Kept separate so they can
 // be unit-tested without React and reused by the browser story assertions.
 
-import type {
-  ProjectedReference,
-  ProjectedShip,
-} from './catalog.ts'
+import type { ProjectedReference, ProjectedShip } from './catalog.ts'
 import { isNavyReferenceError, REFERENCE_LIMITS } from './codec.ts'
+import { buildSearch, type SearchEntry } from '../search'
 
 /** i18n key for a decode failure; the UI passes it through `t`. */
 export type ReferenceErrorMessageKey =
@@ -62,32 +60,9 @@ const normalizeQuery = (query: string): string => query.trim().toLowerCase()
 export type TypeLabelResolver = (type: string) => string
 
 /**
- * Case-insensitive match over catalog name, raw type key, resolved (localized)
- * type label, and master ID. The optional resolver lets the visible localized
- * label match without changing the stored key.
- */
-export const matchesQuery = (
-  ship: ProjectedShip,
-  query: string,
-  resolveType?: TypeLabelResolver,
-): boolean => {
-  const needle = normalizeQuery(query)
-  if (needle.length === 0) return true
-  if (ship.name.toLowerCase().includes(needle)) return true
-  if (ship.type !== null) {
-    if (ship.type.toLowerCase().includes(needle)) return true
-    const label = resolveType ? resolveType(ship.type) : ship.type
-    if (label.toLowerCase().includes(needle)) return true
-  }
-  if (ship.masterId !== null && String(ship.masterId).includes(needle)) {
-    return true
-  }
-  return false
-}
-
-/**
- * Filters a projection by search text, recomputing counts and type totals.
- * Rows are never deduplicated: identical occurrences stay distinct.
+ * Filters a projection by search text (shared kana/romaji/fuzzy helper, one
+ * index per call), recomputing counts and type totals. Rows are never
+ * deduplicated: identical occurrences stay distinct.
  */
 export const filterProjectedReference = (
   projected: ProjectedReference,
@@ -96,12 +71,37 @@ export const filterProjectedReference = (
 ): ProjectedReference => {
   if (normalizeQuery(query).length === 0) return projected
 
+  const keyOf = (groupIndex: number, shipIndex: number): string =>
+    `${groupIndex}:${shipIndex}`
+  const entries: SearchEntry[] = []
+  projected.groups.forEach((group, groupIndex) => {
+    group.ships.forEach((ship, shipIndex) => {
+      entries.push({
+        id: keyOf(groupIndex, shipIndex),
+        name: ship.name,
+        yomi: ship.yomi,
+        romaji: ship.romaji,
+        type: ship.type,
+        typeLabel: ship.type
+          ? resolveType
+            ? resolveType(ship.type)
+            : ship.type
+          : '',
+        level: ship.level,
+        identifiers: [ship.masterId],
+      })
+    })
+  })
+  const matched = new Set(
+    buildSearch(entries)(query).map((entry) => String(entry.id)),
+  )
+
   let shipCount = 0
   let knownShipCount = 0
   const typeCounts = new Map<string | null, number>()
-  const groups = projected.groups.map((group) => {
-    const ships = group.ships.filter((ship) =>
-      matchesQuery(ship, query, resolveType),
+  const groups = projected.groups.map((group, groupIndex) => {
+    const ships = group.ships.filter((_ship, shipIndex) =>
+      matched.has(keyOf(groupIndex, shipIndex)),
     )
     for (const ship of ships) {
       shipCount += 1

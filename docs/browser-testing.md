@@ -68,8 +68,8 @@ segment, which Storybook then tries to index as a story module (EISDIR).
     the plugin graph imports to pure browser adapters.
   - `preview/adapters/` holds those adapters: Electron clipboard/files/save
     dialog/capture logs, in-memory `fs-extra`, `path`, `url`, host selectors,
-    real Blueprint overlays, font/avatar/icon stand-ins, and the configurable
-    `html2canvas` capture boundary.
+    real Blueprint overlays, and font/avatar/icon stand-ins. Kana conversion and
+    Navy Staff's `modern-screenshot` renderer run from their real packages.
   - `preview/scenario.tsx` builds one environment per story. It registers the
     real reducer(s) selected by `shipInfo.plugin` (`ship-info`, `navy-staff` or
     `both`) under their plugin keys, points `views/create-store` at the live
@@ -120,8 +120,8 @@ Toolbar globals switch theme (`dark`/`light`) and locale
 class is applied to the preview body so portaled overlays are themed too.
 
 Play functions read the active environment via `getEnvironment()` from
-`preview/scenario.tsx`, the host call logs via `preview/adapters/logs.ts`, and
-the capture requests via `preview/planner-fixtures.ts`.
+`preview/scenario.tsx` and host call logs via `preview/adapters/logs.ts`.
+Image stories decode the recorded PNG data URLs for pixel and dimension checks.
 
 ## Coverage matrix
 
@@ -219,10 +219,10 @@ the export names.
 | `ShipGrid/ContextMenuRemovesCell` | Right-click removes a cell. |
 | `ShipGrid/TaggedShipIsProtected` | Tagged ships ignore pointer, context-menu and keyboard activation. |
 | `ShipGrid/KeyboardAssignsCell` | Enter on a cell assigns it. |
-| `Capture/MainWindowHidesCapture` / `Capture/DetachedWindowShowsCapture` | Capture is offered only in a detached window. |
-| `Capture/AreaCaptureSuccessDownloadsImage` | Capture targets the area element, sizes from its rect, and downloads. |
-| `Capture/GridCaptureUsesGridElement` | Grid capture targets the grid cells, not toolbar/palette. |
-| `Capture/CaptureRejectionLogsAndDoesNotDownload` | A rejected capture logs and downloads nothing. |
+| `Capture/AreaFullHeightImage`, `ListFullHeightImage`, `GridFullHeightImage` | All three shared views capture 300 ships with real Chromium rendering, full PNG height, and an `oklch` pixel marker below the viewport; opened text references render identical content and can also save images. Main/detached windows and light/dark themes are exercised. |
+| `Capture/ImageFailureCanRetry` | A download failure shows adjacent feedback and retry succeeds. |
+| `Capture/HistoricalImageIgnoresEditorFilters` | Historical sharing preserves the captured level and ignores editor filters. |
+| `References/KanaRomajiAndFuzzySearch` | Plan and reference search normalize kana variants and romaji, and tolerate a typo using real wanakana. |
 
 ### Navy Staff
 
@@ -248,7 +248,7 @@ themes, portraits, long names, and per-page scroll restoration.
 
 | Story export | Asserts |
 | --- | --- |
-| `NavyStaff/Area/*`, `NavyStaff/ShipGrid/*`, `NavyStaff/Capture/*` | The moved planner workflows: search/type tabs, add/move/remove, tag synchronization, both layouts, and detached-only capture. |
+| `NavyStaff/Area/*`, `NavyStaff/ShipGrid/*`, `NavyStaff/Capture/*` | Planner search/type tabs, add/move/remove, tag synchronization, planning layouts, and shared reference image capture. |
 | `NavyStaff/Integrated/NavyAlone` | Navy Staff alone renders its main view with no Ship Info table or sidebar present. |
 | `NavyStaff/Integrated/UpgradesStoredFileAndSaves` | An unversioned Navy file upgrades to v1, retains the plan and archive, and a later UI edit saves in v1. |
 | `NavyStaff/Integrated/BothPluginsIndependent` | Both plugins run on one host store with isolated slices (Navy plan vs Ship Info bookmarks). |
@@ -278,12 +278,13 @@ themes, portraits, long names, and per-page scroll restoration.
 ## Honest boundaries
 
 - This is **not** real Electron end-to-end verification, and not 100% code
-  coverage. Electron, the filesystem, the save dialog and capture are in-memory
+  coverage. Electron, the filesystem, and the save dialog are in-memory
   adapters; the browser suite verifies the plugin's rendered UI and its calls
   into those boundaries.
-- Capture uses a configurable stub renderer. The stories verify the intended
-  element, the sizing options, the download call and the rejected path; they do
-  not validate the vendored `lib/html2canvas` renderer's output.
+- Navy Staff capture uses the real `modern-screenshot` renderer. Stories check
+  decoded PNG dimensions and modern-color pixels below the viewport. The OS
+  download is still recorded by an adapter; this does not verify poi's actual
+  download UI or its installed fonts and theme.
 - Host-provided images/fonts are deterministic stand-ins (Blueprint icons,
   placeholder boxes, data-URI SVG) so previews make no external requests.
 - Each plugin's persistence lifecycle (read on `pluginDidLoad`, subscribe to the

@@ -1,28 +1,29 @@
 import { remote } from 'electron'
-import _ from 'lodash'
+import { domToPng } from 'modern-screenshot'
 
-import html2canvas from '../../lib/html2canvas'
+// Planner-owned screenshot capture. modern-screenshot renders through Chromium's
+// SVG <foreignObject>, so it handles oklch colours and works in both the main and
+// detached windows without a viewport crop. The caller supplies an opaque,
+// theme-appropriate background; the full scroll size is captured.
+export interface CaptureOptions {
+  backgroundColor: string
+}
 
-// Planner-owned screenshot capture. Kept out of the table utilities so pure
-// table imports never pull Electron or the vendored renderer.
-export const captureRect = async (rect: HTMLElement) => {
-  if (!rect) {
-    return
-  }
-  const { width, height } = rect.getBoundingClientRect()
-
-  let canvas
-
-  try {
-    canvas = await html2canvas(rect, {
-      allowTaint: true,
-      backgroundColor: '#333',
-      height: _.ceil(height, 16),
-      width: _.ceil(width, 16),
-    })
-  } catch (e) {
-    console.error(e)
-    return
-  }
-  remote.getCurrentWebContents().downloadURL(canvas.toDataURL('image/png'))
+export const captureRect = async (
+  rect: HTMLElement,
+  options: CaptureOptions,
+): Promise<void> => {
+  if (!rect) return
+  const bounds = rect.getBoundingClientRect()
+  const width = Math.ceil(Math.max(rect.scrollWidth, rect.clientWidth, bounds.width))
+  const height = Math.ceil(Math.max(rect.scrollHeight, rect.clientHeight, bounds.height))
+  const dataUrl = await domToPng(rect, {
+    backgroundColor: options.backgroundColor,
+    height,
+    scale: 1,
+    width,
+  })
+  // Current Electron may return a promise; await so a rejected download is
+  // caught by the caller's error UI.
+  await remote.getCurrentWebContents().downloadURL(dataUrl)
 }

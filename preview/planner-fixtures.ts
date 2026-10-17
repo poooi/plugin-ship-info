@@ -342,12 +342,3 @@ export const persistedPluginFile = (planner: {
 export const persistedNavyFile = (navy: object, memberId = '123') => ({
   [navyAccountFile(memberId)]: { ...navy, version: 2 },
 })
-
-// Re-export the capture adapter surface so capture stories reset and inspect a
-// single boundary instead of reaching into adapters directly.
-export {
-  getCaptureRequests,
-  resetCapture,
-  setCaptureOutcome,
-  type CaptureRequest,
-} from './adapters/html2canvas'

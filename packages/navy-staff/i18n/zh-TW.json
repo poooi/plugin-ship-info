@@ -191,5 +191,6 @@
   "Open another reference": "開啟其他參考",
   "Show share text": "顯示分享文字",
   "Hide share text": "隱藏分享文字",
-  "Hide image preview": "隱藏圖片預覽"
+  "Hide image preview": "隱藏圖片預覽",
+  "imageCaptureFailed": "無法儲存圖片"
 }

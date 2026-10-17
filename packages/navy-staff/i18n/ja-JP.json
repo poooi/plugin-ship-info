@@ -191,5 +191,6 @@
   "Open another reference": "別の参考を開く",
   "Show share text": "共有テキストを表示",
   "Hide share text": "共有テキストを隠す",
-  "Hide image preview": "画像プレビューを隠す"
+  "Hide image preview": "画像プレビューを隠す",
+  "imageCaptureFailed": "画像を保存できませんでした"
 }
