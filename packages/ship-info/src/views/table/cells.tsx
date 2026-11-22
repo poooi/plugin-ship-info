@@ -123,8 +123,15 @@ export const Lv = ({ shipData, ...props }: ICellProps) => (
   <Cell {...props}>{shipData.ship.api_lv}</Cell>
 )
 
+const MoraleCell = styled(Cell)<{ $sparkling: boolean }>`
+  color: ${({ $sparkling, theme }) =>
+    $sparkling && (theme.variant === 'light' ? '#785800' : '#ffda63')};
+`
+
 export const Cond = ({ shipData, ...props }: ICellProps) => (
-  <Cell {...props}>{shipData.ship.api_cond}</Cell>
+  <MoraleCell {...props} $sparkling={shipData.ship.api_cond >= 50}>
+    {shipData.ship.api_cond}
+  </MoraleCell>
 )
 
 export const Hp = ({ shipData, ...props }: ICellProps) => {
@@ -307,13 +314,22 @@ export const Sakuteki = ({ shipData, ...props }: ICellProps) => {
   return <Cell {...props}>{sakuteki}</Cell>
 }
 
+const RepairCell = styled(Cell)<{ $hpRatio: number }>`
+  background-color: ${({ $hpRatio, theme }) => {
+    if ($hpRatio <= 0.25) return rgba(theme.RED3, TRANSPARENCY)
+    if ($hpRatio <= 0.5) return rgba(theme.ORANGE3, TRANSPARENCY)
+    if ($hpRatio <= 0.75) return rgba('#e6c346', TRANSPARENCY)
+    return 'transparent'
+  }};
+`
+
 export const RepairTime = ({ shipData, ...props }: ICellProps) => {
   const { ship, $ship, repairs } = shipData
   const repairtime = Math.floor(ship.api_ndock_time / 1000.0)
   const inDock = repairs.includes(ship.api_id)
 
   return (
-    <Cell {...props}>
+    <RepairCell {...props} $hpRatio={ship.api_nowhp / ship.api_maxhp}>
       {repairtime > 0 && (
         <Tooltip
           content={`1HP : ${resolveTime(
@@ -326,7 +342,7 @@ export const RepairTime = ({ shipData, ...props }: ICellProps) => {
           </span>
         </Tooltip>
       )}
-    </Cell>
+    </RepairCell>
   )
 }
 
