@@ -340,7 +340,9 @@ describe('TableView integration', () => {
       }),
     )
     await waitFor(() => {
-      const headerCell = screen.getByText('Name').parentElement!
+      const headerCell = screen
+        .getByText('Name')
+        .closest('[role="columnheader"]')!
       const sticky = matchingRules(headerCell).find(
         (rule) => rule.style.position === 'sticky',
       )
@@ -355,7 +357,7 @@ describe('TableView integration', () => {
     await screen.findByText('Alpha')
 
     const pinnedRule = (title: string) =>
-      matchingRules(screen.getByText(title).parentElement!).find(
+      matchingRules(screen.getByText(title).closest('[role="columnheader"]')!).find(
         (rule) => rule.style.position === 'sticky',
       )
 

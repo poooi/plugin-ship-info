@@ -1,17 +1,26 @@
 import { get as lodashGet } from 'lodash'
 import { rgba } from 'polished'
-import React, { useMemo, useRef, useCallback, useEffect } from 'react'
+import React, {
+  useMemo,
+  useRef,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useState,
+} from 'react'
 import { connect } from 'react-redux'
 import styled, { css } from 'styled-components'
 import {
   useTable,
   ColumnDef,
+  ColumnSizingState,
   flexRender,
   SortingState,
   FilterFn,
 } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { atom, useAtom, useAtomValue, useSetAtom } from 'jotai'
+import { useTranslation } from 'react-i18next'
 
 import { WindowEnv } from 'views/components/etc/window-env'
 
@@ -27,7 +36,8 @@ import {
   columnPinningSelector,
 } from '../selectors'
 import { poiSurface } from '@poi-plugins/shared/ui/styles'
-import { columns as dataColumns, TableRow } from './columns-config'
+import { columns as dataColumns, getColumnMeta, TableRow } from './columns-config'
+import { distributeColumnWidths } from './layout'
 import { shipInfoTableFeatures, ShipInfoTableFeatures } from './table-features'
 import { TitleCell } from './title-cell'
 import { isShipCompleted, canEquipDaihatsu } from '../utils'
@@ -35,6 +45,13 @@ import { isShipCompleted, canEquipDaihatsu } from '../utils'
 const ROW_INDEX_WIDTH = 40
 
 const ROW_HEIGHT = 35
+
+const baseColumnWidths = new Map(
+  dataColumns.map((column) => [
+    column.id as string,
+    getColumnMeta(column.id as string)?.width ?? 100,
+  ]),
+)
 
 // Jotai atoms for active cell tracking
 const activeRowAtom = atom(-1)
@@ -181,7 +198,17 @@ const TableHeader = styled.div`
   position: sticky;
   top: 0;
   z-index: 1;
-  ${(props) => poiSurface(props.theme.DARK_GRAY3)}
+  height: 35px;
+  ${(props) =>
+    poiSurface(
+      props.theme.variant === 'light'
+        ? props.theme.LIGHT_GRAY5
+        : props.theme.DARK_GRAY3,
+    )}
+  color: ${(props) =>
+    props.theme.variant === 'light'
+      ? props.theme.DARK_GRAY1
+      : props.theme.LIGHT_GRAY5};
 `
 
 const TableBody = styled.div`
@@ -195,12 +222,31 @@ const HeaderCell = styled.div<{
   width: number
   $isPinned?: 'start' | 'end' | false
   $offset?: number
+  $sortTint?: 'ascending' | 'descending'
 }>`
   width: ${(props) => props.width}px;
   flex-shrink: 0;
   height: 100%;
   display: flex;
   align-items: stretch;
+  background-image: ${(props) =>
+    props.$sortTint === 'ascending'
+      ? `linear-gradient(to bottom, ${rgba(
+          props.theme.GREEN3,
+          0.95,
+        )} 0, ${rgba(props.theme.GREEN3, 0.95)} 2px, ${rgba(
+          props.theme.GREEN3,
+          0.34,
+        )} 2px, transparent 72%)`
+      : props.$sortTint === 'descending'
+        ? `linear-gradient(to top, ${rgba(
+            props.theme.BLUE5,
+            0.95,
+          )} 0, ${rgba(props.theme.BLUE5, 0.95)} 2px, ${rgba(
+            props.theme.BLUE5,
+            0.34,
+          )} 2px, transparent 72%)`
+        : 'none'};
 
   ${(props) =>
     props.$isPinned &&
@@ -212,7 +258,11 @@ const HeaderCell = styled.div<{
       ${props.$isPinned === 'end'
         ? `inset-inline-end: ${props.$offset || 0}px;`
         : ''}
-      ${poiSurface(props.theme.DARK_GRAY3)}
+      ${poiSurface(
+        props.theme.variant === 'light'
+          ? props.theme.LIGHT_GRAY5
+          : props.theme.DARK_GRAY3,
+      )}
       z-index: 2;
 
       &::after {
@@ -342,6 +392,9 @@ const ShipInfoTableAreaBase: React.FC<ShipInfoTableAreaBaseProps> = ({
   const [activeRow, setActiveRow] = useAtom(activeRowAtom)
   const [activeColumn, setActiveColumn] = useAtom(activeColumnAtom)
   const tableContainerRef = useRef<HTMLDivElement>(null)
+  const headerRefs = useRef<Record<string, HTMLDivElement | null>>({})
+  const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
+  const { i18n } = useTranslation('poi-plugin-ship-info')
 
   const hasSpacer = process.platform === 'darwin' && !windowObj.isMain
 
@@ -422,7 +475,7 @@ const ShipInfoTableAreaBase: React.FC<ShipInfoTableAreaBaseProps> = ({
     // Wrap data columns with title headers and highlighting
     const wrappedColumns = dataColumns.map((col, index) => {
       const columnId = col.id as string
-      const meta = col.meta as any
+      const meta = getColumnMeta(columnId)
       const originalCell = col.cell
 
       return {
@@ -486,6 +539,7 @@ const ShipInfoTableAreaBase: React.FC<ShipInfoTableAreaBaseProps> = ({
       columnOrder,
       columnVisibility,
       columnPinning: columnPinningState,
+      columnSizing,
     },
     onGlobalFilterChange: () => {
       // Global filter is derived from the connected filter props.
@@ -495,6 +549,54 @@ const ShipInfoTableAreaBase: React.FC<ShipInfoTableAreaBaseProps> = ({
     enableGlobalFilter: true,
     enableColumnPinning: true,
   })
+
+  const calculateLayout = useCallback(() => {
+    const scroller = tableContainerRef.current
+    if (!scroller) return
+
+    const columns = Object.entries(headerRefs.current).flatMap(
+      ([id, cell]) => {
+        if (id === 'rowIndex' || !cell) return []
+        const title = cell.querySelector<HTMLElement>('[data-title-label]')
+        const measured = title?.scrollWidth ?? 0
+        const baseWidth = baseColumnWidths.get(id) ?? 100
+        return [
+          {
+            baseWidth,
+            id,
+            minWidth: Math.max(baseWidth, Math.ceil(measured)),
+          },
+        ]
+      },
+    )
+
+    const next = distributeColumnWidths(
+      columns,
+      scroller.clientWidth,
+      ROW_INDEX_WIDTH,
+    )
+    setColumnSizing((previous) => {
+      const keys = Object.keys(next)
+      const unchanged =
+        keys.length === Object.keys(previous).length &&
+        keys.every(
+          (key) => Math.abs((previous[key] ?? 0) - (next[key] ?? 0)) < 0.01,
+        )
+      return unchanged ? previous : next
+    })
+  }, [])
+
+  useLayoutEffect(() => {
+    calculateLayout()
+  }, [calculateLayout, columnOrder, columnVisibility, i18n.language])
+
+  useLayoutEffect(() => {
+    const scroller = tableContainerRef.current
+    if (!scroller || typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(() => calculateLayout())
+    observer.observe(scroller)
+    return () => observer.disconnect()
+  }, [calculateLayout])
 
   // Get filtered rows from table
   const { rows } = table.getRowModel()
@@ -534,9 +636,28 @@ const ShipInfoTableAreaBase: React.FC<ShipInfoTableAreaBaseProps> = ({
                 return (
                   <HeaderCell
                     key={header.id}
+                    ref={(element) => {
+                      headerRefs.current[header.column.id] = element
+                    }}
+                    role="columnheader"
+                    data-column-id={header.column.id}
+                    aria-sort={
+                      header.column.id === sortName
+                        ? sortOrder
+                          ? 'ascending'
+                          : 'descending'
+                        : undefined
+                    }
                     width={header.column.getSize()}
                     $isPinned={isPinned}
                     $offset={offset}
+                    $sortTint={
+                      header.column.id === sortName
+                        ? sortOrder
+                          ? 'ascending'
+                          : 'descending'
+                        : undefined
+                    }
                   >
                     {flexRender(
                       header.column.columnDef.header,
