@@ -101,7 +101,7 @@ export const LevelRange = () => {
   }
 
   return (
-    <section style={{ margin: '8px 0' }}>
+    <section style={{ margin: 0 }}>
       <H5>{t('Level')}</H5>
       <LevelControls>
         <LevelInput

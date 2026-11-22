@@ -1,4 +1,9 @@
 {
+  "Status": "状态条件",
+  "Modified": "已修改",
+  "Reset filters and sorting": "重置筛选和排序",
+  "Filter sections": "筛选分区",
+  "Filter": "筛选",
   "Bookmark name": "书签名称",
   "Save": "保存",
   "Overwrite": "覆盖",

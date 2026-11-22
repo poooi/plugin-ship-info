@@ -11,14 +11,14 @@ import { boolArrayToInt } from '../../utils'
 import { CustomCheckboxCard } from '../components/card-controls'
 
 const ShipTypeContainer = styled.div`
-  margin-bottom: 20px;
+  margin-bottom: 0;
 `
 
 const CardRow = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 12px;
+  gap: 5px;
+  margin-bottom: 6px;
 `
 
 export const ShipTypeCheck: React.FC = () => {

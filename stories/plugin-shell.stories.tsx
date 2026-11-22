@@ -270,7 +270,9 @@ export const SidebarPanelsOpenAndClose: Story = {
     const filter = canvas.getByRole('button', { name: 'Filter' })
     await userEvent.click(filter)
     await expectExpanded(canvas, 'Filter', true)
-    await expect(await screen.findByText('Ship types')).toBeTruthy()
+    await expect(
+      await screen.findByRole('heading', { name: 'Ship types' }),
+    ).toBeTruthy()
     await dismissPopover(canvas, 'Filter')
 
     const exportButton = canvas.getByRole('button', { name: 'Export' })
@@ -302,7 +304,9 @@ export const FilterAffectsTableAndExport: Story = {
     // Scope to the "Ship types" section: the sally-area section also has "All".
     const filter = canvas.getByRole('button', { name: 'Filter' })
     await userEvent.click(filter)
-    const shipTypes = (await screen.findByText('Ship types')).parentElement as HTMLElement
+    const shipTypes = (
+      await screen.findByRole('heading', { name: 'Ship types' })
+    ).parentElement as HTMLElement
     const allTypes = within(shipTypes).getByRole('checkbox', { name: 'All' })
     await userEvent.click(allTypes.closest('label') as HTMLElement)
     await waitFor(async () => {
@@ -322,8 +326,9 @@ export const FilterAffectsTableAndExport: Story = {
 
     // Restore every ship type; the table and the next export follow exactly.
     await userEvent.click(filter)
-    const shipTypesAgain = (await screen.findByText('Ship types'))
-      .parentElement as HTMLElement
+    const shipTypesAgain = (
+      await screen.findByRole('heading', { name: 'Ship types' })
+    ).parentElement as HTMLElement
     const allTypesAgain = within(shipTypesAgain).getByRole('checkbox', {
       name: 'All',
     })

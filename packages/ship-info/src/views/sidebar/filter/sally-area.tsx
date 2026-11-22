@@ -11,13 +11,13 @@ import {
 } from '../components/card-controls'
 
 const SallyAreaContainer = styled.div`
-  margin-bottom: 20px;
+  margin-bottom: 0;
 `
 
 const CardRow = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 5px;
 `
 
 export const SallyAreaCheck: React.FC = () => {
