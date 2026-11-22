@@ -1,7 +1,6 @@
 // tslint:disable jsx-no-lambda
 import { Classes, H5, RangeSlider } from '@blueprintjs/core'
-import { debounce } from 'lodash'
-import React, { useCallback, useState } from 'react'
+import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
 import styled from 'styled-components'
@@ -67,25 +66,16 @@ function LevelInput({ label, value, min, max, onChange }: LevelInputProps) {
 
 export const LevelRange = () => {
   const levelRange = useSelector(levelRangeFilterSelector)
-  const [range, setRange] = useState<[number, number]>(levelRange)
 
   const { t } = useTranslation('poi-plugin-ship-info')
 
-  const updateRange = useCallback(
-    debounce((newRange: [number, number]) => {
-      window.config.set('plugin.ShipInfo.filters.minLevel', newRange[0])
-      window.config.set('plugin.ShipInfo.filters.maxLevel', newRange[1])
-    }, 500),
-    [],
-  )
-
-  const handleRangeChange = useCallback(
-    (newRange: [number, number]) => {
-      setRange(newRange)
-      updateRange(newRange)
-    },
-    [updateRange],
-  )
+  function handleRangeChange([minLevel, maxLevel]: [number, number]) {
+    window.config.set('plugin.ShipInfo.filters', {
+      ...window.config.get('plugin.ShipInfo.filters', {}),
+      maxLevel,
+      minLevel,
+    })
+  }
 
   return (
     <section style={{ margin: '8px 0' }}>
@@ -93,25 +83,25 @@ export const LevelRange = () => {
       <LevelControls>
         <LevelInput
           label={t('Minimum level')}
-          value={range[0]}
+          value={levelRange[0]}
           min={0}
-          max={range[1]}
-          onChange={(level) => handleRangeChange([level, range[1]])}
+          max={levelRange[1]}
+          onChange={(level) => handleRangeChange([level, levelRange[1]])}
         />
         <RangeSlider
           min={0}
           max={450}
           stepSize={1}
           labelStepSize={90}
-          value={range}
+          value={levelRange}
           onChange={handleRangeChange}
         />
         <LevelInput
           label={t('Maximum level')}
-          value={range[1]}
-          min={range[0]}
+          value={levelRange[1]}
+          min={levelRange[0]}
           max={450}
-          onChange={(level) => handleRangeChange([range[0], level])}
+          onChange={(level) => handleRangeChange([levelRange[0], level])}
         />
       </LevelControls>
     </section>

@@ -41,6 +41,19 @@ describe('redux: bookmark and ui actions', () => {
     expect(state.bookmark.b).toEqual({ name: 'b', x: 3 })
   })
 
+  it('treats dotted bookmark names literally', () => {
+    let state = initialState()
+    state = reducer(state, onUpdate({ bookmark: 'a.b', settings: { x: 1 } }))
+    state = reducer(state, onUpdate({ bookmark: 'a', settings: { x: 2 } }))
+
+    expect(state.bookmark['a.b']).toEqual({ name: 'a.b', x: 1 })
+    expect(state.bookmark.a).toEqual({ name: 'a', x: 2 })
+
+    state = reducer(state, onDelete({ bookmark: 'a.b' }))
+    expect(state.bookmark['a.b']).toBeUndefined()
+    expect(state.bookmark.a).toEqual({ name: 'a', x: 2 })
+  })
+
   it('toggles ui state and latches ready', () => {
     let state = initialState()
     state = reducer(state, { isExtend: false, type: T('extend') })
