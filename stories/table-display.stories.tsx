@@ -26,6 +26,38 @@ type Story = StoryObj<typeof meta>
 const cellAt = (root: HTMLElement, name: string, index: number): HTMLElement =>
   rowFor(root, name).querySelectorAll<HTMLElement>('[role="gridcell"]')[index]
 
+const COND_COLUMN = 5
+
+// Local overrides keep the shared roster untouched while pinning every morale
+// and repair-severity boundary. HP widths are 100 so the ratios are exact.
+const statusState = () => {
+  const state = tableState()
+  const ships = { ...state.info.ships }
+  const configure = (
+    id: number,
+    cond: number,
+    nowhp: number,
+    repairSeconds: number,
+  ) => {
+    ships[id] = {
+      ...ships[id],
+      api_cond: cond,
+      api_maxhp: 100,
+      api_ndock_time: repairSeconds * 1000,
+      api_nowhp: nowhp,
+    }
+  }
+
+  configure(1, 49, 25, 25) // morale below sparkle, repair at 25%
+  configure(2, 50, 26, 26) // morale at sparkle, repair above 25%
+  configure(3, 40, 50, 50) // repair at 50%
+  configure(4, 30, 51, 51) // repair above 50%
+  configure(5, 60, 75, 75) // repair at 75%
+  configure(7, 20, 76, 76) // repair above 75%
+
+  return tableState({ info: { ...state.info, ships } })
+}
+
 export const EquipmentAndTooltips: Story = {
   name: 'Equipment normal/extra slot, upgrade and proficiency tooltips',
   play: async ({ canvasElement }) => {
@@ -94,6 +126,57 @@ export const StatusTagsAndRepair: Story = {
     )
     await expect(gammaRepair.textContent).toContain('65')
     await expect(gammaRepair.querySelector('svg')).toBeNull()
+  },
+}
+
+export const MoraleAndRepairSeverity: Story = {
+  name: 'Morale sparks at 50 and repair follows HP severity boundaries',
+  parameters: { shipInfo: { state: statusState() } },
+  play: async ({ canvasElement }) => {
+    await waitFor(async () => {
+      await expect(renderedNames(canvasElement).length).toBe(8)
+    })
+
+    const cond = (name: string) =>
+      cellAt(canvasElement, name, COND_COLUMN)
+        .firstElementChild as HTMLElement
+    const repair = (name: string) =>
+      cellAt(canvasElement, name, dataColumnIndex.repairtime)
+        .firstElementChild as HTMLElement
+    const background = (name: string) =>
+      getComputedStyle(repair(name)).backgroundColor
+
+    // 49 stays neutral; 50 is the first sparkling value.
+    await expect(cond('Alpha').textContent).toBe('49')
+    await expect(cond('Beta').textContent).toBe('50')
+    const neutral = getComputedStyle(cond('Alpha')).color
+    const sparkle = getComputedStyle(cond('Beta')).color
+    await expect(sparkle).not.toBe(neutral)
+
+    // 25/50/75 sit in the severe category; just above each crosses to the next.
+    const heavy = background('Alpha') // 25%
+    const moderateAbove25 = background('Beta') // 26%
+    const moderateAt50 = background('Gamma') // 50%
+    const minorAbove50 = background('Delta') // 51%
+    const minorAt75 = background('Epsilon') // 75%
+    const clearAbove75 = background('Eta') // 76%
+
+    await expect(heavy).not.toBe(moderateAbove25)
+    await expect(moderateAbove25).toBe(moderateAt50)
+    await expect(moderateAt50).not.toBe(minorAbove50)
+    await expect(minorAbove50).toBe(minorAt75)
+    await expect(minorAt75).not.toBe(clearAbove75)
+    await expect(heavy).not.toBe('rgba(0, 0, 0, 0)')
+    await expect(moderateAt50).not.toBe('rgba(0, 0, 0, 0)')
+    await expect(minorAt75).not.toBe('rgba(0, 0, 0, 0)')
+
+    // Every severity still renders its repair duration.
+    await expect(repair('Alpha').textContent).toContain('25')
+    await expect(repair('Beta').textContent).toContain('26')
+    await expect(repair('Gamma').textContent).toContain('50')
+    await expect(repair('Delta').textContent).toContain('51')
+    await expect(repair('Epsilon').textContent).toContain('75')
+    await expect(repair('Eta').textContent).toContain('76')
   },
 }
 
