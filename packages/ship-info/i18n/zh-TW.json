@@ -1,4 +1,9 @@
 {
+  "Status": "狀態條件",
+  "Modified": "已修改",
+  "Reset filters and sorting": "重設篩選與排序",
+  "Filter sections": "篩選分區",
+  "Filter": "篩選",
   "Bookmark name": "書籤名稱",
   "Save": "儲存",
   "Overwrite": "覆寫",

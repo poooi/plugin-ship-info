@@ -1,4 +1,11 @@
 {
+  "Ship types": "함선 유형",
+  "Status": "상태 조건",
+  "Value Type": "값 유형",
+  "Modified": "변경됨",
+  "Reset filters and sorting": "필터 및 정렬 초기화",
+  "Filter sections": "필터 섹션",
+  "Filter": "필터",
   "Bookmark name": "북마크 이름",
   "Save": "저장",
   "Overwrite": "덮어쓰기",

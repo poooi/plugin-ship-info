@@ -17,13 +17,21 @@ import {
 import { CustomCheckboxCard } from '../components/card-controls'
 
 const YesNoContainer = styled.div`
-  margin-bottom: 20px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+
+  h5 {
+    margin: 0;
+    font: inherit;
+  }
 `
 
 const CardRow = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 3px;
 `
 
 const filterSelectors: Record<string, (state: any) => boolean[]> = {

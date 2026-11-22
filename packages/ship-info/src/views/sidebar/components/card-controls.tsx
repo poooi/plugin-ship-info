@@ -1,3 +1,4 @@
+import { getContrast } from 'polished'
 import React from 'react'
 import styled from 'styled-components'
 
@@ -131,12 +132,40 @@ interface ColoredCheckboxCardProps extends CardControlBaseProps {
 }
 
 // Helper function to convert hex to rgba
+const hexToRgb = (hex: string) => {
+  const h = hex.replace('#', '')
+  return {
+    b: parseInt(h.substring(4, 6), 16),
+    g: parseInt(h.substring(2, 4), 16),
+    r: parseInt(h.substring(0, 2), 16),
+  }
+}
+
+const blendHex = (hex: string, surface: string, alpha: number) => {
+  const color = hexToRgb(hex)
+  const base = hexToRgb(surface)
+  const channel = (value: number, background: number) =>
+    Math.round(value * alpha + background * (1 - alpha))
+      .toString(16)
+      .padStart(2, '0')
+  return `#${channel(color.r, base.r)}${channel(color.g, base.g)}${channel(
+    color.b,
+    base.b,
+  )}`
+}
+
+const tagTextColor = (
+  background: string,
+  theme: { DARK_GRAY1: string; LIGHT_GRAY5: string },
+) =>
+  getContrast(background, theme.DARK_GRAY1) >=
+  getContrast(background, theme.LIGHT_GRAY5)
+    ? theme.DARK_GRAY1
+    : theme.LIGHT_GRAY5
+
 const hexToRgba = (hex: string, alpha: number): string => {
   if (!hex) return `rgba(0, 0, 0, ${alpha})`
-  const h = hex.replace('#', '')
-  const r = parseInt(h.substring(0, 2), 16)
-  const g = parseInt(h.substring(2, 4), 16)
-  const b = parseInt(h.substring(4, 6), 16)
+  const { r, g, b } = hexToRgb(hex)
   return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }
 
@@ -149,11 +178,15 @@ const ColoredCardBase = styled(CardBase)<{
     if (!props.$cardColor) return ''
 
     const color = props.$cardColor
+    const surface =
+      props.theme.variant === 'light'
+        ? props.theme.LIGHT_GRAY5
+        : props.theme.DARK_GRAY3
 
     if (!props.$checked) {
       return `
         border-color: ${color};
-        color: ${color};
+        color: ${tagTextColor(blendHex(color, surface, 0.1), props.theme)};
         background-color: ${hexToRgba(color, 0.1)};
 
         &:hover {
@@ -169,7 +202,7 @@ const ColoredCardBase = styled(CardBase)<{
     return `
       background-color: ${color};
       border-color: ${color};
-      color: #fff;
+      color: ${tagTextColor(color, props.theme)};
 
       &:hover {
         background-color: ${hexToRgba(color, 0.85)};

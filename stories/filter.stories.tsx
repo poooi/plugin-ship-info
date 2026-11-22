@@ -38,7 +38,8 @@ const cardLabel = (scope: HTMLElement, text: string): HTMLElement =>
 // Scope to the popover: several headings (Level, Lock) also exist as table
 // column headers behind the overlay.
 const filterSection = (heading: string): HTMLElement =>
-  within(popoverContent()).getByText(heading).parentElement as HTMLElement
+  within(popoverContent()).getByRole('heading', { name: heading })
+    .parentElement as HTMLElement
 
 const shipTypeRows = () => {
   const box = filterSection('Ship types')
@@ -64,10 +65,10 @@ export const PopoverOpens: Story = {
   play: async ({ canvasElement }) => {
     await openPopover(canvasElement, 'Filter')
     const popover = within(popoverContent())
-    await popover.findByText('Level')
-    await popover.findByText('Sally Area')
+    await popover.findByRole('heading', { name: 'Level' })
+    await popover.findByRole('heading', { name: 'Sally Area' })
     await popover.findByText('Lock')
-    await popover.findByText('Value Type')
+    await popover.findByRole('heading', { name: 'Value Type' })
   },
 }
 
