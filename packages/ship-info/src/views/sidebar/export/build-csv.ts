@@ -14,6 +14,10 @@ let $slotitems: any
 let $ships: any
 
 const __ = i18next.getFixedT(null, ['poi-plugin-ship-info', 'resources'])
+const __resources = i18next.getFixedT(null, 'resources')
+
+const localizeShipName = (name: unknown) =>
+  typeof name === 'string' && name !== 'NA' ? __resources(name) : name
 
 const getItemName = (index: number) => (data: IShipRawData) => {
   const itemId = get(_slotitems, `${data.ship.api_slot[index]}.api_slotitem_id`)
@@ -63,7 +67,7 @@ interface IFieldWithKey {
   value: (data: IShipRawData) => string | number
 }
 
-export const fields: Array<IFieldWithKey | string> = [
+export const fields: IFieldWithKey[] = [
   { key: 'id', value: (data: IShipRawData) => data.ship.api_id },
   { key: 'name', value: (data: IShipRawData) => data.$ship.api_name },
   { key: 'yomi', value: (data: IShipRawData) => data.$ship.api_yomi },
@@ -168,18 +172,40 @@ export const fields: Array<IFieldWithKey | string> = [
   },
 ]
 
-export const buildCsv = (rows: IShipRawData[], sep = ',', end = '\n') => {
+export const buildCsv = (
+  rows: IShipRawData[],
+  sep = ',',
+  end = '\n',
+  localizeNames = false,
+) => {
   const state = window.getStore()
 
   _slotitems = state.info.equips
   $slotitems = state.const.$equips
   $ships = state.const.$ships
 
+  const escapeCell = (value: unknown) => {
+    const text = value == null ? '' : String(value)
+    return text.includes(sep) ||
+      text.includes('"') ||
+      text.includes('\r') ||
+      text.includes('\n')
+      ? `"${text.replace(/"/g, '""')}"`
+      : text
+  }
+
   const entries = map(rows, (row) =>
-    map(fields, (field) => (field as IFieldWithKey).value(row)),
+    map(fields, (field) => {
+      const raw = field.value(row)
+      return escapeCell(
+        localizeNames && (field.key === 'name' || field.key === 'after')
+          ? localizeShipName(raw)
+          : raw,
+      )
+    }),
   )
 
-  const titles = map(fields, (field) => __((field as IFieldWithKey).key))
+  const titles = map(fields, (field) => escapeCell(__(field.key)))
 
   entries.unshift(titles)
   return map(entries, (entry) => entry.join(sep)).join(end)

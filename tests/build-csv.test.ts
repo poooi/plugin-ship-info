@@ -1,7 +1,21 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('views/env-parts/i18next', () => ({
-  default: { getFixedT: () => (key: string) => key },
+  default: {
+    getFixedT:
+      (_language: unknown, namespace: unknown) => (key: string) => {
+        if (namespace === 'resources') {
+          const resources: Record<string, string> = {
+            Alpha: 'アルファ',
+            'Alpha Kai': 'アルファ改',
+            'Dot.Name': 'ドット名',
+            Escaped: 'Escaped, "Name"\nLine',
+          }
+          return resources[key] ?? key
+        }
+        return key
+      },
+  },
 }))
 vi.mock('electron', () => ({ remote: {} }))
 
@@ -213,6 +227,75 @@ describe('buildCsv', () => {
     expect(row.slot3).toBe('NA')
     expect(row.exslot).toBe('NA')
   })
+
+  it('localizes name and remodel target only when requested', () => {
+    const [rawHeader, rawValues] = parse(buildCsv([rowA()]))
+    const raw = toMap(rawHeader, rawValues)
+    expect(raw.name).toBe('Alpha')
+    expect(raw.after).toBe('Alpha Kai')
+
+    const [header, values] = parse(buildCsv([rowA()], ',', '\n', true))
+    const localized = toMap(header, values)
+    expect(localized.name).toBe('アルファ')
+    expect(localized.after).toBe('アルファ改')
+    expect(localized.yomi).toBe(raw.yomi)
+    expect(localized.type).toBe(raw.type)
+    expect(localized.slot0).toBe(raw.slot0)
+
+    const noRemodel = rowA()
+    noRemodel.$ship = { ...noRemodel.$ship, api_aftershipid: '0' }
+    const [noRemodelHeader, noRemodelValues] = parse(
+      buildCsv([noRemodel], ',', '\n', true),
+    )
+    expect(toMap(noRemodelHeader, noRemodelValues).after).toBe('NA')
+  })
+
+  it('keeps raw names when translation is missing, including dotted keys', () => {
+    const missing = rowA()
+    missing.$ship = {
+      ...missing.$ship,
+      api_name: 'Missing.Name',
+    }
+    const [header, values] = parse(buildCsv([missing], ',', '\n', true))
+    expect(toMap(header, values).name).toBe('Missing.Name')
+
+    const dotted = rowA()
+    dotted.$ship = {
+      ...dotted.$ship,
+      api_name: 'Dot.Name',
+    }
+    const [dottedHeader, dottedValues] = parse(
+      buildCsv([dotted], ',', '\n', true),
+    )
+    expect(toMap(dottedHeader, dottedValues).name).toBe('ドット名')
+  })
+
+  it('keeps empty cells for missing values instead of literal null text', () => {
+    const bare = mkRow({
+      $ship: mkMstShip({ api_id: 9 }),
+      fleetIdMap: {},
+      ship: mkShip({ api_id: 9 }),
+    })
+    const [header, values] = parse(buildCsv([bare]))
+    expect(toMap(header, values).fleetId).toBe('')
+  })
+
+  it('escapes separator, quote and line-break characters in cells', () => {
+    const escaped = rowA()
+    escaped.$ship = {
+      ...escaped.$ship,
+      api_name: 'Escaped',
+    }
+    const csv = buildCsv([escaped], ',', '\n', true)
+    expect(csv).toContain('"Escaped, ""Name""\nLine"')
+  })
+
+  it('leaves simple exports byte-for-byte unchanged', () => {
+    const simple = buildCsv([rowA()])
+    expect(simple).toBe(buildCsv([rowA()], ',', '\n', false))
+    expect(simple).not.toContain('"')
+  })
+
 
   it('honours custom separators and line endings', () => {
     const csv = buildCsv([rowA()], ';', '\r\n')

@@ -1,4 +1,9 @@
-import { Button, ButtonGroup, HTMLSelect } from '@blueprintjs/core'
+import {
+  Button,
+  ButtonGroup,
+  Checkbox as BlueprintCheckbox,
+  HTMLSelect,
+} from '@blueprintjs/core'
 import { clipboard, remote } from 'electron'
 import { outputFile } from 'fs-extra'
 import { map, values } from 'lodash'
@@ -97,6 +102,7 @@ const ExportContent = () => {
   const [sep, setSep] = React.useState(',')
   const [end, setEnd] = React.useState(isWin ? '\r\n' : '\n')
   const [selection, setSelection] = React.useState('current')
+  const [localizeNames, setLocalizeNames] = React.useState(false)
 
   // Get filtered ship IDs from the table
   const filteredShipIds = useAtomValue(filteredShipIdsAtom)
@@ -122,8 +128,8 @@ const ExportContent = () => {
   }, [selection, filteredShipIds])
 
   const handleExportToClipboard = useCallback(() => {
-    clipboard.writeText(buildCsv(getShipData(), sep, end))
-  }, [getShipData, sep, end])
+    clipboard.writeText(buildCsv(getShipData(), sep, end, localizeNames))
+  }, [getShipData, sep, end, localizeNames])
 
   const handleExportToFile = useCallback(async () => {
     const bw = remote.getCurrentWindow()
@@ -139,13 +145,16 @@ const ExportContent = () => {
 
     if (!result.canceled && result.filePath) {
       try {
-        await outputFile(result.filePath, buildCsv(getShipData(), sep, end))
+        await outputFile(
+          result.filePath,
+          buildCsv(getShipData(), sep, end, localizeNames),
+        )
       } catch (e) {
         // eslint-disable-next-line no-console
         console.error(e)
       }
     }
-  }, [t, getShipData, sep, end])
+  }, [t, getShipData, sep, end, localizeNames])
 
   return (
     <Container>
@@ -167,6 +176,15 @@ const ExportContent = () => {
           options={endOptions}
           value={end}
           onChange={handleChange('end')}
+        />
+      </div>
+      <div>
+        <BlueprintCheckbox
+          checked={localizeNames}
+          label={t('Localize ship names')}
+          onChange={(event) =>
+            setLocalizeNames(event.currentTarget.checked)
+          }
         />
       </div>
       <div>

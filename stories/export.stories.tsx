@@ -3,6 +3,7 @@ import React from 'react'
 import { expect, userEvent, waitFor, within } from 'storybook/test'
 
 import { host } from '../preview/adapters/logs'
+import { i18n } from '../preview/i18n'
 import { tableState } from '../preview/table-fixtures'
 import { Export } from '../packages/ship-info/src/views/sidebar/export'
 import { TableView } from '../packages/ship-info/src/views/table'
@@ -59,9 +60,67 @@ const csvNames = (csv: string, sep = ',', end = '\n'): string[] => {
   return rows.map((row) => row.split(sep)[index])
 }
 
+const csvColumn = (csv: string, label: string): string[] => {
+  const [header, ...rows] = csv.split('\n')
+  const index = header.split(',').indexOf(label)
+  return rows.map((row) => row.split(',')[index])
+}
+
+const installShipNameResources = (
+  resources: Record<string, string>,
+): void => {
+  i18n.addResourceBundle('en-US', 'resources', resources, true, true)
+}
+
+const localizedExportState = () => {
+  const base = tableState({
+    config: {
+      plugin: { ShipInfo: { filters: { maxLevel: 50, minLevel: 50 } } },
+      poi: { appearance: { avatar: false } },
+    },
+  })
+  return {
+    ...base,
+    const: {
+      ...base.const,
+      $ships: {
+        ...base.const.$ships,
+        1: {
+          ...base.const.$ships[1],
+          api_aftershipid: '2',
+          api_name: 'Preview Alpha',
+        },
+        2: {
+          ...base.const.$ships[2],
+          api_aftershipid: '0',
+          api_name: 'Preview Beta',
+        },
+        3: {
+          ...base.const.$ships[3],
+          api_aftershipid: '0',
+          api_name: 'Missing.Dot',
+        },
+        4: {
+          ...base.const.$ships[4],
+          api_aftershipid: '5',
+          api_name: 'Preview.Dot',
+        },
+      },
+    },
+  }
+}
+
 const waitForRows = async (canvasElement: HTMLElement, count: number) => {
   await waitFor(async () => {
     await expect(renderedNames(canvasElement).length).toBe(count)
+  })
+}
+
+const waitForGridCells = async (canvasElement: HTMLElement) => {
+  await waitFor(async () => {
+    await expect(
+      canvasElement.querySelectorAll('[role="gridcell"]').length,
+    ).toBeGreaterThan(0)
   })
 }
 
@@ -98,6 +157,170 @@ export const ClipboardCurrentFilteredAndAll: Story = {
       'Eta',
       'Theta',
     ])
+  },
+}
+
+export const LocalizedShipNames: Story = {
+  name: 'Localized names toggle affects clipboard and file for current and all',
+  parameters: {
+    shipInfo: {
+      saveDialog: { canceled: false, filePath: '/tmp/localized.csv' },
+      state: localizedExportState(),
+    },
+  },
+  play: async ({ canvasElement }) => {
+    installShipNameResources({
+      'Preview Alpha': 'Alpha Localized',
+      'Preview Beta': 'Beta Localized',
+      'Preview.Dot': 'Dotted Localized',
+    })
+    await openPopover(canvasElement, 'Export')
+    await waitForGridCells(canvasElement)
+    const checkbox = within(popoverContent()).getByRole<HTMLInputElement>(
+      'checkbox',
+      { name: 'Localize ship names' },
+    )
+    await expect(checkbox.checked).toBe(false)
+
+    // Off by default: current clipboard output keeps raw names.
+    await userEvent.click(exportButton('Copy to clipboard'))
+    await waitFor(async () => {
+      await expect(host.log.clipboardWrites.length).toBe(1)
+    })
+    await expect(csvNames(host.log.clipboardWrites[0])).toEqual([
+      'Preview Alpha',
+    ])
+
+    await userEvent.click(checkbox)
+    await expect(checkbox.checked).toBe(true)
+    await userEvent.click(exportButton('Copy to clipboard'))
+    await waitFor(async () => {
+      await expect(host.log.clipboardWrites.length).toBe(2)
+    })
+    const localizedCurrent = host.log.clipboardWrites[1]
+    await expect(csvNames(localizedCurrent)).toEqual(['Alpha Localized'])
+    await expect(csvColumn(localizedCurrent, 'Remodel')).toEqual([
+      'Beta Localized',
+    ])
+
+    // The current-list file export uses the same localized payload.
+    await userEvent.click(exportButton('Export to file'))
+    await waitFor(async () => {
+      await expect(host.log.writtenFiles.length).toBe(1)
+    })
+    const currentFile = String(host.log.writtenFiles[0].data)
+    await expect(csvNames(currentFile)).toEqual(['Alpha Localized'])
+    await expect(csvColumn(currentFile, 'Remodel')).toEqual(['Beta Localized'])
+
+    await userEvent.selectOptions(selectFor('Data'), 'all')
+    await userEvent.click(exportButton('Copy to clipboard'))
+    await waitFor(async () => {
+      await expect(host.log.clipboardWrites.length).toBe(3)
+    })
+    const localizedAll = host.log.clipboardWrites[2]
+    await expect(csvNames(localizedAll)).toEqual([
+      'Alpha Localized',
+      'Beta Localized',
+      'Missing.Dot',
+      'Dotted Localized',
+      'Epsilon',
+      'Zeta',
+      'Eta',
+      'Theta',
+    ])
+    await expect(csvColumn(localizedAll, 'Remodel')).toEqual([
+      'Beta Localized',
+      'NA',
+      'NA',
+      'Epsilon',
+      'NA',
+      'NA',
+      'NA',
+      'NA',
+    ])
+
+    await userEvent.click(exportButton('Export to file'))
+    await waitFor(async () => {
+      await expect(host.log.writtenFiles.length).toBe(2)
+    })
+    const written = String(host.log.writtenFiles[1].data)
+    await expect(csvNames(written)).toEqual([
+      'Alpha Localized',
+      'Beta Localized',
+      'Missing.Dot',
+      'Dotted Localized',
+      'Epsilon',
+      'Zeta',
+      'Eta',
+      'Theta',
+    ])
+    await expect(csvColumn(written, 'Remodel')).toEqual([
+      'Beta Localized',
+      'NA',
+      'NA',
+      'Epsilon',
+      'NA',
+      'NA',
+      'NA',
+      'NA',
+    ])
+
+    // Turning the option back off restores the old raw output.
+    await userEvent.selectOptions(selectFor('Data'), 'current')
+    await userEvent.click(checkbox)
+    await userEvent.click(exportButton('Copy to clipboard'))
+    await waitFor(async () => {
+      await expect(host.log.clipboardWrites.length).toBe(4)
+    })
+    await expect(csvNames(host.log.clipboardWrites[3])).toEqual([
+      'Preview Alpha',
+    ])
+  },
+}
+
+export const LocalizedNamesEscaping: Story = {
+  name: 'Localized names are escaped for separator, quotes and line breaks',
+  parameters: {
+    shipInfo: {
+      state: (() => {
+        const base = tableState()
+        const ships = base.info.ships
+        return {
+          ...base,
+          const: {
+            ...base.const,
+            $ships: {
+              ...base.const.$ships,
+              1: {
+                ...base.const.$ships[1],
+                api_aftershipid: '0',
+                api_name: 'Escaped Preview',
+              },
+            },
+          },
+          info: { ...base.info, ships: { 1: ships[1] } },
+        }
+      })(),
+    },
+  },
+  play: async ({ canvasElement }) => {
+    installShipNameResources({
+      'Escaped Preview': 'Escaped, "Name"\nLine',
+    })
+    await openPopover(canvasElement, 'Export')
+    await waitForGridCells(canvasElement)
+    await userEvent.click(
+      within(popoverContent()).getByRole('checkbox', {
+        name: 'Localize ship names',
+      }),
+    )
+    await userEvent.click(exportButton('Copy to clipboard'))
+    await waitFor(async () => {
+      await expect(host.log.clipboardWrites.length).toBe(1)
+    })
+    await expect(host.log.clipboardWrites[0]).toContain(
+      '"Escaped, ""Name""\nLine"',
+    )
   },
 }
 
