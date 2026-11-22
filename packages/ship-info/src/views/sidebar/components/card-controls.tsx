@@ -1,3 +1,4 @@
+import { Checkbox } from '@blueprintjs/core'
 import { getContrast } from 'polished'
 import React from 'react'
 import styled from 'styled-components'
@@ -28,9 +29,21 @@ const CardBase = styled.label<{ $checked?: boolean; $compact?: boolean }>`
   gap: 8px;
 
   /* Default unchecked state */
-  ${(props) => controlSurface('rest', props.theme.DARK_GRAY3)}
-  border-color: ${(props) => props.theme.GRAY5};
-  color: ${(props) => props.theme.LIGHT_GRAY5};
+  ${(props) =>
+    controlSurface(
+      'rest',
+      props.theme.variant === 'light'
+        ? props.theme.LIGHT_GRAY5
+        : props.theme.DARK_GRAY3,
+    )}
+  border-color: ${(props) =>
+    props.theme.variant === 'light'
+      ? props.theme.GRAY2
+      : props.theme.GRAY3};
+  color: ${(props) =>
+    props.theme.variant === 'light'
+      ? props.theme.DARK_GRAY1
+      : props.theme.LIGHT_GRAY5};
   box-shadow: none;
 
   /* Checked state */
@@ -47,14 +60,24 @@ const CardBase = styled.label<{ $checked?: boolean; $compact?: boolean }>`
     ${(props) =>
       props.$checked
         ? `background-color: ${props.theme.BLUE2}; border-color: ${props.theme.BLUE2};`
-        : controlSurface('hover', props.theme.DARK_GRAY4)}
+        : controlSurface(
+            'hover',
+            props.theme.variant === 'light'
+              ? props.theme.LIGHT_GRAY3
+              : props.theme.DARK_GRAY4,
+          )}
   }
 
   &:active {
     ${(props) =>
       props.$checked
         ? `background-color: ${props.theme.BLUE4};`
-        : controlSurface('active', props.theme.DARK_GRAY5)}
+        : controlSurface(
+            'active',
+            props.theme.variant === 'light'
+              ? props.theme.LIGHT_GRAY2
+              : props.theme.DARK_GRAY5,
+          )}
     box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
   }
 
@@ -169,56 +192,72 @@ const hexToRgba = (hex: string, alpha: number): string => {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }
 
-const ColoredCardBase = styled(CardBase)<{
+const ColoredCheckbox = styled(Checkbox)<{
   $cardColor?: string
   $checked?: boolean
+  $compact?: boolean
 }>`
-  /* Override default colors with custom ones */
-  ${(props) => {
-    if (!props.$cardColor) return ''
+  &&& {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: ${(props) => (props.$compact ? '30px' : '40px')};
+    margin: 0;
+    padding: ${(props) =>
+      props.$compact ? '5px 10px' : '10px 15px'};
+    border: 1px solid;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.15s cubic-bezier(0.4, 1, 0.75, 0.9);
 
-    const color = props.$cardColor
-    const surface =
-      props.theme.variant === 'light'
-        ? props.theme.LIGHT_GRAY5
-        : props.theme.DARK_GRAY3
+    ${(props) => {
+      if (!props.$cardColor) return ''
 
-    if (!props.$checked) {
+      const color = props.$cardColor
+      const surface =
+        props.theme.variant === 'light'
+          ? props.theme.LIGHT_GRAY5
+          : props.theme.DARK_GRAY3
+
+      if (!props.$checked) {
+        return `
+          border-color: ${color};
+          color: ${tagTextColor(blendHex(color, surface, 0.1), props.theme)};
+          background-color: ${hexToRgba(color, 0.1)};
+
+          &:hover {
+            background-color: ${hexToRgba(color, 0.18)};
+          }
+
+          &:active {
+            background-color: ${hexToRgba(color, 0.25)};
+          }
+        `
+      }
+
       return `
+        background-color: ${color};
         border-color: ${color};
-        color: ${tagTextColor(blendHex(color, surface, 0.1), props.theme)};
-        background-color: ${hexToRgba(color, 0.1)};
+        color: ${tagTextColor(color, props.theme)};
 
         &:hover {
-          background-color: ${hexToRgba(color, 0.18)};
+          background-color: ${hexToRgba(color, 0.85)};
+          border-color: ${hexToRgba(color, 0.85)};
         }
 
         &:active {
-          background-color: ${hexToRgba(color, 0.25)};
+          background-color: ${hexToRgba(color, 1.0)};
+          box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
         }
       `
-    }
+    }}
+  }
 
-    return `
-      background-color: ${color};
-      border-color: ${color};
-      color: ${tagTextColor(color, props.theme)};
-
-      &:hover {
-        background-color: ${hexToRgba(color, 0.85)};
-        border-color: ${hexToRgba(color, 0.85)};
-      }
-
-      &:active {
-        background-color: ${hexToRgba(color, 1.0)};
-        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
-      }
-
-      &:focus-within {
-        outline-color: ${hexToRgba(color, 0.6)};
-      }
-    `
-  }}
+  &&& .bp6-control-indicator {
+    position: static;
+    flex: 0 0 16px;
+    margin: 0;
+  }
 `
 
 export const CustomColoredCheckboxCard: React.FC<ColoredCheckboxCardProps> = ({
@@ -231,19 +270,15 @@ export const CustomColoredCheckboxCard: React.FC<ColoredCheckboxCardProps> = ({
   onContextMenu,
 }) => {
   return (
-    <ColoredCardBase
+    <ColoredCheckbox
       $checked={checked}
       $compact={compact}
       $cardColor={cardColor}
+      checked={checked}
+      labelElement={children}
+      onChange={onChange}
       onContextMenu={onContextMenu}
-    >
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={onChange}
-        value={value}
-      />
-      <CardContent>{children}</CardContent>
-    </ColoredCardBase>
+      value={value}
+    />
   )
 }

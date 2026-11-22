@@ -1,4 +1,4 @@
-import { Button, H5 } from '@blueprintjs/core'
+import { Button, H5, Tag } from '@blueprintjs/core'
 import React, { useRef, useState } from 'react'
 import FA from 'react-fontawesome'
 import { useTranslation } from 'react-i18next'
@@ -53,18 +53,41 @@ const Navigation = styled.nav`
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 2px 0;
+  gap: 4px 6px;
   padding: 4px 8px;
   border-bottom: 1px solid ${(p) => p.theme.GRAY3};
 
   button {
     flex: none;
     white-space: nowrap;
-    border-radius: 0;
   }
 
-  button[aria-current='location'] {
-    box-shadow: inset 0 -2px ${(p) => p.theme.BLUE4} !important;
+  .filter-nav-label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    line-height: 1;
+  }
+
+  .filter-nav-name {
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
+  }
+
+  .filter-nav-modified {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 16px;
+    padding: 0 4px;
+    font-size: 10px;
+    line-height: 1;
+  }
+
+  button.filter-reset-button {
+    margin-inline-start: auto;
   }
 `
 
@@ -78,12 +101,16 @@ const Sections = styled.div`
 
   > section > h5:first-child,
   > section > :first-child > h5:first-child {
-    position: sticky;
-    top: 0;
-    z-index: 2;
     margin: 0 0 6px;
     padding-block: 4px;
     background: var(--filter-surface);
+  }
+
+  > section[data-active] > h5:first-child,
+  > section[data-active] > :first-child > h5:first-child {
+    position: sticky;
+    top: 0;
+    z-index: 2;
   }
 `
 
@@ -151,9 +178,10 @@ function FilterPanel() {
       <Navigation aria-label={t('Filter sections')}>
         {sectionNames.map((label, index) => (
           <Button
-            minimal
+            minimal={active !== index}
             small
             key={label}
+            intent={active === index ? 'primary' : undefined}
             data-dirty={dirty[index] ? 'true' : undefined}
             aria-controls={`filter-section-${index}`}
             aria-current={active === index ? 'location' : undefined}
@@ -162,18 +190,28 @@ function FilterPanel() {
             }
             onClick={() => jump(index)}
           >
-            {t(label)}
-            {dirty[index] && <span aria-hidden="true"> •</span>}
+            <span className="filter-nav-label">
+              <span className="filter-nav-name">{t(label)}</span>
+              {dirty[index] && (
+                <Tag
+                  className="filter-nav-modified"
+                  round
+                  aria-hidden="true"
+                >
+                  {t('Modified')}
+                </Tag>
+              )}
+            </span>
           </Button>
         ))}
         <Button
           small
-          minimal
-          icon="reset"
+          className="filter-reset-button"
           title={t('Reset filters and sorting')}
-          aria-label={t('Reset filters and sorting')}
           onClick={reset}
-        />
+        >
+          {t('Reset filters and sorting')}
+        </Button>
       </Navigation>
       <Sections
         key={resetVersion}
@@ -208,16 +246,23 @@ function FilterPanel() {
       >
         <Section
           id="filter-section-0"
+          data-active={active === 0 ? '' : undefined}
           tabIndex={-1}
           aria-label={t('Ship types')}
         >
           <ShipTypeCheck />
         </Section>
-        <Section id="filter-section-1" tabIndex={-1} aria-label={t('Level')}>
+        <Section
+          id="filter-section-1"
+          data-active={active === 1 ? '' : undefined}
+          tabIndex={-1}
+          aria-label={t('Level')}
+        >
           <LevelRange />
         </Section>
         <Section
           id="filter-section-2"
+          data-active={active === 2 ? '' : undefined}
           tabIndex={-1}
           aria-label={t('Sally Area')}
         >
@@ -225,6 +270,7 @@ function FilterPanel() {
         </Section>
         <Section
           id="filter-section-3"
+          data-active={active === 3 ? '' : undefined}
           tabIndex={-1}
           aria-label={t('Status')}
         >
@@ -237,6 +283,7 @@ function FilterPanel() {
         </Section>
         <Section
           id="filter-section-4"
+          data-active={active === 4 ? '' : undefined}
           tabIndex={-1}
           aria-label={t('Value Type')}
         >

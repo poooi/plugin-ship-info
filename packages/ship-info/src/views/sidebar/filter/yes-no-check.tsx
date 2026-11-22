@@ -1,4 +1,4 @@
-import { H5 } from '@blueprintjs/core'
+import { Checkbox } from '@blueprintjs/core'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
@@ -14,9 +14,8 @@ import {
   modernizationFilterSelector,
   remodelFilterSelector,
 } from '../../selectors'
-import { CustomCheckboxCard } from '../components/card-controls'
 
-const YesNoContainer = styled.div`
+const YesNoContainer = styled.div<{ $restricted: boolean }>`
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
@@ -25,13 +24,32 @@ const YesNoContainer = styled.div`
   h5 {
     margin: 0;
     font: inherit;
+    font-weight: ${({ $restricted }) => ($restricted ? 600 : 400)};
   }
 `
 
 const CardRow = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: 3px;
+  align-items: center;
+  gap: 4px;
+`
+
+const CheckOption = styled(Checkbox)`
+  && {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    margin: 0;
+    padding: 1px 4px;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+
+  && .bp6-control-indicator {
+    flex: 0 0 16px;
+    margin: 0 4px 0 0;
+  }
 `
 
 const filterSelectors: Record<string, (state: any) => boolean[]> = {
@@ -53,6 +71,7 @@ interface IProps {
 export const YesNoCheck: React.FC<IProps> = ({ label, configKey }) => {
   const { t } = useTranslation(['poi-plugin-ship-info'])
   const checked = useSelector(filterSelectors[configKey])
+  const restricted = !(checked[0] && checked[1])
 
   const handleToggle = (index: number) => () => {
     const newChecked = [...checked]
@@ -61,23 +80,17 @@ export const YesNoCheck: React.FC<IProps> = ({ label, configKey }) => {
   }
 
   return (
-    <YesNoContainer>
-      <H5>{t(label)}</H5>
+    <YesNoContainer $restricted={restricted}>
+      <h5>{t(label)}</h5>
       <CardRow>
-        <CustomCheckboxCard
-          checked={checked[0]}
-          onChange={handleToggle(0)}
-          compact
-        >
-          {t('Yes')}
-        </CustomCheckboxCard>
-        <CustomCheckboxCard
-          checked={checked[1]}
-          onChange={handleToggle(1)}
-          compact
-        >
-          {t('No')}
-        </CustomCheckboxCard>
+        {['Yes', 'No'].map((option, index) => (
+          <CheckOption
+            key={option}
+            checked={checked[index]}
+            label={t(option)}
+            onChange={handleToggle(index)}
+          />
+        ))}
       </CardRow>
     </YesNoContainer>
   )
