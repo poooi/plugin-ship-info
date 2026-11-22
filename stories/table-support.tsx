@@ -71,7 +71,11 @@ export const openPopover = async (
   await userEvent.click(
     within(canvasElement).getByRole('button', { name: label }),
   )
-  await screen.findByText(label === 'Filter' ? 'Ship types' : 'Data')
+  if (label === 'Filter') {
+    await screen.findByRole('heading', { name: 'Ship types' })
+  } else {
+    await screen.findByText('Data')
+  }
 }
 
 export const tableScroller = (root: HTMLElement): HTMLElement =>

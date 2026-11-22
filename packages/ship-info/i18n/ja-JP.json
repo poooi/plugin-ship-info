@@ -1,4 +1,9 @@
 {
+  "Status": "状態条件",
+  "Modified": "変更あり",
+  "Reset filters and sorting": "絞り込みと並び順をリセット",
+  "Filter sections": "絞り込みセクション",
+  "Filter": "絞り込み",
   "Bookmark name": "ブックマーク名",
   "Save": "保存",
   "Overwrite": "上書き",

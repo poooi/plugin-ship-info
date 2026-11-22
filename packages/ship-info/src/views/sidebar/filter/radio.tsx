@@ -8,13 +8,13 @@ import { rawValueFilterSelector } from '../../selectors'
 import { CustomRadioCard } from '../components/card-controls'
 
 const RadioContainer = styled.div`
-  margin-bottom: 20px;
+  margin-bottom: 0;
 `
 
 const RadioGroup = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 6px;
 `
 
 const filterSelectors: Record<string, (state: any) => number> = {
