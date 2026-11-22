@@ -28,9 +28,18 @@ const CardBase = styled.label<{ $checked?: boolean; $compact?: boolean }>`
   gap: 8px;
 
   /* Default unchecked state */
-  ${(props) => controlSurface('rest', props.theme.DARK_GRAY3)}
-  border-color: ${(props) => props.theme.GRAY5};
-  color: ${(props) => props.theme.LIGHT_GRAY5};
+  ${(props) =>
+    controlSurface(
+      'rest',
+      props.theme.variant === 'light'
+        ? props.theme.LIGHT_GRAY5
+        : props.theme.DARK_GRAY3,
+    )}
+  border-color: ${(props) => props.theme.GRAY3};
+  color: ${(props) =>
+    props.theme.variant === 'light'
+      ? props.theme.DARK_GRAY1
+      : props.theme.LIGHT_GRAY5};
   box-shadow: none;
 
   /* Checked state */
@@ -47,14 +56,24 @@ const CardBase = styled.label<{ $checked?: boolean; $compact?: boolean }>`
     ${(props) =>
       props.$checked
         ? `background-color: ${props.theme.BLUE2}; border-color: ${props.theme.BLUE2};`
-        : controlSurface('hover', props.theme.DARK_GRAY4)}
+        : controlSurface(
+            'hover',
+            props.theme.variant === 'light'
+              ? props.theme.LIGHT_GRAY3
+              : props.theme.DARK_GRAY4,
+          )}
   }
 
   &:active {
     ${(props) =>
       props.$checked
         ? `background-color: ${props.theme.BLUE4};`
-        : controlSurface('active', props.theme.DARK_GRAY5)}
+        : controlSurface(
+            'active',
+            props.theme.variant === 'light'
+              ? props.theme.LIGHT_GRAY2
+              : props.theme.DARK_GRAY5,
+          )}
     box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
   }
 
@@ -77,6 +96,21 @@ const CardBase = styled.label<{ $checked?: boolean; $compact?: boolean }>`
 const CardContent = styled.span`
   flex: 1;
   line-height: 1.4;
+`
+
+const TagCheck = styled.span`
+  display: inline-flex;
+  flex: 0 0 14px;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  box-sizing: border-box;
+  border: 1.5px solid currentColor;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
 `
 
 export const CustomCheckboxCard: React.FC<CardControlBaseProps> = ({
@@ -243,6 +277,9 @@ export const CustomColoredCheckboxCard: React.FC<ColoredCheckboxCardProps> = ({
         onChange={onChange}
         value={value}
       />
+      <TagCheck data-tag-check="" aria-hidden="true">
+        {checked ? '✓' : ''}
+      </TagCheck>
       <CardContent>{children}</CardContent>
     </ColoredCardBase>
   )

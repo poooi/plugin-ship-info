@@ -1,4 +1,5 @@
 import { Button, H5 } from '@blueprintjs/core'
+import { getContrast } from 'polished'
 import React, { useRef, useState } from 'react'
 import FA from 'react-fontawesome'
 import { useTranslation } from 'react-i18next'
@@ -39,6 +40,15 @@ const sectionNames = [
   'Value Type',
 ] as const
 
+const accessibleText = (
+  background: string,
+  theme: { DARK_GRAY1: string; LIGHT_GRAY5: string },
+) =>
+  getContrast(background, theme.DARK_GRAY1) >=
+  getContrast(background, theme.LIGHT_GRAY5)
+    ? theme.DARK_GRAY1
+    : theme.LIGHT_GRAY5
+
 const Panel = styled.div`
   width: min(640px, 85vw);
   max-height: 80vh;
@@ -53,18 +63,66 @@ const Navigation = styled.nav`
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 2px 0;
+  gap: 4px 6px;
   padding: 4px 8px;
   border-bottom: 1px solid ${(p) => p.theme.GRAY3};
+  --nav-text: ${({ theme }) =>
+    theme.variant === 'light' ? theme.DARK_GRAY1 : theme.LIGHT_GRAY5};
+  color: var(--nav-text);
 
   button {
     flex: none;
     white-space: nowrap;
-    border-radius: 0;
+    border-radius: 4px;
+    color: var(--nav-text);
   }
 
   button[aria-current='location'] {
-    box-shadow: inset 0 -2px ${(p) => p.theme.BLUE4} !important;
+    background: ${(p) => p.theme.BLUE3} !important;
+    color: ${({ theme }) => accessibleText(theme.BLUE3, theme)} !important;
+    font-weight: 600;
+    box-shadow: inset 0 0 0 1px ${(p) => p.theme.BLUE1},
+      0 1px 2px rgba(0, 0, 0, 0.25) !important;
+  }
+
+  button[aria-current='location']:hover {
+    background: ${(p) => p.theme.BLUE2} !important;
+  }
+
+  .filter-nav-modified {
+    display: inline-flex;
+    align-items: center;
+    min-height: 16px;
+    margin-inline-start: 4px;
+    padding: 0 4px;
+    border-radius: 8px;
+    background: ${({ theme }) =>
+      theme.variant === 'light' ? theme.ORANGE5 : theme.ORANGE3};
+    color: ${({ theme }) =>
+      accessibleText(
+        theme.variant === 'light' ? theme.ORANGE5 : theme.ORANGE3,
+        theme,
+      )} !important;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 16px;
+  }
+
+  button.filter-reset-button {
+    margin-inline-start: auto;
+    padding-inline: 8px;
+    border: 1px solid ${(p) => p.theme.GRAY3};
+    border-radius: 4px;
+    background: transparent !important;
+    color: var(--nav-text) !important;
+    font-weight: 500;
+  }
+
+  button.filter-reset-button:hover {
+    background: ${({ theme }) =>
+      theme.variant === 'light'
+        ? theme.LIGHT_GRAY3
+        : theme.DARK_GRAY4} !important;
   }
 `
 
@@ -78,12 +136,16 @@ const Sections = styled.div`
 
   > section > h5:first-child,
   > section > :first-child > h5:first-child {
-    position: sticky;
-    top: 0;
-    z-index: 2;
     margin: 0 0 6px;
     padding-block: 4px;
     background: var(--filter-surface);
+  }
+
+  > section[data-active] > h5:first-child,
+  > section[data-active] > :first-child > h5:first-child {
+    position: sticky;
+    top: 0;
+    z-index: 2;
   }
 `
 
@@ -163,17 +225,22 @@ function FilterPanel() {
             onClick={() => jump(index)}
           >
             {t(label)}
-            {dirty[index] && <span aria-hidden="true"> •</span>}
+            {dirty[index] && (
+              <span className="filter-nav-modified" aria-hidden="true">
+                {t('Modified')}
+              </span>
+            )}
           </Button>
         ))}
         <Button
           small
           minimal
-          icon="reset"
+          className="filter-reset-button"
           title={t('Reset filters and sorting')}
-          aria-label={t('Reset filters and sorting')}
           onClick={reset}
-        />
+        >
+          {t('Reset filters and sorting')}
+        </Button>
       </Navigation>
       <Sections
         key={resetVersion}
@@ -208,16 +275,23 @@ function FilterPanel() {
       >
         <Section
           id="filter-section-0"
+          data-active={active === 0 ? '' : undefined}
           tabIndex={-1}
           aria-label={t('Ship types')}
         >
           <ShipTypeCheck />
         </Section>
-        <Section id="filter-section-1" tabIndex={-1} aria-label={t('Level')}>
+        <Section
+          id="filter-section-1"
+          data-active={active === 1 ? '' : undefined}
+          tabIndex={-1}
+          aria-label={t('Level')}
+        >
           <LevelRange />
         </Section>
         <Section
           id="filter-section-2"
+          data-active={active === 2 ? '' : undefined}
           tabIndex={-1}
           aria-label={t('Sally Area')}
         >
@@ -225,6 +299,7 @@ function FilterPanel() {
         </Section>
         <Section
           id="filter-section-3"
+          data-active={active === 3 ? '' : undefined}
           tabIndex={-1}
           aria-label={t('Status')}
         >
@@ -237,6 +312,7 @@ function FilterPanel() {
         </Section>
         <Section
           id="filter-section-4"
+          data-active={active === 4 ? '' : undefined}
           tabIndex={-1}
           aria-label={t('Value Type')}
         >
