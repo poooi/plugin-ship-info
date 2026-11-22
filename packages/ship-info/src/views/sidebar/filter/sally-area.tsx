@@ -27,8 +27,11 @@ export const SallyAreaCheck: React.FC = () => {
     sallyAreaFilterViewSelector(state, window.language),
   )
 
+  const checkedArray = checked as boolean[]
+  const colorArray = color as string[]
+
   const handleClickBox = (index: number) => () => {
-    const newChecked = (checked as boolean[]).slice()
+    const newChecked = checkedArray.slice()
 
     if (index === -1) {
       const newCheckedAll = !checkedAll
@@ -40,8 +43,12 @@ export const SallyAreaCheck: React.FC = () => {
     window.config.set('plugin.ShipInfo.sallyAreaChecked', newChecked)
   }
 
-  const checkedArray = checked as boolean[]
-  const colorArray = color as string[]
+  const handleRightClickBox =
+    (index: number) => (event: React.MouseEvent) => {
+      event.preventDefault()
+      const newChecked = checkedArray.map((_, current) => current === index)
+      window.config.set('plugin.ShipInfo.sallyAreaChecked', newChecked)
+    }
 
   return (
     <SallyAreaContainer>
@@ -57,6 +64,7 @@ export const SallyAreaCheck: React.FC = () => {
         <CustomCheckboxCard
           checked={checkedArray[0]}
           onChange={handleClickBox(0)}
+          onContextMenu={handleRightClickBox(0)}
           compact
         >
           {t('Free')}
@@ -65,6 +73,7 @@ export const SallyAreaCheck: React.FC = () => {
           <CustomColoredCheckboxCard
             key={name}
             onChange={handleClickBox(idx + 1)}
+            onContextMenu={handleRightClickBox(idx + 1)}
             checked={checkedArray[idx + 1]}
             cardColor={colorArray[idx]}
             compact

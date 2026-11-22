@@ -500,7 +500,6 @@ export const NarrowLightDirtyStates: Story = {
       await expectModifiedChip(label)
     }
     await expectNavLabelCentered('Value Type')
-    await expectNavLabelCentered('Value Type')
     const lightLock = within(filterSection('Status')).getByRole('heading', {
       name: 'Lock',
     })
@@ -631,6 +630,79 @@ export const TagContrastDark: Story = {
         )
       }
     })
+  },
+}
+
+export const SallyAreaExclusiveRightClick: Story = {
+  name: 'Sally Area right-click exclusively selects real tags and Free',
+  parameters: { shipInfo: { state: filterTagState() } },
+  play: async ({ canvasElement }) => {
+    await openPopover(canvasElement, 'Filter')
+    const config = () =>
+      getEnvironment().store.getState().config.plugin.ShipInfo
+    const expectedMask = (index: number) => {
+      const next = Array(upstreamShiptag.mapname.length + 1).fill(false)
+      next[index] = true
+      return next
+    }
+
+    const realIndex = 1
+    const realName = upstreamShiptag.mapname[realIndex]
+    const realCard = tagCards()[realIndex]
+    const realText = within(realCard).getByText(realName)
+    await expect(fireEvent.contextMenu(realText)).toBe(false)
+    await waitFor(() => {
+      expect(config().sallyAreaChecked).toEqual(expectedMask(realIndex + 1))
+    })
+    await waitForRows(canvasElement, ['Delta', 'Eta'])
+    await expect(
+      navButton('Sally Area').getAttribute('data-dirty'),
+    ).toBe('true')
+    await expectModifiedChip('Sally Area')
+
+    // Repeating the same exclusive click keeps the identical full mask.
+    await expect(fireEvent.contextMenu(realCard)).toBe(false)
+    await waitFor(() => {
+      expect(config().sallyAreaChecked).toEqual(expectedMask(realIndex + 1))
+    })
+
+    // Free has the same whole-card exclusive behavior.
+    const free = within(tagSection()).getByRole<HTMLInputElement>('checkbox', {
+      name: 'Free',
+    })
+    const freeCard = free.closest('label') as HTMLElement
+    await expect(fireEvent.contextMenu(freeCard)).toBe(false)
+    await waitFor(() => {
+      expect(config().sallyAreaChecked).toEqual(expectedMask(0))
+    })
+    await waitForRows(canvasElement, [
+      'Gamma',
+      'Alpha',
+      'Theta',
+      'Epsilon',
+    ])
+
+    // Left-click All and normal toggles keep their existing behavior.
+    await userEvent.click(
+      within(tagSection())
+        .getByRole('checkbox', { name: 'All' })
+        .closest('label') as HTMLElement,
+    )
+    await waitForRows(canvasElement, ALL_ROWS)
+    await expect(config().sallyAreaChecked).toEqual(
+      Array(upstreamShiptag.mapname.length + 1).fill(true),
+    )
+    await expect(
+      navButton('Sally Area').getAttribute('data-dirty'),
+    ).toBeNull()
+
+    await userEvent.click(freeCard)
+    await waitForRows(canvasElement, ['Zeta', 'Delta', 'Eta', 'Beta'])
+    await expect(
+      navButton('Sally Area').getAttribute('data-dirty'),
+    ).toBe('true')
+    await userEvent.click(freeCard)
+    await waitForRows(canvasElement, ALL_ROWS)
   },
 }
 
