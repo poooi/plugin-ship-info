@@ -39,6 +39,62 @@ describe('ship-info bookmark settings', () => {
     }
   })
 
+  it('migrates authentic legacy level and yes/no radio snapshots', () => {
+    const settings = readSettings({
+      daihatsuRadio: 2,
+      exSlotRadio: 1,
+      expeditionRadio: 2,
+      inFleetRadio: 1,
+      lockedRadio: 1,
+      lvRadio: 3,
+      modernizationRadio: 2,
+      remodelRadio: 1,
+      sparkleRadio: 2,
+    })
+
+    expect(settings.filters).toEqual({ maxLevel: 450, minLevel: 100 })
+    expect(settings.locked).toEqual([true, false])
+    expect(settings.expedition).toEqual([false, true])
+    expect(settings.inFleet).toEqual([true, false])
+    expect(settings.modernization).toEqual([false, true])
+    expect(settings.remodel).toEqual([true, false])
+    expect(settings.sparkle).toEqual([false, true])
+    expect(settings.exSlot).toEqual([true, false])
+    expect(settings.daihatsu).toEqual([false, true])
+  })
+
+  it('keeps the exact legacy level bounds', () => {
+    expect(readSettings({ lvRadio: 0 }).filters).toEqual({
+      maxLevel: 450,
+      minLevel: 0,
+    })
+    expect(readSettings({ lvRadio: 1 }).filters).toEqual({
+      maxLevel: 1,
+      minLevel: 1,
+    })
+    expect(readSettings({ lvRadio: 2 }).filters).toEqual({
+      maxLevel: 450,
+      minLevel: 2,
+    })
+    expect(readSettings({ lvRadio: 3 }).filters).toEqual({
+      maxLevel: 450,
+      minLevel: 100,
+    })
+  })
+
+  it('prefers saved current fields over legacy radios', () => {
+    const settings = readSettings({
+      filters: { maxLevel: 60, minLevel: 5 },
+      locked: [false, true],
+      lockedRadio: 1,
+      lvRadio: 3,
+    })
+
+    expect(settings.filters).toEqual({ maxLevel: 60, minLevel: 5 })
+    expect(settings.locked).toEqual([false, true])
+  })
+
+
   it('migrates legacy type bits and fills partial level bounds', () => {
     const settings = readSettings({
       filters: { minLevel: 80 },
@@ -82,6 +138,38 @@ describe('ship-info bookmark settings', () => {
     expect(config.columnVisibility).toEqual({ type: false })
     expect(config).not.toHaveProperty('shipTypeChecked')
   })
+
+  it('reconciles saved event tag masks with the current map count', () => {
+    let config: Record<string, any> = {
+      columnVisibility: { type: false },
+    }
+    window.config = {
+      get: <T,>(path: string, fallback: T) =>
+        path === 'plugin.ShipInfo' ? (config as T) : fallback,
+      set: (path, value) => {
+        expect(path).toBe('plugin.ShipInfo')
+        config = value
+      },
+    }
+
+    applySettings(
+      {
+        sallyAreaChecked: [true, false, true, false],
+      },
+      3,
+    )
+    expect(config.sallyAreaChecked).toEqual([true, true, true])
+    expect(config.columnVisibility).toEqual({ type: false })
+
+    applySettings(
+      {
+        sallyAreaChecked: [true, false, true],
+      },
+      3,
+    )
+    expect(config.sallyAreaChecked).toEqual([true, false, true])
+  })
+
 
   it('falls back to defaults for malformed records', () => {
     expect(readSettings(null).filters).toEqual({ maxLevel: 450, minLevel: 0 })

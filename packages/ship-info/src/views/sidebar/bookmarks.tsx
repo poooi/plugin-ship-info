@@ -8,6 +8,7 @@ import { extensionSelectorFactory } from 'views/utils/selectors'
 import { onDelete, onUpdate, PLUGIN_KEY } from '../redux'
 import {
   levelRangeFilterSelector,
+  sallyAreaFilterViewSelector,
   shipInfoConfigSelector,
   shipTypesFilterSelector,
 } from '../selectors'
@@ -45,6 +46,10 @@ export function Bookmarks() {
   const config = useSelector(shipInfoConfigSelector)
   const levelRange = useSelector(levelRangeFilterSelector)
   const shipTypes = useSelector(shipTypesFilterSelector)
+  const eventTagCount = useSelector(
+    (state: any) =>
+      sallyAreaFilterViewSelector(state, window.language).mapname.length + 1,
+  )
   const [name, setName] = useState('')
   const bookmarks = plugin?.bookmark ?? {}
   const trimmed = name.trim()
@@ -92,7 +97,10 @@ export function Bookmarks() {
           <ul>
             {saved.map(([key, settings]) => (
               <li key={key}>
-                <Button minimal onClick={() => applySettings(settings)}>
+                <Button
+                  minimal
+                  onClick={() => applySettings(settings, eventTagCount)}
+                >
                   {key}
                 </Button>
                 <Button
