@@ -242,6 +242,22 @@ export const SaveApplyOverwriteDelete: Story = {
     await waitFor(() => {
       expect(pluginConfig().filters).toEqual({ maxLevel: 450, minLevel: 80 })
     })
+
+    // Reopening the filter restores the saved level range into both controls.
+    await closePopover(canvasElement, 'Bookmarks')
+    await openPopover(canvasElement, 'Filter')
+    await expect(
+      screen.getByRole<HTMLInputElement>('textbox', {
+        name: 'Minimum level',
+      }),
+    ).toHaveValue('80')
+    const restoredMin = document.querySelector(
+      `.${Classes.SLIDER_HANDLE}`,
+    ) as HTMLElement
+    await expect(restoredMin.getAttribute('aria-valuenow')).toBe('80')
+    await closePopover(canvasElement, 'Filter')
+
+    await openBookmarks(canvasElement)
     await userEvent.click(screen.getByRole('button', { name: 'E1.clear' }))
     await waitFor(() => {
       expect(pluginConfig().filters).toEqual({ maxLevel: 450, minLevel: 0 })
@@ -260,6 +276,99 @@ export const SaveApplyOverwriteDelete: Story = {
     await expect(
       screen.getByRole('button', { name: 'Combat' }),
     ).toBeTruthy()
+  },
+}
+
+export const LegacyRadioSnapshot: Story = {
+  name: 'Legacy lvRadio and yes/no radios migrate with exact bounds',
+  parameters: {
+    shipInfo: {
+      state: tableState({
+        [PLUGIN_KEY]: {
+          bookmark: {
+            'v7.snapshot': {
+              exSlotRadio: 2,
+              lockedRadio: 2,
+              lvRadio: 3,
+              name: 'v7.snapshot',
+              sparkleRadio: 2,
+              sortName: 'id',
+              sortOrder: 1,
+            },
+          },
+          error: null,
+          ready: true,
+          ui: {},
+        },
+      }),
+    },
+  },
+  play: async ({ canvasElement }) => {
+    await openBookmarks(canvasElement)
+    await userEvent.click(screen.getByRole('button', { name: 'v7.snapshot' }))
+
+    await waitFor(() => {
+      expect(pluginConfig()).toMatchObject({
+        exSlot: [false, true],
+        filters: { maxLevel: 450, minLevel: 100 },
+        locked: [false, true],
+        sortName: 'id',
+        sortOrder: 1,
+        sparkle: [false, true],
+      })
+    })
+    await expect(pluginConfig()).not.toHaveProperty('lvRadio')
+    await waitForRows(canvasElement, ['Gamma', 'Zeta'])
+  },
+}
+
+export const SavedEventTagMask: Story = {
+  name: 'Saved event tag masks reconcile to the current map count',
+  parameters: {
+    shipInfo: {
+      state: tableState({
+        config: {
+          plugin: { ShipInfo: { columnVisibility: { type: false } } },
+          poi: { appearance: { avatar: false } },
+        },
+        [PLUGIN_KEY]: {
+          bookmark: {
+            'wide.tags': {
+              filters: { maxLevel: 450, minLevel: 0 },
+              name: 'wide.tags',
+              sallyAreaChecked: [true, false, true, false],
+              sortName: 'lv',
+              sortOrder: 0,
+            },
+          },
+          error: null,
+          ready: true,
+          ui: {},
+        },
+      }),
+    },
+  },
+  play: async ({ canvasElement }) => {
+    await openBookmarks(canvasElement)
+    await userEvent.click(screen.getByRole('button', { name: 'wide.tags' }))
+
+    await waitFor(() => {
+      expect(pluginConfig().sallyAreaChecked).toEqual([true, true, true])
+    })
+    await expect(pluginConfig().columnVisibility).toEqual({ type: false })
+    await waitForRows(canvasElement, ALL_ROWS)
+    await closePopover(canvasElement, 'Bookmarks')
+
+    await openPopover(canvasElement, 'Filter')
+    const areas = filterSection('Sally Area')
+    await expect(
+      within(areas).getByRole<HTMLInputElement>('checkbox', { name: 'E1' })
+        .checked,
+    ).toBe(true)
+    await expect(
+      within(areas).getByRole<HTMLInputElement>('checkbox', { name: 'E2' })
+        .checked,
+    ).toBe(true)
   },
 }
 

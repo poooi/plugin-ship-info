@@ -321,6 +321,72 @@ export const LevelSliderCommitsAndFilters: Story = {
   },
 }
 
+export const LevelSliderCommitsOnRelease: Story = {
+  name: 'Slider updates locally and commits config only on release',
+  play: async ({ canvasElement }) => {
+    await openPopover(canvasElement, 'Filter')
+    const environment = getEnvironment()
+    const minHandle = Array.from(
+      popoverContent().querySelectorAll<HTMLElement>(
+        `.${Classes.SLIDER_HANDLE}`,
+      ),
+    )[0]
+    const minText = screen.getByRole('textbox', { name: 'Minimum level' })
+    const callsBefore = environment.configCalls.length
+
+    minHandle.focus()
+    fireEvent.keyDown(minHandle, { key: 'ArrowRight' })
+    await waitFor(() => {
+      expect(Number(minHandle.getAttribute('aria-valuenow'))).toBe(1)
+    })
+    await expect(minText).toHaveValue('1')
+    await expect(environment.configCalls.length).toBe(callsBefore)
+    await expect(
+      environment.store.getState().config.plugin.ShipInfo.filters?.minLevel ??
+        0,
+    ).toBe(0)
+
+    fireEvent.keyUp(minHandle, { key: 'ArrowRight' })
+    await waitFor(() => {
+      expect(
+        environment.store.getState().config.plugin.ShipInfo.filters.minLevel,
+      ).toBe(1)
+    })
+    await expect(environment.configCalls.length).toBeGreaterThan(callsBefore)
+
+    // Dragging updates the local handles immediately but only writes when the
+    // pointer is released.
+    const track = popoverContent()
+      .querySelector(`.${Classes.SLIDER_TRACK}`)!
+      .getBoundingClientRect()
+    const handle = minHandle.getBoundingClientRect()
+    const clientY = handle.top + handle.height / 2
+    const targetX = track.left + track.width / 2
+    fireEvent.mouseDown(minHandle, {
+      clientX: handle.left + handle.width / 2,
+      clientY,
+    })
+    fireEvent.mouseMove(document, { clientX: targetX, clientY })
+    await waitFor(() => {
+      expect(Number(minHandle.getAttribute('aria-valuenow'))).toBeGreaterThan(
+        1,
+      )
+    })
+    await expect(
+      environment.store.getState().config.plugin.ShipInfo.filters.minLevel,
+    ).toBe(1)
+
+    fireEvent.mouseUp(document, { clientX: targetX, clientY })
+    await waitFor(() => {
+      const released = Number(minHandle.getAttribute('aria-valuenow'))
+      expect(released).not.toBe(1)
+      expect(
+        environment.store.getState().config.plugin.ShipInfo.filters.minLevel,
+      ).toBe(released)
+    })
+  },
+}
+
 export const LevelInputsPreserveCaret: Story = {
   play: async ({ canvasElement }) => {
     await openPopover(canvasElement, 'Filter')

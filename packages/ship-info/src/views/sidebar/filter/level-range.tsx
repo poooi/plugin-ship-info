@@ -1,6 +1,6 @@
 // tslint:disable jsx-no-lambda
-import { Classes, H5, RangeSlider } from '@blueprintjs/core'
-import React, { useState } from 'react'
+import { Classes, H5, NumberRange, RangeSlider } from '@blueprintjs/core'
+import React, { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
 import styled from 'styled-components'
@@ -66,15 +66,38 @@ function LevelInput({ label, value, min, max, onChange }: LevelInputProps) {
 
 export const LevelRange = () => {
   const levelRange = useSelector(levelRangeFilterSelector)
+  const [range, setRange] = useState<NumberRange>(levelRange)
+  const dragging = useRef(false)
 
   const { t } = useTranslation('poi-plugin-ship-info')
 
-  function handleRangeChange([minLevel, maxLevel]: [number, number]) {
+  useEffect(() => {
+    if (!dragging.current) setRange(levelRange)
+  }, [levelRange])
+
+  function commitRange([minLevel, maxLevel]: NumberRange) {
     window.config.set('plugin.ShipInfo.filters', {
       ...window.config.get('plugin.ShipInfo.filters', {}),
       maxLevel,
       minLevel,
     })
+  }
+
+  function handleSliderChange(next: NumberRange) {
+    // Keep the handles responsive while dragging; the table follows on release.
+    dragging.current = true
+    setRange(next)
+  }
+
+  function handleSliderRelease(next: NumberRange) {
+    dragging.current = false
+    setRange(next)
+    commitRange(next)
+  }
+
+  function handleInputChange(next: NumberRange) {
+    setRange(next)
+    commitRange(next)
   }
 
   return (
@@ -83,25 +106,26 @@ export const LevelRange = () => {
       <LevelControls>
         <LevelInput
           label={t('Minimum level')}
-          value={levelRange[0]}
+          value={range[0]}
           min={0}
-          max={levelRange[1]}
-          onChange={(level) => handleRangeChange([level, levelRange[1]])}
+          max={range[1]}
+          onChange={(level) => handleInputChange([level, range[1]])}
         />
         <RangeSlider
           min={0}
           max={450}
           stepSize={1}
           labelStepSize={90}
-          value={levelRange}
-          onChange={handleRangeChange}
+          value={range}
+          onChange={handleSliderChange}
+          onRelease={handleSliderRelease}
         />
         <LevelInput
           label={t('Maximum level')}
-          value={levelRange[1]}
-          min={levelRange[0]}
+          value={range[1]}
+          min={range[0]}
           max={450}
-          onChange={(level) => handleRangeChange([levelRange[0], level])}
+          onChange={(level) => handleInputChange([range[0], level])}
         />
       </LevelControls>
     </section>
