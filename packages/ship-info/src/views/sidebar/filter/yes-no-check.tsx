@@ -1,4 +1,4 @@
-import { darken, getContrast, lighten } from 'polished'
+import { Checkbox } from '@blueprintjs/core'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
@@ -15,31 +15,6 @@ import {
   remodelFilterSelector,
 } from '../../selectors'
 
-const accentColor = (theme: {
-  DARK_GRAY3: string
-  LIGHT_GRAY5: string
-  ORANGE3: string
-  ORANGE5: string
-  variant: string
-}) => {
-  const surface =
-    theme.variant === 'light' ? theme.LIGHT_GRAY5 : theme.DARK_GRAY3
-  const base =
-    theme.variant === 'light'
-      ? theme.ORANGE5
-      : lighten(0.15, theme.ORANGE3)
-  const adjust = (color: string) =>
-    theme.variant === 'light' ? darken(0.06, color) : lighten(0.06, color)
-  let color = base
-  for (let step = 0; step < 8 && getContrast(color, surface) < 4.5; step += 1) {
-    color = adjust(color)
-  }
-  return color
-}
-
-const neutralColor = (theme: { DARK_GRAY1: string; LIGHT_GRAY5: string; variant: string }) =>
-  theme.variant === 'light' ? theme.DARK_GRAY1 : theme.LIGHT_GRAY5
-
 const YesNoContainer = styled.div<{ $restricted: boolean }>`
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -49,8 +24,6 @@ const YesNoContainer = styled.div<{ $restricted: boolean }>`
   h5 {
     margin: 0;
     font: inherit;
-    color: ${({ $restricted, theme }) =>
-      $restricted ? accentColor(theme) : neutralColor(theme)};
     font-weight: ${({ $restricted }) => ($restricted ? 600 : 400)};
   }
 `
@@ -62,34 +35,20 @@ const CardRow = styled.div`
   gap: 4px;
 `
 
-const CheckOption = styled.label<{ $restricted: boolean }>`
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  min-height: 24px;
-  padding: 1px 4px;
-  border-radius: 3px;
-  color: ${({ $restricted, theme }) =>
-    $restricted ? accentColor(theme) : neutralColor(theme)};
-  cursor: pointer;
-
-  input {
-    width: 14px;
-    height: 14px;
+const CheckOption = styled(Checkbox)`
+  && {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
     margin: 0;
-    accent-color: ${({ $restricted, theme }) =>
-      $restricted ? accentColor(theme) : theme.GRAY3};
+    padding: 1px 4px;
+    border-radius: 3px;
     cursor: pointer;
   }
 
-  &:hover {
-    background: ${({ theme }) =>
-      theme.variant === 'light' ? theme.LIGHT_GRAY3 : theme.DARK_GRAY4};
-  }
-
-  &:focus-within {
-    outline: 2px solid ${({ theme }) => accentColor(theme)};
-    outline-offset: 1px;
+  && .bp6-control-indicator {
+    flex: 0 0 16px;
+    margin: 0 4px 0 0;
   }
 `
 
@@ -125,14 +84,12 @@ export const YesNoCheck: React.FC<IProps> = ({ label, configKey }) => {
       <h5>{t(label)}</h5>
       <CardRow>
         {['Yes', 'No'].map((option, index) => (
-          <CheckOption key={option} $restricted={restricted}>
-            <input
-              type="checkbox"
-              checked={checked[index]}
-              onChange={handleToggle(index)}
-            />
-            <span>{t(option)}</span>
-          </CheckOption>
+          <CheckOption
+            key={option}
+            checked={checked[index]}
+            label={t(option)}
+            onChange={handleToggle(index)}
+          />
         ))}
       </CardRow>
     </YesNoContainer>

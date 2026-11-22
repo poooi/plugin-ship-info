@@ -69,7 +69,7 @@ const activeSection = async (label: string): Promise<void> => {
 }
 
 const modifiedChip = (label: string): HTMLElement | null =>
-  within(navButton(label)).queryByText('Modified')
+  navButton(label).querySelector('.filter-nav-modified')
 
 const expectModifiedChip = async (label: string): Promise<void> => {
   await waitFor(() => {
@@ -90,19 +90,41 @@ const expectNoModifiedChip = (label: string): void => {
 
 const expectActiveStyle = async (label: string): Promise<void> => {
   await waitFor(() => {
-    const style = getComputedStyle(navButton(label))
+    const button = navButton(label)
+    const style = getComputedStyle(button)
+    expect(button.className).toContain('bp6-intent-primary')
     expect(style.backgroundColor).not.toBe('rgba(0, 0, 0, 0)')
-    expect(parseInt(style.fontWeight, 10)).toBeGreaterThanOrEqual(600)
-    expect(style.borderRadius).not.toBe('0px')
-    expect(style.boxShadow).not.toBe('none')
     expect(getContrast(style.backgroundColor, style.color)).toBeGreaterThanOrEqual(
       4.5,
     )
   })
 }
 
+const expectNavLabelCentered = async (label: string): Promise<void> => {
+  await waitFor(() => {
+    const button = navButton(label)
+    const name = button.querySelector('.filter-nav-name') as HTMLElement
+    const chip = button.querySelector('.filter-nav-modified') as HTMLElement
+    expect(name).toBeTruthy()
+    expect(chip).toBeTruthy()
+    const center = (element: HTMLElement) => {
+      const rect = element.getBoundingClientRect()
+      return rect.top + rect.height / 2
+    }
+    expect(Math.abs(center(name) - center(chip))).toBeLessThanOrEqual(1)
+  })
+}
+
 const columnCount = (element: HTMLElement): number =>
   getComputedStyle(element).gridTemplateColumns.split(' ').filter(Boolean).length
+
+const rgbColor = (hex: string): string => {
+  const h = hex.replace('#', '')
+  return `rgb(${parseInt(h.slice(0, 2), 16)}, ${parseInt(
+    h.slice(2, 4),
+    16,
+  )}, ${parseInt(h.slice(4, 6), 16)})`
+}
 
 async function expectToolbarFits(): Promise<HTMLElement> {
   const navigation = nav()
@@ -131,6 +153,14 @@ const tagCards = (): HTMLElement[] =>
         .getByRole('checkbox', { name })
         .closest('label') as HTMLElement,
   )
+
+const tagInput = (name: string): HTMLInputElement =>
+  within(tagSection()).getByRole<HTMLInputElement>('checkbox', { name })
+
+const tagIndicator = (name: string): HTMLElement =>
+  tagCards()[tagNames.indexOf(name)].querySelector(
+    '.bp6-control-indicator',
+  ) as HTMLElement
 
 async function expectAllRealTags(): Promise<void> {
   await waitFor(() => {
@@ -347,20 +377,43 @@ export const ModifiedMarkersAndReset: Story = {
     })
     await expect(lockYes.checked).toBe(false)
     await expect(lockNo.checked).toBe(true)
-    await expect(getComputedStyle(lockYes).opacity).toBe('1')
-    await expect(getComputedStyle(lockYes).width).toBe('14px')
+    const lockYesIndicator = (lockYes.closest('label') as HTMLElement).querySelector(
+      '.bp6-control-indicator',
+    ) as HTMLElement
+    await expect(lockYesIndicator).toBeTruthy()
+    await expect(lockYesIndicator.getBoundingClientRect().width).toBeGreaterThan(
+      0,
+    )
+    await expect(
+      getComputedStyle(lockYesIndicator).marginInlineEnd,
+    ).toBe('4px')
     await expect(getComputedStyle(lockHeading).fontWeight).toBe('600')
     const darkSurface = getComputedStyle(nav().parentElement as HTMLElement)
       .backgroundColor
     await expect(
       getContrast(darkSurface, getComputedStyle(lockHeading).color),
     ).toBeGreaterThanOrEqual(4.5)
+    const lockHoverTarget = lockNo.closest('label') as HTMLElement
+    await userEvent.hover(lockHoverTarget)
+    await waitFor(() => {
+      expect(
+        getContrast(darkSurface, getComputedStyle(lockHeading).color),
+      ).toBeGreaterThanOrEqual(4.5)
+      expect(
+        getContrast(
+          darkSurface,
+          getComputedStyle(lockHoverTarget).color,
+        ),
+      ).toBeGreaterThanOrEqual(4.5)
+    })
+    await userEvent.unhover(lockHoverTarget)
 
     // The active dirty section shows both the filled active state and its chip.
     await userEvent.click(navButton('Level'))
     await activeSection('Level')
     await expectActiveStyle('Level')
     await expectModifiedChip('Level')
+    await expectNavLabelCentered('Level')
     await expect(
       getComputedStyle(modifiedChip('Level') as HTMLElement).backgroundColor,
     ).not.toBe(getComputedStyle(navButton('Level')).backgroundColor)
@@ -446,6 +499,8 @@ export const NarrowLightDirtyStates: Story = {
     for (const label of ['Level', 'Status', 'Value Type']) {
       await expectModifiedChip(label)
     }
+    await expectNavLabelCentered('Value Type')
+    await expectNavLabelCentered('Value Type')
     const lightLock = within(filterSection('Status')).getByRole('heading', {
       name: 'Lock',
     })
@@ -454,11 +509,31 @@ export const NarrowLightDirtyStates: Story = {
     await expect(
       getContrast(lightSurface, getComputedStyle(lightLock).color),
     ).toBeGreaterThanOrEqual(4.5)
+    const lightLockRow = lightLock.parentElement as HTMLElement
+    const lightLockNo = within(lightLockRow).getByRole<HTMLInputElement>(
+      'checkbox',
+      { name: 'No' },
+    )
+    const lightLockHoverTarget = lightLockNo.closest('label') as HTMLElement
+    await userEvent.hover(lightLockHoverTarget)
+    await waitFor(() => {
+      expect(
+        getContrast(lightSurface, getComputedStyle(lightLock).color),
+      ).toBeGreaterThanOrEqual(4.5)
+      expect(
+        getContrast(
+          lightSurface,
+          getComputedStyle(lightLockHoverTarget).color,
+        ),
+      ).toBeGreaterThanOrEqual(4.5)
+    })
+    await userEvent.unhover(lightLockHoverTarget)
 
     await userEvent.click(navButton('Level'))
     await activeSection('Level')
     await expectActiveStyle('Level')
     await expectModifiedChip('Level')
+    await expectNavLabelCentered('Level')
     await expect(
       getComputedStyle(modifiedChip('Level') as HTMLElement).backgroundColor,
     ).not.toBe(getComputedStyle(navButton('Level')).backgroundColor)
@@ -499,15 +574,19 @@ export const TagContrastLight: Story = {
     await openPopover(canvasElement, 'Filter')
     await expectAllRealTags()
     await waitFor(() => {
-      for (const card of tagCards()) {
+      for (const name of tagNames) {
+        const index = tagNames.indexOf(name)
+        const card = tagCards()[index]
         const style = getComputedStyle(card)
-        const cue = card.querySelector('[data-tag-check]') as HTMLElement
-        expect(style.backgroundColor).not.toBe('rgba(0, 0, 0, 0)')
+        const indicator = tagIndicator(name)
+        expect(tagInput(name).checked).toBe(true)
+        expect(style.backgroundColor).toBe(rgbColor(upstreamShiptag.color[index]))
+        expect(style.borderColor).toBe(rgbColor(upstreamShiptag.color[index]))
         expect(getContrast(style.backgroundColor, style.color)).toBeGreaterThanOrEqual(
           4.5,
         )
-        expect(cue.textContent).toBe('✓')
-        expect(cue.getBoundingClientRect().width).toBeGreaterThanOrEqual(14)
+        expect(indicator).toBeTruthy()
+        expect(indicator.offsetWidth).toBeGreaterThan(0)
       }
     })
 
@@ -525,6 +604,32 @@ export const TagContrastLight: Story = {
         .backgroundColor
       expect(getComputedStyle(label).cursor).toBe('pointer')
       expect(getContrast(surface, style.color)).toBeGreaterThanOrEqual(4.5)
+      expect(getContrast(surface, style.borderColor)).toBeGreaterThanOrEqual(3)
+    })
+  },
+}
+
+export const TagContrastDark: Story = {
+  name: 'Pale and saturated tag foregrounds meet 4.5:1 in dark theme',
+  parameters: {
+    shipInfo: {
+      theme: 'dark',
+      state: filterTagState(),
+    },
+  },
+  play: async ({ canvasElement }) => {
+    await openPopover(canvasElement, 'Filter')
+    await expectAllRealTags()
+    await waitFor(() => {
+      for (const name of tagNames) {
+        const index = tagNames.indexOf(name)
+        const style = getComputedStyle(tagCards()[index])
+        expect(style.backgroundColor).toBe(rgbColor(upstreamShiptag.color[index]))
+        expect(style.borderColor).toBe(rgbColor(upstreamShiptag.color[index]))
+        expect(getContrast(style.backgroundColor, style.color)).toBeGreaterThanOrEqual(
+          4.5,
+        )
+      }
     })
   },
 }
@@ -587,27 +692,30 @@ export const NarrowLayout: Story = {
     })
     await expectAllRealTags()
 
-    // Selecting the last real tag also marks the Sally Area section dirty.
+    // Selecting the last real tag via its native checkbox keyboard path also
+    // marks the Sally Area section dirty.
     const lastTag = upstreamShiptag.mapname[upstreamShiptag.mapname.length - 1]
-    const lastCard = within(tagSection())
-      .getByRole('checkbox', { name: lastTag })
-      .closest('label') as HTMLElement
-    const lastCue = lastCard.querySelector(
-      '[data-tag-check]',
-    ) as HTMLElement
+    const lastInput = within(tagSection()).getByRole<HTMLInputElement>(
+      'checkbox',
+      { name: lastTag },
+    )
+    const lastCard = lastInput.closest('label') as HTMLElement
+    const lastIndicator = tagIndicator(lastTag)
     const lastWidth = lastCard.offsetWidth
-    const cueWidth = lastCue.offsetWidth
-    await expect(lastCue.textContent).toBe('✓')
-    await userEvent.click(lastCard)
+    const indicatorWidth = lastIndicator.offsetWidth
+    await expect(lastInput.checked).toBe(true)
+    await expect(lastIndicator.offsetWidth).toBeGreaterThan(0)
+    lastInput.focus()
+    await userEvent.keyboard(' ')
     await waitFor(() => {
       const checked =
         getEnvironment().store.getState().config.plugin.ShipInfo
           .sallyAreaChecked
       expect(checked[upstreamShiptag.mapname.length]).toBe(false)
     })
-    await expect(lastCue.textContent).toBe('')
+    await expect(lastInput.checked).toBe(false)
     await expect(lastCard.offsetWidth).toBe(lastWidth)
-    await expect(lastCue.offsetWidth).toBe(cueWidth)
+    await expect(lastIndicator.offsetWidth).toBe(indicatorWidth)
     await expect(
       navButton('Sally Area').getAttribute('data-dirty'),
     ).toBe('true')

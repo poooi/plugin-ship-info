@@ -1,5 +1,4 @@
-import { Button, H5 } from '@blueprintjs/core'
-import { getContrast } from 'polished'
+import { Button, H5, Tag } from '@blueprintjs/core'
 import React, { useRef, useState } from 'react'
 import FA from 'react-fontawesome'
 import { useTranslation } from 'react-i18next'
@@ -40,15 +39,6 @@ const sectionNames = [
   'Value Type',
 ] as const
 
-const accessibleText = (
-  background: string,
-  theme: { DARK_GRAY1: string; LIGHT_GRAY5: string },
-) =>
-  getContrast(background, theme.DARK_GRAY1) >=
-  getContrast(background, theme.LIGHT_GRAY5)
-    ? theme.DARK_GRAY1
-    : theme.LIGHT_GRAY5
-
 const Panel = styled.div`
   width: min(640px, 85vw);
   max-height: 80vh;
@@ -66,63 +56,38 @@ const Navigation = styled.nav`
   gap: 4px 6px;
   padding: 4px 8px;
   border-bottom: 1px solid ${(p) => p.theme.GRAY3};
-  --nav-text: ${({ theme }) =>
-    theme.variant === 'light' ? theme.DARK_GRAY1 : theme.LIGHT_GRAY5};
-  color: var(--nav-text);
 
   button {
     flex: none;
     white-space: nowrap;
-    border-radius: 4px;
-    color: var(--nav-text);
   }
 
-  button[aria-current='location'] {
-    background: ${(p) => p.theme.BLUE3} !important;
-    color: ${({ theme }) => accessibleText(theme.BLUE3, theme)} !important;
-    font-weight: 600;
-    box-shadow: inset 0 0 0 1px ${(p) => p.theme.BLUE1},
-      0 1px 2px rgba(0, 0, 0, 0.25) !important;
+  .filter-nav-label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    line-height: 1;
   }
 
-  button[aria-current='location']:hover {
-    background: ${(p) => p.theme.BLUE2} !important;
+  .filter-nav-name {
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
   }
 
   .filter-nav-modified {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     min-height: 16px;
-    margin-inline-start: 4px;
     padding: 0 4px;
-    border-radius: 8px;
-    background: ${({ theme }) =>
-      theme.variant === 'light' ? theme.ORANGE5 : theme.ORANGE3};
-    color: ${({ theme }) =>
-      accessibleText(
-        theme.variant === 'light' ? theme.ORANGE5 : theme.ORANGE3,
-        theme,
-      )} !important;
     font-size: 10px;
-    font-weight: 600;
-    line-height: 16px;
+    line-height: 1;
   }
 
   button.filter-reset-button {
     margin-inline-start: auto;
-    padding-inline: 8px;
-    border: 1px solid ${(p) => p.theme.GRAY3};
-    border-radius: 4px;
-    background: transparent !important;
-    color: var(--nav-text) !important;
-    font-weight: 500;
-  }
-
-  button.filter-reset-button:hover {
-    background: ${({ theme }) =>
-      theme.variant === 'light'
-        ? theme.LIGHT_GRAY3
-        : theme.DARK_GRAY4} !important;
   }
 `
 
@@ -213,9 +178,10 @@ function FilterPanel() {
       <Navigation aria-label={t('Filter sections')}>
         {sectionNames.map((label, index) => (
           <Button
-            minimal
+            minimal={active !== index}
             small
             key={label}
+            intent={active === index ? 'primary' : undefined}
             data-dirty={dirty[index] ? 'true' : undefined}
             aria-controls={`filter-section-${index}`}
             aria-current={active === index ? 'location' : undefined}
@@ -224,17 +190,22 @@ function FilterPanel() {
             }
             onClick={() => jump(index)}
           >
-            {t(label)}
-            {dirty[index] && (
-              <span className="filter-nav-modified" aria-hidden="true">
-                {t('Modified')}
-              </span>
-            )}
+            <span className="filter-nav-label">
+              <span className="filter-nav-name">{t(label)}</span>
+              {dirty[index] && (
+                <Tag
+                  className="filter-nav-modified"
+                  round
+                  aria-hidden="true"
+                >
+                  {t('Modified')}
+                </Tag>
+              )}
+            </span>
           </Button>
         ))}
         <Button
           small
-          minimal
           className="filter-reset-button"
           title={t('Reset filters and sorting')}
           onClick={reset}
