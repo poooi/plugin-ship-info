@@ -192,7 +192,9 @@ const pinnedConfig = () => ({
   config: {
     plugin: {
       ShipInfo: {
+        columnOrder: ['rowIndex', 'name', 'id'],
         columnPinning: { left: ['rowIndex', 'name'], right: ['lock'] },
+        columnVisibility: { type: false },
       },
     },
     poi: { appearance: { avatar: false } },

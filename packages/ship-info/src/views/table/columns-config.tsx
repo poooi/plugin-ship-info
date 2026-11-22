@@ -21,11 +21,23 @@ const katakanaToHiragana = (str: string) => {
 // Create column helper
 const columnHelper = createColumnHelper<ShipInfoTableFeatures, TableRow>()
 
-// Export column metadata for use in column configuration
-export const getColumnTitle = (columnId: string): string => {
-  const column = columns.find((col) => col.id === columnId)
-  return (column?.meta as any)?.title || columnId
+export interface IShipInfoColumnMeta {
+  title: string
+  width: number
+  center?: boolean
+  sortable?: boolean
 }
+
+export const getColumnMeta = (
+  columnId: string,
+): IShipInfoColumnMeta | undefined =>
+  columns.find((col) => col.id === columnId)?.meta as
+    | IShipInfoColumnMeta
+    | undefined
+
+// Export column metadata for use in column configuration
+export const getColumnTitle = (columnId: string): string =>
+  getColumnMeta(columnId)?.title || columnId
 
 export const columns: ColumnDef<ShipInfoTableFeatures, TableRow, any>[] = [
   columnHelper.accessor((row) => row.shipData.ship.api_id, {
