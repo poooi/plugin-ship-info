@@ -23,3 +23,7 @@ poi-plugin-ship-info@9.0.0-beta.0:
     - ship-info-host-compatibility
     - ship-info-planner-extraction
     - ship-info-render-contracts
+poi-plugin-ship-info@9.0.1:
+  dir: packages/ship-info
+  intents:
+    - level-filter-alignment

@@ -1,5 +1,11 @@
 # poi-plugin-ship-info
 
+## 9.0.1
+
+### Patch Changes
+
+- Align the minimum and maximum level fields with the opposite ends of the slider track.
+
 ## 9.0.0
 
 ### Major Changes
