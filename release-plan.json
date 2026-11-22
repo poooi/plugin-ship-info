@@ -1,15 +1,39 @@
 {
   "base": {
-    "commit": "a75b13cfdd7d6dbea336ddb6de826add3c40d087",
+    "commit": "5708a932f7fdb5a8ef33f9f465cb6d3471b556fe",
     "packages": {
-      "poi-plugin-ship-info": "8.1.1"
+      "poi-plugin-ship-info": "9.0.0-beta.0"
     }
   },
-  "channel": "beta",
+  "channel": "main",
   "files": [
     {
       "path": ".changeset/ledger.yaml",
       "status": "M"
+    },
+    {
+      "path": ".changeset/plugin-packaging-and-persistence.md",
+      "status": "D"
+    },
+    {
+      "path": ".changeset/shared-package-and-ui-cleanup.md",
+      "status": "D"
+    },
+    {
+      "path": ".changeset/ship-info-host-compatibility.md",
+      "status": "D"
+    },
+    {
+      "path": ".changeset/ship-info-level-filter-inputs.md",
+      "status": "D"
+    },
+    {
+      "path": ".changeset/ship-info-planner-extraction.md",
+      "status": "D"
+    },
+    {
+      "path": ".changeset/ship-info-render-contracts.md",
+      "status": "D"
     },
     {
       "path": "packages/ship-info/CHANGELOG.md",
@@ -27,11 +51,11 @@
   "releases": [
     {
       "dir": "packages/ship-info",
-      "from": "8.1.1",
+      "from": "9.0.0-beta.0",
       "id": "ship-info",
       "name": "poi-plugin-ship-info",
-      "tag": "poi-plugin-ship-info@9.0.0-beta.0",
-      "to": "9.0.0-beta.0"
+      "tag": "poi-plugin-ship-info@9.0.0",
+      "to": "9.0.0"
     }
   ],
   "schemaVersion": 2,
