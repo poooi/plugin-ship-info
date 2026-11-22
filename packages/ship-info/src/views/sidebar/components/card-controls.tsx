@@ -192,6 +192,10 @@ const hexToRgba = (hex: string, alpha: number): string => {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }
 
+const TagContextMenu = styled.span`
+  display: contents;
+`
+
 const ColoredCheckbox = styled(Checkbox)<{
   $cardColor?: string
   $checked?: boolean
@@ -270,15 +274,16 @@ export const CustomColoredCheckboxCard: React.FC<ColoredCheckboxCardProps> = ({
   onContextMenu,
 }) => {
   return (
-    <ColoredCheckbox
-      $checked={checked}
-      $compact={compact}
-      $cardColor={cardColor}
-      checked={checked}
-      labelElement={children}
-      onChange={onChange}
-      onContextMenu={onContextMenu}
-      value={value}
-    />
+    <TagContextMenu onContextMenu={onContextMenu}>
+      <ColoredCheckbox
+        $checked={checked}
+        $compact={compact}
+        $cardColor={cardColor}
+        checked={checked}
+        labelElement={children}
+        onChange={onChange}
+        value={value}
+      />
+    </TagContextMenu>
   )
 }
