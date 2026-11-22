@@ -1,5 +1,6 @@
 import { Classes } from '@blueprintjs/core'
 import type { Meta, StoryObj } from '@storybook/react-vite'
+import { getContrast } from 'polished'
 import React from 'react'
 import { expect, fireEvent, screen, userEvent, waitFor, within } from 'storybook/test'
 
@@ -13,6 +14,11 @@ import {
   popoverContent,
   renderedNames,
 } from './table-support'
+import {
+  filterTagState,
+  upstreamShipTypes,
+  upstreamShiptag,
+} from './filter-tag-fixtures'
 
 const FilterTable: React.FC = () => (
   <>
@@ -64,6 +70,43 @@ const activeSection = async (label: string): Promise<void> => {
 
 const columnCount = (element: HTMLElement): number =>
   getComputedStyle(element).gridTemplateColumns.split(' ').filter(Boolean).length
+
+const tagNames = upstreamShiptag.mapname
+const tagSection = (): HTMLElement => filterSection('Sally Area')
+
+const tagCards = (): HTMLElement[] =>
+  tagNames.map(
+    (name) =>
+      within(tagSection())
+        .getByRole('checkbox', { name })
+        .closest('label') as HTMLElement,
+  )
+
+async function expectAllRealTags(): Promise<void> {
+  await waitFor(() => {
+    const section = tagSection()
+    const sectionRect = section.getBoundingClientRect()
+    const cards = tagCards()
+    expect(cards).toHaveLength(13)
+    for (const card of cards) {
+      const rect = card.getBoundingClientRect()
+      expect(rect.left).toBeGreaterThanOrEqual(sectionRect.left - 1)
+      expect(rect.right).toBeLessThanOrEqual(sectionRect.right + 1)
+      expect(rect.width).toBeGreaterThan(0)
+    }
+    expect(section.scrollWidth).toBeLessThanOrEqual(section.clientWidth + 1)
+    expect(
+      new Set(cards.map((card) => Math.round(card.getBoundingClientRect().top)))
+        .size,
+    ).toBeGreaterThan(1)
+
+    // The real master list also makes the top group representative: all 22
+    // individual types are present, not only the eight fixture abbreviations.
+    expect(Object.keys(upstreamShipTypes)).toHaveLength(22)
+    const individual = filterSection('Ship types').children[2] as HTMLElement
+    expect(within(individual).getAllByRole('checkbox')).toHaveLength(22)
+  })
+}
 
 async function waitForRows(
   root: HTMLElement,
@@ -155,6 +198,48 @@ export const JumpsAndStickyHeadings: Story = {
   },
 }
 
+export const ManualScrollAtBottom: Story = {
+  name: 'Manual bottom scroll activates Value Type without breaking clamped jumps',
+  parameters: {
+    shipInfo: {
+      dimensions: { height: 420, width: 900 },
+      state: tableState(),
+    },
+  },
+  play: async ({ canvasElement }) => {
+    await openPopover(canvasElement, 'Filter')
+    const panel = nav().parentElement as HTMLElement
+    const page = sections()
+
+    // No overflow: a scroll event must not jump the active section to the end.
+    panel.style.maxHeight = 'none'
+    page.style.flex = '0 0 auto'
+    page.style.height = 'auto'
+    await waitFor(() => {
+      expect(page.scrollHeight).toBeLessThanOrEqual(page.clientHeight + 1)
+    })
+    fireEvent.scroll(page)
+    await activeSection('Ship types')
+
+    // With overflow, a manual bottom scroll activates the final short section.
+    page.style.flex = '0 0 150px'
+    page.style.height = '150px'
+    await waitFor(() => {
+      expect(page.scrollHeight).toBeGreaterThan(page.clientHeight + 1)
+    })
+    page.scrollTop = 0
+    fireEvent.scroll(page)
+    await activeSection('Ship types')
+    page.scrollTop = page.scrollHeight - page.clientHeight
+    fireEvent.scroll(page)
+    await activeSection('Value Type')
+
+    // A deliberate jump that clamps at the bottom keeps its clicked section.
+    await userEvent.click(navButton('Status'))
+    await activeSection('Status')
+  },
+}
+
 export const ModifiedMarkersAndReset: Story = {
   name: 'Dirty dots mark each changed section and reset restores defaults',
   parameters: { shipInfo: { state: seededResetState() } },
@@ -206,16 +291,40 @@ export const ModifiedMarkersAndReset: Story = {
   },
 }
 
+export const TagContrastLight: Story = {
+  name: 'Pale and saturated tag foregrounds meet 4.5:1 in light theme',
+  parameters: {
+    shipInfo: {
+      theme: 'light',
+      state: filterTagState(),
+    },
+  },
+  play: async ({ canvasElement }) => {
+    await openPopover(canvasElement, 'Filter')
+    await expectAllRealTags()
+    await waitFor(() => {
+      for (const card of tagCards()) {
+        const style = getComputedStyle(card)
+        expect(style.backgroundColor).not.toBe('rgba(0, 0, 0, 0)')
+        expect(getContrast(style.backgroundColor, style.color)).toBeGreaterThanOrEqual(
+          4.5,
+        )
+      }
+    })
+  },
+}
+
 export const WideLayout: Story = {
   name: 'Wide panel uses two status columns and aligned level controls',
   parameters: {
     shipInfo: {
       dimensions: { height: 640, width: 900 },
-      state: tableState(),
+      state: filterTagState(),
     },
   },
   play: async ({ canvasElement }) => {
     await openPopover(canvasElement, 'Filter')
+    await expectAllRealTags()
     await expect(columnCount(statusGrid())).toBe(2)
     await expect(
       getComputedStyle(
@@ -249,7 +358,7 @@ export const NarrowLayout: Story = {
   parameters: {
     shipInfo: {
       dimensions: { height: 640, width: 420 },
-      state: tableState(),
+      state: filterTagState(),
     },
   },
   play: async ({ canvasElement }) => {
@@ -261,6 +370,28 @@ export const NarrowLayout: Story = {
     await waitFor(() => {
       expect(panel.getBoundingClientRect().width).toBeLessThan(400)
     })
+    await expectAllRealTags()
+
+    // Selecting the last real tag also marks the Sally Area section dirty.
+    const lastTag = upstreamShiptag.mapname[upstreamShiptag.mapname.length - 1]
+    await userEvent.click(
+      within(tagSection())
+        .getByRole('checkbox', { name: lastTag })
+        .closest('label') as HTMLElement,
+    )
+    await waitFor(() => {
+      const checked =
+        getEnvironment().store.getState().config.plugin.ShipInfo
+          .sallyAreaChecked
+      expect(checked[upstreamShiptag.mapname.length]).toBe(false)
+    })
+    await expect(
+      navButton('Sally Area').getAttribute('data-dirty'),
+    ).toBe('true')
+    await expect(
+      navButton('Sally Area').getAttribute('aria-label'),
+    ).toContain('Modified')
+    await expect(navButton('Sally Area').textContent).toContain('•')
 
     // Navigation wraps instead of clipping: every label and the reset control
     // stay fully inside the panel.

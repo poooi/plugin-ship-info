@@ -189,8 +189,16 @@ function FilterPanel() {
             return
           }
           pendingJump.current = null
-          const top = currentTarget.getBoundingClientRect().top
           const sections = Array.from(currentTarget.children)
+          const { clientHeight, scrollHeight, scrollTop } = currentTarget
+          if (
+            scrollHeight > clientHeight + 1 &&
+            scrollTop + clientHeight >= scrollHeight - 1
+          ) {
+            setActive(sections.length - 1)
+            return
+          }
+          const top = currentTarget.getBoundingClientRect().top
           const index =
             sections.filter(
               (section) => section.getBoundingClientRect().top <= top + 2,
