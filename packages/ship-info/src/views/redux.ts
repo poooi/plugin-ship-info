@@ -32,7 +32,9 @@ const bookmarkReducer = (state = bookmarkInitState, action: AnyAction) => {
         },
       }
     case '@@poi-plugin-ship-info@delete': {
-      return omit(state, bookmark)
+      return Object.fromEntries(
+        Object.entries(state).filter(([key]) => key !== bookmark),
+      )
     }
     case '@@poi-plugin-ship-info@init': {
       return {

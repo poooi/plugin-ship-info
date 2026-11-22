@@ -3,6 +3,7 @@ import React from 'react'
 import styled from 'styled-components'
 
 import { Columns } from './columns'
+import { Bookmarks } from './bookmarks'
 import { Export } from './export'
 import { Filter } from './filter'
 import { PlannerNotice } from './planner-notice'
@@ -26,6 +27,7 @@ export const Sidebar = () => (
   <Wrapper>
     <Columns />
     <Filter />
+    <Bookmarks />
     <Export />
     <PlannerNotice />
   </Wrapper>
