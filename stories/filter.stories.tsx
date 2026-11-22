@@ -328,6 +328,17 @@ export const LevelInputsPreserveCaret: Story = {
     })
     const max = screen.getByRole('textbox', { name: 'Maximum level' })
 
+    const track = popoverContent().querySelector(`.${Classes.SLIDER_TRACK}`)!
+    const rail = track.getBoundingClientRect()
+    const left = min.getBoundingClientRect()
+    const right = max.getBoundingClientRect()
+    await expect(left.right).toBeLessThan(rail.left)
+    await expect(rail.right).toBeLessThan(right.left)
+    for (const field of [left, right]) {
+      const offset = field.top + field.height / 2 - (rail.top + rail.height / 2)
+      await expect(Math.abs(offset)).toBeLessThanOrEqual(1)
+    }
+
     await userEvent.clear(min)
     await userEvent.keyboard('05{ArrowLeft}')
     await waitForRows(canvasElement, rowsForMinLevel(5))

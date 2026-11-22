@@ -4,8 +4,28 @@ import { debounce } from 'lodash'
 import React, { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
+import styled from 'styled-components'
 import { levelRangeFilterSelector } from '../../selectors'
-import { Checkbox } from '@poi-plugins/shared/ui/checkbox'
+
+const LevelControls = styled.div`
+  display: grid;
+  grid-template-columns: 4em minmax(0, 1fr) 4em;
+  column-gap: 1.5em;
+  align-items: start;
+
+  > input {
+    width: 100%;
+    height: 30px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+
+  > .${Classes.SLIDER} {
+    min-width: 0;
+    /* Blueprint's track is centered 8px below the top; labels sit beneath it. */
+    margin-top: 7px;
+  }
+`
 
 interface LevelInputProps {
   label: string
@@ -21,7 +41,6 @@ function LevelInput({ label, value, min, max, onChange }: LevelInputProps) {
   return (
     <input
       className={Classes.INPUT}
-      style={{ width: '5em' }}
       aria-label={label}
       inputMode="numeric"
       value={draft ?? String(value)}
@@ -69,16 +88,9 @@ export const LevelRange = () => {
   )
 
   return (
-    <Checkbox>
+    <section style={{ margin: '8px 0' }}>
       <H5>{t('Level')}</H5>
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 6,
-          marginLeft: 12,
-        }}
-      >
+      <LevelControls>
         <LevelInput
           label={t('Minimum level')}
           value={range[0]}
@@ -86,7 +98,14 @@ export const LevelRange = () => {
           max={range[1]}
           onChange={(level) => handleRangeChange([level, range[1]])}
         />
-        <span aria-hidden="true">–</span>
+        <RangeSlider
+          min={0}
+          max={450}
+          stepSize={1}
+          labelStepSize={90}
+          value={range}
+          onChange={handleRangeChange}
+        />
         <LevelInput
           label={t('Maximum level')}
           value={range[1]}
@@ -94,15 +113,7 @@ export const LevelRange = () => {
           max={450}
           onChange={(level) => handleRangeChange([range[0], level])}
         />
-      </div>
-      <RangeSlider
-        min={0}
-        max={450}
-        stepSize={1}
-        labelStepSize={90}
-        value={range}
-        onChange={handleRangeChange}
-      />
-    </Checkbox>
+      </LevelControls>
+    </section>
   )
 }
