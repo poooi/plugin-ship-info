@@ -14,11 +14,7 @@ import { getEnvironment } from '../preview/scenario'
 import { tableState } from '../preview/table-fixtures'
 import { Filter } from '../packages/ship-info/src/views/sidebar/filter'
 import { TableView } from '../packages/ship-info/src/views/table'
-import {
-  openPopover,
-  popoverContent,
-  renderedNames,
-} from './table-support'
+import { openPopover, popoverContent, renderedNames } from './table-support'
 
 const FilterTable: React.FC = () => (
   <>
@@ -87,7 +83,13 @@ export const ShipTypeIndividualToggle: Story = {
     await expect(
       typeof environment.store.getState().config.plugin.ShipInfo.shipTypes,
     ).toBe('number')
-    await waitForRows(canvasElement, ['Zeta', 'Gamma', 'Delta', 'Eta', 'Epsilon'])
+    await waitForRows(canvasElement, [
+      'Zeta',
+      'Gamma',
+      'Delta',
+      'Eta',
+      'Epsilon',
+    ])
   },
 }
 
@@ -268,6 +270,9 @@ export const LevelSliderCommitsAndFilters: Story = {
     maxHandle().focus()
     await userEvent.keyboard('{ArrowLeft}')
     await expect(ariaValue(maxHandle())).toBe(199)
+    await expect(
+      screen.getByRole('textbox', { name: 'Maximum level' }),
+    ).toHaveValue('199')
     await waitFor(
       async () => {
         await expect(maxLevel()).toBe(199)
@@ -312,6 +317,40 @@ export const LevelSliderCommitsAndFilters: Story = {
       { timeout: 3000 },
     )
     await waitForRows(canvasElement, allRows)
+  },
+}
+
+export const LevelInputsPreserveCaret: Story = {
+  play: async ({ canvasElement }) => {
+    await openPopover(canvasElement, 'Filter')
+    const min = screen.getByRole<HTMLInputElement>('textbox', {
+      name: 'Minimum level',
+    })
+    const max = screen.getByRole('textbox', { name: 'Maximum level' })
+
+    await userEvent.clear(min)
+    await userEvent.keyboard('05{ArrowLeft}')
+    await waitForRows(canvasElement, rowsForMinLevel(5))
+    await expect(min).toHaveFocus()
+    await expect(min.selectionStart).toBe(1)
+    await userEvent.keyboard('1')
+    await expect(min).toHaveValue('015')
+    await expect(min.selectionStart).toBe(2)
+    await userEvent.keyboard('{Backspace}')
+    await expect(min).toHaveValue('05')
+    await expect(min.selectionStart).toBe(1)
+    await userEvent.keyboard('1')
+    await userEvent.keyboard('{Enter}')
+    await expect(min).toHaveValue('15')
+
+    await userEvent.clear(max)
+    await userEvent.keyboard('1.5e0')
+    await expect(max).toHaveValue('150')
+    await waitForRows(canvasElement, ['Gamma', 'Delta', 'Eta', 'Alpha'])
+    await userEvent.clear(max)
+    await userEvent.keyboard('2{Tab}')
+    await expect(max).toHaveValue('15')
+    await waitForRows(canvasElement, [])
   },
 }
 
