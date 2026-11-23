@@ -96,9 +96,11 @@ const globalFilterFn: FilterFn<ShipInfoTableFeatures, TableRow> = (
     return false
   }
 
-  // Level range filter
+  // Level range filter. Bounds are not swapped: a stored lower bound above the
+  // current roster ceiling must keep matching no ships instead of matching the
+  // highest owned ship.
   const { minLevel, maxLevel } = filters
-  if (lv < Math.min(minLevel, maxLevel) || lv > Math.max(minLevel, maxLevel)) {
+  if (lv < minLevel || lv > maxLevel) {
     return false
   }
 

@@ -8,7 +8,7 @@ import { Popover } from 'views/components/etc/overlay'
 
 import { rawValueOptions } from '../../constants'
 import {
-  levelRangeFilterSelector,
+  levelRangeFilterDetailsSelector,
   sallyAreaFilterViewSelector,
   shipInfoConfigSelector,
   shipTypeFilterViewSelector,
@@ -138,7 +138,7 @@ function FilterPanel() {
   const [active, setActive] = useState(0)
   const [resetVersion, setResetVersion] = useState(0)
   const config = useSelector(shipInfoConfigSelector)
-  const range = useSelector(levelRangeFilterSelector)
+  const range = useSelector(levelRangeFilterDetailsSelector)
   const types = useSelector(shipTypeFilterViewSelector)
   const areas = useSelector(
     (state: Parameters<typeof shipInfoConfigSelector>[0]) =>
@@ -146,7 +146,7 @@ function FilterPanel() {
   )
   const dirty = [
     !types.checkedAll,
-    range[0] !== 0 || range[1] !== 450,
+    range.minLevel !== 0 || range.explicitMax,
     !areas.checkedAll,
     statusFilters.some(({ configKey }) => !config[configKey].every(Boolean)),
     config.rawValue !== 0,

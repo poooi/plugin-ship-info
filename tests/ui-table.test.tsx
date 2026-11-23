@@ -191,14 +191,12 @@ describe('TableView integration', () => {
     expect(h.jotaiStore.get(filteredShipIdsAtom)).toEqual([3, 4, 1])
   })
 
-  it('renders no rows when the filter matches nothing', async () => {
+  it('keeps an out-of-roster lower bound matching no rows', async () => {
     const h = createHarness(tableState())
     const { container } = h.render(<TableView />)
     await screen.findByText('Alpha')
 
-    act(() =>
-      h.setConfig('plugin.ShipInfo.filters', { maxLevel: 450, minLevel: 200 }),
-    )
+    act(() => h.setConfig('plugin.ShipInfo.filters', { minLevel: 200 }))
 
     await waitFor(() => expect(h.jotaiStore.get(filteredShipIdsAtom)).toEqual([]))
     expect(renderedNames(container)).toEqual([])
@@ -257,7 +255,7 @@ describe('TableView integration', () => {
     expect(h.jotaiStore.get(filteredShipIdsAtom)).toEqual([1, 2])
 
     act(() =>
-      h.setConfig('plugin.ShipInfo.filters', { maxLevel: 450, minLevel: 0 }),
+      h.setConfig('plugin.ShipInfo.filters', { minLevel: 0 }),
     )
     await waitFor(() =>
       expect(renderedNames(container)).toEqual(['Gamma', 'Delta', 'Alpha', 'Beta']),

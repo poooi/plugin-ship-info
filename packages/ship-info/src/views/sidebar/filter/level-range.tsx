@@ -1,16 +1,16 @@
 // tslint:disable jsx-no-lambda
-import { Classes, H5, NumberRange, RangeSlider } from '@blueprintjs/core'
-import React, { useEffect, useRef, useState } from 'react'
+import { Classes, H5 } from '@blueprintjs/core'
+import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
 import styled from 'styled-components'
-import { levelRangeFilterSelector } from '../../selectors'
+import { levelRangeFilterDetailsSelector } from '../../selectors'
 
 const LevelControls = styled.div`
   display: grid;
   grid-template-columns: 4em minmax(0, 1fr) 4em;
   column-gap: 1.5em;
-  align-items: start;
+  align-items: center;
 
   > input {
     width: 100%;
@@ -18,12 +18,23 @@ const LevelControls = styled.div`
     text-align: center;
     font-variant-numeric: tabular-nums;
   }
+`
 
-  > .${Classes.SLIDER} {
-    min-width: 0;
-    /* Blueprint's track is centered 8px below the top; labels sit beneath it. */
-    margin-top: 7px;
-  }
+const Track = styled.div`
+  position: relative;
+  min-width: 0;
+  height: 4px;
+  border-radius: 2px;
+  background: ${({ theme }) => theme.GRAY3};
+`
+
+const Highlight = styled.span`
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  min-width: 2px;
+  border-radius: 2px;
+  background: ${({ theme }) => theme.COBALT3};
 `
 
 interface LevelInputProps {
@@ -65,40 +76,31 @@ function LevelInput({ label, value, min, max, onChange }: LevelInputProps) {
 }
 
 export const LevelRange = () => {
-  const levelRange = useSelector(levelRangeFilterSelector)
-  const [range, setRange] = useState<NumberRange>(levelRange)
-  const dragging = useRef(false)
+  const { ceiling, explicitMax, minLevel, maxLevel } = useSelector(
+    levelRangeFilterDetailsSelector,
+  )
 
   const { t } = useTranslation('poi-plugin-ship-info')
 
-  useEffect(() => {
-    if (!dragging.current) setRange(levelRange)
-  }, [levelRange])
-
-  function commitRange([minLevel, maxLevel]: NumberRange) {
+  function commitRange(nextMin: number, nextMax?: number) {
+    const current = window.config.get(
+      'plugin.ShipInfo.filters',
+      {} as Record<string, unknown>,
+    )
+    const { maxLevel: _maxLevel, ...rest } = current ?? {}
     window.config.set('plugin.ShipInfo.filters', {
-      ...window.config.get('plugin.ShipInfo.filters', {}),
-      maxLevel,
-      minLevel,
+      ...rest,
+      minLevel: nextMin,
+      ...(nextMax === undefined ? {} : { maxLevel: nextMax }),
     })
   }
 
-  function handleSliderChange(next: NumberRange) {
-    // Keep the handles responsive while dragging; the table follows on release.
-    dragging.current = true
-    setRange(next)
-  }
-
-  function handleSliderRelease(next: NumberRange) {
-    dragging.current = false
-    setRange(next)
-    commitRange(next)
-  }
-
-  function handleInputChange(next: NumberRange) {
-    setRange(next)
-    commitRange(next)
-  }
+  // Scale to the roster ceiling, but keep an imported explicit maximum visible
+  // when the roster has shrunk below it.
+  const scale = Math.max(ceiling, maxLevel, minLevel)
+  const left = scale > 0 ? (minLevel / scale) * 100 : 0
+  const width =
+    scale > 0 ? Math.max(0, ((maxLevel - minLevel) / scale) * 100) : 0
 
   return (
     <section style={{ margin: 0 }}>
@@ -106,26 +108,34 @@ export const LevelRange = () => {
       <LevelControls>
         <LevelInput
           label={t('Minimum level')}
-          value={range[0]}
+          value={minLevel}
           min={0}
-          max={range[1]}
-          onChange={(level) => handleInputChange([level, range[1]])}
+          max={maxLevel}
+          onChange={(level) =>
+            commitRange(
+              level,
+              explicitMax && maxLevel !== ceiling ? maxLevel : undefined,
+            )
+          }
         />
-        <RangeSlider
-          min={0}
-          max={450}
-          stepSize={1}
-          labelStepSize={90}
-          value={range}
-          onChange={handleSliderChange}
-          onRelease={handleSliderRelease}
-        />
+        <Track aria-hidden="true" data-level-track="">
+          <Highlight
+            data-level-highlight=""
+            style={{
+              left: `min(${left}%, calc(100% - 2px))`,
+              minWidth: maxLevel < minLevel || scale === 0 ? 0 : undefined,
+              width: `${width}%`,
+            }}
+          />
+        </Track>
         <LevelInput
           label={t('Maximum level')}
-          value={range[1]}
-          min={range[0]}
-          max={450}
-          onChange={(level) => handleInputChange([range[0], level])}
+          value={maxLevel}
+          min={minLevel}
+          max={Math.max(ceiling, maxLevel)}
+          onChange={(level) =>
+            commitRange(minLevel, level < ceiling ? level : undefined)
+          }
         />
       </LevelControls>
     </section>
