@@ -27,3 +27,14 @@ poi-plugin-ship-info@9.0.1:
   dir: packages/ship-info
   intents:
     - level-filter-alignment
+poi-plugin-ship-info@9.1.0:
+  dir: packages/ship-info
+  intents:
+    - ship-info-compact-filter-navigation
+    - ship-info-decorative-level-track
+    - ship-info-export-localized-names
+    - ship-info-filter-bookmarks
+    - ship-info-filter-navigation-states
+    - ship-info-responsive-table-layout
+    - ship-info-sally-area-right-click
+    - ship-info-status-colors
