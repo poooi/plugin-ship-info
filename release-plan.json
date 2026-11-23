@@ -1,8 +1,8 @@
 {
   "base": {
-    "commit": "96aa4b5831eb110f16e87ea5f8631129a9aaeba7",
+    "commit": "c93d3290f792859c60ba8137be9ab3577f005502",
     "packages": {
-      "poi-plugin-ship-info": "9.0.0"
+      "poi-plugin-ship-info": "9.0.1"
     }
   },
   "channel": "main",
@@ -12,7 +12,35 @@
       "status": "M"
     },
     {
-      "path": ".changeset/level-filter-alignment.md",
+      "path": ".changeset/ship-info-compact-filter-navigation.md",
+      "status": "D"
+    },
+    {
+      "path": ".changeset/ship-info-decorative-level-track.md",
+      "status": "D"
+    },
+    {
+      "path": ".changeset/ship-info-export-localized-names.md",
+      "status": "D"
+    },
+    {
+      "path": ".changeset/ship-info-filter-bookmarks.md",
+      "status": "D"
+    },
+    {
+      "path": ".changeset/ship-info-filter-navigation-states.md",
+      "status": "D"
+    },
+    {
+      "path": ".changeset/ship-info-responsive-table-layout.md",
+      "status": "D"
+    },
+    {
+      "path": ".changeset/ship-info-sally-area-right-click.md",
+      "status": "D"
+    },
+    {
+      "path": ".changeset/ship-info-status-colors.md",
       "status": "D"
     },
     {
@@ -27,11 +55,11 @@
   "releases": [
     {
       "dir": "packages/ship-info",
-      "from": "9.0.0",
+      "from": "9.0.1",
       "id": "ship-info",
       "name": "poi-plugin-ship-info",
-      "tag": "poi-plugin-ship-info@9.0.1",
-      "to": "9.0.1"
+      "tag": "poi-plugin-ship-info@9.1.0",
+      "to": "9.1.0"
     }
   ],
   "schemaVersion": 2,

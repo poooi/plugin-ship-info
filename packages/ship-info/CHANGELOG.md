@@ -1,5 +1,27 @@
 # poi-plugin-ship-info
 
+## 9.1.0
+
+### Minor Changes
+
+- Compact the filter panel with sticky section navigation, modified markers, responsive yes/no rows and a one-click filter and sorting reset.
+
+- Add optional localized ship names to clipboard and file CSV exports.
+
+- Restore named filter bookmarks for saving, applying, overwriting and deleting filter presets.
+
+### Patch Changes
+
+- Replace the interactive level slider with a decorative range track and derive its upper bound from the owned roster's level ceiling. Unrestricted ranges follow fleet growth, while explicit lower maxima stay fixed.
+
+- Clarify filter navigation states with filled active sections, localized modified chips, readable controls, scoped sticky headings and a visible reset action.
+
+- Keep sortable table headers single-line and distribute spare column width proportionally without breaking pinned layout.
+
+- Right-click Sally Area filters to exclusively select a single event tag or Free area.
+
+- Highlight sparkling morale and color repair cells by damage severity.
+
 ## 9.0.1
 
 ### Patch Changes
