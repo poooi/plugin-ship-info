@@ -7,7 +7,7 @@ import { Popover } from 'views/components/etc/overlay'
 import { extensionSelectorFactory } from 'views/utils/selectors'
 import { onDelete, onUpdate, PLUGIN_KEY } from '../redux'
 import {
-  levelRangeFilterSelector,
+  levelRangeFilterDetailsSelector,
   sallyAreaFilterViewSelector,
   shipInfoConfigSelector,
   shipTypesFilterSelector,
@@ -44,7 +44,7 @@ export function Bookmarks() {
   const dispatch = useDispatch()
   const plugin = useSelector(selectPlugin)
   const config = useSelector(shipInfoConfigSelector)
-  const levelRange = useSelector(levelRangeFilterSelector)
+  const levelRange = useSelector(levelRangeFilterDetailsSelector)
   const shipTypes = useSelector(shipTypesFilterSelector)
   const eventTagCount = useSelector(
     (state: any) =>
@@ -74,8 +74,10 @@ export function Bookmarks() {
                   settings: readSettings({
                     ...config,
                     filters: {
-                      maxLevel: levelRange[1],
-                      minLevel: levelRange[0],
+                      ...(levelRange.explicitMax
+                        ? { maxLevel: levelRange.maxLevel }
+                        : {}),
+                      minLevel: levelRange.minLevel,
                     },
                     shipTypes,
                   }),

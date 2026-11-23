@@ -137,7 +137,6 @@ export const DefaultBookmarkRestoresDefaults: Story = {
     })
     await expect(bookmarks().Default.locked).toEqual([true, true])
     await expect(bookmarks().Default.filters).toEqual({
-      maxLevel: 450,
       minLevel: 0,
     })
     await closePopover(canvasElement, 'Bookmarks')
@@ -174,7 +173,7 @@ export const DefaultBookmarkRestoresDefaults: Story = {
     await userEvent.click(screen.getByRole('button', { name: 'Default' }))
     await waitFor(() => {
       expect(pluginConfig()).toMatchObject({
-        filters: { maxLevel: 450, minLevel: 0 },
+        filters: { minLevel: 0 },
         locked: [true, true],
         rawValue: 0,
         sallyAreaChecked: [true, true, true],
@@ -184,6 +183,11 @@ export const DefaultBookmarkRestoresDefaults: Story = {
       })
     })
     await waitForRows(canvasElement, ALL_ROWS)
+    await expect(
+      screen.getByRole<HTMLInputElement>('textbox', {
+        name: 'Maximum level',
+      }),
+    ).toHaveValue('200')
     // Column preferences are unrelated to a filter bookmark.
     await expect(pluginConfig().columnVisibility).toEqual({ type: false })
     await expect(headerTitles(canvasElement)).not.toContain('Class')
@@ -213,6 +217,7 @@ export const SaveApplyOverwriteDelete: Story = {
       expect(Object.keys(bookmarks())).toEqual(['Combat'])
     })
     await expect(bookmarks().Combat.filters.minLevel).toBe(80)
+    await expect(bookmarks().Combat.filters).not.toHaveProperty('maxLevel')
 
     await userEvent.type(name, ' Combat ')
     await expect(screen.getByRole('button', { name: 'Overwrite' })).toBeTruthy()
@@ -240,7 +245,7 @@ export const SaveApplyOverwriteDelete: Story = {
     await openBookmarks(canvasElement)
     await userEvent.click(screen.getByRole('button', { name: 'Combat' }))
     await waitFor(() => {
-      expect(pluginConfig().filters).toEqual({ maxLevel: 450, minLevel: 80 })
+      expect(pluginConfig().filters).toEqual({ minLevel: 80 })
     })
 
     // Reopening the filter restores the saved level range into both controls.
@@ -251,16 +256,32 @@ export const SaveApplyOverwriteDelete: Story = {
         name: 'Minimum level',
       }),
     ).toHaveValue('80')
-    const restoredMin = document.querySelector(
-      `.${Classes.SLIDER_HANDLE}`,
+    await expect(
+      screen.getByRole<HTMLInputElement>('textbox', {
+        name: 'Maximum level',
+      }),
+    ).toHaveValue('200')
+    const restoredTrack = document.querySelector(
+      '[data-level-track]',
     ) as HTMLElement
-    await expect(restoredMin.getAttribute('aria-valuenow')).toBe('80')
+    const restoredHighlight = restoredTrack.querySelector(
+      '[data-level-highlight]',
+    ) as HTMLElement
+    const trackRect = restoredTrack.getBoundingClientRect()
+    const fillRect = restoredHighlight.getBoundingClientRect()
+    await expect(
+      (fillRect.left - trackRect.left) / trackRect.width,
+    ).toBeCloseTo(80 / 200, 2)
+    await expect(fillRect.width / trackRect.width).toBeCloseTo(120 / 200, 2)
+    await expect(
+      document.querySelector('.bp6-slider-handle'),
+    ).toBeNull()
     await closePopover(canvasElement, 'Filter')
 
     await openBookmarks(canvasElement)
     await userEvent.click(screen.getByRole('button', { name: 'E1.clear' }))
     await waitFor(() => {
-      expect(pluginConfig().filters).toEqual({ maxLevel: 450, minLevel: 0 })
+      expect(pluginConfig().filters).toEqual({ minLevel: 0 })
     })
 
     // Deleting a dotted name must not touch the other preset.
@@ -310,7 +331,7 @@ export const LegacyRadioSnapshot: Story = {
     await waitFor(() => {
       expect(pluginConfig()).toMatchObject({
         exSlot: [false, true],
-        filters: { maxLevel: 450, minLevel: 100 },
+        filters: { minLevel: 100 },
         locked: [false, true],
         sortName: 'id',
         sortOrder: 1,

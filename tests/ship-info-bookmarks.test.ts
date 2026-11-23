@@ -52,7 +52,7 @@ describe('ship-info bookmark settings', () => {
       sparkleRadio: 2,
     })
 
-    expect(settings.filters).toEqual({ maxLevel: 450, minLevel: 100 })
+    expect(settings.filters).toEqual({ minLevel: 100 })
     expect(settings.locked).toEqual([true, false])
     expect(settings.expedition).toEqual([false, true])
     expect(settings.inFleet).toEqual([true, false])
@@ -65,7 +65,6 @@ describe('ship-info bookmark settings', () => {
 
   it('keeps the exact legacy level bounds', () => {
     expect(readSettings({ lvRadio: 0 }).filters).toEqual({
-      maxLevel: 450,
       minLevel: 0,
     })
     expect(readSettings({ lvRadio: 1 }).filters).toEqual({
@@ -73,13 +72,20 @@ describe('ship-info bookmark settings', () => {
       minLevel: 1,
     })
     expect(readSettings({ lvRadio: 2 }).filters).toEqual({
-      maxLevel: 450,
       minLevel: 2,
     })
     expect(readSettings({ lvRadio: 3 }).filters).toEqual({
-      maxLevel: 450,
       minLevel: 100,
     })
+  })
+
+  it('reads the legacy unrestricted maximum as an absent upper bound', () => {
+    expect(
+      readSettings({ filters: { maxLevel: 450, minLevel: 80 } }).filters,
+    ).toEqual({ minLevel: 80 })
+    expect(
+      readSettings({ filters: { maxLevel: 60, minLevel: 5 } }).filters,
+    ).toEqual({ maxLevel: 60, minLevel: 5 })
   })
 
   it('prefers saved current fields over legacy radios', () => {
@@ -95,7 +101,7 @@ describe('ship-info bookmark settings', () => {
   })
 
 
-  it('migrates legacy type bits and fills partial level bounds', () => {
+  it('migrates legacy type bits and leaves partial level bounds unbounded', () => {
     const settings = readSettings({
       filters: { minLevel: 80 },
       shipTypeChecked: [
@@ -111,7 +117,7 @@ describe('ship-info bookmark settings', () => {
     })
 
     expect(settings.shipTypes).toBe(448)
-    expect(settings.filters).toEqual({ maxLevel: 450, minLevel: 80 })
+    expect(settings.filters).toEqual({ minLevel: 80 })
     expect(settings.locked).toEqual([true, true])
   })
 
@@ -133,10 +139,28 @@ describe('ship-info bookmark settings', () => {
 
     applySettings({ filters: { minLevel: 80 } })
 
-    expect(config.filters).toEqual({ maxLevel: 450, minLevel: 80 })
+    expect(config.filters).toEqual({ minLevel: 80 })
     expect(config.locked).toEqual([true, true])
     expect(config.columnVisibility).toEqual({ type: false })
     expect(config).not.toHaveProperty('shipTypeChecked')
+  })
+
+  it('clears an existing upper bound when applying an unrestricted preset', () => {
+    let config: Record<string, any> = {
+      filters: { maxLevel: 200, minLevel: 100 },
+    }
+    window.config = {
+      get: <T,>(path: string, fallback: T) =>
+        path === 'plugin.ShipInfo' ? (config as T) : fallback,
+      set: (path, value) => {
+        expect(path).toBe('plugin.ShipInfo')
+        config = value
+      },
+    }
+
+    applySettings({ filters: { minLevel: 80 } })
+
+    expect(config.filters).toEqual({ minLevel: 80 })
   })
 
   it('reconciles saved event tag masks with the current map count', () => {
@@ -172,7 +196,7 @@ describe('ship-info bookmark settings', () => {
 
 
   it('falls back to defaults for malformed records', () => {
-    expect(readSettings(null).filters).toEqual({ maxLevel: 450, minLevel: 0 })
+    expect(readSettings(null).filters).toEqual({ minLevel: 0 })
     expect(readSettings('broken').sortName).toBe('lv')
   })
 })

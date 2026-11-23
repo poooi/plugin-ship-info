@@ -1,9 +1,13 @@
 import { z } from 'zod'
+import {
+  defaultLevelFilters,
+  levelValueSchema,
+  normalizeLevelFilters,
+} from '../../level-filter'
 import { boolArrayToInt } from '../../utils'
 
 const toggle = z.tuple([z.boolean(), z.boolean()]).catch([true, true])
-const level = z.number().int().min(0).max(450)
-const defaultFilters = { maxLevel: 450, minLevel: 0 }
+const level = levelValueSchema
 
 const settingsSchema = z.object({
   locked: toggle,
@@ -18,10 +22,10 @@ const settingsSchema = z.object({
   sallyAreaChecked: z.array(z.boolean()).catch([]),
   filters: z
     .object({
-      maxLevel: level.catch(defaultFilters.maxLevel),
-      minLevel: level.catch(defaultFilters.minLevel),
+      maxLevel: level.optional(),
+      minLevel: level.catch(defaultLevelFilters.minLevel),
     })
-    .catch(defaultFilters),
+    .catch(defaultLevelFilters),
   sortName: z.string().catch('lv'),
   sortOrder: z.union([z.literal(0), z.literal(1)]).catch(0),
   rawValue: z.union([z.literal(0), z.literal(1)]).catch(0),
@@ -74,19 +78,20 @@ const legacyToggle = (value: unknown): boolean[] | undefined => {
 }
 
 // The pre-range level radio meant exactly Lv.1, at least Lv.2, or at least
-// Lv.100. The current range has no upper bound on those legacy choices.
+// Lv.100. The current range leaves the upper bound absent for the "at least"
+// choices so it keeps following the owned roster.
 const legacyLevelFilters = (
   value: unknown,
-): { maxLevel: number; minLevel: number } | undefined => {
+): { maxLevel?: number; minLevel: number } | undefined => {
   switch (radioCode(value)) {
     case 1:
       return { maxLevel: 1, minLevel: 1 }
     case 2:
-      return { maxLevel: defaultFilters.maxLevel, minLevel: 2 }
+      return { minLevel: 2 }
     case 3:
-      return { maxLevel: defaultFilters.maxLevel, minLevel: 100 }
+      return { minLevel: 100 }
     case 0:
-      return defaultFilters
+      return { ...defaultLevelFilters }
     default:
       return undefined
   }
@@ -127,6 +132,10 @@ export function readSettings(value: unknown): BookmarkSettings {
     }
   }
 
+  if (isRecord(normalized.filters)) {
+    normalized.filters = normalizeLevelFilters(normalized.filters)
+  }
+
   const parsed = settingsSchema.safeParse(normalized)
   return parsed.success ? parsed.data : defaultSettings
 }
@@ -143,7 +152,11 @@ export function applySettings(value: unknown, eventTagCount?: number) {
   const { shipTypeChecked: _legacy, ...rest } = isRecord(current)
     ? current
     : {}
-  const currentFilters = isRecord(rest.filters) ? rest.filters : {}
+  const { maxLevel: _currentMaxLevel, ...currentFilters } = isRecord(
+    rest.filters,
+  )
+    ? rest.filters
+    : {}
 
   window.config.set('plugin.ShipInfo', {
     ...rest,

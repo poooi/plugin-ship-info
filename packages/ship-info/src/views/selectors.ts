@@ -22,6 +22,7 @@ import {
 
 import { APISlotItem } from 'kcsapi/api_get_member/require_info/response'
 import { shipFleetIdMapSelector } from '@poi-plugins/shared/fleet'
+import { readStoredLevelRange } from './level-filter'
 import { intToBoolArray } from './utils'
 
 // Zod schemas for filter validation
@@ -29,10 +30,6 @@ const yesNoFilterSchema = z.array(z.boolean()).length(2)
 const radioFilterSchema = z.number().int().min(0)
 const sallyAreaSchema = z.array(z.boolean())
 const shipTypesSchema = z.number().int().min(0)
-const levelRangeSchema = z.tuple([
-  z.number().int().min(0).max(450),
-  z.number().int().min(0).max(450),
-])
 
 // Column configuration schemas - TanStack Table format
 const columnOrderSchema = z.array(z.string())
@@ -301,14 +298,31 @@ export const allShipRowsMapSelector = createSelector(
     ),
 )
 
-export const levelRangeFilterSelector = createSelector(
-  [configSelector],
-  (config) => {
-    const minLevel = get(config, 'plugin.ShipInfo.filters.minLevel', 0)
-    const maxLevel = get(config, 'plugin.ShipInfo.filters.maxLevel', 450)
-    const result = levelRangeSchema.safeParse([minLevel, maxLevel])
-    return result.success ? result.data : ([0, 450] as [number, number])
+export const levelCeilingSelector = createSelector([shipsSelector], (ships) => {
+  let highestLevel = 0
+  for (const ship of Object.values(ships ?? {})) {
+    const level = Number((ship as APIShip | undefined)?.api_lv)
+    if (Number.isFinite(level) && level > highestLevel) highestLevel = level
+  }
+  return Math.ceil(highestLevel / 5) * 5
+})
+
+export const levelRangeFilterDetailsSelector = createSelector(
+  [configSelector, levelCeilingSelector],
+  (config, ceiling) => {
+    const { minLevel, maxLevel } = readStoredLevelRange(config)
+    return {
+      ceiling,
+      explicitMax: maxLevel !== undefined,
+      maxLevel: maxLevel ?? ceiling,
+      minLevel,
+    }
   },
+)
+
+export const levelRangeFilterSelector = createSelector(
+  [levelRangeFilterDetailsSelector],
+  ({ minLevel, maxLevel }) => [minLevel, maxLevel] as [number, number],
 )
 
 // Default column order and visibility (TanStack Table format)
@@ -390,8 +404,8 @@ export const columnPinningSelector = createSelector(
 )
 
 export const shipInfoFiltersSelector = createSelector(
-  [levelRangeFilterSelector],
-  ([minLevel, maxLevel]) => ({
+  [levelRangeFilterDetailsSelector],
+  ({ minLevel, maxLevel }) => ({
     minLevel,
     maxLevel,
   }),

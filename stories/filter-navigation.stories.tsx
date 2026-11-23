@@ -1,4 +1,3 @@
-import { Classes } from '@blueprintjs/core'
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { getContrast } from 'polished'
 import React from 'react'
@@ -427,7 +426,7 @@ export const ModifiedMarkersAndReset: Story = {
 
     await waitFor(() => {
       expect(config()).toMatchObject({
-        filters: { maxLevel: 450, minLevel: 0 },
+        filters: { minLevel: 0 },
         locked: [true, true],
         rawValue: 0,
         sortName: 'lv',
@@ -469,6 +468,20 @@ export const ModifiedMarkersAndReset: Story = {
     await expect(
       screen.getByRole<HTMLInputElement>('textbox', { name: 'Minimum level' }),
     ).toHaveValue('0')
+    const resetTrack = document.querySelector(
+      '[data-level-track]',
+    ) as HTMLElement
+    const resetHighlight = resetTrack.querySelector(
+      '[data-level-highlight]',
+    ) as HTMLElement
+    const resetTrackRect = resetTrack.getBoundingClientRect()
+    const resetFillRect = resetHighlight.getBoundingClientRect()
+    await expect(
+      (resetFillRect.left - resetTrackRect.left) / resetTrackRect.width,
+    ).toBeCloseTo(0, 2)
+    await expect(
+      resetFillRect.width / resetTrackRect.width,
+    ).toBeCloseTo(1, 2)
     await waitForRows(canvasElement, ALL_ROWS)
     await expect(headerTitles(canvasElement).slice(0, 2)).toEqual(['Name', 'ID'])
     await expect(headerTitles(canvasElement)).not.toContain('Class')
@@ -547,7 +560,7 @@ export const NarrowLightDirtyStates: Story = {
       expect(
         getEnvironment().store.getState().config.plugin.ShipInfo,
       ).toMatchObject({
-        filters: { maxLevel: 450, minLevel: 0 },
+        filters: { minLevel: 0 },
         locked: [true, true],
         rawValue: 0,
         sortName: 'lv',
@@ -732,7 +745,7 @@ export const WideLayout: Story = {
       name: 'Maximum level',
     })
     const rail = popoverContent()
-      .querySelector(`.${Classes.SLIDER_TRACK}`)!
+      .querySelector('[data-level-track]')!
       .getBoundingClientRect()
     const left = min.getBoundingClientRect()
     const right = max.getBoundingClientRect()
@@ -834,7 +847,7 @@ export const NarrowLayout: Story = {
       name: 'Maximum level',
     })
     const rail = popoverContent()
-      .querySelector(`.${Classes.SLIDER_TRACK}`)!
+      .querySelector('[data-level-track]')!
       .getBoundingClientRect()
     const left = min.getBoundingClientRect()
     const right = max.getBoundingClientRect()

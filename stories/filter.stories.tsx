@@ -1,4 +1,3 @@
-import { Classes } from '@blueprintjs/core'
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import React from 'react'
 import {
@@ -12,6 +11,7 @@ import {
 
 import { getEnvironment } from '../preview/scenario'
 import { tableState } from '../preview/table-fixtures'
+import { mkShip } from '../tests/fixtures'
 import { Filter } from '../packages/ship-info/src/views/sidebar/filter'
 import { TableView } from '../packages/ship-info/src/views/table'
 import { openPopover, popoverContent, renderedNames } from './table-support'
@@ -231,158 +231,217 @@ const SHIP_LEVELS: [string, number][] = [
 const rowsForMinLevel = (minLevel: number): string[] =>
   SHIP_LEVELS.filter(([, lv]) => lv >= minLevel).map(([name]) => name)
 
-const rowsForMaxLevel = (maxLevel: number): string[] =>
-  SHIP_LEVELS.filter(([, lv]) => lv <= maxLevel).map(([name]) => name)
+export const LevelInputsFilterAndDecorativeTrack: Story = {
+  name: 'Level inputs filter and the decorative track follows the range',
+  play: async ({ canvasElement }) => {
+    await openPopover(canvasElement, 'Filter')
+    const environment = getEnvironment()
+    const min = screen.getByRole<HTMLInputElement>('textbox', {
+      name: 'Minimum level',
+    })
+    const max = screen.getByRole<HTMLInputElement>('textbox', {
+      name: 'Maximum level',
+    })
+    const track = popoverContent().querySelector(
+      '[data-level-track]',
+    ) as HTMLElement
+    const highlight = track.querySelector(
+      '[data-level-highlight]',
+    ) as HTMLElement
+    const config = () => environment.store.getState().config.plugin.ShipInfo
+    const ratios = () => {
+      const trackRect = track.getBoundingClientRect()
+      const fillRect = highlight.getBoundingClientRect()
+      return {
+        left: (fillRect.left - trackRect.left) / trackRect.width,
+        width: fillRect.width / trackRect.width,
+      }
+    }
 
-export const LevelSliderCommitsAndFilters: Story = {
-  name: 'Level slider commits limits, filters and clears via the UI',
+    await waitForRows(canvasElement, allRows)
+    await waitFor(() => {
+      expect(ratios().left).toBeCloseTo(0, 2)
+      expect(ratios().width).toBeCloseTo(1, 2)
+    })
+
+    await userEvent.clear(max)
+    await userEvent.type(max, '200')
+    await waitForRows(canvasElement, allRows)
+    await waitFor(() => {
+      expect(ratios().left).toBeCloseTo(0, 2)
+      expect(ratios().width).toBeCloseTo(200 / 200, 2)
+    })
+
+    await userEvent.clear(min)
+    await userEvent.type(min, '100')
+    await waitForRows(canvasElement, rowsForMinLevel(100))
+    await waitFor(() => {
+      expect(ratios().left).toBeCloseTo(100 / 200, 2)
+      expect(ratios().width).toBeCloseTo(100 / 200, 2)
+    })
+
+    // Equal endpoints remain perceptible as a tiny segment.
+    await userEvent.clear(max)
+    await userEvent.type(max, '100')
+    await waitForRows(canvasElement, ['Delta'])
+    await waitFor(() => {
+      const fillRect = highlight.getBoundingClientRect()
+      expect(fillRect.width).toBeGreaterThan(0)
+      expect(fillRect.width).toBeLessThanOrEqual(3)
+      expect(ratios().left).toBeCloseTo(100 / 200, 2)
+    })
+
+    // At the maximum point, the clamped start keeps the tiny segment inside.
+    await userEvent.clear(max)
+    await userEvent.type(max, '200')
+    await waitForRows(canvasElement, rowsForMinLevel(100))
+    await userEvent.clear(min)
+    await userEvent.type(min, '200')
+    await waitForRows(canvasElement, ['Zeta'])
+    await waitFor(() => {
+      const trackRect = track.getBoundingClientRect()
+      const fillRect = highlight.getBoundingClientRect()
+      expect(fillRect.left).toBeGreaterThanOrEqual(trackRect.left - 0.5)
+      expect(fillRect.right).toBeLessThanOrEqual(trackRect.right + 0.5)
+      expect(fillRect.width).toBeGreaterThan(0)
+      expect(fillRect.width).toBeLessThanOrEqual(3)
+    })
+
+    // The track is purely decorative: no focus, pointer or keyboard edits.
+    const before = config().filters
+    min.focus()
+    await expect(track.getAttribute('tabindex')).toBeNull()
+    track.focus()
+    fireEvent.mouseDown(track)
+    fireEvent.click(track)
+    fireEvent.keyDown(track, { key: 'ArrowRight' })
+    fireEvent.keyUp(track, { key: 'ArrowRight' })
+    await expect(min).toHaveFocus()
+    await expect(config().filters).toEqual(before)
+    await expect(popoverContent()).toBeTruthy()
+  },
+}
+
+export const LevelCeilingFollowsOwnedRoster: Story = {
+  name: 'Upper bound follows the owned ceiling until explicitly capped',
   parameters: {
-    // Seed max = 200 so all eight ships initially fit at the top of the range.
     shipInfo: {
-      state: tableState({
-        config: {
-          plugin: { ShipInfo: { filters: { maxLevel: 200, minLevel: 0 } } },
-          poi: { appearance: { avatar: false } },
-        },
-      }),
+      state: (() => {
+        const base = tableState()
+        const ships = Object.fromEntries(
+          Object.entries(base.info.ships).map(([id, ship]) => [
+            id,
+            { ...(ship as any), api_lv: 1 },
+          ]),
+        )
+        return tableState({
+          info: {
+            ...base.info,
+            ships: { ...ships, 1: mkShip({ api_id: 1, api_lv: 173 }) },
+          },
+        })
+      })(),
     },
   },
   play: async ({ canvasElement }) => {
     await openPopover(canvasElement, 'Filter')
     const environment = getEnvironment()
-    await waitForRows(canvasElement, allRows)
+    const min = screen.getByRole<HTMLInputElement>('textbox', {
+      name: 'Minimum level',
+    })
+    const max = screen.getByRole<HTMLInputElement>('textbox', {
+      name: 'Maximum level',
+    })
+    const filters = () =>
+      environment.store.getState().config.plugin.ShipInfo.filters
+    const grow = (level: number) => {
+      const state = environment.store.getState()
+      environment.store.dispatch({
+        type: 'TEST/REPLACE',
+        state: {
+          info: {
+            ...state.info,
+            ships: {
+              ...state.info.ships,
+              1: mkShip({ api_id: 1, api_lv: level }),
+            },
+          },
+        },
+      })
+    }
 
-    const handles = () =>
-      Array.from(
-        popoverContent().querySelectorAll<HTMLElement>(
-          `.${Classes.SLIDER_HANDLE}`,
-        ),
-      )
-    const minHandle = () => handles()[0]
-    const maxHandle = () => handles()[handles().length - 1]
-    const ariaValue = (el: HTMLElement) =>
-      Number(el.getAttribute('aria-valuenow'))
-    const minLevel = () =>
-      environment.store.getState().config.plugin.ShipInfo.filters.minLevel
-    const maxLevel = () =>
-      environment.store.getState().config.plugin.ShipInfo.filters.maxLevel
+    // 173 rounds up to 175; an exact multiple stays unchanged.
+    await expect(max).toHaveValue('175')
+    grow(175)
+    await waitFor(() => expect(max).toHaveValue('175'))
 
-    // Maximum handle: one ArrowLeft lowers max 200 -> 199, excluding Zeta.
-    maxHandle().focus()
-    await userEvent.keyboard('{ArrowLeft}')
-    await expect(ariaValue(maxHandle())).toBe(199)
-    await expect(
-      screen.getByRole('textbox', { name: 'Maximum level' }),
-    ).toHaveValue('199')
-    await waitFor(
-      async () => {
-        await expect(maxLevel()).toBe(199)
-      },
-      { timeout: 3000 },
-    )
-    await waitForRows(canvasElement, rowsForMaxLevel(199))
+    // An untouched upper bound follows the roster ceiling.
+    grow(176)
+    await waitFor(() => expect(max).toHaveValue('180'))
+    await expect(filters()?.maxLevel).toBeUndefined()
 
-    // ArrowRight restores max = 200 and every row.
-    maxHandle().focus()
-    await userEvent.keyboard('{ArrowRight}')
-    await expect(ariaValue(maxHandle())).toBe(200)
-    await waitFor(
-      async () => {
-        await expect(maxLevel()).toBe(200)
-      },
-      { timeout: 3000 },
-    )
-    await waitForRows(canvasElement, allRows)
+    // A lower explicit maximum stays fixed as the roster grows.
+    await userEvent.clear(max)
+    await userEvent.type(max, '175')
+    await waitFor(() => expect(filters()).toEqual({ maxLevel: 175, minLevel: 0 }))
+    grow(183)
+    await waitFor(() => expect(max).toHaveValue('175'))
+    await expect(filters()).toEqual({ maxLevel: 175, minLevel: 0 })
 
-    // Minimum handle: each ArrowRight raises the minimum by exactly one level.
-    // Two presses set min = 2 (excludes Epsilon, lv 1).
-    minHandle().focus()
-    await userEvent.keyboard('{ArrowRight}{ArrowRight}')
-    await expect(ariaValue(minHandle())).toBe(2)
-    await waitFor(
-      async () => {
-        await expect(minLevel()).toBe(2)
-      },
-      { timeout: 3000 },
-    )
-    await waitForRows(canvasElement, rowsForMinLevel(2))
+    // Setting the upper bound back to the current ceiling restores
+    // unrestricted mode instead of persisting that value.
+    await userEvent.clear(max)
+    await userEvent.type(max, '185{Tab}')
+    await waitFor(() => expect(filters()?.maxLevel).toBeUndefined())
+    await waitFor(() => expect(max).toHaveValue('185'))
+    grow(188)
+    await waitFor(() => expect(max).toHaveValue('190'))
+    await expect(filters()?.maxLevel).toBeUndefined()
 
-    // Two ArrowLeft presses return the minimum to 0 and restore every row.
-    minHandle().focus()
-    await userEvent.keyboard('{ArrowLeft}{ArrowLeft}')
-    await expect(ariaValue(minHandle())).toBe(0)
-    await waitFor(
-      async () => {
-        await expect(minLevel()).toBe(0)
-      },
-      { timeout: 3000 },
-    )
-    await waitForRows(canvasElement, allRows)
+    // Changing only the lower bound keeps the upper bound unrestricted.
+    await userEvent.clear(min)
+    await userEvent.type(min, '100')
+    await waitFor(() => expect(filters()).toEqual({ minLevel: 100 }))
+    grow(191)
+    await waitFor(() => expect(max).toHaveValue('195'))
   },
 }
 
-export const LevelSliderCommitsOnRelease: Story = {
-  name: 'Slider updates locally and commits config only on release',
+export const LevelCeilingEmptyRoster: Story = {
+  name: 'Zero level ceiling keeps the decorative track safe',
+  parameters: {
+    shipInfo: {
+      state: (() => {
+        const base = tableState()
+        const ships = Object.fromEntries(
+          Object.entries(base.info.ships).map(([id, ship]) => [
+            id,
+            { ...(ship as any), api_lv: 0 },
+          ]),
+        )
+        return tableState({ info: { ...base.info, ships } })
+      })(),
+    },
+  },
   play: async ({ canvasElement }) => {
     await openPopover(canvasElement, 'Filter')
-    const environment = getEnvironment()
-    const minHandle = Array.from(
-      popoverContent().querySelectorAll<HTMLElement>(
-        `.${Classes.SLIDER_HANDLE}`,
-      ),
-    )[0]
-    const minText = screen.getByRole('textbox', { name: 'Minimum level' })
-    const callsBefore = environment.configCalls.length
-
-    minHandle.focus()
-    fireEvent.keyDown(minHandle, { key: 'ArrowRight' })
-    await waitFor(() => {
-      expect(Number(minHandle.getAttribute('aria-valuenow'))).toBe(1)
+    const max = screen.getByRole<HTMLInputElement>('textbox', {
+      name: 'Maximum level',
     })
-    await expect(minText).toHaveValue('1')
-    await expect(environment.configCalls.length).toBe(callsBefore)
-    await expect(
-      environment.store.getState().config.plugin.ShipInfo.filters?.minLevel ??
-        0,
-    ).toBe(0)
+    const track = popoverContent().querySelector(
+      '[data-level-track]',
+    ) as HTMLElement
+    const highlight = track.querySelector(
+      '[data-level-highlight]',
+    ) as HTMLElement
 
-    fireEvent.keyUp(minHandle, { key: 'ArrowRight' })
+    await expect(max).toHaveValue('0')
     await waitFor(() => {
-      expect(
-        environment.store.getState().config.plugin.ShipInfo.filters.minLevel,
-      ).toBe(1)
-    })
-    await expect(environment.configCalls.length).toBeGreaterThan(callsBefore)
-
-    // Dragging updates the local handles immediately but only writes when the
-    // pointer is released.
-    const track = popoverContent()
-      .querySelector(`.${Classes.SLIDER_TRACK}`)!
-      .getBoundingClientRect()
-    const handle = minHandle.getBoundingClientRect()
-    const clientY = handle.top + handle.height / 2
-    const targetX = track.left + track.width / 2
-    fireEvent.mouseDown(minHandle, {
-      clientX: handle.left + handle.width / 2,
-      clientY,
-    })
-    fireEvent.mouseMove(document, { clientX: targetX, clientY })
-    await waitFor(() => {
-      expect(Number(minHandle.getAttribute('aria-valuenow'))).toBeGreaterThan(
-        1,
-      )
-    })
-    await expect(
-      environment.store.getState().config.plugin.ShipInfo.filters.minLevel,
-    ).toBe(1)
-
-    fireEvent.mouseUp(document, { clientX: targetX, clientY })
-    await waitFor(() => {
-      const released = Number(minHandle.getAttribute('aria-valuenow'))
-      expect(released).not.toBe(1)
-      expect(
-        environment.store.getState().config.plugin.ShipInfo.filters.minLevel,
-      ).toBe(released)
+      const trackRect = track.getBoundingClientRect()
+      const fillRect = highlight.getBoundingClientRect()
+      expect(trackRect.width).toBeGreaterThan(0)
+      expect(Number.isFinite(fillRect.width)).toBe(true)
+      expect(fillRect.width).toBe(0)
     })
   },
 }
@@ -395,7 +454,7 @@ export const LevelInputsPreserveCaret: Story = {
     })
     const max = screen.getByRole('textbox', { name: 'Maximum level' })
 
-    const track = popoverContent().querySelector(`.${Classes.SLIDER_TRACK}`)!
+    const track = popoverContent().querySelector('[data-level-track]')!
     const rail = track.getBoundingClientRect()
     const left = min.getBoundingClientRect()
     const right = max.getBoundingClientRect()
