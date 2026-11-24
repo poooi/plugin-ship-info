@@ -1,6 +1,8 @@
 import React from 'react'
+import { Trans } from 'react-i18next'
 import { createColumnHelper, ColumnDef } from '@tanstack/react-table'
 import type { IShipRawData } from '../types'
+import { shipStatValue, type LevelStat } from './ship-stat-value'
 import * as CellComponents from './cells'
 import type { ShipInfoTableFeatures } from './table-features'
 
@@ -38,6 +40,26 @@ export const getColumnMeta = (
 // Export column metadata for use in column configuration
 export const getColumnTitle = (columnId: string): string =>
   getColumnMeta(columnId)?.title || columnId
+
+function levelStatColumn(id: string, title: string, stat: LevelStat) {
+  return columnHelper.accessor((row) => shipStatValue(row.shipData, stat), {
+    id,
+    meta: { title, width: 40, center: true, sortable: true },
+    sortUndefined: 'last',
+    sortFn: (a, b) => a.getValue<number>(id) - b.getValue<number>(id),
+    cell: ({ getValue, row }) => {
+      const modernization = stat === 'api_taisen' ? row.original.shipData.ship.api_kyouka[6] : 0
+      return (
+        <CellComponents.Cell>
+          <span>
+            {getValue() ?? <small><Trans ns="poi-plugin-ship-info" i18nKey="Unknown" /></small>}
+            {modernization > 0 && <sup> (+{modernization})</sup>}
+          </span>
+        </CellComponents.Cell>
+      )
+    },
+  })
+}
 
 export const columns: ColumnDef<ShipInfoTableFeatures, TableRow, any>[] = [
   columnHelper.accessor((row) => row.shipData.ship.api_id, {
@@ -238,68 +260,9 @@ export const columns: ColumnDef<ShipInfoTableFeatures, TableRow, any>[] = [
     },
   ),
 
-  columnHelper.accessor(
-    (row) => {
-      const value = row.shipData.ship.api_kaihi
-      return Array.isArray(value) ? value[0] : value
-    },
-    {
-      id: 'kaihi',
-      meta: { title: 'Evasion', width: 40, center: true, sortable: true },
-      cell: ({ row }) => (
-        <CellComponents.Kaihi shipData={row.original.shipData} />
-      ),
-      sortFn: (rowA, rowB) => {
-        const valueA = rowA.original.shipData.ship.api_kaihi
-        const valueB = rowB.original.shipData.ship.api_kaihi
-        const numA = Array.isArray(valueA) ? valueA[0] : valueA
-        const numB = Array.isArray(valueB) ? valueB[0] : valueB
-        return (numA || 0) - (numB || 0)
-      },
-    },
-  ),
-
-  columnHelper.accessor(
-    (row) => {
-      const value = row.shipData.ship.api_taisen
-      return Array.isArray(value) ? value[0] : value
-    },
-    {
-      id: 'taisen',
-      meta: { title: 'ASW', width: 40, center: true, sortable: true },
-      cell: ({ row }) => (
-        <CellComponents.Taisen shipData={row.original.shipData} />
-      ),
-      sortFn: (rowA, rowB) => {
-        const valueA = rowA.original.shipData.ship.api_taisen
-        const valueB = rowB.original.shipData.ship.api_taisen
-        const numA = Array.isArray(valueA) ? valueA[0] : valueA
-        const numB = Array.isArray(valueB) ? valueB[0] : valueB
-        return (numA || 0) - (numB || 0)
-      },
-    },
-  ),
-
-  columnHelper.accessor(
-    (row) => {
-      const value = row.shipData.ship.api_sakuteki
-      return Array.isArray(value) ? value[0] : value
-    },
-    {
-      id: 'sakuteki',
-      meta: { title: 'LOS', width: 40, center: true, sortable: true },
-      cell: ({ row }) => (
-        <CellComponents.Sakuteki shipData={row.original.shipData} />
-      ),
-      sortFn: (rowA, rowB) => {
-        const valueA = rowA.original.shipData.ship.api_sakuteki
-        const valueB = rowB.original.shipData.ship.api_sakuteki
-        const numA = Array.isArray(valueA) ? valueA[0] : valueA
-        const numB = Array.isArray(valueB) ? valueB[0] : valueB
-        return (numA || 0) - (numB || 0)
-      },
-    },
-  ),
+  levelStatColumn('kaihi', 'Evasion', 'api_kaihi'),
+  levelStatColumn('taisen', 'ASW', 'api_taisen'),
+  levelStatColumn('sakuteki', 'LOS', 'api_sakuteki'),
 
   columnHelper.accessor((row) => row.shipData.ship.api_ndock_time, {
     id: 'repairtime',

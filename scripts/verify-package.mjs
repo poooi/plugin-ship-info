@@ -98,6 +98,7 @@ const ALLOWED_VIEWS = [
   'views/components/etc/window-env',
   'views/create-store',
   'views/env-parts/i18next',
+  'views/utils/equipability',
   'views/utils/selectors',
   'views/utils/ship-img',
   'views/utils/tools',

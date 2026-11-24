@@ -1,3 +1,4 @@
+import type { IConstState } from 'views/utils/selectors'
 import { APISlotItem } from 'kcsapi/api_get_member/require_info/response'
 import { APIShip } from 'kcsapi/api_port/port/response'
 import { APIMstShip, APIMstStype } from 'kcsapi/api_start2/getData/response'
@@ -66,5 +67,5 @@ export interface IShipRawData {
   fleetIdMap: Record<number, number>
   rawValue: boolean
   repairs: number[]
-  db: any
+  constState: IConstState
 }

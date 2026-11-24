@@ -15,7 +15,18 @@ load, preserving bookmarks, UI state, and any legacy planner data for Navy
 Staff to import. Later format changes migrate in version order. Unsupported
 newer formats are left untouched and reported as load errors.
 
+The HP column shows maximum HP. Its annotation shows how many points came
+from HP modernization.
+
+Raw evasion, ASW and LoS come from the game. An unequipped ship reports its
+current stats directly. For equipped ships the game supplies the level-99
+values, including stats that stay at zero. “Unknown” means the raw value
+cannot be determined at the ship's current level. Display mode always
+shows the current equipment-inclusive stats.
+
 ## Install
+
+The landing craft filters require poi 12.0.0-beta.0 or later.
 
 Open **Settings → Plugins** in poi, find **Ship Girls Info** in the plugin
 list and click **Install**. For manual installation, use **Install directly

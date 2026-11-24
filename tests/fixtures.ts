@@ -48,15 +48,9 @@ export const mkMstShip = (over: Record<string, any> = {}): any => ({
   ...over,
 })
 
-export const mkDb = (over: Record<string, any> = {}): any => ({
-  item_types: [],
-  ships: {},
-  ...over,
-})
-
 export const mkRow = (over: Record<string, any> = {}): IShipRawData =>
   ({
-    db: mkDb(),
+    constState: {},
     equips: {},
     fleetIdMap: {},
     rawValue: false,

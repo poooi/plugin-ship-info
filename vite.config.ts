@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite-plus'
 
 // poi injects these host modules at runtime, so they have no file on disk.
@@ -59,6 +60,9 @@ export default defineConfig({
   },
   test: {
     include: ['tests/**/*.test.{ts,tsx}'],
+    alias: {
+      'views/utils/equipability': fileURLToPath(new URL('./preview/adapters/equipability.ts', import.meta.url)),
+    },
     setupFiles: ['./tests/setup.ts'],
   },
 })

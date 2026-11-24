@@ -1,4 +1,7 @@
 {
+  "Unknown": "알 수 없음",
+  "Type 89 Tank Landing Craft": "대발동정(89식 중전차＆육전대) 장비 가능",
+  "Type 2 Ka-Mi": "특2식 내화정 장비 가능",
   "Localize ship names": "함선 이름 번역",
   "Ship types": "함선 유형",
   "Status": "상태 조건",

@@ -15,6 +15,8 @@ const settingsSchema = z.object({
   inFleet: toggle,
   sparkle: toggle,
   exSlot: toggle,
+  tankLandingCraft: toggle,
+  amphibiousTank: toggle,
   daihatsu: toggle,
   modernization: toggle,
   remodel: toggle,

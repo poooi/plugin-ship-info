@@ -1,4 +1,3 @@
-import _, { get } from 'lodash'
 import url from 'url'
 
 import { APIShip } from 'kcsapi/api_port/port/response'
@@ -27,9 +26,6 @@ export const getTimePerHP = (api_lv = 1, api_stype = 1): number => {
 }
 
 // Helper functions for computing ship properties from raw data
-export const getValueByLevel = (min: number, max: number, lv: number): number =>
-  Math.floor(((max - min) * lv) / 99) + min
-
 export const computeKaryokuNow = (ship: APIShip, $ship: APIMstShip): number =>
   $ship.api_houg![0] + ship.api_kyouka[0]
 
@@ -56,24 +52,6 @@ export const isShipCompleted = (ship: APIShip, $ship: APIMstShip): boolean => {
     raisouNow >= ship.api_raisou[1] &&
     taikuNow >= ship.api_taiku[1] &&
     soukouNow >= ship.api_soukou[1]
-  )
-}
-
-export const canEquipDaihatsu = (shipId: number, db: any): boolean => {
-  const daihatsuItems = _([24, 46]).map((i) =>
-    _.find(get(db, 'item_types'), (t) => t.id_ingame === i),
-  )
-
-  const daihatsuShips = daihatsuItems
-    .flatMap('equipable_extra_ship')
-    .value() as number[]
-  const daihastuTypes = daihatsuItems
-    .flatMap('equipable_on_type')
-    .value() as number[]
-
-  return (
-    daihatsuShips.includes(shipId) ||
-    daihastuTypes.includes(get(db, ['ships', shipId, 'type']))
   )
 }
 

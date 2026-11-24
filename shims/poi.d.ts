@@ -55,7 +55,10 @@ declare module 'views/utils/selectors' {
   export const equipDataSelectorFactory: (id: number) => Selector<IState, any, []>
   export const shipsSelector: Selector<IState, Dictionary<APIShip>, []>
   export const stateSelector: Selector<IState, IState, []>
-  export const wctfSelector: Selector<IState, any, []>
+}
+declare module 'views/utils/equipability' {
+  import type { IConstState } from 'views/utils/selectors'
+  export function canEquipShipItem(shipMstId: number, equipMstId: number, constState: IConstState): boolean
 }
 
 declare module 'views/components/etc/overlay' {

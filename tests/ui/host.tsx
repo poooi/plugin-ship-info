@@ -119,7 +119,6 @@ export const poiSelectors = {
   shipEquipDataSelectorFactory,
   shipsSelector,
   stateSelector,
-  wctfSelector: (s: any) => s.db,
 }
 
 export const windowEnvModule = {

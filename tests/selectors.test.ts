@@ -21,13 +21,12 @@ vi.mock('views/utils/selectors', () => ({
     s.info.equips[id] || {},
   shipsSelector: (s: any) => s.info.ships,
   stateSelector: (s: any) => s,
-  wctfSelector: (s: any) => s.db,
 }))
 vi.mock('wanakana', () => ({ toRomaji: (s: string) => s }))
 vi.mock('electron', () => ({ remote: {} }))
 vi.mock('redux-observers', () => ({ observer: () => ({}) }))
 
-import { mkDb, mkMstShip, mkShip } from './fixtures'
+import { mkMstShip, mkShip } from './fixtures'
 import { mkNavyData } from './ui/fixtures'
 import { shipFleetIdMapSelector, shipFleetIdSelectorFactory } from '../packages/shared/src/fleet'
 import { PLUGIN_KEY } from '../packages/navy-staff/src/views/plugin-identity'
@@ -58,7 +57,6 @@ const mkState = (): any => ({
       3: { api_name: 'CL' },
     },
   },
-  db: mkDb(),
   expedition: [] as number[],
   fcd: { shipavatar: { marginMagics: {} }, shiptag: { mapname: ['E1', 'E2'] } },
   fleets: [[1, 2], [], [], []],
