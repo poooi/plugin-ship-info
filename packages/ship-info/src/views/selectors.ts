@@ -185,6 +185,10 @@ export const shipInfoConfigSelector = createSelector(
       tankLandingCraft: validateYesNo('tankLandingCraft'),
       amphibiousTank: validateYesNo('amphibiousTank'),
       daihatsu: validateYesNo('daihatsu'),
+      transportDrum: validateYesNo('transportDrum'),
+      midgetSub: validateYesNo('midgetSub'),
+      seaplaneFighter: validateYesNo('seaplaneFighter'),
+      fleetCommand: validateYesNo('fleetCommand'),
       modernization: validateYesNo('modernization'),
       remodel: validateYesNo('remodel'),
 

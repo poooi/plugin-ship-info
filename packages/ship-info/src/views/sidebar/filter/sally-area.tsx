@@ -6,18 +6,13 @@ import styled from 'styled-components'
 
 import { sallyAreaFilterViewSelector } from '../../selectors'
 import {
+  CardRow,
   CustomCheckboxCard,
   CustomColoredCheckboxCard,
 } from '../components/card-controls'
 
 const SallyAreaContainer = styled.div`
   margin-bottom: 0;
-`
-
-const CardRow = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
 `
 
 export const SallyAreaCheck: React.FC = () => {

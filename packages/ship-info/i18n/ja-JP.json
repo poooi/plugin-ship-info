@@ -201,6 +201,10 @@
   "plannerMovedNotice": "出撃計画は独立した「作戦参謀」プラグインに移動しました。",
   "plannerMovedInstall": "poi の 設定 > プラグイン のプラグイン一覧で「作戦参謀」を見つけて「インストール」をクリックします。",
   "plannerManualInstall": "手動でインストールする場合は「npm サーバーから直接インストール」を選び、プラグインの名前を入力してください：",
+  "Transport drum": "ドラム缶（輸送用）",
+  "Midget submarine": "甲標的",
+  "Seaplane fighter": "水上戦闘機",
+  "Fleet Command Facility": "艦隊司令部施設",
   "Special equipment": "特殊装備",
   "Neither": "該当なし"
 }

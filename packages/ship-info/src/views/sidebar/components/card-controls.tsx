@@ -5,6 +5,12 @@ import styled from 'styled-components'
 
 import { controlSurface } from '@poi-plugins/shared/ui/styles'
 
+export const CardRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+`
+
 interface CardControlBaseProps {
   checked?: boolean
   onChange?: (event: React.FormEvent<HTMLInputElement>) => void
@@ -151,6 +157,7 @@ export const CustomRadioCard: React.FC<CardControlBaseProps> = ({
 
 // Colored version for sally-area
 interface ColoredCheckboxCardProps extends CardControlBaseProps {
+  indeterminate?: boolean
   cardColor?: string
 }
 
@@ -271,6 +278,7 @@ export const CustomColoredCheckboxCard: React.FC<ColoredCheckboxCardProps> = ({
   compact = false,
   value,
   cardColor,
+  indeterminate,
   onContextMenu,
 }) => {
   return (
@@ -280,6 +288,7 @@ export const CustomColoredCheckboxCard: React.FC<ColoredCheckboxCardProps> = ({
         $compact={compact}
         $cardColor={cardColor}
         checked={checked}
+        indeterminate={indeterminate}
         labelElement={children}
         onChange={onChange}
         value={value}

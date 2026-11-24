@@ -1,4 +1,4 @@
-import { Button, Checkbox, H5, Tag } from '@blueprintjs/core'
+import { Button, H5, Tag } from '@blueprintjs/core'
 import React, { useRef, useState } from 'react'
 import FA from 'react-fontawesome'
 import { useTranslation } from 'react-i18next'
@@ -6,6 +6,8 @@ import { useSelector } from 'react-redux'
 import styled from 'styled-components'
 import { Popover } from 'views/components/etc/overlay'
 
+import { CustomColoredCheckboxCard, CardRow } from '../components/card-controls'
+import { specialEquipment } from '../../special-equipment'
 import { rawValueOptions } from '../../constants'
 import {
   levelRangeFilterDetailsSelector,
@@ -28,12 +30,6 @@ const statusFilters = [
   { configKey: 'exSlot', label: 'Extra Slot' },
   { configKey: 'modernization', label: 'Modernization Completed' },
   { configKey: 'remodel', label: 'Remodelable' },
-] as const
-
-const specialEquipment = [
-  { configKey: 'daihatsu', label: 'Daihatsu' },
-  { configKey: 'tankLandingCraft', label: 'Type 89 Tank Landing Craft' },
-  { configKey: 'amphibiousTank', label: 'Type 2 Ka-Mi' },
 ] as const
 
 const sectionNames = [
@@ -295,25 +291,27 @@ function FilterPanel() {
           aria-label={t('Special equipment')}
         >
           <H5>{t('Special equipment')}</H5>
-          <StatusGrid>
+          <CardRow>
             {specialEquipment.map(({ configKey, label }) => {
               const [yes, no] = config[configKey]
               // Old presets can exclude capable ships or exclude both groups.
               const legacyLabel = no ? t('No') : t('Neither')
               return (
-                <Checkbox
+                <CustomColoredCheckboxCard
+                  compact
                   key={configKey}
-                  label={yes ? t(label) : `${t(label)} (${legacyLabel})`}
                   checked={yes && !no}
                   indeterminate={!yes}
                   onChange={() => window.config.set(
                     `plugin.ShipInfo.${configKey}`,
                     yes && no ? [true, false] : [true, true],
                   )}
-                />
+                >
+                  {yes ? t(label) : `${t(label)} (${legacyLabel})`}
+                </CustomColoredCheckboxCard>
               )
             })}
-          </StatusGrid>
+          </CardRow>
         </Section>
         <Section
           id="filter-section-5"

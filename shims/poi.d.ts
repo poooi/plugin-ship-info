@@ -58,6 +58,7 @@ declare module 'views/utils/selectors' {
 }
 declare module 'views/utils/equipability' {
   import type { IConstState } from 'views/utils/selectors'
+  export function canEquipType(shipMstId: number, equipTypeId: number, constState: IConstState): boolean
   export function canEquipShipItem(shipMstId: number, equipMstId: number, constState: IConstState): boolean
 }
 
