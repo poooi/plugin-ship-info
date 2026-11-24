@@ -6,6 +6,10 @@ poi-plugin-navy-staff@2.0.0:
     - plugin-packaging-and-persistence
     - shared-package-and-ui-cleanup
     - yellow-toys-decide
+poi-plugin-ship-info@10.0.0:
+  dir: packages/ship-info
+  intents:
+    - ship-info-game-derived-roster
 poi-plugin-ship-info@9.0.0:
   dir: packages/ship-info
   intents:

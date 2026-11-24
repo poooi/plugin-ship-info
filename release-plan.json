@@ -1,8 +1,8 @@
 {
   "base": {
-    "commit": "c93d3290f792859c60ba8137be9ab3577f005502",
+    "commit": "638c07b7491b2394909b6d0e2931324acf3721a9",
     "packages": {
-      "poi-plugin-ship-info": "9.0.1"
+      "poi-plugin-ship-info": "9.1.0"
     }
   },
   "channel": "main",
@@ -12,35 +12,11 @@
       "status": "M"
     },
     {
-      "path": ".changeset/ship-info-compact-filter-navigation.md",
+      "path": ".changeset/navy-staff-equipability-external.md",
       "status": "D"
     },
     {
-      "path": ".changeset/ship-info-decorative-level-track.md",
-      "status": "D"
-    },
-    {
-      "path": ".changeset/ship-info-export-localized-names.md",
-      "status": "D"
-    },
-    {
-      "path": ".changeset/ship-info-filter-bookmarks.md",
-      "status": "D"
-    },
-    {
-      "path": ".changeset/ship-info-filter-navigation-states.md",
-      "status": "D"
-    },
-    {
-      "path": ".changeset/ship-info-responsive-table-layout.md",
-      "status": "D"
-    },
-    {
-      "path": ".changeset/ship-info-sally-area-right-click.md",
-      "status": "D"
-    },
-    {
-      "path": ".changeset/ship-info-status-colors.md",
+      "path": ".changeset/ship-info-game-derived-roster.md",
       "status": "D"
     },
     {
@@ -55,11 +31,11 @@
   "releases": [
     {
       "dir": "packages/ship-info",
-      "from": "9.0.1",
+      "from": "9.1.0",
       "id": "ship-info",
       "name": "poi-plugin-ship-info",
-      "tag": "poi-plugin-ship-info@9.1.0",
-      "to": "9.1.0"
+      "tag": "poi-plugin-ship-info@10.0.0",
+      "to": "10.0.0"
     }
   ],
   "schemaVersion": 2,
