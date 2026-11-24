@@ -30,6 +30,7 @@ export default defineConfig({
         'views/components/etc/window-env',
         'views/env-parts/i18next',
         'views/utils/selectors',
+        'views/utils/equipability',
         'views/utils/tools',
         'views/components/etc/overlay',
         'views/create-store',

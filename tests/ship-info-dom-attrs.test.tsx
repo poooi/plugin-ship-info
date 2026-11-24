@@ -29,7 +29,7 @@ vi.mock('react-fontawesome', async () => {
   }
 })
 
-import { mkRow } from './fixtures'
+import { mkRow, mkShip } from './fixtures'
 import { Cells } from '../packages/ship-info/src/views/table/cells'
 import { columns } from '../packages/ship-info/src/views/table/columns-config'
 import { TitleCell } from '../packages/ship-info/src/views/table/title-cell'
@@ -82,6 +82,14 @@ afterEach(() => {
 })
 
 describe('Ship Info table DOM attributes', () => {
+  it('annotates maximum HP with only the modernization contribution', () => {
+    const hp = (max: number, mod: number) => mkRow({
+      ship: mkShip({ api_maxhp: max, api_kyouka: [0, 0, 0, 0, 0, mod, 0] }),
+    })
+    const { container } = wrap(<><Cells.hp shipData={hp(37, 1)} /><Cells.hp shipData={hp(85, 0)} /></>)
+    expect(container.children[0].textContent).toBe('37 (+1)')
+    expect(container.children[1].textContent).toBe('85')
+  })
   it('does not leak title-cell styling props to the DOM', () => {
     const { container } = wrap(
       <TitleCell title="Name" sortable centerAlign sorting up={false} />,

@@ -22,6 +22,7 @@ export const hostAliases: HostAlias[] = [
     find: 'redux-observers',
     replacement: resolve('./adapters/redux-observers.ts'),
   },
+  { find: 'views/utils/equipability', replacement: resolve('./adapters/equipability.ts') },
   { find: 'url', replacement: resolve('./adapters/url.ts') },
   {
     find: 'views/components/etc/avatar',

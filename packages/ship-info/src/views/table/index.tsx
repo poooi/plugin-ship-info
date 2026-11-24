@@ -40,7 +40,8 @@ import { columns as dataColumns, getColumnMeta, TableRow } from './columns-confi
 import { distributeColumnWidths } from './layout'
 import { shipInfoTableFeatures, ShipInfoTableFeatures } from './table-features'
 import { TitleCell } from './title-cell'
-import { isShipCompleted, canEquipDaihatsu } from '../utils'
+import { canEquipShipItem } from 'views/utils/equipability'
+import { isShipCompleted } from '../utils'
 
 const ROW_INDEX_WIDTH = 40
 
@@ -79,7 +80,7 @@ const globalFilterFn: FilterFn<ShipInfoTableFeatures, TableRow> = (
     filters: any
   }
 
-  const { ship, $ship, fleetIdMap, db } = shipData
+  const { ship, $ship, fleetIdMap, constState } = shipData
   const typeId = $ship.api_stype
   const lv = ship.api_lv
   const locked = ship.api_locked
@@ -89,7 +90,6 @@ const globalFilterFn: FilterFn<ShipInfoTableFeatures, TableRow> = (
   const exslot = ship.api_slot_ex
   const cond = ship.api_cond
   const isCompleted = isShipCompleted(ship, $ship)
-  const daihatsu = canEquipDaihatsu($ship.api_id, db)
 
   // Type filter
   if (!shipTypes.includes(typeId)) {
@@ -113,7 +113,9 @@ const globalFilterFn: FilterFn<ShipInfoTableFeatures, TableRow> = (
     { key: 'inFleet', value: fleetId > -1 },
     { key: 'sparkle', value: cond >= 50 },
     { key: 'exSlot', value: exslot !== 0 },
-    { key: 'daihatsu', value: daihatsu },
+    { key: 'daihatsu', value: canEquipShipItem($ship.api_id, 68, constState) },
+    { key: 'tankLandingCraft', value: canEquipShipItem($ship.api_id, 166, constState) },
+    { key: 'amphibiousTank', value: canEquipShipItem($ship.api_id, 167, constState) },
   ]
 
   const filterFailed = filtersToCheck.some(({ key, value }) => {

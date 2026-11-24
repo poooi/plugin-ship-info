@@ -16,5 +16,4 @@ export const {
   shipEquipDataSelectorFactory,
   shipsSelector,
   stateSelector,
-  wctfSelector,
 } = poiSelectors

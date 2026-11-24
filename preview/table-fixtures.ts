@@ -37,42 +37,6 @@ export const tableEquips = {
   9: { api_alv: 3, api_id: 9, api_level: 4, api_slotitem_id: 102 },
 }
 
-// db powers daihatsu-equippability and the raw-value level interpolation.
-export const tableDb = {
-  item_types: [
-    {
-      equipable_extra_ship: [1],
-      equipable_on_type: [],
-      id_ingame: 24,
-    },
-    {
-      equipable_extra_ship: [],
-      equipable_on_type: [],
-      id_ingame: 46,
-    },
-  ],
-  ships: {
-    1: {
-      stat: {
-        asw: 20,
-        asw_max: 60,
-        evasion: 40,
-        evasion_max: 80,
-        los: 10,
-        los_max: 30,
-      },
-      type: 2,
-    },
-    2: { stat: { asw: 20, asw_max: 60, evasion: 50, evasion_max: 90 }, type: 2 },
-    3: { stat: { asw: 30, asw_max: 70, evasion: 30, evasion_max: 70 }, type: 3 },
-    4: { stat: { asw: 40, asw_max: 80, evasion: 25, evasion_max: 65 }, type: 5 },
-    5: { stat: { asw: 10, asw_max: 40, evasion: 20, evasion_max: 50 }, type: 8 },
-    6: { stat: { asw: 10, asw_max: 40, evasion: 20, evasion_max: 50 }, type: 8 },
-    7: { stat: { asw: 30, asw_max: 70, evasion: 30, evasion_max: 70 }, type: 3 },
-    8: { stat: { asw: 20, asw_max: 60, evasion: 50, evasion_max: 90 }, type: 2 },
-  },
-}
-
 export const tableFcd = {
   shipavatar: { marginMagics: {} },
   shiptag: {
@@ -208,12 +172,12 @@ const baseState = () => ({
     poi: { appearance: { avatar: false } },
   },
   const: {
+    allowedEquipment: { 1: [68, 166], 2: [167] },
     $equips: tableMstEquips,
     $shipgraph: [],
     $ships: tableMstShips,
     $shipTypes: tableShipTypes,
   },
-  db: tableDb,
   expedition: [...tableExpedition],
   fcd: tableFcd,
   fleets: tableFleets.map((fleet) => [...fleet]),
@@ -262,7 +226,8 @@ export const virtualMstShips = Object.fromEntries(
 export const virtualTableState = (over: Record<string, any> = {}) =>
   tableState({
     const: {
-      $equips: tableMstEquips,
+      allowedEquipment: { 1: [68, 166], 2: [167] },
+    $equips: tableMstEquips,
       $shipgraph: [],
       $ships: virtualMstShips,
       $shipTypes: tableShipTypes,

@@ -20,7 +20,7 @@ vi.mock('views/env-parts/i18next', () => ({
 vi.mock('electron', () => ({ remote: {} }))
 
 import { buildCsv } from '../packages/ship-info/src/views/sidebar/export/build-csv'
-import { mkDb, mkMstShip, mkRow, mkShip } from './fixtures'
+import { mkMstShip, mkRow, mkShip } from './fixtures'
 
 const COLUMNS = [
   'id',
@@ -119,7 +119,6 @@ const rowA = () =>
       api_yomi: 'アルファ',
     }),
     $shipTypes: { 2: { api_name: 'DD' } },
-    db: mkDb(),
     fleetIdMap: { 1: 0 },
     repairs: [1],
     ship: mkShip({

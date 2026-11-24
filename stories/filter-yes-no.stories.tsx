@@ -110,6 +110,18 @@ export const Daihatsu = yesNoStory(
   ['Zeta', 'Gamma', 'Delta', 'Eta', 'Beta', 'Theta', 'Epsilon'],
 )
 
+export const TankLandingCraft = yesNoStory(
+  'Type 89 Tank Landing Craft',
+  ['Alpha'],
+  ['Zeta', 'Gamma', 'Delta', 'Eta', 'Beta', 'Theta', 'Epsilon'],
+)
+
+export const AmphibiousTank = yesNoStory(
+  'Type 2 Ka-Mi',
+  ['Beta'],
+  ['Zeta', 'Gamma', 'Delta', 'Eta', 'Alpha', 'Theta', 'Epsilon'],
+)
+
 export const Modernization = yesNoStory(
   'Modernization Completed',
   ['Gamma', 'Eta', 'Alpha', 'Epsilon'],

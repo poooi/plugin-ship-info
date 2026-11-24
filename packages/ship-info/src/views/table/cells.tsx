@@ -23,7 +23,6 @@ import {
   computeTaikuNow,
   computeSoukouNow,
   computeLuckyNow,
-  getValueByLevel,
 } from '../utils'
 import { shipTypeLabel } from '@poi-plugins/shared/ship-types'
 import { FleetIcon } from '@poi-plugins/shared/ui/fleet-icon'
@@ -135,15 +134,17 @@ export const Cond = ({ shipData, ...props }: ICellProps) => (
 )
 
 export const Hp = ({ shipData, ...props }: ICellProps) => {
-  const { ship, $ship } = shipData
-  const taik = $ship.api_taik![0]
-  const maxhp = ship.api_maxhp
+  const { t } = useTranslation('poi-plugin-ship-info')
+  const { ship } = shipData
+  const modernization = ship.api_kyouka[5]
 
   return (
     <Cell {...props}>
       <span>
-        {taik}
-        {maxhp - taik > 0 && <sup>+{maxhp - taik}</sup>}
+        {ship.api_maxhp}
+        {modernization > 0 && (
+          <sup title={t('Modernization')}>{` (+${modernization})`}</sup>
+        )}
       </span>
     </Cell>
   )
@@ -262,58 +263,6 @@ export const Lucky = ({ shipData, ...props }: ICellProps) => {
   )
 }
 
-export const Kaihi = ({ shipData, ...props }: ICellProps) => {
-  const { ship, $ship, rawValue, db } = shipData
-  let kaihi = ship.api_kaihi[0]
-
-  if (rawValue) {
-    kaihi = getValueByLevel(
-      get(db, ['ships', $ship.api_id, 'stat', 'evasion'], 0),
-      get(db, ['ships', $ship.api_id, 'stat', 'evasion_max'], 0),
-      ship.api_lv,
-    )
-  }
-
-  return <Cell {...props}>{kaihi || 'NA'}</Cell>
-}
-
-export const Taisen = ({ shipData, ...props }: ICellProps) => {
-  const { ship, $ship, rawValue, db } = shipData
-  let taisen = ship.api_taisen[0]
-
-  if (rawValue) {
-    taisen = getValueByLevel(
-      get(db, ['ships', $ship.api_id, 'stat', 'asw'], 0),
-      get(db, ['ships', $ship.api_id, 'stat', 'asw_max'], 0),
-      ship.api_lv,
-    )
-  }
-
-  return (
-    <Cell {...props}>
-      <span>
-        {taisen}
-        {ship.api_kyouka[6] > 0 && <sup>+{ship.api_kyouka[6]}</sup>}
-      </span>
-    </Cell>
-  )
-}
-
-export const Sakuteki = ({ shipData, ...props }: ICellProps) => {
-  const { ship, $ship, rawValue, db } = shipData
-  let sakuteki = ship.api_sakuteki[0]
-
-  if (rawValue) {
-    sakuteki = getValueByLevel(
-      get(db, ['ships', $ship.api_id, 'stat', 'los'], 0),
-      get(db, ['ships', $ship.api_id, 'stat', 'los_max'], 0),
-      ship.api_lv,
-    )
-  }
-
-  return <Cell {...props}>{sakuteki}</Cell>
-}
-
 const RepairCell = styled(Cell)<{ $hpRatio: number }>`
   background-color: ${({ $hpRatio, theme }) => {
     if ($hpRatio <= 0.25) return rgba(theme.RED3, TRANSPARENCY)
@@ -366,7 +315,6 @@ export const Cells = {
   equipment: Equipment,
   hp: Hp,
   id: Id,
-  kaihi: Kaihi,
   karyoku: Karyoku,
   lock: Lock,
   lucky: Lucky,
@@ -379,11 +327,9 @@ export const Cells = {
   )(Name),
   raisou: Raisou,
   repairtime: RepairTime,
-  sakuteki: Sakuteki,
   soku: Soku,
   soukou: Soukou,
   taiku: Taiku,
-  taisen: Taisen,
   type: Type,
 }
 

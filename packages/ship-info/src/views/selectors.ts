@@ -17,7 +17,6 @@ import {
   shipEquipDataSelectorFactory,
   shipsSelector,
   stateSelector,
-  wctfSelector,
 } from 'views/utils/selectors'
 
 import { APISlotItem } from 'kcsapi/api_get_member/require_info/response'
@@ -62,6 +61,8 @@ export const expeditionFilterSelector = createYesNoFilterSelector('expedition')
 export const inFleetFilterSelector = createYesNoFilterSelector('inFleet')
 export const sparkleFilterSelector = createYesNoFilterSelector('sparkle')
 export const exSlotFilterSelector = createYesNoFilterSelector('exSlot')
+export const tankLandingCraftFilterSelector = createYesNoFilterSelector('tankLandingCraft')
+export const amphibiousTankFilterSelector = createYesNoFilterSelector('amphibiousTank')
 export const daihatsuFilterSelector = createYesNoFilterSelector('daihatsu')
 export const modernizationFilterSelector =
   createYesNoFilterSelector('modernization')
@@ -184,6 +185,8 @@ export const shipInfoConfigSelector = createSelector(
       inFleet: validateYesNo('inFleet'),
       sparkle: validateYesNo('sparkle'),
       exSlot: validateYesNo('exSlot'),
+      tankLandingCraft: validateYesNo('tankLandingCraft'),
+      amphibiousTank: validateYesNo('amphibiousTank'),
       daihatsu: validateYesNo('daihatsu'),
       modernization: validateYesNo('modernization'),
       remodel: validateYesNo('remodel'),
@@ -217,25 +220,23 @@ export const shipTableDataSelectorFactory = memoize((shipId) =>
       shipFleetIdMapSelector,
       rawValueConfigSelector,
       inRepairShipsIdSelector,
-      wctfSelector,
     ],
     (
       [ship, $ship] = [] as any,
       equips: IDictionary<APISlotItem>,
-      { $shipTypes = {} }: IConstState,
+      constState: IConstState,
       fleetIdMap,
       rawValue,
       repairs = [],
-      db,
     ) => ({
       ship,
       $ship,
       equips,
-      $shipTypes,
+      $shipTypes: constState.$shipTypes ?? {},
+      constState,
       fleetIdMap,
       rawValue,
       repairs,
-      db,
     }),
   ),
 )

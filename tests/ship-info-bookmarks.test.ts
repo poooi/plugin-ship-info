@@ -61,6 +61,8 @@ describe('ship-info bookmark settings', () => {
     expect(settings.sparkle).toEqual([false, true])
     expect(settings.exSlot).toEqual([true, false])
     expect(settings.daihatsu).toEqual([false, true])
+    expect(settings.tankLandingCraft).toEqual([true, true])
+    expect(settings.amphibiousTank).toEqual([true, true])
   })
 
   it('keeps the exact legacy level bounds', () => {

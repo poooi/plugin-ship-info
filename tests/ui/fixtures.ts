@@ -21,11 +21,6 @@ const NAVY_PLUGIN_KEY = 'poi-plugin-navy-staff'
 const mst = (over: Record<string, any>) =>
   mkMstShip({ api_taik: [30, 30], ...over })
 
-const shipDb = {
-  item_types: [],
-  ships: {},
-}
-
 export const tableShips = {
   1: mkShip({ api_cond: 60, api_id: 1, api_lv: 50, api_sally_area: 0 }),
   2: mkShip({ api_cond: 30, api_id: 2, api_lv: 10, api_sally_area: 1 }),
@@ -54,7 +49,6 @@ export const tableState = (over: Record<string, any> = {}) => ({
     $ships: tableMstShips,
     $shipTypes: shipTypes,
   },
-  db: shipDb,
   expedition: [] as number[],
   fcd: {
     shipavatar: { marginMagics: {} },

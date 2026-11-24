@@ -21,7 +21,6 @@ vi.mock('views/utils/selectors', () => ({
     s.info.equips[id] || {},
   shipsSelector: (s: any) => s.info.ships,
   stateSelector: (s: any) => s,
-  wctfSelector: (s: any) => s.db,
 }))
 vi.mock('wanakana', () => ({ toRomaji: (s: string) => s }))
 vi.mock('electron', () => ({ remote: {} }))

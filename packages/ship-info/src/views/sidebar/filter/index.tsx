@@ -27,6 +27,8 @@ const statusFilters = [
   { configKey: 'sparkle', label: 'Sparkle' },
   { configKey: 'exSlot', label: 'Extra Slot' },
   { configKey: 'daihatsu', label: 'Daihatsu' },
+  { configKey: 'tankLandingCraft', label: 'Type 89 Tank Landing Craft' },
+  { configKey: 'amphibiousTank', label: 'Type 2 Ka-Mi' },
   { configKey: 'modernization', label: 'Modernization Completed' },
   { configKey: 'remodel', label: 'Remodelable' },
 ] as const
