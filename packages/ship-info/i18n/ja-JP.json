@@ -1,7 +1,7 @@
 {
   "Unknown": "不明",
-  "Type 89 Tank Landing Craft": "大発動艇(八九式中戦車＆陸戦隊)搭載可",
-  "Type 2 Ka-Mi": "特二式内火艇搭載可",
+  "Type 89 Tank Landing Craft": "大発動艇(八九式中戦車＆陸戦隊)",
+  "Type 2 Ka-Mi": "特二式内火艇",
   "Localize ship names": "艦名をローカライズ",
   "Status": "状態条件",
   "Modified": "変更あり",
@@ -73,7 +73,7 @@
   "Multiple": "多",
   "unknown_area": "未知の海域　{{area}}、データが更新されていません",
   "Free": "なし",
-  "Daihatsu": "大発装備可能",
+  "Daihatsu": "大発動艇",
   "Create ": "作成： ",
   "Overwrite ": "上書き：",
   "Search or create a bookmark": "ブックマークを検索 / 作成する",

@@ -35,9 +35,9 @@ const statusFilters = [
 const sectionNames = [
   'Ship types',
   'Level',
+  'Special equipment',
   'Sally Area',
   'Status',
-  'Special equipment',
   'Value Type',
 ] as const
 
@@ -149,9 +149,9 @@ function FilterPanel() {
   const dirty = [
     !types.checkedAll,
     range.minLevel !== 0 || range.explicitMax,
+    specialEquipment.some(({ configKey }) => !config[configKey].every(Boolean)),
     !areas.checkedAll,
     statusFilters.some(({ configKey }) => !config[configKey].every(Boolean)),
-    specialEquipment.some(({ configKey }) => !config[configKey].every(Boolean)),
     config.rawValue !== 0,
   ]
 
@@ -267,27 +267,6 @@ function FilterPanel() {
           id="filter-section-2"
           data-active={active === 2 ? '' : undefined}
           tabIndex={-1}
-          aria-label={t('Sally Area')}
-        >
-          <SallyAreaCheck />
-        </Section>
-        <Section
-          id="filter-section-3"
-          data-active={active === 3 ? '' : undefined}
-          tabIndex={-1}
-          aria-label={t('Status')}
-        >
-          <H5>{t('Status')}</H5>
-          <StatusGrid data-filter-status-grid="">
-            {statusFilters.map(({ configKey, label }) => (
-              <YesNoCheck key={configKey} configKey={configKey} label={label} />
-            ))}
-          </StatusGrid>
-        </Section>
-        <Section
-          id="filter-section-4"
-          data-active={active === 4 ? '' : undefined}
-          tabIndex={-1}
           aria-label={t('Special equipment')}
         >
           <H5>{t('Special equipment')}</H5>
@@ -312,6 +291,27 @@ function FilterPanel() {
               )
             })}
           </CardRow>
+        </Section>
+        <Section
+          id="filter-section-3"
+          data-active={active === 3 ? '' : undefined}
+          tabIndex={-1}
+          aria-label={t('Sally Area')}
+        >
+          <SallyAreaCheck />
+        </Section>
+        <Section
+          id="filter-section-4"
+          data-active={active === 4 ? '' : undefined}
+          tabIndex={-1}
+          aria-label={t('Status')}
+        >
+          <H5>{t('Status')}</H5>
+          <StatusGrid data-filter-status-grid="">
+            {statusFilters.map(({ configKey, label }) => (
+              <YesNoCheck key={configKey} configKey={configKey} label={label} />
+            ))}
+          </StatusGrid>
         </Section>
         <Section
           id="filter-section-5"

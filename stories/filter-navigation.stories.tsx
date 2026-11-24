@@ -267,9 +267,9 @@ export const JumpsAndStickyHeadings: Story = {
     for (const [index, label] of [
       'Ship types',
       'Level',
+      'Special equipment',
       'Sally Area',
       'Status',
-      'Special equipment',
       'Value Type',
     ].entries()) {
       navButton(label).focus()
