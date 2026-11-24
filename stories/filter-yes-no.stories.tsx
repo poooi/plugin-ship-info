@@ -104,23 +104,53 @@ export const ExtraSlot = yesNoStory(
   ['Zeta', 'Gamma', 'Delta', 'Eta', 'Theta', 'Epsilon'],
 )
 
-export const Daihatsu = yesNoStory(
-  'Daihatsu',
-  ['Alpha'],
-  ['Zeta', 'Gamma', 'Delta', 'Eta', 'Beta', 'Theta', 'Epsilon'],
-)
+export const SpecialEquipment: Story = {
+  name: 'Special equipment checkboxes require each selected item',
+  play: async ({ canvasElement }) => {
+    await openPopover(canvasElement, 'Filter')
+    const nav = within(popoverContent()).getByRole('navigation')
+    await userEvent.click(within(nav).getByRole('button', { name: 'Special equipment' }))
+    const equipment = within(within(popoverContent()).getByRole('region', { name: 'Special equipment' }))
+    const option = (name: string) => equipment.getByRole('checkbox', { name })
+    const daihatsu = option('Daihatsu')
+    const tank = option('Type 89 Tank Landing Craft')
+    const kaMi = option('Type 2 Ka-Mi')
+    await expect(equipment.getAllByRole('checkbox')).toHaveLength(3)
+    await expect(daihatsu).not.toBeChecked()
+    await waitForRows(canvasElement, ALL)
+    await userEvent.click(daihatsu)
+    await waitForRows(canvasElement, ['Alpha'])
+    await userEvent.click(tank)
+    await waitForRows(canvasElement, ['Alpha'])
+    await userEvent.click(kaMi)
+    await waitForRows(canvasElement, [])
+    await userEvent.click(daihatsu)
+    await userEvent.click(tank)
+    await waitForRows(canvasElement, ['Beta'])
+    await userEvent.click(kaMi)
+    await waitForRows(canvasElement, ALL)
+  },
+}
 
-export const TankLandingCraft = yesNoStory(
-  'Type 89 Tank Landing Craft',
-  ['Alpha'],
-  ['Zeta', 'Gamma', 'Delta', 'Eta', 'Beta', 'Theta', 'Epsilon'],
-)
-
-export const AmphibiousTank = yesNoStory(
-  'Type 2 Ka-Mi',
-  ['Beta'],
-  ['Zeta', 'Gamma', 'Delta', 'Eta', 'Alpha', 'Theta', 'Epsilon'],
-)
+export const LegacyEquipmentExclusion: Story = {
+  parameters: {
+    shipInfo: { state: tableState({ config: { plugin: { ShipInfo: { daihatsu: [false, true] } } } }) },
+  },
+  play: async ({ canvasElement }) => {
+    await openPopover(canvasElement, 'Filter')
+    const panel = within(popoverContent())
+    const nav = within(panel.getByRole('navigation'))
+    await userEvent.click(nav.getByRole('button', { name: /Special equipment/ }))
+    const box = panel.getByRole('checkbox', { name: 'Daihatsu (No)' })
+    await expect(box).toBePartiallyChecked()
+    await waitForRows(canvasElement, ALL.filter(name => name !== 'Alpha'))
+    await userEvent.click(box)
+    await expect(box).not.toBeChecked()
+    await expect(box).not.toBePartiallyChecked()
+    await waitForRows(canvasElement, ALL)
+    await expect(nav.getByRole('button', { name: 'Special equipment' })).toBeTruthy()
+  },
+}
 
 export const Modernization = yesNoStory(
   'Modernization Completed',

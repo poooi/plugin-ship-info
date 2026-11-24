@@ -10,9 +10,6 @@ import {
   inFleetFilterSelector,
   sparkleFilterSelector,
   exSlotFilterSelector,
-  tankLandingCraftFilterSelector,
-  amphibiousTankFilterSelector,
-  daihatsuFilterSelector,
   modernizationFilterSelector,
   remodelFilterSelector,
 } from '../../selectors'
@@ -60,9 +57,6 @@ const filterSelectors: Record<string, (state: any) => boolean[]> = {
   inFleet: inFleetFilterSelector,
   sparkle: sparkleFilterSelector,
   exSlot: exSlotFilterSelector,
-  tankLandingCraft: tankLandingCraftFilterSelector,
-  amphibiousTank: amphibiousTankFilterSelector,
-  daihatsu: daihatsuFilterSelector,
   modernization: modernizationFilterSelector,
   remodel: remodelFilterSelector,
 }

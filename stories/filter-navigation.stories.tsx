@@ -269,6 +269,7 @@ export const JumpsAndStickyHeadings: Story = {
       'Level',
       'Sally Area',
       'Status',
+      'Special equipment',
       'Value Type',
     ].entries()) {
       navButton(label).focus()
