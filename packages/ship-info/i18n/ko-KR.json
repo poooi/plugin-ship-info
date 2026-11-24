@@ -75,6 +75,10 @@
   "plannerMovedNotice": "출격 계획이 별도의 \"작전참모\" 플러그인으로 이동했습니다.",
   "plannerMovedInstall": "poi의 설정 > 플러그인 목록에서 \"작전참모\"를 찾아 \"설치\"를 클릭합니다.",
   "plannerManualInstall": "수동으로 설치하려면 \"npm 서버에서 직접 설치\"를 선택하고 플러그인 패키지 이름을 입력하세요:",
+  "Transport drum": "드럼통(수송용)",
+  "Midget submarine": "갑표적",
+  "Seaplane fighter": "수상전투기",
+  "Fleet Command Facility": "함대사령부시설",
   "Special equipment": "특수 장비",
   "Neither": "둘 다 제외"
 }

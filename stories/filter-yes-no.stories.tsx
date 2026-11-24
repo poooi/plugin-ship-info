@@ -115,7 +115,18 @@ export const SpecialEquipment: Story = {
     const daihatsu = option('Daihatsu')
     const tank = option('Type 89 Tank Landing Craft')
     const kaMi = option('Type 2 Ka-Mi')
-    await expect(equipment.getAllByRole('checkbox')).toHaveLength(3)
+    await expect(equipment.getAllByRole('checkbox')).toHaveLength(7)
+    for (const [name, ship] of [
+      ['Transport drum', 'Alpha'],
+      ['Midget submarine', 'Gamma'],
+      ['Seaplane fighter', 'Delta'],
+      ['Fleet Command Facility', 'Beta'],
+    ]) {
+      await userEvent.click(option(name))
+      await waitForRows(canvasElement, [ship])
+      await userEvent.click(option(name))
+      await waitForRows(canvasElement, ALL)
+    }
     await expect(daihatsu).not.toBeChecked()
     await waitForRows(canvasElement, ALL)
     await userEvent.click(daihatsu)

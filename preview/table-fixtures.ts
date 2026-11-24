@@ -172,7 +172,8 @@ const baseState = () => ({
     poi: { appearance: { avatar: false } },
   },
   const: {
-    allowedEquipment: { 1: [68, 166], 2: [167] },
+    allowedEquipment: { 1: [68, 166, 75], 2: [167, 107] },
+    allowedEquipmentTypes: { 3: [22], 4: [45] },
     $equips: tableMstEquips,
     $shipgraph: [],
     $ships: tableMstShips,

@@ -19,8 +19,10 @@ The HP column shows maximum HP. Its annotation shows how many points came
 from HP modernization.
 
 Under **Filter → Special equipment**, check the items a ship must be able
-to equip. Ships must support every checked item. Clear all three boxes to
-remove the equipment restriction. A mixed checkbox preserves an exclusion
+to equip. Ships must support every checked item. Clear all boxes to
+remove the equipment restriction. Midget submarines and seaplane fighters
+match any compatible item in their respective equipment categories.
+A mixed checkbox preserves an exclusion
 from an older bookmark. Click it once to clear that restriction.
 
 Raw evasion, ASW and LoS come from the game. An unequipped ship reports its
@@ -31,7 +33,7 @@ shows the current equipment-inclusive stats.
 
 ## Install
 
-The landing craft filters require poi 12.0.0-beta.0 or later.
+The special equipment filters require poi 12.0.0-beta.0 or later.
 
 Open **Settings → Plugins** in poi, find **Ship Girls Info** in the plugin
 list and click **Install**. For manual installation, use **Install directly

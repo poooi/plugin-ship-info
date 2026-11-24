@@ -40,7 +40,8 @@ import { columns as dataColumns, getColumnMeta, TableRow } from './columns-confi
 import { distributeColumnWidths } from './layout'
 import { shipInfoTableFeatures, ShipInfoTableFeatures } from './table-features'
 import { TitleCell } from './title-cell'
-import { canEquipShipItem } from 'views/utils/equipability'
+import { specialEquipment } from '../special-equipment'
+import { canEquipShipItem, canEquipType } from 'views/utils/equipability'
 import { isShipCompleted } from '../utils'
 
 const ROW_INDEX_WIDTH = 40
@@ -113,9 +114,6 @@ const globalFilterFn: FilterFn<ShipInfoTableFeatures, TableRow> = (
     { key: 'inFleet', value: fleetId > -1 },
     { key: 'sparkle', value: cond >= 50 },
     { key: 'exSlot', value: exslot !== 0 },
-    { key: 'daihatsu', value: canEquipShipItem($ship.api_id, 68, constState) },
-    { key: 'tankLandingCraft', value: canEquipShipItem($ship.api_id, 166, constState) },
-    { key: 'amphibiousTank', value: canEquipShipItem($ship.api_id, 167, constState) },
   ]
 
   const filterFailed = filtersToCheck.some(({ key, value }) => {
@@ -137,6 +135,15 @@ const globalFilterFn: FilterFn<ShipInfoTableFeatures, TableRow> = (
 
   if (filterFailed) {
     return false
+  }
+
+  for (const option of specialEquipment) {
+    const [yes, no] = config[option.configKey]
+    if (yes && no) continue
+    const capable = 'itemId' in option
+      ? canEquipShipItem($ship.api_id, option.itemId, constState)
+      : canEquipType($ship.api_id, option.typeId, constState)
+    if (!(capable ? yes : no)) return false
   }
 
   // Sally area filter

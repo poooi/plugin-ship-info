@@ -116,6 +116,10 @@
   "plannerMovedNotice": "The deck planner has moved to the separate \"Navy Staff\" plugin.",
   "plannerMovedInstall": "In the plugin list under poi's Settings > Plugins, find \"Navy Staff\" and click \"Install\".",
   "plannerManualInstall": "To install manually, choose \"Install directly from npm\" and enter the package name:",
+  "Transport drum": "Transport drum",
+  "Midget submarine": "Midget submarine",
+  "Seaplane fighter": "Seaplane fighter",
+  "Fleet Command Facility": "Fleet Command Facility",
   "Special equipment": "Special equipment",
   "Neither": "Neither"
 }
