@@ -1,4 +1,4 @@
-import { Button, H5, Tag } from '@blueprintjs/core'
+import { Button, Checkbox, H5, Tag } from '@blueprintjs/core'
 import React, { useRef, useState } from 'react'
 import FA from 'react-fontawesome'
 import { useTranslation } from 'react-i18next'
@@ -26,11 +26,14 @@ const statusFilters = [
   { configKey: 'inFleet', label: 'In Fleet' },
   { configKey: 'sparkle', label: 'Sparkle' },
   { configKey: 'exSlot', label: 'Extra Slot' },
+  { configKey: 'modernization', label: 'Modernization Completed' },
+  { configKey: 'remodel', label: 'Remodelable' },
+] as const
+
+const specialEquipment = [
   { configKey: 'daihatsu', label: 'Daihatsu' },
   { configKey: 'tankLandingCraft', label: 'Type 89 Tank Landing Craft' },
   { configKey: 'amphibiousTank', label: 'Type 2 Ka-Mi' },
-  { configKey: 'modernization', label: 'Modernization Completed' },
-  { configKey: 'remodel', label: 'Remodelable' },
 ] as const
 
 const sectionNames = [
@@ -38,6 +41,7 @@ const sectionNames = [
   'Level',
   'Sally Area',
   'Status',
+  'Special equipment',
   'Value Type',
 ] as const
 
@@ -151,6 +155,7 @@ function FilterPanel() {
     range.minLevel !== 0 || range.explicitMax,
     !areas.checkedAll,
     statusFilters.some(({ configKey }) => !config[configKey].every(Boolean)),
+    specialEquipment.some(({ configKey }) => !config[configKey].every(Boolean)),
     config.rawValue !== 0,
   ]
 
@@ -286,6 +291,33 @@ function FilterPanel() {
         <Section
           id="filter-section-4"
           data-active={active === 4 ? '' : undefined}
+          tabIndex={-1}
+          aria-label={t('Special equipment')}
+        >
+          <H5>{t('Special equipment')}</H5>
+          <StatusGrid>
+            {specialEquipment.map(({ configKey, label }) => {
+              const [yes, no] = config[configKey]
+              // Old presets can exclude capable ships or exclude both groups.
+              const legacyLabel = no ? t('No') : t('Neither')
+              return (
+                <Checkbox
+                  key={configKey}
+                  label={yes ? t(label) : `${t(label)} (${legacyLabel})`}
+                  checked={yes && !no}
+                  indeterminate={!yes}
+                  onChange={() => window.config.set(
+                    `plugin.ShipInfo.${configKey}`,
+                    yes && no ? [true, false] : [true, true],
+                  )}
+                />
+              )
+            })}
+          </StatusGrid>
+        </Section>
+        <Section
+          id="filter-section-5"
+          data-active={active === 5 ? '' : undefined}
           tabIndex={-1}
           aria-label={t('Value Type')}
         >

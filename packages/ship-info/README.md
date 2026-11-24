@@ -18,6 +18,11 @@ newer formats are left untouched and reported as load errors.
 The HP column shows maximum HP. Its annotation shows how many points came
 from HP modernization.
 
+Under **Filter → Special equipment**, check the items a ship must be able
+to equip. Ships must support every checked item. Clear all three boxes to
+remove the equipment restriction. A mixed checkbox preserves an exclusion
+from an older bookmark. Click it once to clear that restriction.
+
 Raw evasion, ASW and LoS come from the game. An unequipped ship reports its
 current stats directly. For equipped ships the game supplies the level-99
 values, including stats that stay at zero. “Unknown” means the raw value

@@ -201,5 +201,7 @@
   "saveError": "无法保存舰娘信息数据。请确认文件可写入。",
   "plannerMovedNotice": "出击计划已移至独立的「作战参谋」插件。",
   "plannerMovedInstall": "在 poi 的 设置 > 扩展程序 的插件列表中找到「作战参谋」，点击「安装」。",
-  "plannerManualInstall": "手动安装请选择「直接从 npm 服务器安装」，输入插件包名："
+  "plannerManualInstall": "手动安装请选择「直接从 npm 服务器安装」，输入插件包名：",
+  "Special equipment": "特殊装备",
+  "Neither": "均不选"
 }
