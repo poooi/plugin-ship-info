@@ -81,6 +81,7 @@ async function closePopover(
   canvasElement: HTMLElement,
   name: string,
 ): Promise<void> {
+  const closingPanel = panel()
   let backdrop: HTMLElement | undefined
   await waitFor(() => {
     backdrop = activeBackdrop()
@@ -93,6 +94,9 @@ async function closePopover(
         .getByRole('button', { name })
         .getAttribute('aria-expanded'),
     ).toBe('false')
+    // Blueprint restores focus when the exit transition finishes. Opening
+    // another popover before then can interrupt typing in its name field.
+    expect(closingPanel.isConnected).toBe(false)
   })
 }
 
@@ -183,6 +187,8 @@ export const DefaultBookmarkRestoresDefaults: Story = {
       })
     })
     await waitForRows(canvasElement, ALL_ROWS)
+    await closePopover(canvasElement, 'Bookmarks')
+    await openPopover(canvasElement, 'Filter')
     await expect(
       screen.getByRole<HTMLInputElement>('textbox', {
         name: 'Maximum level',
