@@ -1,7 +1,7 @@
 {
   "Unknown": "未知",
-  "Type 89 Tank Landing Craft": "可裝備大發（八九式中戰車＆陸戰隊）",
-  "Type 2 Ka-Mi": "可裝備特二式內火艇",
+  "Type 89 Tank Landing Craft": "大發（八九式中戰車＆陸戰隊）",
+  "Type 2 Ka-Mi": "特二式內火艇",
   "Localize ship names": "在地化艦名",
   "Status": "狀態條件",
   "Modified": "已修改",
@@ -73,7 +73,7 @@
   "Multiple": "多頁",
   "unknown_area": "未知海域 {{area}}，數據未更新",
   "Free":"無限定",
-  "Daihatsu": "攜帶大發",
+  "Daihatsu": "大發",
   "Create ": "創建 ",
   "Overwrite ": "覆蓋 ",
   "Search or create a bookmark": "搜索或創建書籤",

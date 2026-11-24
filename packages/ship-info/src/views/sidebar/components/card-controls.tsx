@@ -222,7 +222,20 @@ const ColoredCheckbox = styled(Checkbox)<{
     transition: all 0.15s cubic-bezier(0.4, 1, 0.75, 0.9);
 
     ${(props) => {
-      if (!props.$cardColor) return ''
+      if (!props.$cardColor) {
+        const light = props.theme.variant === 'light'
+        return props.$checked
+          ? `
+            background-color: ${props.theme.BLUE3};
+            border-color: ${props.theme.BLUE3};
+            color: #fff;
+            &:hover { background-color: ${props.theme.BLUE2}; }
+          `
+          : `
+            border-color: ${light ? props.theme.GRAY2 : props.theme.GRAY3};
+            &:hover { background-color: ${light ? props.theme.LIGHT_GRAY3 : props.theme.DARK_GRAY4}; }
+          `
+      }
 
       const color = props.$cardColor
       const surface =
